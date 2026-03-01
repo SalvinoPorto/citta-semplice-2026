@@ -1,0 +1,120 @@
+[
+    {
+        "id": "field_huht58oq79",
+        "type": "text",
+        "name": "cf_nome",
+        "label": "Nome",
+        "value": "Grazia"
+    },
+    {
+        "id": "field_wdlw5l4i4p",
+        "type": "text",
+        "name": "cf_cognome",
+        "label": "Cognome",
+        "value": "Cucuzza"
+    },
+    {
+        "id": "field_cdyy1e2k98",
+        "type": "text",
+        "name": "provincia_nascita",
+        "label": "Prov. nascita(sigla)",
+        "value": "CT"
+    },
+    {
+        "id": "field_q5g55bukxv",
+        "type": "text",
+        "name": "cf_citta",
+        "label": "Luogo di nascita",
+        "value": "Catania"
+    },
+    {
+        "id": "field_74cqa8ld5l",
+        "type": "date",
+        "name": "cf_dataNascita",
+        "label": "Data di nascita",
+        "value": "1962-08-28"
+    },
+    {
+        "id": "field_qe0qb5nnji",
+        "type": "select",
+        "name": "cf_sesso",
+        "label": "Sesso",
+        "value": "F"
+    },
+    {
+        "id": "field_hvsv97ifrz",
+        "type": "text",
+        "name": "cf_cf",
+        "label": "Codice fiscale",
+        "value": "CCZGRZ62M68C351N"
+    },
+    {
+        "id": "field_hvfpoc0gh7",
+        "type": "text",
+        "name": "residenza_indirizzo",
+        "label": "Indirizzo residenza",
+        "value": "Via Sgroppillo"
+    },
+    {
+        "id": "field_c0jx5474iu",
+        "type": "text",
+        "name": "residenza_civico",
+        "label": "Num.civ.",
+        "value": "109"
+    },
+    {
+        "id": "field_jvzyq5nizu",
+        "type": "text",
+        "name": "residenza_cap",
+        "label": "CAP",
+        "value": "97027"
+    },
+    {
+        "id": "field_x0q7mxzq4x",
+        "type": "text",
+        "name": "residenza_citta",
+        "label": "Città di residenza",
+        "value": "San Gregorio"
+    },
+    {
+        "id": "field_xuaj4pi53a",
+        "type": "text",
+        "name": "residenza_provincia",
+        "label": "Provincia (Sigla)",
+        "value": "CT"
+    },
+    {
+        "id": "field_j5f728kc08",
+        "type": "text",
+        "name": "telefono1",
+        "label": "Telefono 1",
+        "value": "3293960021"
+    },
+    {
+        "id": "field_j3nnyuawji",
+        "type": "text",
+        "name": "telefono2",
+        "label": "Telefono 2"
+    },
+    {
+        "id": "field_1ws1xsbc4x",
+        "type": "email",
+        "name": "email",
+        "label": "Email",
+        "value": "salvino.porto@gmail.com"
+    },
+    {
+        "id": "field_v1cg4goqpu",
+        "type": "checkbox",
+        "name": "parcheggi",
+        "label": "Ritiro tessera dei parcheggi scambiatori",
+        "value": "si"
+    },
+    {
+        "id": "field_vdiw9pl8oo",
+        "type": "checkbox",
+        "name": "accetto_gdpr",
+        "label": "Accetto",
+        "value": "si"
+    }
+]

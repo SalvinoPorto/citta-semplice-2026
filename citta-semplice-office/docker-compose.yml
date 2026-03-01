@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: citta-semplice-office
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://io_user:io_password@db:5432/io_db?schema=public
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me-in-production}
+      - JWT_EXPIRATION_HOURS=2
+      - UPLOAD_DIR=/data/uploads
+      - MODULES_DIR=/data/modules
+      - ENABLE_CRON_JOBS=true
+      - CRON_SECRET=${CRON_SECRET:-cron-secret-key}
+      # External services (configure as needed)
+      - URBISMART_URL=${URBISMART_URL:-}
+      - PMPAY_URL=${PMPAY_URL:-}
+      - PMPAY_API_KEY=${PMPAY_API_KEY:-}
+    volumes:
+      - uploads_data:/data/uploads
+      - modules_data:/data/modules
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - citta-semplice-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: citta-semplice-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=io_user
+      - POSTGRES_PASSWORD=io_password
+      - POSTGRES_DB=io_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U io_user -d io_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - citta-semplice-network
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: citta-semplice-pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - citta-semplice-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+  modules_data:
+    driver: local
+
+networks:
+  citta-semplice-network:
+    driver: bridge

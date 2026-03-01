@@ -1,0 +1,73 @@
+{
+    "fields": [
+        {
+            "id": "field_1772386562126_bj24074tq",
+            "type": "paragraph",
+            "name": "paragraph",
+            "label": "Inserire le informazioni relative alla persona di cui si vuole richiedere il certificato",
+            "validation": {}
+        },
+        {
+            "id": "field_1770399319464_lqxszp1zg",
+            "type": "text",
+            "name": "nome_richiedente",
+            "label": "Nome",
+            "validation": {
+                "required": true,
+                "maxLength": 100
+            },
+            "placeholder": "Inserisci testo..."
+        },
+        {
+            "id": "field_1772386659656_v4uvfkabk",
+            "type": "text",
+            "name": "cognome_richiedente",
+            "label": "Cognome",
+            "validation": {
+                "required": true,
+                "maxLength": 100
+            },
+            "placeholder": "Inserisci testo..."
+        },
+        {
+            "id": "field_1772386741145_vkk38axlm",
+            "type": "date",
+            "name": "data",
+            "label": "Data",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "id": "field_1772386796132_sv4iwtg94",
+            "type": "tel",
+            "name": "telefono",
+            "label": "Telefono",
+            "validation": {
+                "required": true
+            }
+        },
+        {
+            "id": "field_1772386852192_bd5ey01r6",
+            "type": "text",
+            "name": "qualita",
+            "label": "In qualità di",
+            "validation": {
+                "required": true
+            },
+            "placeholder": "Inserisci testo..."
+        },
+        {
+            "id": "field_1772386855312_cwk7fz87w",
+            "type": "text",
+            "name": "motivo_richiesta",
+            "label": "Motivo della richiesta",
+            "validation": {
+                "required": true,
+                "maxLength": 100
+            },
+            "placeholder": "Inserisci testo..."
+        }
+    ],
+    "version": "1.0"
+}

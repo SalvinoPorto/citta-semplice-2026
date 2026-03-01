@@ -1,0 +1,214 @@
+:root {
+  --font-titillium: 'Titillium Web', sans-serif;
+}
+
+body {
+  font-family: var(--font-titillium);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* Data table styles */
+.data-table .table th {
+  background-color: #f5f6f7;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table .cursor-pointer {
+  cursor: pointer;
+}
+
+.data-table .cursor-pointer:hover {
+  background-color: #f8f9fa;
+}
+
+/* Card improvements */
+.card {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Badge improvements */
+.badge {
+  font-weight: 500;
+  padding: 0.4em 0.8em;
+}
+
+/* Status badges */
+.status-badge-elaborazione {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-badge-conclusa {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.status-badge-respinta {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.status-badge-successo {
+  background-color: #17a2b8;
+  color: #fff;
+}
+
+/* Page header */
+.page-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #17324d;
+  margin-bottom: 0.25rem;
+}
+
+.page-header p {
+  color: #5c6f82;
+  margin-bottom: 0;
+}
+
+/* Action buttons group */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+  }
+}
+
+/* Form improvements */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+/* Timeline styles for workflow */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #e9ecef;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #0066cc;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #0066cc;
+}
+
+.timeline-item.completed::before {
+  background-color: #28a745;
+  box-shadow: 0 0 0 2px #28a745;
+}
+
+.timeline-item.pending::before {
+  background-color: #ffc107;
+  box-shadow: 0 0 0 2px #ffc107;
+}
+
+.timeline-item.rejected::before {
+  background-color: #dc3545;
+  box-shadow: 0 0 0 2px #dc3545;
+}
+
+/* Stats cards */
+.stat-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.stat-card .stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0066cc;
+}
+
+.stat-card .stat-label {
+  color: #5c6f82;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-state svg {
+  width: 100px;
+  height: 100px;
+  color: #c0c0c0;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #5c6f82;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #a0a0a0;
+}

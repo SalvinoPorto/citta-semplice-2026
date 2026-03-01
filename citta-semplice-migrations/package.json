@@ -1,0 +1,11 @@
+{
+  "name": "citta-semplice-migrations",
+  "version": "1.0.0",
+  "description": "Script di migrazione dati Città Semplice",
+  "scripts": {
+    "migrate-dati": "node migrate-dati.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.3"
+  }
+}
