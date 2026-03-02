@@ -29,7 +29,7 @@ const srcConfig = {
 const dstConfig = {
   host: process.env.DST_HOST || 'localhost',
   port: parseInt(process.env.DST_PORT || '5432'),
-  database: 'io_db_2',
+  database: 'citta-semplice',
   user: 'io_user',
   password: 'Comct2019',
 };
@@ -112,6 +112,191 @@ function convertAttributes(raw) {
   return JSON.stringify({ fields, version: '1.0' });
 }
 
+// ── migrazione enti SOLO CATANIA──────────────────────────────────────────────────
+
+async function migrateEnti(src, dst) {
+  console.log('\n── Migrazione enti ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`SELECT 
+    id, 
+    ente, 
+    descrizione, 
+    codice, 
+    true as attivo
+    FROM enti 
+    ORDER BY id LIMIT 1
+    `);
+  console.log(`Enti trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessuna ente da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns
+    //.filter(c => c !== 'id')
+    .map(c => `"${c}" = EXCLUDED."${c}"`)
+    .join(', ');
+
+  const sql = `
+    INSERT INTO enti (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+
+  for (const row of rows) {
+    const values = columns.map(col => {
+      //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
+      return row[col];
+    });
+
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} enti migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su ente id=${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  console.log(`Enti: ${ok} OK, ${errors} errori`);
+}
+
+// ── migrazione aree ─────────────────────────────────────────────────────────
+
+async function migrateAree(src, dst) {
+  console.log('\n── Migrazione aree ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`SELECT 
+    id, 
+    descrizione, 
+    icon as icona, 
+    slug, 
+    titolo, 
+    id_ente as ente_id, 
+    attivo as attiva, 
+    privata, 
+    ordine
+    FROM aree 
+    WHERE id_ente=1
+    ORDER BY id
+    `);
+  console.log(`Aree trovate: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessuna area da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns
+    //.filter(c => c !== 'id')
+    .map(c => `"${c}" = EXCLUDED."${c}"`)
+    .join(', ');
+
+  const sql = `
+    INSERT INTO aree (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+
+  for (const row of rows) {
+    const values = columns.map(col => {
+      //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
+      return row[col];
+    });
+
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} aree migrate…`);
+    } catch (err) {
+      console.error(`  ✗ errore su area id=${row.id}: ${err.message}`);
+      errors++;
+    }
+
+    // aggiorno il numero di sequenza dell'area per evitare conflitti con nuove aree create dopo la migrazione
+    try {
+      await dst.query(`SELECT setval('aree_id_seq', GREATEST((SELECT MAX(id) FROM aree), nextval('aree_id_seq')))`);
+    } catch (err) {
+      console.error(`  ⚠ errore nell'aggiornamento sequenza aree: ${err.message}`);
+    }
+
+  }
+
+  console.log(`Aree: ${ok} OK, ${errors} errori`);
+}
+
+// ── migrazione servizi ─────────────────────────────────────────────────────────
+
+async function migrateServizi(src, dst) {
+  console.log('\n── Migrazione servizi ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`SELECT 
+    id, 
+    corpo as descrizione, 
+    requisiti as come_fare, 
+    riferimento as contatti, 
+    slug, 
+    sottotitolo as sotto_titolo, 
+    titolo, 
+    id_area as area_id, 
+    attivo
+    FROM servizi 
+    ORDER BY id LIMIT 10
+    `);
+  console.log(`Servizi trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun servizio da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns
+    //.filter(c => c !== 'id')
+    .map(c => `"${c}" = EXCLUDED."${c}"`)
+    .join(', ');
+
+  const sql = `
+    INSERT INTO servizi (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+
+  for (const row of rows) {
+    const values = columns.map(col => {
+      //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
+      return row[col];
+    });
+
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} servizi migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su servizio id=${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  console.log(`Servizi: ${ok} OK, ${errors} errori`);
+}
+
 // ── migrazione moduli ─────────────────────────────────────────────────────────
 
 async function migrateModuli(src, dst) {
@@ -158,12 +343,13 @@ async function migrateModuli(src, dst) {
     path_viario_ws_esterno, 
     COALESCE(prevede_documento_finale,false) as prevede_documento_finale, 
     template_documento_finale, 
-    viario, 
+    COALESCE(viario,false) as viario, 
     label_viario, 
     unico_invio_per_utente, 
     COALESCE(post_form_validation,false) as post_form_validation, 
     post_form_validation_api, 
-    post_form_validation_fields
+    post_form_validation_fields,
+    data_inizio as updated_at
     FROM moduli 
     ORDER BY id LIMIT 10`);
   console.log(`Moduli trovati: ${rows.length}`);
@@ -369,10 +555,19 @@ async function main() {
     // 1. Migra utenti
     // await migrateUtenti(src, dst);
 
-    // 2. Migra moduli (converte il campo attributes nel nuovo formato)
-    await migrateModuli(src, dst);
+    // 2. Migra enti
+    // await migrateEnti(src, dst);
 
-    // 3. Migra istanze (risolve CF→id interrogando dst per ogni riga)
+    // 3. Migra aree
+    await migrateAree(src, dst);
+
+    // 3. Migra servizi
+    //await migrateServizi(src, dst);
+    
+    // 4. Migra moduli (converte il campo attributes nel nuovo formato)
+    //await migrateModuli(src, dst);
+
+    // 5. Migra istanze (risolve CF→id interrogando dst per ogni riga)
     // await migrateIstanze(src, dst);
 
     console.log('\n✓ Migrazione completata.');

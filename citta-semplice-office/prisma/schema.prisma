@@ -72,7 +72,7 @@ model Ente {
   id              Int       @id @default(autoincrement())
   ente            String
   descrizione     String?
-  codiceFiscale   String?   @map("codice_fiscale")
+  codice          String?
   indirizzo       String?
   telefono        String?
   email           String?
@@ -107,7 +107,8 @@ model Area {
   icona       String?
   ordine      Int       @default(0)
   attiva      Boolean   @default(true)
-
+  slug        String?
+  privata     Boolean   @default(false)
   enteId      Int       @map("ente_id")
   ente        Ente      @relation(fields: [enteId], references: [id], onDelete: Cascade)
 
@@ -119,7 +120,13 @@ model Area {
 model Servizio {
   id          Int       @id @default(autoincrement())
   titolo      String
+  sottoTitolo String?   @map("sotto_titolo")
   descrizione String?
+  comeFare    String?   @map("come_fare")
+  cosaServe   String?   @map("cosa_serve")
+  altreInfo   String?   @map("altre_info")
+  contatti    String?
+  slug        String?
   icona       String?
   ordine      Int       @default(0)
   attivo      Boolean   @default(true)
