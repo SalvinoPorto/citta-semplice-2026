@@ -29,7 +29,7 @@ const srcConfig = {
 const dstConfig = {
   host: process.env.DST_HOST || 'localhost',
   port: parseInt(process.env.DST_PORT || '5432'),
-  database: 'citta-semplice',
+  database: 'citta_semplice',
   user: 'io_user',
   password: 'Comct2019',
 };
@@ -148,7 +148,7 @@ async function migrateEnti(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-
+  await dst.query("DELETE FROM enti");
   for (const row of rows) {
     const values = columns.map(col => {
       //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -165,6 +165,12 @@ async function migrateEnti(src, dst) {
     }
   }
 
+  // aggiorno il numero di sequenza dell'area per evitare conflitti con nuove aree create dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('enti_id_seq', GREATEST((SELECT MAX(id) FROM enti), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza enti: ${err.message}`);
+  }
   console.log(`Enti: ${ok} OK, ${errors} errori`);
 }
 
@@ -179,7 +185,6 @@ async function migrateAree(src, dst) {
     icon as icona, 
     slug, 
     titolo, 
-    id_ente as ente_id, 
     attivo as attiva, 
     privata, 
     ordine
@@ -210,6 +215,7 @@ async function migrateAree(src, dst) {
 
   let ok = 0, errors = 0;
 
+  await dst.query("DELETE FROM aree");
   for (const row of rows) {
     const values = columns.map(col => {
       //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -225,13 +231,12 @@ async function migrateAree(src, dst) {
       errors++;
     }
 
-    // aggiorno il numero di sequenza dell'area per evitare conflitti con nuove aree create dopo la migrazione
-    try {
-      await dst.query(`SELECT setval('aree_id_seq', GREATEST((SELECT MAX(id) FROM aree), nextval('aree_id_seq')))`);
-    } catch (err) {
-      console.error(`  ⚠ errore nell'aggiornamento sequenza aree: ${err.message}`);
-    }
-
+  }
+  // aggiorno il numero di sequenza dell'area per evitare conflitti con nuove aree create dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('aree_id_seq', GREATEST((SELECT MAX(id) FROM aree), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza aree: ${err.message}`);
   }
 
   console.log(`Aree: ${ok} OK, ${errors} errori`);
@@ -251,9 +256,11 @@ async function migrateServizi(src, dst) {
     sottotitolo as sotto_titolo, 
     titolo, 
     id_area as area_id, 
-    attivo
+    attivo,
+    m.id as modulo_id
     FROM servizi 
-    ORDER BY id LIMIT 10
+    WHERE id_area in (SELECT id FROM aree WHERE id_ente=1)
+    ORDER BY id
     `);
   console.log(`Servizi trovati: ${rows.length}`);
 
@@ -277,7 +284,7 @@ async function migrateServizi(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-
+  await dst.query("DELETE FROM servizi");
   for (const row of rows) {
     const values = columns.map(col => {
       //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -294,8 +301,78 @@ async function migrateServizi(src, dst) {
     }
   }
 
+  // aggiorno il numero di sequenza dei servizi per evitare conflitti con nuovi servizi creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('servizi_id_seq', GREATEST((SELECT MAX(id) FROM servizi), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza aree: ${err.message}`);
+  }
+
   console.log(`Servizi: ${ok} OK, ${errors} errori`);
 }
+
+// ── migrazione uffici ─────────────────────────────────────────────────────────
+
+async function migrateUffici(src, dst) {
+  console.log('\n── Migrazione uffici ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`SELECT 
+    id, 
+    descrizione, 
+    nome, 
+    FROM uffici 
+    WHERE id_ente=1
+    ORDER BY id
+    `);
+  console.log(`Uffici trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun ufficio da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns
+    //.filter(c => c !== 'id')
+    .map(c => `"${c}" = EXCLUDED."${c}"`)
+    .join(', ');
+
+  const sql = `
+    INSERT INTO uffici (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+
+  for (const row of rows) {
+    const values = columns.map(col => {
+      //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
+      return row[col];
+    });
+
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} uffici migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su ufficio id=${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  // aggiorno il numero di sequenza dei servizi per evitare conflitti con nuovi servizi creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('uffici_id_seq', GREATEST((SELECT MAX(id) FROM uffici), nextval('uffici_id_seq')))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza uffici: ${err.message}`);
+  }
+
+  console.log(`Uffici: ${ok} OK, ${errors} errori`);
+}
+
 
 // ── migrazione moduli ─────────────────────────────────────────────────────────
 
@@ -317,7 +394,7 @@ async function migrateModuli(src, dst) {
     campi_in_evidenza, 
     campi_da_esportare, 
     corpo, 
-    id_ufficio as ufficio_id, 
+    --id_ufficio as ufficio_id, 
     aggiorna_stato_ws_esterno, 
     attivo, 
     campi_unico_invio, 
@@ -337,7 +414,7 @@ async function migrateModuli(src, dst) {
     avviso_soglia, msg_extra_modulo, 
     numero_max_istanze, 
     path_acquisizione_posizione_debitoria_ws_esterno, 
-    id_attributo_type as attributo_type_id, 
+    --d_attributo_type as attributo_type_id, 
     nome_documento_finale, 
     path_municipalita_ws_esterno, 
     path_viario_ws_esterno, 
@@ -351,7 +428,11 @@ async function migrateModuli(src, dst) {
     post_form_validation_fields,
     data_inizio as updated_at
     FROM moduli 
-    ORDER BY id LIMIT 10`);
+    WHERE id_servizio IN (
+      SELECT id FROM servizi
+	    WHERE id_area IN (
+        SELECT id FROM aree WHERE id_ente=1))
+    ORDER BY id`);
   console.log(`Moduli trovati: ${rows.length}`);
 
   if (rows.length === 0) {
@@ -363,7 +444,7 @@ async function migrateModuli(src, dst) {
   const colList = columns.map(c => `"${c}"`).join(', ');
   const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
   const updateSet = columns
-    .filter(c => c !== 'id')
+    // .filter(c => c !== 'id')
     .map(c => `"${c}" = EXCLUDED."${c}"`)
     .join(', ');
 
@@ -391,6 +472,13 @@ async function migrateModuli(src, dst) {
     }
   }
 
+// aggiorno il numero di sequenza dei moduli per evitare conflitti con nuovi moduli creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('moduli_id_seq', GREATEST((SELECT MAX(id) FROM moduli), nextval('moduli_id_seq')))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza moduli: ${err.message}`);
+  }
+
   console.log(`Moduli: ${ok} OK, ${errors} errori`);
 }
 
@@ -403,7 +491,7 @@ async function migrateUtenti(src, dst) {
     SELECT codice_fiscale, cognome, nome, email,
            mobile AS telefono, data_nascita, luogo_nascita
     FROM utenti
-    ORDER BY codice_fiscale
+    ORDER BY codice_fiscale LIMIT 100
   `);
   console.log(`Utenti trovati: ${rows.length}`);
 
@@ -559,15 +647,18 @@ async function main() {
     // await migrateEnti(src, dst);
 
     // 3. Migra aree
-    await migrateAree(src, dst);
+    // await migrateAree(src, dst);
 
     // 3. Migra servizi
-    //await migrateServizi(src, dst);
-    
-    // 4. Migra moduli (converte il campo attributes nel nuovo formato)
-    //await migrateModuli(src, dst);
+    // await migrateServizi(src, dst);
 
-    // 5. Migra istanze (risolve CF→id interrogando dst per ogni riga)
+    // 4. Migra uffici
+    // await migrateUffici(src, dst);
+
+    // 5. Migra moduli (converte il campo attributes nel nuovo formato)
+    await migrateModuli(src, dst);
+
+    // 6. Migra istanze (risolve CF→id interrogando dst per ogni riga)
     // await migrateIstanze(src, dst);
 
     console.log('\n✓ Migrazione completata.');
