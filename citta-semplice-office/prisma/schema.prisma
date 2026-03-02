@@ -25,8 +25,8 @@ model Operatore {
 
   // Relations
   ruoli             OperatoreRuolo[]
-  enti              OperatoreEnte[]
-  moduli            OperatoreModulo[]
+  // enti              OperatoreEnte[]
+  servizi           OperatoreServizio[]
   workflows         Workflow[]
 
   @@map("operatori")
@@ -59,7 +59,7 @@ model RuoloUser {
   nome        String    @unique
   descrizione String?
 
-  moduli      ModuloRuoloUser[]
+  servizi      ServizioRuoloUser[]
 
   @@map("ruoli_user")
 }
@@ -82,13 +82,14 @@ model Ente {
   createdAt       DateTime  @default(now()) @map("created_at")
 
   // Relations
-  aree            Area[]
-  operatori       OperatoreEnte[]
-  pagamenti       Pagamento[]
+  // aree            Area[]
+  //operatori       OperatoreEnte[]
+  //pagamenti       Pagamento[]
 
   @@map("enti")
 }
 
+/*
 model OperatoreEnte {
   operatoreId Int       @map("operatore_id")
   enteId      Int       @map("ente_id")
@@ -99,6 +100,7 @@ model OperatoreEnte {
   @@id([operatoreId, enteId])
   @@map("operatore_enti")
 }
+*/
 
 model Area {
   id          Int       @id @default(autoincrement())
@@ -109,8 +111,8 @@ model Area {
   attiva      Boolean   @default(true)
   slug        String?
   privata     Boolean   @default(false)
-  enteId      Int       @map("ente_id")
-  ente        Ente      @relation(fields: [enteId], references: [id], onDelete: Cascade)
+  // enteId      Int       @map("ente_id")
+  // ente        Ente      @relation(fields: [enteId], references: [id], onDelete: Cascade)
 
   servizi     Servizio[]
 
@@ -134,8 +136,16 @@ model Servizio {
   areaId      Int       @map("area_id")
   area        Area      @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  moduli      Modulo[]
-  moduliLink  ModuloLink[]
+  moduloId    Int       @map("modulo_id")
+  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+
+  operatori             OperatoreServizio[]
+  uffici                Ufficio[]
+  steps                 Step[]
+  istanze               Istanza[]
+  customerSatisfaction  CustomerSatisfaction?
+  ricevuta              Ricevuta?
+  ruoli                 ServizioRuoloUser[]
 
   @@map("servizi")
 }
@@ -148,8 +158,9 @@ model Ufficio {
   telefono    String?
   indirizzo   String?
   attivo      Boolean   @default(true)
+  // enteId      Int       @map("ente_id")
 
-  moduli      Modulo[]
+  servizi     Servizio[]
 
   @@map("uffici")
 }
@@ -171,7 +182,7 @@ model Modulo {
   dataInizio            DateTime  @map("data_inizio")
   dataFine              DateTime  @map("data_fine")
   attivo                Boolean   @default(true)
-
+/*
   // Evidence fields
   campiInEvidenza       String?   @map("campi_in_evidenza")
   campiDaEsportare      String?   @map("campi_da_esportare")
@@ -183,7 +194,7 @@ model Modulo {
 
   // Limits
   numeroMaxIstanze      Int?      @map("numero_max_istanze")
-  avvisoSoglia          Int?      @map("avviso_soglia")
+  avvisoSoglia          String?   @map("avviso_soglia")
   msgExtraModulo        String?   @map("msg_extra_modulo")
 
   // External WS Integration
@@ -213,7 +224,7 @@ model Modulo {
   prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
   templateDocumentoFinale   String?   @map("template_documento_finale") @db.Text
   nomeDocumentoFinale       String?   @map("nome_documento_finale")
-
+*/
   // Post-form validation
   postFormValidation        Boolean   @default(false) @map("post_form_validation")
   postFormValidationAPI     String?   @map("post_form_validation_api")
@@ -221,17 +232,20 @@ model Modulo {
 
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
-
   // Relations
-  servizioId            Int       @map("servizio_id")
-  servizio              Servizio  @relation(fields: [servizioId], references: [id])
+  //servizioId            Int       @map("servizio_id")
+  //servizio              Servizio  @relation(fields: [servizioId], references: [id])
+
+  servizi               Servizio[]
+/*
 
   ufficioId             Int?      @map("ufficio_id")
   ufficio               Ufficio?  @relation(fields: [ufficioId], references: [id])
 
-  attributoTypeId       Int?      @map("attributo_type_id")
-  attributoType         AttributoType? @relation(fields: [attributoTypeId], references: [id])
+  // attributoTypeId       Int?      @map("attributo_type_id")
+  // attributoType         AttributoType? @relation(fields: [attributoTypeId], references: [id])
 
+  
   steps                 Step[]
   istanze               Istanza[]
   formule               Formula[]
@@ -243,21 +257,33 @@ model Modulo {
   ricevuta              Ricevuta?
   fieldImportedDataRel  FieldImportedDataRel?
   logModifiche          LogModificheModuli[]
-
+*/
   @@map("moduli")
 }
 
-model OperatoreModulo {
+model OperatoreServizio {
   operatoreId Int       @map("operatore_id")
-  moduloId    Int       @map("modulo_id")
+  servizioId  Int       @map("servizio_id")
 
   operatore   Operatore @relation(fields: [operatoreId], references: [id], onDelete: Cascade)
-  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  servizio    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
-  @@id([operatoreId, moduloId])
-  @@map("operatore_moduli")
+  @@id([operatoreId, servizioId])
+  @@map("operatore_servizi")
 }
 
+model ServizioRuoloUser {
+  servizioId  Int       @map("servizio_id")
+  ruoloUserId Int       @map("ruolo_user_id")
+
+  servizio    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
+  ruoloUser   RuoloUser @relation(fields: [ruoloUserId], references: [id], onDelete: Cascade)
+
+  @@id([servizioId, ruoloUserId])
+  @@map("servizi_ruoli_user")
+}
+
+/*
 model ModuloRuoloUser {
   moduloId    Int       @map("modulo_id")
   ruoloUserId Int       @map("ruolo_user_id")
@@ -279,7 +305,7 @@ model ModuloLink {
 
   @@map("modulo_links")
 }
-
+*/
 // ============================================
 // WORKFLOW STEPS
 // ============================================
@@ -307,14 +333,14 @@ model Step {
   assegnabileASpecificoUfficio Boolean  @default(false) @map("assegnabile_a_specifico_ufficio")
   settaAttributo              Boolean   @default(false) @map("setta_attributo")
 
-  moduloId                    Int       @map("modulo_id")
-  modulo                      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  servizioId                  Int       @map("servizio_id")
+  servizio                    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
   workflows                   Workflow[]
   allegatiRichiestiList       AllegatoRichiesto[]
   pagamentoConfig             Pagamento?
 
-  @@unique([moduloId, ordine])
+  @@unique([servizioId, ordine])
   @@map("steps")
 }
 
@@ -403,19 +429,19 @@ model Istanza {
   utenteId            Int       @map("utente_id")
   utente              Utente    @relation(fields: [utenteId], references: [id])
 
-  moduloId            Int       @map("modulo_id")
-  modulo              Modulo    @relation(fields: [moduloId], references: [id])
+  servizioId          Int       @map("servizio_id")
+  servizio            Servizio  @relation(fields: [servizioId], references: [id])
 
   lastStepId          Int?      @map("last_step_id")
 
-  attributoId         Int?      @map("attributo_id")
-  attributo           Attributo? @relation(fields: [attributoId], references: [id])
+  // attributoId         Int?      @map("attributo_id")
+  // attributo           Attributo? @relation(fields: [attributoId], references: [id])
 
   workflows           Workflow[]
   avvisi              AvvisoIstanza[]
 
   @@index([utenteId])
-  @@index([moduloId])
+  @@index([servizioId])
   @@index([dataInvio])
   @@index([protoNumero])
   @@map("istanze")
@@ -523,10 +549,10 @@ model Pagamento {
 
   codiceTributoId     Int?      @map("codice_tributo_id")
   codiceTributo       Tributo?  @relation(fields: [codiceTributoId], references: [id])
-
+/*
   enteId              Int?      @map("ente_id")
   ente                Ente?     @relation(fields: [enteId], references: [id])
-
+*/
   @@map("pagamenti")
 }
 
@@ -554,7 +580,7 @@ model PagamentoEffettuato {
 // ============================================
 // ATTRIBUTES
 // ============================================
-
+/*
 model AttributoType {
   id              Int       @id @default(autoincrement())
   tipoAttributo   String    @map("tipo_attributo")
@@ -576,7 +602,8 @@ model Attributo {
 
   @@map("attributi")
 }
-
+*/
+/*
 // ============================================
 // FORMULAS & VALIDATION
 // ============================================
@@ -612,6 +639,7 @@ model DocumentoFinaleAttributo {
 
   @@map("documento_finale_attributi")
 }
+*/
 
 // ============================================
 // CUSTOMER SATISFACTION
@@ -624,8 +652,8 @@ model CustomerSatisfaction {
   red     Int       @default(0)
   gray    Int       @default(0)
 
-  moduloId Int      @unique @map("modulo_id")
-  modulo   Modulo   @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  servizioId Int       @unique @map("servizio_id")
+  servizio   Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
   @@map("customer_satisfaction")
 }
@@ -640,8 +668,8 @@ model Ricevuta {
   corpo           String?   @db.Text
   footer          String?
 
-  idModulo        Int       @unique @map("id_modulo")
-  modulo          Modulo    @relation(fields: [idModulo], references: [id], onDelete: Cascade)
+  servizioId      Int       @unique @map("modulo_id")
+  servizio        Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
   @@map("ricevute")
 }
@@ -649,7 +677,7 @@ model Ricevuta {
 // ============================================
 // IMPORTED DATA
 // ============================================
-
+/*
 model ImportedDataType {
   id              Int       @id @default(autoincrement())
   tipo            String
@@ -684,6 +712,7 @@ model ImportedData {
   @@index([chiave])
   @@map("imported_data")
 }
+*/
 
 // ============================================
 // EMERGENCY PROTOCOL
@@ -694,7 +723,7 @@ model ProtocolloEmergenza {
   data        DateTime
   tipo        String    // INGRESSO, USCITA
   rettificato Boolean   @default(false)
-  idIstanza   Int?      @map("id_istanza")
+  istanzaId   Int?      @map("istanza_id")
 
   @@map("protocollo_emergenza")
 }
@@ -702,19 +731,18 @@ model ProtocolloEmergenza {
 // ============================================
 // LOGS & AUDITING
 // ============================================
-
+/*
 model LogModificheModuli {
   id            Int       @id @default(autoincrement())
-  modulo        String
   operatore     String
   dataModifica  DateTime  @map("data_modifica")
 
   moduloId      Int?      @map("modulo_id")
-  moduloRef     Modulo?   @relation(fields: [moduloId], references: [id], onDelete: SetNull)
+  modulo        Modulo?   @relation(fields: [moduloId], references: [id], onDelete: SetNull)
 
   @@map("log_modifiche_moduli")
 }
-
+*/
 // ============================================
 // STATISTICS
 // ============================================
