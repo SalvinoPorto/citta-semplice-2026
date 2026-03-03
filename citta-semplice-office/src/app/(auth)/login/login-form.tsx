@@ -11,7 +11,7 @@ export function LoginForm() {
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const error = searchParams.get('error');
 
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(error ? 'Credenziali non valide' : '');
@@ -23,14 +23,14 @@ export function LoginForm() {
 
     try {
       const result = await signIn('credentials', {
-        email,
+        userName,
         password,
         redirect: false,
         callbackUrl,
       });
 
       if (result?.error) {
-        setErrorMessage('Email o password non corretti');
+        setErrorMessage('UserName o password non corretti');
       } else if (result?.ok) {
         router.push(callbackUrl);
         router.refresh();
@@ -56,12 +56,12 @@ export function LoginForm() {
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <Input
-              type="email"
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              label="User"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="userName"
               autoFocus
             />
           </div>

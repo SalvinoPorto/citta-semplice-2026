@@ -69,19 +69,7 @@ async function main() {
   });
   console.log('Created area');
 
-  // Create Servizio
-  const servizio = await prisma.servizio.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      titolo: 'Anagrafe',
-      descrizione: 'Servizi anagrafici',
-      ordine: 1,
-      attivo: true,
-      areaId: area.id,
-    },
-  });
-  console.log('Created servizio');
+  
 
   // Create Ufficio
   const ufficio = await prisma.ufficio.upsert({
@@ -101,14 +89,14 @@ async function main() {
   // Create Admin Operatore
   const adminPassword = await hash('admin123', 12);
   const admin = await prisma.operatore.upsert({
-    where: { email: 'admin@comune.catania.it' },
+    where: { id:1 },
     update: {},
     create: {
       email: 'admin@comune.catania.it',
       password: adminPassword,
       nome: 'Admin',
       cognome: 'Sistema',
-      codiceFiscale: 'ADMIN00000000000',
+      userName: 'Admin',
       attivo: true,
     },
   });
@@ -131,7 +119,6 @@ async function main() {
     });
   }
 
-  
   // Create sample Modulo
   const modulo = await prisma.modulo.upsert({
     where: { slug: 'richiesta-certificato-anagrafico' },
@@ -141,8 +128,6 @@ async function main() {
       slug: 'richiesta-certificato-anagrafico',
       description: 'Modulo per la richiesta di certificati anagrafici',
       tipo: 'HTML',
-      dataInizio: new Date('2024-01-01'),
-      dataFine: new Date('2030-12-31'),
       attivo: true,
       attributes: JSON.stringify({
         fields: [
@@ -154,7 +139,24 @@ async function main() {
   });
   console.log('Created modulo');
 
-  // Create Steps for modulo
+// Create Servizio
+  const servizio = await prisma.servizio.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      titolo: 'Anagrafe',
+      descrizione: 'Servizi anagrafici',
+      ordine: 1,
+      attivo: true,
+      dataInizio: new Date('2024-01-01'),
+      dataFine: new Date('2030-12-31'),
+      moduloId: 1,
+      areaId: area.id,
+    },
+  });
+  console.log('Created servizio');
+
+  // Create Steps for servizio
   const steps = [
     { descrizione: 'Ricezione', ordine: 1, protocollo: true },
     { descrizione: 'Verifica', ordine: 2, protocollo: false },
@@ -164,8 +166,8 @@ async function main() {
   for (const step of steps) {
     await prisma.step.upsert({
       where: {
-        moduloId_ordine: {
-          moduloId: modulo.id,
+        servizioId_ordine: {
+          servizioId: modulo.id,
           ordine: step.ordine,
         },
       },
@@ -173,24 +175,24 @@ async function main() {
       create: {
         ...step,
         attivo: true,
-        moduloId: modulo.id,
+        servizioId: servizio.id,
       },
     });
   }
   console.log('Created steps');
 
   // Assign modulo to admin
-  await prisma.operatoreModulo.upsert({
+  await prisma.operatoreServizio.upsert({
     where: {
-      operatoreId_moduloId: {
+      operatoreId_servizioId: {
         operatoreId: admin.id,
-        moduloId: modulo.id,
+        servizioId: servizio.id,
       },
     },
     update: {},
     create: {
       operatoreId: admin.id,
-      moduloId: modulo.id,
+      servizioId: servizio.id,
     },
   });
   console.log('Assigned modulo to admin');
