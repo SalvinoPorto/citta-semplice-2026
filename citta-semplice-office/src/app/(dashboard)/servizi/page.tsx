@@ -15,12 +15,13 @@ async function getServizi(areaId?: number) {
     orderBy: [{ area: { titolo: 'asc' } }, { ordine: 'asc' }],
     include: {
       area: {
-        include: {
-          ente: true,
-        },
+        select: { titolo: true },
+      },
+      modulo: {
+        select: { name: true, tipo: true },
       },
       _count: {
-        select: { moduli: true },
+        select: { steps: true },
       },
     },
   });
@@ -85,8 +86,8 @@ export default async function ServiziPage({
                 <tr>
                   <th>Titolo</th>
                   <th>Area</th>
-                  <th>Ente</th>
-                  <th>Moduli</th>
+                  <th>Modulo</th>
+                  <th>Steps</th>
                   <th>Stato</th>
                   <th></th>
                 </tr>
@@ -113,8 +114,14 @@ export default async function ServiziPage({
                         )}
                       </td>
                       <td>{servizio.area.titolo}</td>
-                      <td>{servizio.area.ente.ente}</td>
-                      <td>{servizio._count.moduli}</td>
+                      <td>
+                        {servizio.modulo ? (
+                          <span className="small">{servizio.modulo.name}</span>
+                        ) : (
+                          <span className="text-muted small">—</span>
+                        )}
+                      </td>
+                      <td>{servizio._count.steps}</td>
                       <td>
                         {servizio.attivo ? (
                           <Badge variant="success">Attivo</Badge>
@@ -129,12 +136,6 @@ export default async function ServiziPage({
                             className="btn btn-sm btn-outline-primary"
                           >
                             Modifica
-                          </Link>
-                          <Link
-                            href={`/moduli?servizio=${servizio.id}`}
-                            className="btn btn-sm btn-outline-secondary"
-                          >
-                            Moduli
                           </Link>
                         </div>
                       </td>

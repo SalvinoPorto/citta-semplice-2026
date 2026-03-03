@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
   const whereClause: any = {};
 
   if (formFilters.modulo) {
-    whereClause.moduloId = parseInt(formFilters.modulo);
+    whereClause.servizioId = parseInt(formFilters.modulo);
   }
 
   if (formFilters.protocollo) {
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
         orderBy = { utente: { cognome: dir } };
         break;
       case 'modulo':
-        orderBy = { modulo: { name: dir } };
+        orderBy = { servizio: { titolo: dir } };
         break;
       default:
         orderBy = { dataInvio: 'desc' };
@@ -219,8 +219,8 @@ export async function POST(request: NextRequest) {
       utente: {
         select: { nome: true, cognome: true, codiceFiscale: true, email: true },
       },
-      modulo: {
-        select: { name: true, campiInEvidenza: true },
+      servizio: {
+        select: { titolo: true, campiInEvidenza: true },
       },
       workflows: {
         orderBy: { dataVariazione: 'desc' },

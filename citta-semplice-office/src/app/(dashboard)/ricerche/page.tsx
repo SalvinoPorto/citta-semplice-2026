@@ -1,16 +1,18 @@
 import prisma from '@/lib/db/prisma';
 import { RicercheClient } from './ricerche-client';
 
-async function getModuli() {
-  return prisma.modulo.findMany({
+async function getServizi() {
+  return prisma.servizio.findMany({
     where: { attivo: true },
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true },
+    orderBy: { titolo: 'asc' },
+    select: { id: true, titolo: true },
   });
 }
 
 export default async function RicerchePage() {
-  const moduli = await getModuli();
+  const servizi = await getServizi();
+  // Map to { id, name } shape expected by RicercheClient
+  const moduli = servizi.map((s) => ({ id: s.id, name: s.titolo }));
 
   return (
     <div>

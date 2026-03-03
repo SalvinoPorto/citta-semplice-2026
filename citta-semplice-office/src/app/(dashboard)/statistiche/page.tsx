@@ -40,10 +40,10 @@ async function getStatistiche(giorni: number) {
       orderBy: { data: 'asc' },
     }),
     prisma.istanza.groupBy({
-      by: ['moduloId'],
+      by: ['servizioId'],
       _count: true,
       where: { dataInvio: { gte: startDate, lte: today } },
-      orderBy: { _count: { moduloId: 'desc' } },
+      orderBy: { _count: { servizioId: 'desc' } },
       take: 10,
     }),
     prisma.istanza.groupBy({
@@ -53,14 +53,14 @@ async function getStatistiche(giorni: number) {
     }),
   ]);
 
-  // Get modulo names
-  const moduloIds = istanzePerModulo.map((i) => i.moduloId);
-  const moduli = await prisma.modulo.findMany({
-    where: { id: { in: moduloIds } },
-    select: { id: true, name: true },
+  // Get servizio names
+  const servizioIds = istanzePerModulo.map((i) => i.servizioId);
+  const servizi = await prisma.servizio.findMany({
+    where: { id: { in: servizioIds } },
+    select: { id: true, titolo: true },
   });
 
-  const moduloMap = Object.fromEntries(moduli.map((m) => [m.id, m.name]));
+  const servizioMap = Object.fromEntries(servizi.map((s) => [s.id, s.titolo]));
 
   // Calculate status distribution
   const statoDistribuzione = {
@@ -87,8 +87,8 @@ async function getStatistiche(giorni: number) {
     statisticheGiornaliere,
     statistichePagamenti,
     istanzePerModulo: istanzePerModulo.map((i) => ({
-      moduloId: i.moduloId,
-      moduloName: moduloMap[i.moduloId] || 'Sconosciuto',
+      servizioId: i.servizioId,
+      servizioName: servizioMap[i.servizioId] || 'Sconosciuto',
       count: i._count,
     })),
     statoDistribuzione,
@@ -308,10 +308,10 @@ export default async function StatistichePage({
                         ? (item.count / stats.istanzePeriodo) * 100
                         : 0;
                     return (
-                      <tr key={item.moduloId}>
+                      <tr key={item.servizioId}>
                         <td>{index + 1}</td>
                         <td>
-                          <Link href={`/moduli/${item.moduloId}`}>{item.moduloName}</Link>
+                          <Link href={`/servizi/${item.servizioId}`}>{item.servizioName}</Link>
                         </td>
                         <td className="text-end">{item.count}</td>
                         <td>

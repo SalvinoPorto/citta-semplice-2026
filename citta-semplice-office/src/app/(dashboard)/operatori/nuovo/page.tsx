@@ -2,17 +2,18 @@ import prisma from '@/lib/db/prisma';
 import { OperatoreForm } from '../operatore-form';
 
 async function getFormData() {
-  const [ruoli, enti, moduli] = await Promise.all([
+  const [ruoli, servizi] = await Promise.all([
     prisma.ruolo.findMany({ orderBy: { nome: 'asc' } }),
-    prisma.ente.findMany({ where: { attivo: true }, orderBy: { ente: 'asc' } }),
-    prisma.modulo.findMany({
+    prisma.servizio.findMany({
       where: { attivo: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true }
+      orderBy: { titolo: 'asc' },
+      select: { id: true, titolo: true }
     }),
   ]);
 
-  return { ruoli, enti, moduli };
+  const moduli = servizi.map((s) => ({ id: s.id, name: s.titolo }));
+
+  return { ruoli, enti: [], moduli };
 }
 
 export default async function NuovoOperatorePage() {

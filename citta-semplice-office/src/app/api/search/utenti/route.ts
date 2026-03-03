@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       telefono: utente.telefono || '-',
       istanze: utente._count.istanze,
       utente: `${utente.cognome} ${utente.nome}`,
-      modulo: '-',
+      servizio: '-',
       data: utente.createdAt ? new Date(utente.createdAt).toLocaleDateString('it-IT') : '-',
       stato: `${utente._count.istanze} istanze`,
     }));

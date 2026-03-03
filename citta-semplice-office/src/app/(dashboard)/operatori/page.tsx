@@ -12,14 +12,9 @@ async function getOperatori() {
           ruolo: true,
         },
       },
-      enti: {
-        include: {
-          ente: true,
-        },
-      },
       _count: {
         select: {
-          moduli: true,
+          servizi: true,
         },
       },
     },
@@ -51,8 +46,7 @@ export default async function OperatoriPage() {
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Ruoli</th>
-                  <th>Enti</th>
-                  <th>Moduli</th>
+                  <th>Servizi</th>
                   <th>Stato</th>
                   <th></th>
                 </tr>
@@ -60,7 +54,7 @@ export default async function OperatoriPage() {
               <tbody>
                 {operatori.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-4 text-muted">
+                    <td colSpan={5} className="text-center py-4 text-muted">
                       Nessun operatore presente
                     </td>
                   </tr>
@@ -82,19 +76,7 @@ export default async function OperatoriPage() {
                           ))}
                         </div>
                       </td>
-                      <td>
-                        <div className="d-flex gap-1 flex-wrap">
-                          {operatore.enti.slice(0, 2).map((e) => (
-                            <Badge key={e.enteId} variant="info">
-                              {e.ente.ente}
-                            </Badge>
-                          ))}
-                          {operatore.enti.length > 2 && (
-                            <Badge variant="light">+{operatore.enti.length - 2}</Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td>{operatore._count.moduli}</td>
+                      <td>{operatore._count.servizi}</td>
                       <td>
                         {operatore.attivo ? (
                           <Badge variant="success">Attivo</Badge>

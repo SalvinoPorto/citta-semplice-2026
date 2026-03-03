@@ -17,7 +17,7 @@ interface SearchResult {
   id: number;
   utente: string;
   codiceFiscale?: string;
-  modulo: string;
+  servizio: string;
   data: string;
   stato: string;
   protocollo?: string;
@@ -32,7 +32,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
     protocollo: '',
     dataInizio: '',
     dataFine: '',
-    moduloId: '',
+    servizioId: '',
     stato: '',
     cognome: '',
     email: '',
@@ -82,7 +82,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
       protocollo: '',
       dataInizio: '',
       dataFine: '',
-      moduloId: '',
+      servizioId: '',
       stato: '',
       cognome: '',
       email: '',
@@ -123,13 +123,13 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
 
             <div className="mb-3">
               <Select
-                label="Modulo"
-                value={filters.moduloId}
+                label="Servizio"
+                value={filters.servizioId}
                 onChange={(e) =>
-                  setFilters({ ...filters, moduloId: e.target.value })
+                  setFilters({ ...filters, servizioId: e.target.value })
                 }
               >
-                <option value="">Tutti i moduli</option>
+                <option value="">Tutti i servizi</option>
                 {moduli.map((modulo) => (
                   <option key={modulo.id} value={modulo.id}>
                     {modulo.name}
@@ -309,7 +309,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
                   <div>{result.utente}</div>
                   <small className="text-muted">{result.codiceFiscale}</small>
                 </td>
-                <td>{result.modulo}</td>
+                <td>{result.servizio}</td>
                 <td>{result.data}</td>
                 <td>{result.protocollo}</td>
                 <td>
@@ -399,7 +399,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
               <td>#{result.id}</td>
               <td><code>{result.codiceFiscale}</code></td>
               <td>{result.utente}</td>
-              <td>{result.modulo !== '-' ? result.modulo : '-'}</td>
+              <td>{result.servizio !== '-' ? result.servizio : '-'}</td>
               <td>
                 <Badge variant="info">{result.stato}</Badge>
               </td>

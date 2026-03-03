@@ -11,15 +11,10 @@ async function getOperatoreDetails(operatoreId: number) {
           ruolo: true,
         },
       },
-      enti: {
+      servizi: {
         include: {
-          ente: true,
-        },
-      },
-      moduli: {
-        include: {
-          modulo: {
-            select: { id: true, name: true },
+          servizio: {
+            select: { id: true, titolo: true },
           },
         },
       },
@@ -101,17 +96,17 @@ export default async function ProfiloPage() {
 
           <Card>
             <CardBody>
-              <CardTitle>Enti di Competenza</CardTitle>
-              {operatore.enti.length === 0 ? (
-                <p className="text-muted">Nessun ente assegnato</p>
+              <CardTitle>Servizi di Competenza</CardTitle>
+              {operatore.servizi.length === 0 ? (
+                <p className="text-muted">Nessun servizio assegnato</p>
               ) : (
                 <ul className="list-unstyled mb-0">
-                  {operatore.enti.map((e) => (
-                    <li key={e.enteId} className="mb-2">
+                  {operatore.servizi.map((s) => (
+                    <li key={s.servizioId} className="mb-2">
                       <svg className="icon icon-sm me-2 text-primary">
                         <use href="/bootstrap-italia/dist/svg/sprites.svg#it-pa"></use>
                       </svg>
-                      {e.ente.ente}
+                      {s.servizio.titolo}
                     </li>
                   ))}
                 </ul>
@@ -123,23 +118,23 @@ export default async function ProfiloPage() {
         <div className="col-12">
           <Card>
             <CardBody>
-              <CardTitle>Moduli Assegnati</CardTitle>
-              {operatore.moduli.length === 0 ? (
-                <p className="text-muted">Nessun modulo assegnato</p>
+              <CardTitle>Servizi Assegnati</CardTitle>
+              {operatore.servizi.length === 0 ? (
+                <p className="text-muted">Nessun servizio assegnato</p>
               ) : (
                 <div className="table-responsive">
                   <table className="table table-sm">
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Nome Modulo</th>
+                        <th>Titolo Servizio</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {operatore.moduli.map((m) => (
-                        <tr key={m.moduloId}>
-                          <td>#{m.modulo.id}</td>
-                          <td>{m.modulo.name}</td>
+                      {operatore.servizi.map((s) => (
+                        <tr key={s.servizioId}>
+                          <td>#{s.servizio.id}</td>
+                          <td>{s.servizio.titolo}</td>
                         </tr>
                       ))}
                     </tbody>

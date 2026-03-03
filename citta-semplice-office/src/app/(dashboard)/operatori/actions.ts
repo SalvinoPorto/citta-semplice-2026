@@ -33,14 +33,9 @@ export async function createOperatore(data: OperatoreCreateFormData) {
           ruoloId,
         })),
       },
-      enti: {
-        create: validated.entiIds.map((enteId) => ({
-          enteId,
-        })),
-      },
-      moduli: {
-        create: validated.moduliIds.map((moduloId) => ({
-          moduloId,
+      servizi: {
+        create: validated.moduliIds.map((servizioId) => ({
+          servizioId,
         })),
       },
     },
@@ -80,8 +75,7 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
   await prisma.$transaction(async (tx) => {
     // Delete existing relations
     await tx.operatoreRuolo.deleteMany({ where: { operatoreId: id } });
-    await tx.operatoreEnte.deleteMany({ where: { operatoreId: id } });
-    await tx.operatoreModulo.deleteMany({ where: { operatoreId: id } });
+    await tx.operatoreServizio.deleteMany({ where: { operatoreId: id } });
 
     // Update operatore
     await tx.operatore.update({
@@ -93,14 +87,9 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
             ruoloId,
           })),
         },
-        enti: {
-          create: validated.entiIds.map((enteId) => ({
-            enteId,
-          })),
-        },
-        moduli: {
-          create: validated.moduliIds.map((moduloId) => ({
-            moduloId,
+        servizi: {
+          create: validated.moduliIds.map((servizioId) => ({
+            servizioId,
           })),
         },
       },

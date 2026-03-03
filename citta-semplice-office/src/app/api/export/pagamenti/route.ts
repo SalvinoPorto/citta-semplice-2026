@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
                 utente: {
                   select: { nome: true, cognome: true, codiceFiscale: true },
                 },
-                modulo: {
-                  select: { name: true },
+                servizio: {
+                  select: { titolo: true },
                 },
               },
             },
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
     const rows = results.map((pagamento) => {
       const utente = pagamento.workflow?.istanza?.utente;
-      const modulo = pagamento.workflow?.istanza?.modulo;
+      const servizio = pagamento.workflow?.istanza?.servizio;
 
       return [
         pagamento.id,
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
         escapeCSV(utente?.cognome || pagamento.cognomeUtente),
         escapeCSV(utente?.nome || pagamento.nomeUtente),
         escapeCSV(pagamento.causale),
-        escapeCSV(modulo?.name),
+        escapeCSV(servizio?.titolo),
         pagamento.workflow?.istanza?.id || '',
       ];
     });

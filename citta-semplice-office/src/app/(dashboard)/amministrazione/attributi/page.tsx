@@ -1,18 +1,10 @@
-import prisma from '@/lib/db/prisma';
 import { requireAdmin } from '@/lib/auth/session';
 import { Card, CardBody, Badge } from '@/components/ui';
 import Link from 'next/link';
 
 async function getAttributoTypes() {
-  return prisma.attributoType.findMany({
-    orderBy: { tipoAttributo: 'asc' },
-    include: {
-      attributi: true,
-      _count: {
-        select: { moduli: true },
-      },
-    },
-  });
+  // AttributoType model is not active in the current schema
+  return [] as never[];
 }
 
 export default async function AttributiPage() {
@@ -47,7 +39,7 @@ export default async function AttributiPage() {
                 <CardBody>
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <h5 className="card-title mb-0">{tipo.tipoAttributo}</h5>
-                    <Badge variant="info">{tipo._count.moduli} moduli</Badge>
+                    <Badge variant="info">{tipo.attributi?.length ?? 0} attributi</Badge>
                   </div>
 
                   <p className="mb-2">

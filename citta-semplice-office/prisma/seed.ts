@@ -46,7 +46,7 @@ async function main() {
     create: {
       ente: 'Comune di Catania',
       descrizione: 'Comune di Catania - Città Metropolitana di Catania',
-      codiceFiscale: '00137020877',
+      codice: 'COCAT',
       indirizzo: 'Piazza Duomo, 1 - 95100 Catania (CT)',
       telefono: '095 7421111',
       email: 'urp@comune.catania.it',
@@ -65,7 +65,6 @@ async function main() {
       descrizione: 'Area servizi dedicati ai cittadini',
       ordine: 1,
       attiva: true,
-      enteId: ente.id,
     },
   });
   console.log('Created area');
@@ -132,22 +131,7 @@ async function main() {
     });
   }
 
-  // Assign ente to admin
-  await prisma.operatoreEnte.upsert({
-    where: {
-      operatoreId_enteId: {
-        operatoreId: admin.id,
-        enteId: ente.id,
-      },
-    },
-    update: {},
-    create: {
-      operatoreId: admin.id,
-      enteId: ente.id,
-    },
-  });
-  console.log('Created admin operatore');
-
+  
   // Create sample Modulo
   const modulo = await prisma.modulo.upsert({
     where: { slug: 'richiesta-certificato-anagrafico' },
@@ -160,8 +144,6 @@ async function main() {
       dataInizio: new Date('2024-01-01'),
       dataFine: new Date('2030-12-31'),
       attivo: true,
-      servizioId: servizio.id,
-      ufficioId: ufficio.id,
       attributes: JSON.stringify({
         fields: [
           { name: 'tipoCertificato', label: 'Tipo Certificato', type: 'select' },

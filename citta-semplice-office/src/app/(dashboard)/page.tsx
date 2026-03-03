@@ -48,8 +48,8 @@ async function getRecentIstanze() {
       utente: {
         select: { nome: true, cognome: true, codiceFiscale: true },
       },
-      modulo: {
-        select: { name: true },
+      servizio: {
+        select: { titolo: true },
       },
     },
   });
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
                       <td>
                         {istanza.utente.cognome} {istanza.utente.nome}
                       </td>
-                      <td>{istanza.modulo.name}</td>
+                      <td>{istanza.servizio.titolo}</td>
                       <td>
                         {new Date(istanza.dataInvio).toLocaleDateString('it-IT')}
                       </td>

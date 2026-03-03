@@ -7,8 +7,7 @@ async function getOperatore(id: number) {
     where: { id },
     include: {
       ruoli: { select: { ruoloId: true } },
-      enti: { select: { enteId: true } },
-      moduli: { select: { moduloId: true } },
+      servizi: { select: { servizioId: true } },
     },
   });
 
@@ -16,17 +15,19 @@ async function getOperatore(id: number) {
 }
 
 async function getFormData() {
-  const [ruoli, enti, moduli] = await Promise.all([
+  const [ruoli, servizi] = await Promise.all([
     prisma.ruolo.findMany({ orderBy: { nome: 'asc' } }),
-    prisma.ente.findMany({ where: { attivo: true }, orderBy: { ente: 'asc' } }),
-    prisma.modulo.findMany({
+    prisma.servizio.findMany({
       where: { attivo: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true }
+      orderBy: { titolo: 'asc' },
+      select: { id: true, titolo: true }
     }),
   ]);
 
-  return { ruoli, enti, moduli };
+  // Map servizi to { id, name } shape expected by OperatoreForm
+  const moduli = servizi.map((s) => ({ id: s.id, name: s.titolo }));
+
+  return { ruoli, enti: [], moduli };
 }
 
 interface PageProps {
@@ -67,8 +68,8 @@ export default async function ModificaOperatorePage({ params }: PageProps) {
           telefono: operatore.telefono || '',
           attivo: operatore.attivo,
           ruoliIds: operatore.ruoli.map((r) => r.ruoloId),
-          entiIds: operatore.enti.map((e) => e.enteId),
-          moduliIds: operatore.moduli.map((m) => m.moduloId),
+          entiIds: [],
+          moduliIds: operatore.servizi.map((s) => s.servizioId),
         }}
         ruoli={ruoli}
         enti={enti}

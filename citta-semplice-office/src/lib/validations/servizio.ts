@@ -1,12 +1,60 @@
 import { z } from 'zod';
 
+export const stepSchema = z.object({
+  id: z.number().optional(),
+  descrizione: z.string().min(1, 'La descrizione è obbligatoria'),
+  ordine: z.number().int().min(1),
+  attivo: z.boolean().default(true),
+  pagamento: z.boolean().default(false),
+  allegati: z.boolean().default(false),
+  allegatiOp: z.boolean().default(false),
+  allegatiRequired: z.boolean().default(false),
+  allegatiOpRequired: z.boolean().default(false),
+  protocollo: z.boolean().default(false),
+  unitaOrganizzativa: z.string().optional(),
+});
+
 export const servizioSchema = z.object({
+  // Informazioni base
   titolo: z.string().min(1, 'Il titolo è obbligatorio'),
+  sottoTitolo: z.string().optional(),
   descrizione: z.string().optional(),
+  comeFare: z.string().optional(),
+  cosaServe: z.string().optional(),
+  altreInfo: z.string().optional(),
+  contatti: z.string().optional(),
+  slug: z.string().optional(),
   icona: z.string().optional(),
   ordine: z.number().int().min(0).default(0),
   attivo: z.boolean().default(true),
-  areaId: z.number().int().min(1, 'Seleziona un\'area'),
+  areaId: z.number().int().min(1, "Seleziona un'area"),
+
+  // Configurazione istanze
+  moduloId: z.number().int().nullable().optional(),
+  ufficioId: z.number().int().nullable().optional(),
+  dataInizio: z.string().optional(),
+  dataFine: z.string().optional(),
+
+  // Regole di invio
+  unicoInvio: z.boolean().default(false),
+  unicoInvioPerUtente: z.boolean().default(false),
+  campiUnicoInvio: z.string().optional(),
+  numeroMaxIstanze: z.number().int().min(0).nullable().optional(),
+  avvisoSoglia: z.number().int().min(0).nullable().optional(),
+  msgExtraServizio: z.string().optional(),
+
+  // Visualizzazione
+  campiInEvidenza: z.string().optional(),
+  campiDaEsportare: z.string().optional(),
+
+  // Documento finale
+  prevedeDocumentoFinale: z.boolean().default(false),
+  templateDocumentoFinale: z.string().optional(),
+  nomeDocumentoFinale: z.string().optional(),
+
+  // Workflow
+  steps: z.array(stepSchema).default([]),
 });
 
+export type StepFormData = z.infer<typeof stepSchema>;
 export type ServizioFormData = z.infer<typeof servizioSchema>;
