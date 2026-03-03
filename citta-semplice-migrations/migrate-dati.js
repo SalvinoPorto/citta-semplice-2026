@@ -390,7 +390,7 @@ async function migrateOperatori(src, dst) {
     COALESCE(data_registrazione, NOW()) as created_at, 
     COALESCE(data_registrazione, NOW()) as updated_at, 
     email, 
-    operatore_id, 
+    operatore_id as user_name, 
     passwd as password
     FROM operatori 
     ORDER BY id
@@ -443,6 +443,115 @@ async function migrateOperatori(src, dst) {
   console.log(`Operatori: ${ok} OK, ${errors} errori`);
 }
 
+// ── migrazione ruoli ─────────────────────────────────────────────────────────
+
+async function migrateRuoli(src, dst) {
+  console.log('\n── Migrazione ruoli ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`SELECT 
+    id, 
+    nome
+    FROM ruoli 
+    ORDER BY id
+    `);
+  console.log(`Ruoli trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun ruolo da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns
+    //.filter(c => c !== 'id')
+    .map(c => `"${c}" = EXCLUDED."${c}"`)
+    .join(', ');
+
+  const sql = `
+    INSERT INTO ruoli (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+  await dst.query("DELETE FROM ruoli");
+  for (const row of rows) {
+    const values = columns.map(col => {
+      return row[col];
+    });
+
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} ruoli migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su ruolo id=${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  // aggiorno il numero di sequenza dei ruoli per evitare conflitti con nuovi ruoli creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('ruoli_id_seq', GREATEST((SELECT MAX(id) FROM ruoli), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza ruoli: ${err.message}`);
+  }
+
+  console.log(`Ruoli: ${ok} OK, ${errors} errori`);
+}
+
+// ── migrazione ruoli ─────────────────────────────────────────────────────────
+
+async function migrateOperatoriRuoli(src, dst) {
+  console.log('\n── Migrazione operatori_ruoli ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`SELECT 
+    operatore_id, 
+    ruolo_id
+    FROM operatori_ruoli 
+    `);
+  console.log(`Operatori-Ruoli trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun operatore-ruolo da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns
+    //.filter(c => c !== 'id')
+    .map(c => `"${c}" = EXCLUDED."${c}"`)
+    .join(', ');
+
+  const sql = `
+    INSERT INTO operatori_ruoli (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (operatore_id, ruolo_id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+  await dst.query("DELETE FROM operatori_ruoli");
+  for (const row of rows) {
+    const values = columns.map(col => {
+      return row[col];
+    });
+
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} operatori-ruoli migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su operatore-ruolo id=${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  console.log(`Operatori-Ruoli: ${ok} OK, ${errors} errori`);
+}
 
 // ── migrazione moduli ─────────────────────────────────────────────────────────
 
@@ -596,7 +705,84 @@ async function migrateUtenti(src, dst) {
     }
   }
 
+  // aggiorno il numero di sequenza degli utenti per evitare conflitti con nuovi utenti creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('utenti_id_seq', GREATEST((SELECT MAX(id) FROM utenti), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza utenti: ${err.message}`);
+  }
+
   console.log(`Utenti: ${ok} inseriti/esistenti, ${errors} errori`);
+}
+
+// ── migrazione steps ─────────────────────────────────────────────────────────
+
+async function migrateSteps(src, dst) {
+  console.log('\n── Migrazione steps ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT 
+    s.id, 
+    s.attivo, 
+    descrizione, 
+    pagamento, 
+    allegati, 
+    protocollo, 
+    unita_organizzativa, 
+    ordine, 
+    m.id_servizio as servizio_id, 
+    allegati_richiesti, 
+    COALESCE(allegati_op, false) as allegati_op, 
+    allegati_op_richiesti, 
+    COALESCE(allegati_op_required, false) as allegati_op_required, 
+    COALESCE(allegati_required, false) as allegati_required, 
+    --assegnabileaspecifico_ufficio, 
+    COALESCE(setta_attributo, false) as setta_attributo
+    --termine_risposta
+    FROM step s
+    LEFT JOIN moduli m ON m.id=s.id_modulo
+    ORDER BY id
+  `);
+  console.log(`Step trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessuno step da migrare.');
+    return;
+  }
+
+  // Colonne derivate dalla query (già rinominate con alias)
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+
+  const sql = `
+    INSERT INTO steps (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  let ok = 0, errors = 0;
+  await dst.query("DELETE FROM steps")
+  for (const row of rows) {
+    const values = columns.map(c => row[c]);
+    try {
+      await dst.query(sql, values);
+      ok++;
+      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} steps migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su step ${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  // aggiorno il numero di sequenza degli steps per evitare conflitti con nuovi steps creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('steps_id_seq', GREATEST((SELECT MAX(id) FROM steps), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza step: ${err.message}`);
+  }
+
+  console.log(`Steps: ${ok} inseriti/esistenti, ${errors} errori`);
 }
 
 // ── risoluzione utente per codice fiscale ────────────────────────────────────
@@ -717,30 +903,40 @@ async function main() {
   await dst.connect();
 
   try {
+    /*
     // 1. Migra utenti
-    // await migrateUtenti(src, dst);
+    await migrateUtenti(src, dst);
 
     // 2. Migra operatori
     await migrateOperatori(src, dst);
+*/
+    // 2. Migra ruoli
+    await migrateRuoli(src, dst);
 
-    // 3. Migra enti
-    // await migrateEnti(src, dst);
-
-    // 4. Migra aree
-    // await migrateAree(src, dst);
-
-    // 5. Migra moduli (converte il campo attributes nel nuovo formato)
-    // await migrateModuli(src, dst);
-
-    // 6. Migra servizi
-    // await migrateServizi(src, dst);
-
-    // 7. Migra uffici
-    // await migrateUffici(src, dst);
-
-    // 8. Migra istanze (risolve CF→id interrogando dst per ogni riga)
-    // await migrateIstanze(src, dst);
-
+    // 2. Migra operatori_ruoli
+    await migrateOperatoriRuoli(src, dst);
+    /*
+        // 3. Migra enti
+        await migrateEnti(src, dst);
+    
+        // 4. Migra aree
+        await migrateAree(src, dst);
+    
+        // 5. Migra moduli (converte il campo attributes nel nuovo formato)
+        await migrateModuli(src, dst);
+    
+        // 6. Migra servizi
+        await migrateServizi(src, dst);
+    
+        // 7. Migra uffici
+        await migrateUffici(src, dst);
+    
+        // 7. Migra steps
+        await migrateSteps(src, dst);
+    
+        // 8. Migra istanze (risolve CF→id interrogando dst per ogni riga)
+        await migrateIstanze(src, dst);
+    */
     console.log('\n✓ Migrazione completata.');
   } finally {
     await src.end();

@@ -17,7 +17,7 @@ model Operatore {
   password          String
   nome              String
   cognome           String
-  operatoreId       String?   @unique @map("operatore_id")
+  userName          String   @unique @map("user_name")
   telefono          String?
   attivo            Boolean   @default(true)
   createdAt         DateTime  @default(now()) @map("created_at")
@@ -29,7 +29,7 @@ model Operatore {
   servizi           OperatoreServizio[]
   workflows         Workflow[]
 
-  @@index([operatoreId])
+  @@index([userName])
   @@map("operatori")
 }
 
@@ -52,7 +52,7 @@ model OperatoreRuolo {
   ruolo       Ruolo     @relation(fields: [ruoloId], references: [id], onDelete: Cascade)
 
   @@id([operatoreId, ruoloId])
-  @@map("operatore_ruoli")
+  @@map("operatori_ruoli")
 }
 
 model RuoloUser {
