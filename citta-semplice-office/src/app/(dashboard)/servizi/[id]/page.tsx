@@ -5,19 +5,32 @@ import { ServizioForm } from '../servizio-form';
 async function getServizio(id: number) {
   return prisma.servizio.findUnique({
     where: { id },
+    include: {
+      steps: { orderBy: { ordine: 'asc' } },
+    },
   });
 }
 
-async function getAree() {
-  return prisma.area.findMany({
-    where: { attiva: true },
-    orderBy: { titolo: 'asc' },
-    include: {
-      ente: {
-        select: { ente: true },
-      },
-    },
-  });
+async function getFormData() {
+  const [aree, moduli, uffici] = await Promise.all([
+    prisma.area.findMany({
+      where: { attiva: true },
+      orderBy: { titolo: 'asc' },
+      select: { id: true, titolo: true },
+    }),
+    prisma.modulo.findMany({
+      where: { attivo: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, tipo: true },
+    }),
+    prisma.ufficio.findMany({
+      where: { attivo: true },
+      orderBy: { nome: 'asc' },
+      select: { id: true, nome: true },
+    }),
+  ]);
+
+  return { aree, moduli, uffici };
 }
 
 interface PageProps {
@@ -32,9 +45,9 @@ export default async function ModificaServizioPage({ params }: PageProps) {
     notFound();
   }
 
-  const [servizio, aree] = await Promise.all([
+  const [servizio, { aree, moduli, uffici }] = await Promise.all([
     getServizio(servizioId),
-    getAree(),
+    getFormData(),
   ]);
 
   if (!servizio) {
@@ -52,13 +65,49 @@ export default async function ModificaServizioPage({ params }: PageProps) {
         servizio={{
           id: servizio.id,
           titolo: servizio.titolo,
+          sottoTitolo: servizio.sottoTitolo || '',
           descrizione: servizio.descrizione || '',
+          comeFare: servizio.comeFare || '',
+          cosaServe: servizio.cosaServe || '',
+          altreInfo: servizio.altreInfo || '',
+          contatti: servizio.contatti || '',
+          slug: servizio.slug || '',
           icona: servizio.icona || '',
           ordine: servizio.ordine,
           attivo: servizio.attivo,
           areaId: servizio.areaId,
+          moduloId: servizio.moduloId,
+          ufficioId: servizio.ufficioId,
+          dataInizio: servizio.dataInizio?.toISOString().split('T')[0] ?? '',
+          dataFine: servizio.dataFine?.toISOString().split('T')[0] ?? '',
+          unicoInvio: servizio.unicoInvio,
+          unicoInvioPerUtente: servizio.unicoInvioPerUtente,
+          campiUnicoInvio: servizio.campiUnicoInvio || '',
+          numeroMaxIstanze: servizio.numeroMaxIstanze,
+          avvisoSoglia: servizio.avvisoSoglia,
+          msgExtraServizio: servizio.msgExtraServizio || '',
+          campiInEvidenza: servizio.campiInEvidenza || '',
+          campiDaEsportare: servizio.campiDaEsportare || '',
+          prevedeDocumentoFinale: servizio.prevedeDocumentoFinale,
+          templateDocumentoFinale: servizio.templateDocumentoFinale || '',
+          nomeDocumentoFinale: servizio.nomeDocumentoFinale || '',
+          steps: servizio.steps.map((step) => ({
+            id: step.id,
+            descrizione: step.descrizione,
+            ordine: step.ordine,
+            attivo: step.attivo,
+            pagamento: step.pagamento,
+            allegati: step.allegati,
+            allegatiOp: step.allegatiOp,
+            allegatiRequired: step.allegatiRequired,
+            allegatiOpRequired: step.allegatiOpRequired,
+            protocollo: step.protocollo,
+            unitaOrganizzativa: step.unitaOrganizzativa || '',
+          })),
         }}
         aree={aree}
+        moduli={moduli}
+        uffici={uffici}
       />
     </div>
   );

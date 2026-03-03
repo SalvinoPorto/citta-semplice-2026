@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const protocollo = searchParams.get('protocollo');
   const dataInizio = searchParams.get('dataInizio');
   const dataFine = searchParams.get('dataFine');
-  const moduloId = searchParams.get('moduloId');
+  const servizioId = searchParams.get('servizioId');
   const stato = searchParams.get('stato');
 
   // Build where clause
@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (moduloId) {
-    where.moduloId = parseInt(moduloId);
+  if (servizioId) {
+    where.servizioId = parseInt(servizioId);
   }
 
   if (stato) {
@@ -82,8 +82,8 @@ export async function GET(request: NextRequest) {
             telefono: true,
           },
         },
-        modulo: {
-          select: { name: true },
+        servizio: {
+          select: { titolo: true },
         },
       },
       orderBy: { dataInvio: 'desc' },
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
       escapeCSV(istanza.utente.nome),
       escapeCSV(istanza.utente.email),
       escapeCSV(istanza.utente.telefono),
-      escapeCSV(istanza.modulo.name),
+      escapeCSV(istanza.servizio.titolo),
       new Date(istanza.dataInvio).toLocaleDateString('it-IT'),
       escapeCSV(istanza.protoNumero),
       escapeCSV(istanza.protoFinaleNumero),

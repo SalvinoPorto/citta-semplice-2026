@@ -21,7 +21,7 @@ export async function advanceWorkflow(istanzaId: number, note: string) {
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
-        modulo: {
+        servizio: {
           include: {
             steps: {
               where: { attivo: true },
@@ -46,7 +46,7 @@ export async function advanceWorkflow(istanzaId: number, note: string) {
     }
 
     const lastWorkflow = istanza.workflows[0];
-    const steps = istanza.modulo.steps;
+    const steps = istanza.servizio.steps;
     const currentStepOrder = lastWorkflow?.step?.ordine || 0;
     const nextStep = steps.find((s) => s.ordine === currentStepOrder + 1);
 
@@ -492,23 +492,8 @@ export async function deleteAvviso(avvisoId: number, istanzaId: number) {
 }
 
 export async function assignAttributo(istanzaId: number, attributoId: number | null) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return { success: false, message: 'Non autorizzato' };
-    }
-
-    await prisma.istanza.update({
-      where: { id: istanzaId },
-      data: { attributoId },
-    });
-
-    revalidatePath(`/istanze/${istanzaId}`);
-    return { success: true, message: 'Assegnazione aggiornata' };
-  } catch (error) {
-    console.error('Error assigning attributo:', error);
-    return { success: false, message: "Errore durante l'assegnazione" };
-  }
+  // AttributoType/Attributo is not active in the current schema
+  return { success: false, message: 'Funzionalità non disponibile' };
 }
 
 export interface IstanzaUtenteItem {
@@ -537,7 +522,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
           orderBy: { dataInvio: 'desc' },
           take: 50,
           include: {
-            modulo: { select: { name: true } },
+            servizio: { select: { titolo: true } },
             workflows: {
               orderBy: { dataVariazione: 'desc' },
               take: 1,
@@ -554,7 +539,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
 
     const data: IstanzaUtenteItem[] = utente.istanze.map((i) => ({
       id: i.id,
-      modulo: i.modulo.name,
+      modulo: i.servizio.titolo,
       dataInvio: i.dataInvio,
       protoNumero: i.protoNumero,
       conclusa: i.conclusa,

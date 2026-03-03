@@ -19,14 +19,11 @@ interface Istanza {
     cognome: string;
     codiceFiscale: string;
   };
-  modulo: {
+  servizio: {
     id: number;
-    name: string;
-    servizio: {
+    titolo: string;
+    area: {
       titolo: string;
-      area: {
-        titolo: string;
-      };
     };
   };
   attributo: {
@@ -34,19 +31,19 @@ interface Istanza {
   } | null;
 }
 
-interface Modulo {
+interface Servizio {
   id: number;
-  name: string;
+  titolo: string;
 }
 
 interface IstanzeTableProps {
   istanze: Istanza[];
-  moduli: Modulo[];
+  servizi: Servizio[];
   total: number;
   page: number;
   totalPages: number;
   currentTipo: string;
-  currentModulo?: string;
+  currentServizio?: string;
   currentAnno?: string;
 }
 
@@ -58,11 +55,11 @@ const anni = Array.from(
 
 export function IstanzeTable({
   istanze,
-  moduli,
+  servizi,
   total,
   page,
   totalPages,
-  currentModulo,
+  currentServizio,
   currentAnno,
 }: IstanzeTableProps) {
   const router = useRouter();
@@ -118,11 +115,11 @@ export function IstanzeTable({
         <div className="col-12 col-md-4">
           <Select
             options={[
-              { value: '', label: 'Tutti i moduli' },
-              ...moduli.map((m) => ({ value: m.id, label: m.name })),
+              { value: '', label: 'Tutti i servizi' },
+              ...servizi.map((s) => ({ value: s.id, label: s.titolo })),
             ]}
-            value={currentModulo || ''}
-            onChange={(e) => updateParams({ modulo: e.target.value || undefined })}
+            value={currentServizio || ''}
+            onChange={(e) => updateParams({ servizio: e.target.value || undefined })}
           />
         </div>
         <div className="col-12 col-md-2">
@@ -185,9 +182,9 @@ export function IstanzeTable({
                     <small className="text-muted">{istanza.utente.codiceFiscale}</small>
                   </td>
                   <td>
-                    <div>{istanza.modulo.name}</div>
+                    <div>{istanza.servizio.titolo}</div>
                     <small className="text-muted">
-                      {istanza.modulo.servizio.area.titolo} / {istanza.modulo.servizio.titolo}
+                      {istanza.servizio.area.titolo}
                     </small>
                   </td>
                   <td>

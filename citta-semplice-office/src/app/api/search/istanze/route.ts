@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const protocollo = searchParams.get('protocollo');
   const dataInizio = searchParams.get('dataInizio');
   const dataFine = searchParams.get('dataFine');
-  const moduloId = searchParams.get('moduloId');
+  const servizioId = searchParams.get('servizioId');
   const stato = searchParams.get('stato');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '50');
@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (moduloId) {
-    where.moduloId = parseInt(moduloId);
+  if (servizioId) {
+    where.servizioId = parseInt(servizioId);
   }
 
   if (stato) {
@@ -71,8 +71,8 @@ export async function GET(request: NextRequest) {
           utente: {
             select: { nome: true, cognome: true, codiceFiscale: true },
           },
-          modulo: {
-            select: { name: true },
+          servizio: {
+            select: { titolo: true },
           },
         },
         orderBy: { dataInvio: 'desc' },
@@ -85,8 +85,8 @@ export async function GET(request: NextRequest) {
       id: istanza.id,
       utente: `${istanza.utente.cognome} ${istanza.utente.nome}`,
       codiceFiscale: istanza.utente.codiceFiscale,
-      modulo: istanza.modulo.name,
-      moduloId: istanza.moduloId,
+      servizio: istanza.servizio.titolo,
+      servizioId: istanza.servizioId,
       data: new Date(istanza.dataInvio).toLocaleDateString('it-IT'),
       dataInvio: istanza.dataInvio,
       protocollo: istanza.protoNumero || '-',

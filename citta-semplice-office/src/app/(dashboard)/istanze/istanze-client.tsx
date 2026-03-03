@@ -20,8 +20,8 @@ interface Istanza {
     codiceFiscale: string;
     email: string | null;
   };
-  modulo: {
-    name: string;
+  servizio: {
+    titolo: string;
     campiInEvidenza: string | null;
   };
   workflows: {
@@ -31,9 +31,9 @@ interface Istanza {
   }[];
 }
 
-interface Modulo {
+interface Servizio {
   id: number;
-  name: string;
+  titolo: string;
   campiInEvidenza: string | null;
 }
 
@@ -98,11 +98,11 @@ const anni = Array.from(
 ).reverse();
 
 interface IstanzeClientProps {
-  moduli: Modulo[];
+  servizi: Servizio[];
   operatoreId: number;
 }
 
-export function IstanzeClient({ moduli, operatoreId }: IstanzeClientProps) {
+export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
   const [searchState, setSearchState] = useState<SearchState>(() => {
     if (typeof window === 'undefined') return DEFAULT_SEARCH_STATE;
     try {
@@ -259,14 +259,14 @@ export function IstanzeClient({ moduli, operatoreId }: IstanzeClientProps) {
               </div>
               <div className="col-md-3">
                 <Select
-                  label="Modulo"
+                  label="Servizio"
                   value={draftFilters.modulo}
                   onChange={(e) => setDraftFilters({ ...draftFilters, modulo: e.target.value })}
                 >
-                  <option value="">Tutti i moduli</option>
-                  {moduli.map((modulo) => (
-                    <option key={modulo.id} value={modulo.id}>
-                      {modulo.name}
+                  <option value="">Tutti i servizi</option>
+                  {servizi.map((servizio) => (
+                    <option key={servizio.id} value={servizio.id}>
+                      {servizio.titolo}
                     </option>
                   ))}
                 </Select>
@@ -367,7 +367,7 @@ export function IstanzeClient({ moduli, operatoreId }: IstanzeClientProps) {
                             <small className="text-muted">{istanza.utente.codiceFiscale}</small>
                           </td>
                           <td>
-                            <small>{istanza.modulo.name}</small>
+                            <small>{istanza.servizio.titolo}</small>
                           </td>
                           <td>{new Date(istanza.dataInvio).toLocaleDateString('it-IT')}</td>
                           <td>{getStatusBadge(istanza)}</td>

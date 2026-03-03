@@ -24,11 +24,6 @@ export const authConfig: NextAuthConfig = {
                 ruolo: true,
               },
             },
-            enti: {
-              include: {
-                ente: true,
-              },
-            },
           },
         });
 
@@ -52,7 +47,7 @@ export const authConfig: NextAuthConfig = {
           nome: operatore.nome,
           cognome: operatore.cognome,
           ruoli: operatore.ruoli.map((r) => r.ruolo.nome),
-          entiIds: operatore.enti.map((e) => e.enteId),
+          entiIds: [],
         };
       },
     }),

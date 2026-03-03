@@ -13,11 +13,11 @@ datasource db {
 
 model Operatore {
   id                Int       @id @default(autoincrement())
-  email             String    @unique
+  email             String    
   password          String
   nome              String
   cognome           String
-  codiceFiscale     String?   @map("codice_fiscale")
+  operatoreId       String?   @unique @map("operatore_id")
   telefono          String?
   attivo            Boolean   @default(true)
   createdAt         DateTime  @default(now()) @map("created_at")
@@ -29,6 +29,7 @@ model Operatore {
   servizi           OperatoreServizio[]
   workflows         Workflow[]
 
+  @@index([operatoreId])
   @@map("operatori")
 }
 
@@ -136,11 +137,37 @@ model Servizio {
   areaId      Int       @map("area_id")
   area        Area      @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  moduloId    Int       @map("modulo_id")
-  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  moduloId    Int?      @map("modulo_id")
+  modulo      Modulo?   @relation(fields: [moduloId], references: [id], onDelete: SetNull)
 
+  ufficioId   Int?      @map("ufficio_id")
+  ufficio     Ufficio?  @relation(fields: [ufficioId], references: [id], onDelete: SetNull)
+
+  // Disponibilità
+  dataInizio  DateTime? @map("data_inizio")
+  dataFine    DateTime? @map("data_fine")
+
+  // Regole di invio
+  unicoInvio            Boolean   @default(false) @map("unico_invio")
+  unicoInvioPerUtente   Boolean   @default(false) @map("unico_invio_per_utente")
+  campiUnicoInvio       String?   @map("campi_unico_invio")
+  numeroMaxIstanze      Int?      @map("numero_max_istanze")
+  avvisoSoglia          Int?      @map("avviso_soglia")
+  msgExtraServizio      String?   @map("msg_extra_servizio")
+
+  // Visualizzazione istanze
+  campiInEvidenza       String?   @map("campi_in_evidenza")
+  campiDaEsportare      String?   @map("campi_da_esportare")
+
+  // Documento finale
+  prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
+  templateDocumentoFinale   String?   @map("template_documento_finale") @db.Text
+  nomeDocumentoFinale       String?   @map("nome_documento_finale")
+
+  createdAt             DateTime? @default(now()) @map("created_at")
+  updatedAt             DateTime? @map("updated_at")
+  
   operatori             OperatoreServizio[]
-  uffici                Ufficio[]
   steps                 Step[]
   istanze               Istanza[]
   customerSatisfaction  CustomerSatisfaction?
@@ -179,14 +206,13 @@ model Modulo {
   attributes            String?   @db.Text // JSON form schema
   attributesResponse    String?   @map("attributes_response") @db.Text
   corpo                 String?   @db.Text // HTML body
-  dataInizio            DateTime  @map("data_inizio")
-  dataFine              DateTime  @map("data_fine")
   attivo                Boolean   @default(true)
-/*
+  
   // Evidence fields
   campiInEvidenza       String?   @map("campi_in_evidenza")
   campiDaEsportare      String?   @map("campi_da_esportare")
 
+/*
   // Unique submission rules
   unicoInvio            Boolean   @default(false) @map("unico_invio")
   unicoInvioPerUtente   Boolean   @default(false) @map("unico_invio_per_utente")

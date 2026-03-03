@@ -14,29 +14,15 @@ async function getIstanza(id: number) {
     where: { id },
     include: {
       utente: true,
-      modulo: {
+      servizio: {
         include: {
-          servizio: {
-            include: {
-              area: {
-                include: {
-                  ente: true,
-                },
-              },
-            },
-          },
+          area: true,
           ufficio: true,
           steps: {
             where: { attivo: true },
             orderBy: { ordine: 'asc' },
           },
-          attributoType: {
-            include: { attributi: true },
-          },
         },
-      },
-      attributo: {
-        include: { attributoType: true },
       },
       workflows: {
         include: {
@@ -132,7 +118,7 @@ export default async function IstanzaDetailPage({
             {getStatusBadge()}
           </h1>
           <p>
-            {istanza.modulo.name} - {istanza.modulo.servizio.titolo}
+            {istanza.servizio.titolo}
           </p>
         </div>
         <IstanzaActions
@@ -142,7 +128,7 @@ export default async function IstanzaDetailPage({
             respinta: istanza.respinta,
             protoNumero: istanza.protoNumero,
             protoData: istanza.protoData,
-            attributoId: istanza.attributoId,
+            attributoId: null,
           }}
           utente={{
             email: istanza.utente.email,
@@ -151,7 +137,6 @@ export default async function IstanzaDetailPage({
           }}
           notifiche={notifiche}
           isAssignedToMe={isAssignedToMe}
-          attributoType={istanza.modulo.attributoType}
         />
       </div>
 
@@ -189,16 +174,10 @@ export default async function IstanzaDetailPage({
                   <strong>Municipalità:</strong>
                   <div>{istanza.municipalita || '-'}</div>
                 </div>
-                {istanza.attributo && (
-                  <div className="col-md-6">
-                    <strong>{istanza.attributo.attributoType.tipoAttributo}:</strong>
-                    <div>{istanza.attributo.valore}</div>
-                  </div>
-                )}
-                {istanza.modulo.ufficio && (
+                {istanza.servizio.ufficio && (
                   <div className="col-md-6">
                     <strong>Ufficio di competenza:</strong>
-                    <div>{istanza.modulo.ufficio.nome}</div>
+                    <div>{istanza.servizio.ufficio.nome}</div>
                   </div>
                 )}
                 {istanza.datiInEvidenza && (
@@ -307,7 +286,7 @@ export default async function IstanzaDetailPage({
               <CardTitle>Storico Workflow</CardTitle>
               <WorkflowTimeline
                 workflows={istanza.workflows}
-                steps={istanza.modulo.steps}
+                steps={istanza.servizio.steps}
               />
             </CardBody>
           </Card>

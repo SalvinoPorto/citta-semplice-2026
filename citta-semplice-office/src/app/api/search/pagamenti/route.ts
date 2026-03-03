@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
                   utente: {
                     select: { nome: true, cognome: true, codiceFiscale: true },
                   },
-                  modulo: {
-                    select: { name: true },
+                  servizio: {
+                    select: { titolo: true },
                   },
                 },
               },
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     const formattedResults = results.map((pagamento) => {
       const utente = pagamento.workflow?.istanza?.utente;
-      const modulo = pagamento.workflow?.istanza?.modulo;
+      const servizio = pagamento.workflow?.istanza?.servizio;
 
       return {
         id: pagamento.id,
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
           : '-',
         utente: utente ? `${utente.cognome} ${utente.nome}` : pagamento.cognomeUtente || '-',
         codiceFiscale: utente?.codiceFiscale || pagamento.cfUtente || '-',
-        modulo: modulo?.name || '-',
+        modulo: servizio?.titolo || '-',
         istanzaId: pagamento.workflow?.istanza?.id,
         data: pagamento.dataOperazione
           ? new Date(pagamento.dataOperazione).toLocaleDateString('it-IT')

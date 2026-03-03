@@ -8,7 +8,11 @@
       "Bash(npm run build:*)",
       "Bash(npx prisma generate)",
       "Bash(npm install:*)",
-      "Bash(npx prisma migrate dev:*)"
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(ls \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)\")",
+      "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/moduli\" -type f)",
+      "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/operatori\" -type f)",
+      "Bash(npx prisma db push)"
     ]
   }
 }

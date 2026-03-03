@@ -2,18 +2,18 @@ import prisma from '@/lib/db/prisma';
 import { requireAuth } from '@/lib/auth/session';
 import { IstanzeClient } from './istanze-client';
 
-async function getModuli() {
-  return prisma.modulo.findMany({
+async function getServizi() {
+  return prisma.servizio.findMany({
     where: { attivo: true },
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true, campiInEvidenza: true },
+    orderBy: { titolo: 'asc' },
+    select: { id: true, titolo: true, campiInEvidenza: true },
   });
 }
 
 export default async function IstanzePage() {
   const user = await requireAuth();
   const operatoreId = parseInt(user.id);
-  const moduli = await getModuli();
+  const servizi = await getServizi();
 
   return (
     <>
@@ -21,7 +21,7 @@ export default async function IstanzePage() {
         <h1>Istanze</h1>
         <p>Gestione delle istanze degli utenti</p>
       </div>
-      <IstanzeClient moduli={moduli} operatoreId={operatoreId} />
+      <IstanzeClient servizi={servizi} operatoreId={operatoreId} />
     </>
   );
 }
