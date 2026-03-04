@@ -152,6 +152,7 @@ export function EmailConfigForm({ initialData }: EmailConfigFormProps) {
             <div className="row g-3">
               <div className="col-md-8">
                 <Input
+                  type="text"
                   label="Server SMTP"
                   value={formData.smtpHost || ''}
                   onChange={(e) => updateField('smtpHost', e.target.value)}
@@ -187,6 +188,7 @@ export function EmailConfigForm({ initialData }: EmailConfigFormProps) {
 
               <div className="col-md-6">
                 <Input
+                  type="text"
                   label="Username"
                   value={formData.smtpUser || ''}
                   onChange={(e) => updateField('smtpUser', e.target.value)}
@@ -217,6 +219,7 @@ export function EmailConfigForm({ initialData }: EmailConfigFormProps) {
               </div>
               <div className="col-md-6">
                 <Input
+                  type="text"
                   label="Nome Mittente"
                   value={formData.smtpFromName || ''}
                   onChange={(e) => updateField('smtpFromName', e.target.value)}
@@ -246,6 +249,7 @@ export function EmailConfigForm({ initialData }: EmailConfigFormProps) {
             <div className="row g-3">
               <div className="col-md-12">
                 <Input
+                  type="text"
                   label="Tenant ID"
                   value={formData.o365TenantId || ''}
                   onChange={(e) => updateField('o365TenantId', e.target.value)}
@@ -257,6 +261,7 @@ export function EmailConfigForm({ initialData }: EmailConfigFormProps) {
 
               <div className="col-md-6">
                 <Input
+                  type="text"
                   label="Client ID (Application ID)"
                   value={formData.o365ClientId || ''}
                   onChange={(e) => updateField('o365ClientId', e.target.value)}

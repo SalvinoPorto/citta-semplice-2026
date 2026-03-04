@@ -12,6 +12,7 @@ export const stepSchema = z.object({
   allegatiOpRequired: z.boolean().default(false),
   protocollo: z.boolean().default(false),
   unitaOrganizzativa: z.string().optional(),
+  servizioPagamentoId: z.string().optional(),
 });
 
 export const servizioSchema = z.object({

@@ -34,12 +34,12 @@ export function ModuloForm({ modulo, isNew }: ModuloFormProps) {
 
   const initialFormSchema: FormSchema | undefined = modulo?.attributes
     ? (() => {
-        try {
-          return JSON.parse(modulo.attributes);
-        } catch {
-          return undefined;
-        }
-      })()
+      try {
+        return JSON.parse(modulo.attributes);
+      } catch {
+        return undefined;
+      }
+    })()
     : undefined;
 
   const {
@@ -152,6 +152,7 @@ export function ModuloForm({ modulo, isNew }: ModuloFormProps) {
                 <div className="row">
                   <div className="col-md-8 mb-3">
                     <Input
+                      type="text"
                       label="Nome Modulo *"
                       {...register('name', { onChange: handleNameChange })}
                       error={errors.name?.message}
@@ -167,6 +168,7 @@ export function ModuloForm({ modulo, isNew }: ModuloFormProps) {
 
                 <div className="mb-3">
                   <Input
+                    type="text"
                     label="Slug (URL) *"
                     {...register('slug')}
                     error={errors.slug?.message}
@@ -180,7 +182,7 @@ export function ModuloForm({ modulo, isNew }: ModuloFormProps) {
 
                 {tipo === 'PDF' && (
                   <div className="mb-3">
-                    <Input label="Nome File PDF" {...register('nomeFile')} />
+                    <Input type="text" label="Nome File PDF" {...register('nomeFile')} />
                   </div>
                 )}
 

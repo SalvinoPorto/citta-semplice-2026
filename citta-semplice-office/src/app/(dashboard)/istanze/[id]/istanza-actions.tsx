@@ -453,6 +453,7 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
 
           <div className="mb-3">
             <Input
+              type="text"
               label="Oggetto"
               value={communicationSubject}
               onChange={(e) => setCommunicationSubject(e.target.value)}
@@ -501,6 +502,7 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
         <ModalBody>
           <div className="mb-3">
             <Input
+              type="text"
               label="Numero Protocollo"
               value={protoNumero}
               onChange={(e) => setProtoNumero(e.target.value)}

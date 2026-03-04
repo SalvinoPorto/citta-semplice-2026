@@ -508,8 +508,8 @@ async function migrateOperatoriRuoli(src, dst) {
   console.log('\n── Migrazione operatori_ruoli ────────────────────────────────────────────────');
 
   const { rows } = await src.query(`SELECT 
-    operatore_id, 
-    ruolo_id
+    operatori_id as operatore_id, 
+    ruoli_id as ruolo_id
     FROM operatori_ruoli 
     `);
   console.log(`Operatori-Ruoli trovati: ${rows.length}`);
@@ -910,31 +910,31 @@ async function main() {
     // 2. Migra operatori
     await migrateOperatori(src, dst);
 */
-    // 2. Migra ruoli
-    await migrateRuoli(src, dst);
+    // 3. Migra ruoli
+    // await migrateRuoli(src, dst);
 
-    // 2. Migra operatori_ruoli
+    // 4. Migra operatori_ruoli
     await migrateOperatoriRuoli(src, dst);
     /*
-        // 3. Migra enti
+        //  5. Migra enti
         await migrateEnti(src, dst);
     
-        // 4. Migra aree
+        //  6. Migra aree
         await migrateAree(src, dst);
     
-        // 5. Migra moduli (converte il campo attributes nel nuovo formato)
+        //  7. Migra moduli (converte il campo attributes nel nuovo formato)
         await migrateModuli(src, dst);
     
-        // 6. Migra servizi
+        //  8. Migra servizi
         await migrateServizi(src, dst);
     
-        // 7. Migra uffici
+        //  9. Migra uffici
         await migrateUffici(src, dst);
     
-        // 7. Migra steps
+        // 10. Migra steps
         await migrateSteps(src, dst);
     
-        // 8. Migra istanze (risolve CF→id interrogando dst per ogni riga)
+        // 11. Migra istanze (risolve CF→id interrogando dst per ogni riga)
         await migrateIstanze(src, dst);
     */
     console.log('\n✓ Migrazione completata.');
