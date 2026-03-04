@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardBody, Button, Input, Textarea, Select, Alert } from '@/components/ui';
+import { Card, CardBody, Button, Input, Select, Alert } from '@/components/ui';
+import Editor from '@/components/ui/editor';
 import { createServizio, updateServizio, deleteServizio } from './actions';
 import { servizioSchema, type ServizioFormData } from '@/lib/validations/servizio';
 import Link from 'next/link';
@@ -24,6 +25,16 @@ interface UfficioRef {
   nome: string;
 }
 
+interface UnitaOrganizzativa {
+  id: string;
+  nome: string;
+}
+
+interface ServizioPagamento {
+  id: string;
+  nome: string;
+}
+
 interface StepData {
   id?: number;
   descrizione: string;
@@ -36,6 +47,7 @@ interface StepData {
   allegatiOpRequired: boolean;
   protocollo: boolean;
   unitaOrganizzativa?: string;
+  servizioPagamentoId?: string;
 }
 
 interface ServizioData {
@@ -75,10 +87,12 @@ interface ServizioFormProps {
   aree: Area[];
   moduli: ModuloRef[];
   uffici: UfficioRef[];
+  unitaOrganizzative: UnitaOrganizzativa[];
+  serviziPagamento: ServizioPagamento[];
   isNew?: boolean;
 }
 
-export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: ServizioFormProps) {
+export function ServizioForm({ servizio, aree, moduli, uffici, unitaOrganizzative, serviziPagamento, isNew }: ServizioFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -132,6 +146,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
           allegatiOpRequired: false,
           protocollo: true,
           unitaOrganizzativa: '',
+          servizioPagamentoId: '',
         },
       ],
     },
@@ -154,6 +169,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
       allegatiOpRequired: false,
       protocollo: false,
       unitaOrganizzativa: '',
+      servizioPagamentoId: '',
     });
   };
 
@@ -194,6 +210,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
   };
 
   const prevedeDoc = watch('prevedeDocumentoFinale');
+  const watchedSteps = watch('steps');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -268,43 +285,79 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
                 <div className="row">
                   <div className="col-md-8 mb-3">
                     <Input
+                      type="text"
                       label="Titolo *"
                       {...register('titolo')}
                       error={errors.titolo?.message}
                     />
                   </div>
                   <div className="col-md-4 mb-3">
-                    <Input label="Slug (URL)" {...register('slug')} />
+                    <Input type="text" label="Slug (URL)" {...register('slug')} />
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <Input label="Sotto Titolo" {...register('sottoTitolo')} />
+                  <Input type="text" label="Sotto Titolo" {...register('sottoTitolo')} />
                 </div>
 
                 <div className="mb-3">
-                  <Textarea label="Descrizione" {...register('descrizione')} rows={3} />
+                  <label className="form-label">Descrizione</label>
+                  <Controller
+                    control={control}
+                    name="descrizione"
+                    render={({ field: { onChange, value } }) => (
+                      <Editor value={value} onChange={onChange} />
+                    )}
+                  />
                 </div>
 
                 <div className="mb-3">
-                  <Textarea label="Come fare" {...register('comeFare')} rows={3} />
+                  <label className="form-label">Come fare</label>
+                  <Controller
+                    control={control}
+                    name="comeFare"
+                    render={({ field: { onChange, value } }) => (
+                      <Editor value={value} onChange={onChange} />
+                    )}
+                  />
                 </div>
 
                 <div className="mb-3">
-                  <Textarea label="Cosa serve" {...register('cosaServe')} rows={3} />
+                  <label className="form-label">Cosa serve</label>
+                  <Controller
+                    control={control}
+                    name="cosaServe"
+                    render={({ field: { onChange, value } }) => (
+                      <Editor value={value} onChange={onChange} />
+                    )}
+                  />
                 </div>
 
                 <div className="mb-3">
-                  <Textarea label="Altre informazioni" {...register('altreInfo')} rows={2} />
+                  <label className="form-label">Altre informazioni</label>
+                  <Controller
+                    control={control}
+                    name="altreInfo"
+                    render={({ field: { onChange, value } }) => (
+                      <Editor value={value} onChange={onChange} />
+                    )}
+                  />
                 </div>
 
                 <div className="mb-3">
-                  <Input label="Contatti" {...register('contatti')} />
+                  <label className="form-label">Contatti</label>
+                  <Controller
+                    control={control}
+                    name="contatti"
+                    render={({ field: { onChange, value } }) => (
+                      <Editor value={value} onChange={onChange} />
+                    )}
+                  />
                 </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <Input label="Icona (classe CSS o URL)" {...register('icona')} />
+                    <Input type="text" label="Icona (classe CSS o URL)" {...register('icona')} />
                   </div>
                   <div className="col-md-6 mb-3">
                     <Input
@@ -411,7 +464,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
                       />
                     </div>
                     <div className="col-md-4 mb-3">
-                      <Input label="Messaggio Extra" {...register('msgExtraServizio')} />
+                      <Input type="text" label="Messaggio Extra" {...register('msgExtraServizio')} />
                     </div>
                   </div>
 
@@ -441,6 +494,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
 
                   <div className="mb-3">
                     <Input
+                      type="text"
                       label="Campi per controllo unico invio (separati da virgola)"
                       {...register('campiUnicoInvio')}
                     />
@@ -454,6 +508,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
 
                   <div className="mb-3">
                     <Input
+                      type="text"
                       label="Campi in evidenza (separati da virgola)"
                       {...register('campiInEvidenza')}
                     />
@@ -462,6 +517,7 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
 
                   <div className="mb-3">
                     <Input
+                      type="text"
                       label="Campi da esportare (separati da virgola)"
                       {...register('campiDaEsportare')}
                     />
@@ -490,15 +546,19 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
                     <>
                       <div className="mb-3">
                         <Input
+                          type="text"
                           label="Nome documento finale"
                           {...register('nomeDocumentoFinale')}
                         />
                       </div>
                       <div className="mb-3">
-                        <Textarea
-                          label="Template documento finale (HTML)"
-                          {...register('templateDocumentoFinale')}
-                          rows={6}
+                        <label className="form-label">Template documento finale (HTML)</label>
+                        <Controller
+                          control={control}
+                          name="templateDocumentoFinale"
+                          render={({ field: { onChange, value } }) => (
+                            <Editor value={value} onChange={onChange} />
+                          )}
                         />
                       </div>
                     </>
@@ -525,151 +585,186 @@ export function ServizioForm({ servizio, aree, moduli, uffici, isNew }: Servizio
                   </p>
                 )}
 
-                {fields.map((field, index) => (
-                  <div key={field.id} className="border rounded p-3 mb-3">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <h6 className="mb-0">Step {index + 1}</h6>
-                      <div className="d-flex gap-1">
-                        <Button
-                          type="button"
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => moveStep(index, 'up')}
-                          disabled={index === 0}
-                        >
-                          ↑
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => moveStep(index, 'down')}
-                          disabled={index === fields.length - 1}
-                        >
-                          ↓
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => remove(index)}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    </div>
+                {fields.map((field, index) => {
+                  const sv = watchedSteps?.[index];
+                  const protocolloChecked = sv?.protocollo ?? false;
+                  const allegatiChecked = sv?.allegati ?? false;
+                  const allegatiOpChecked = sv?.allegatiOp ?? false;
+                  const pagamentoChecked = sv?.pagamento ?? false;
 
-                    <input type="hidden" {...register(`steps.${index}.ordine`)} value={index + 1} />
-
-                    <div className="row">
-                      <div className="col-md-8 mb-2">
-                        <Input
-                          label="Descrizione *"
-                          {...register(`steps.${index}.descrizione`)}
-                          error={errors.steps?.[index]?.descrizione?.message}
-                        />
-                      </div>
-                      <div className="col-md-4 mb-2">
-                        <Input
-                          label="Unità Organizzativa"
-                          {...register(`steps.${index}.unitaOrganizzativa`)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="row">
-                      <div className="col-md-4">
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-attivo`}
-                            {...register(`steps.${index}.attivo`)}
-                          />
-                          <label className="form-check-label" htmlFor={`step-${index}-attivo`}>
-                            Attivo
-                          </label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-protocollo`}
-                            {...register(`steps.${index}.protocollo`)}
-                          />
-                          <label className="form-check-label" htmlFor={`step-${index}-protocollo`}>
-                            Protocollo
-                          </label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-pagamento`}
-                            {...register(`steps.${index}.pagamento`)}
-                          />
-                          <label className="form-check-label" htmlFor={`step-${index}-pagamento`}>
-                            Pagamento
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-allegati`}
-                            {...register(`steps.${index}.allegati`)}
-                          />
-                          <label className="form-check-label" htmlFor={`step-${index}-allegati`}>
-                            Allegati Utente
-                          </label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-allegatiRequired`}
-                            {...register(`steps.${index}.allegatiRequired`)}
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor={`step-${index}-allegatiRequired`}
+                  return (
+                    <div key={field.id} className="border rounded p-3 mb-3">
+                      <div className="d-flex justify-content-between align-items-start mb-3">
+                        <h6 className="mb-0">Step {index + 1}</h6>
+                        <div className="d-flex gap-1">
+                          <Button
+                            type="button"
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={() => moveStep(index, 'up')}
+                            disabled={index === 0}
                           >
-                            Allegati Obbligatori
-                          </label>
+                            ↑
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={() => moveStep(index, 'down')}
+                            disabled={index === fields.length - 1}
+                          >
+                            ↓
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => remove(index)}
+                          >
+                            ×
+                          </Button>
                         </div>
                       </div>
-                      <div className="col-md-4">
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-allegatiOp`}
-                            {...register(`steps.${index}.allegatiOp`)}
+
+                      <input type="hidden" {...register(`steps.${index}.ordine`)} value={index + 1} />
+
+                      <div className="row mb-2">
+                        <div className='col-md-12'>
+                          <Input
+                            type="text"
+                            label="Descrizione *"
+                            {...register(`steps.${index}.descrizione`)}
+                            error={errors.steps?.[index]?.descrizione?.message}
                           />
-                          <label className="form-check-label" htmlFor={`step-${index}-allegatiOp`}>
-                            Allegati Operatore
-                          </label>
                         </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-allegatiOpRequired`}
-                            {...register(`steps.${index}.allegatiOpRequired`)}
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor={`step-${index}-allegatiOpRequired`}
-                          >
-                            Allegati Op. Obbligatori
-                          </label>
+                      </div>
+
+                      <div className="row">
+                        <div className="col-md-4">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-attivo`}
+                              {...register(`steps.${index}.attivo`)}
+                            />
+                            <label className="form-check-label" htmlFor={`step-${index}-attivo`}>
+                              Attivo
+                            </label>
+                          </div>
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-protocollo`}
+                              {...register(`steps.${index}.protocollo`)}
+                            />
+                            <label className="form-check-label" htmlFor={`step-${index}-protocollo`}>
+                              Protocollo
+                            </label>
+                          </div>
+                          {protocolloChecked && (
+                          <div className="mt-2">
+                            <Select
+                              label="Unità Organizzativa"
+                              {...register(`steps.${index}.unitaOrganizzativa`)}
+                            >
+                              <option value="">Seleziona UO</option>
+                              {unitaOrganizzative.map((uo) => (
+                                <option key={uo.id} value={uo.id}>
+                                  {uo.nome}
+                                </option>
+                              ))}
+                            </Select>
+                          </div>
+                        )}
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-pagamento`}
+                              {...register(`steps.${index}.pagamento`)}
+                            />
+                            <label className="form-check-label" htmlFor={`step-${index}-pagamento`}>
+                              Pagamento
+                            </label>
+                          </div>
+                          {pagamentoChecked && (
+                            <div className="mt-2">
+                              <Select
+                                label="Servizio di pagamento"
+                                {...register(`steps.${index}.servizioPagamentoId`)}
+                              >
+                                <option value="">Seleziona servizio</option>
+                                {serviziPagamento.map((sp) => (
+                                  <option key={sp.id} value={sp.id}>
+                                    {sp.nome}
+                                  </option>
+                                ))}
+                              </Select>
+                            </div>
+                          )}
+                        </div>
+                        <div className="col-md-4">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-allegati`}
+                              {...register(`steps.${index}.allegati`)}
+                            />
+                            <label className="form-check-label" htmlFor={`step-${index}-allegati`}>
+                              Allegati Utente
+                            </label>
+                          </div>
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-allegatiRequired`}
+                              disabled={!allegatiChecked}
+                              {...register(`steps.${index}.allegatiRequired`)}
+                            />
+                            <label
+                              className={`form-check-label${!allegatiChecked ? ' text-muted' : ''}`}
+                              htmlFor={`step-${index}-allegatiRequired`}
+                            >
+                              Allegati Obbligatori
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-allegatiOp`}
+                              {...register(`steps.${index}.allegatiOp`)}
+                            />
+                            <label className="form-check-label" htmlFor={`step-${index}-allegatiOp`}>
+                              Allegati Operatore
+                            </label>
+                          </div>
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`step-${index}-allegatiOpRequired`}
+                              disabled={!allegatiOpChecked}
+                              {...register(`steps.${index}.allegatiOpRequired`)}
+                            />
+                            <label
+                              className={`form-check-label${!allegatiOpChecked ? ' text-muted' : ''}`}
+                              htmlFor={`step-${index}-allegatiOpRequired`}
+                            >
+                              Allegati Op. Obbligatori
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </CardBody>
             </Card>
           )}

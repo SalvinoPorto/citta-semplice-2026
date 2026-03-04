@@ -86,6 +86,7 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
 
               <div className="mb-3">
                 <Input
+                  type="text"
                   label="Nome Ufficio *"
                   {...register('nome')}
                   error={errors.nome?.message}
@@ -111,6 +112,7 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
                 </div>
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Telefono"
                     {...register('telefono')}
                   />
@@ -119,6 +121,7 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
 
               <div className="mb-3">
                 <Input
+                  type="text"
                   label="Indirizzo"
                   {...register('indirizzo')}
                 />

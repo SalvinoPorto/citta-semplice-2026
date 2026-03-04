@@ -92,6 +92,7 @@ export function EnteForm({ ente, isNew }: EnteFormProps) {
 
               <div className="mb-3">
                 <Input
+                  type="text"
                   label="Nome Ente *"
                   {...register('ente')}
                   error={errors.ente?.message}
@@ -109,12 +110,14 @@ export function EnteForm({ ente, isNew }: EnteFormProps) {
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Codice Fiscale / P.IVA"
                     {...register('codiceFiscale')}
                   />
                 </div>
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Telefono"
                     {...register('telefono')}
                   />
@@ -123,6 +126,7 @@ export function EnteForm({ ente, isNew }: EnteFormProps) {
 
               <div className="mb-3">
                 <Input
+                  type="text"
                   label="Indirizzo"
                   {...register('indirizzo')}
                 />

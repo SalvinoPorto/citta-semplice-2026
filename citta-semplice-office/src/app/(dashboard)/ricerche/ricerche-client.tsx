@@ -100,6 +100,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
           <>
             <div className="mb-3">
               <Input
+                type="text"
                 label="Codice Fiscale"
                 value={filters.codiceFiscale}
                 onChange={(e) =>
@@ -112,6 +113,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
 
             <div className="mb-3">
               <Input
+                type="text"
                 label="Numero Protocollo"
                 value={filters.protocollo}
                 onChange={(e) =>
@@ -183,6 +185,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
           <>
             <div className="mb-3">
               <Input
+                type="text"
                 label="Codice Fiscale"
                 value={filters.codiceFiscale}
                 onChange={(e) =>
@@ -221,6 +224,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
           <>
             <div className="mb-3">
               <Input
+                type="text"
                 label="IUV"
                 value={filters.iuv}
                 onChange={(e) =>
@@ -231,6 +235,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
 
             <div className="mb-3">
               <Input
+                type="text"
                 label="Codice Fiscale"
                 value={filters.codiceFiscale}
                 onChange={(e) =>
@@ -318,8 +323,8 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
                       result.stato === 'Conclusa'
                         ? 'success'
                         : result.stato === 'Respinta'
-                        ? 'danger'
-                        : 'warning'
+                          ? 'danger'
+                          : 'warning'
                     }
                   >
                     {result.stato}
@@ -367,8 +372,8 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
                       result.stato === 'PAGATO'
                         ? 'success'
                         : result.stato === 'FALLITO'
-                        ? 'danger'
-                        : 'warning'
+                          ? 'danger'
+                          : 'warning'
                     }
                   >
                     {result.stato}

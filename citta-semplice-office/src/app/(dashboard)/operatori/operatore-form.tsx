@@ -130,6 +130,7 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Nome *"
                     {...register('nome')}
                     error={errors.nome?.message}
@@ -137,6 +138,7 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
                 </div>
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Cognome *"
                     {...register('cognome')}
                     error={errors.cognome?.message}
@@ -166,6 +168,7 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Codice Fiscale"
                     {...register('codiceFiscale')}
                     error={errors.codiceFiscale?.message}
@@ -174,6 +177,7 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
                 </div>
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Telefono"
                     {...register('telefono')}
                     error={errors.telefono?.message}

@@ -107,6 +107,7 @@ export function AreaForm({ area, enti, isNew }: AreaFormProps) {
 
               <div className="mb-3">
                 <Input
+                  type="text"
                   label="Titolo *"
                   {...register('titolo')}
                   error={errors.titolo?.message}
@@ -124,6 +125,7 @@ export function AreaForm({ area, enti, isNew }: AreaFormProps) {
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
                     label="Icona (classe CSS o URL)"
                     {...register('icona')}
                   />

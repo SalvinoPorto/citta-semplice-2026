@@ -1,8 +1,8 @@
 // Role constants
 export const ROLES = {
-  ADMIN: 'admin',
-  RESPONSABILE: 'responsabile',
-  OPERATORE: 'operatore',
+  ADMIN: 'AMMINISTRATORE',
+  OPERATORE: 'OPERATORE',
+  GESTORE: 'GESTORE_MODULI',
 } as const;
 
 export type RoleName = (typeof ROLES)[keyof typeof ROLES];
@@ -47,18 +47,11 @@ export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 // Role-based permissions
 export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
   [ROLES.ADMIN]: Object.values(PERMISSIONS), // Admin has all permissions
-  [ROLES.RESPONSABILE]: [
+  [ROLES.GESTORE]: [
     PERMISSIONS.ISTANZE_VIEW,
     PERMISSIONS.ISTANZE_MANAGE,
     PERMISSIONS.MODULI_VIEW,
     PERMISSIONS.MODULI_MANAGE,
-    PERMISSIONS.OPERATORI_VIEW,
-    PERMISSIONS.ENTI_VIEW,
-    PERMISSIONS.AREE_VIEW,
-    PERMISSIONS.SERVIZI_VIEW,
-    PERMISSIONS.UFFICI_VIEW,
-    PERMISSIONS.STATISTICHE_VIEW,
-    PERMISSIONS.RICERCHE_VIEW,
   ],
   [ROLES.OPERATORE]: [
     PERMISSIONS.ISTANZE_VIEW,

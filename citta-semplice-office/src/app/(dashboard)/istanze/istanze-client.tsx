@@ -108,7 +108,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
     try {
       const saved = sessionStorage.getItem(SESSION_KEY);
       if (saved) return JSON.parse(saved) as SearchState;
-    } catch {}
+    } catch { }
     return DEFAULT_SEARCH_STATE;
   });
 
@@ -154,7 +154,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
   useEffect(() => {
     try {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(searchState));
-    } catch {}
+    } catch { }
     fetchData(searchState);
   }, [searchState, fetchData]);
 
@@ -191,7 +191,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
   const handleReset = () => {
     try {
       sessionStorage.removeItem(SESSION_KEY);
-    } catch {}
+    } catch { }
     setSearchState(DEFAULT_SEARCH_STATE);
     setDraftFilters(DEFAULT_FORM_FILTERS);
     setFilterResetKey((k) => k + 1);
@@ -240,6 +240,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
             <div className="row g-3">
               <div className="col-md-3">
                 <Input
+                  type="text"
                   label="Numero Protocollo"
                   value={draftFilters.protocollo}
                   onChange={(e) => setDraftFilters({ ...draftFilters, protocollo: e.target.value })}
@@ -248,6 +249,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
               </div>
               <div className="col-md-3">
                 <Input
+                  type="text"
                   label="Codice Fiscale"
                   value={draftFilters.codiceFiscale}
                   onChange={(e) =>
@@ -287,6 +289,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
               </div>
               <div className="col-md-2">
                 <Input
+                  type="text"
                   label="Cerca"
                   value={draftFilters.cerca}
                   onChange={(e) => setDraftFilters({ ...draftFilters, cerca: e.target.value })}
