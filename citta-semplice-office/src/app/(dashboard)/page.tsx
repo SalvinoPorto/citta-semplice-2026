@@ -148,10 +148,10 @@ export default async function DashboardPage() {
               <table className="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Utente</th>
-                    <th>Modulo</th>
+                    <th>Protocollo</th>
                     <th>Data Invio</th>
+                    <th>Utente</th>
+                    <th>Servizio</th>
                     <th>Stato</th>
                   </tr>
                 </thead>
@@ -160,23 +160,23 @@ export default async function DashboardPage() {
                     <tr key={istanza.id}>
                       <td>
                         <Link href={`/istanze/${istanza.id}`}>
-                          #{istanza.id}
+                          {istanza.protoNumero}
                         </Link>
+                      </td>
+                      <td>
+                        {new Date(istanza.dataInvio).toLocaleDateString('it-IT')}
                       </td>
                       <td>
                         {istanza.utente.cognome} {istanza.utente.nome}
                       </td>
                       <td>{istanza.servizio.titolo}</td>
                       <td>
-                        {new Date(istanza.dataInvio).toLocaleDateString('it-IT')}
-                      </td>
-                      <td>
                         {istanza.conclusa ? (
                           <span className="badge bg-success">Conclusa</span>
                         ) : istanza.respinta ? (
                           <span className="badge bg-danger">Respinta</span>
                         ) : (
-                          <span className="badge bg-warning text-dark">
+                          <span className="badge bg-warning">
                             In Lavorazione
                           </span>
                         )}

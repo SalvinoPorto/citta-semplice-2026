@@ -10,22 +10,23 @@ export async function createOperatore(data: OperatoreCreateFormData) {
   const validated = operatoreCreateSchema.parse(data);
 
   const existingOperatore = await prisma.operatore.findUnique({
-    where: { email: validated.email },
+    where: { userName: validated.userName },
   });
 
   if (existingOperatore) {
-    return { error: 'Un operatore con questa email esiste già' };
+    return { error: 'Un operatore con questo nome utente esiste già' };
   }
 
-  const hashedPassword = await hash(validated.password, 12);
+  const hashedPassword = await hash(validated.password, 10);
 
   const operatore = await prisma.operatore.create({
     data: {
       email: validated.email,
       password: hashedPassword,
+      userName: validated.userName,
       nome: validated.nome,
       cognome: validated.cognome,
-      codiceFiscale: validated.codiceFiscale || null,
+      // codiceFiscale: validated.codiceFiscale || null,
       telefono: validated.telefono || null,
       attivo: validated.attivo,
       ruoli: {
@@ -34,7 +35,7 @@ export async function createOperatore(data: OperatoreCreateFormData) {
         })),
       },
       servizi: {
-        create: validated.moduliIds.map((servizioId) => ({
+        create: validated.serviziIds.map((servizioId) => ({
           servizioId,
         })),
       },
@@ -49,26 +50,27 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
   const validated = operatoreSchema.parse(data);
 
   const existingOperatore = await prisma.operatore.findUnique({
-    where: { email: validated.email },
+    where: { userName: validated.userName },
   });
 
   if (existingOperatore && existingOperatore.id !== id) {
-    return { error: 'Un altro operatore con questa email esiste già' };
+    return { error: 'Un altro operatore con questo nome utente esiste già' };
   }
 
   // Prepare update data
   const updateData: Record<string, unknown> = {
     email: validated.email,
+    userName: validated.userName,
     nome: validated.nome,
     cognome: validated.cognome,
-    codiceFiscale: validated.codiceFiscale || null,
+    // codiceFiscale: validated.codiceFiscale || null,
     telefono: validated.telefono || null,
     attivo: validated.attivo,
   };
 
   // Update password only if provided
   if (validated.password) {
-    updateData.password = await hash(validated.password, 12);
+    updateData.password = await hash(validated.password, 10);
   }
 
   // Update operatore with relations
@@ -88,7 +90,7 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
           })),
         },
         servizi: {
-          create: validated.moduliIds.map((servizioId) => ({
+          create: validated.serviziIds.map((servizioId) => ({
             servizioId,
           })),
         },
