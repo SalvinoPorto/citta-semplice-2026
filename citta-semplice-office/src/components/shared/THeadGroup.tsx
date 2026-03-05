@@ -58,7 +58,7 @@ type THeadProps = {
 export function THead({ width, childClick, field, active, direction, children }: THeadProps) {
   const thStyle = width ? { width } : undefined;
   if (field === '') {
-    return <th style={thStyle}></th>;
+    return <th style={thStyle}>{children}</th>;
   }
   return (
     <th

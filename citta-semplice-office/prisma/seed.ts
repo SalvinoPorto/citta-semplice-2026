@@ -96,7 +96,7 @@ async function main() {
       password: adminPassword,
       nome: 'Admin',
       cognome: 'Sistema',
-      userName: 'Admin',
+      userName: 'admin',
       attivo: true,
     },
   });

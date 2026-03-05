@@ -911,7 +911,7 @@ async function main() {
     await migrateOperatori(src, dst);
 */
     // 3. Migra ruoli
-    // await migrateRuoli(src, dst);
+    await migrateRuoli(src, dst);
 
     // 4. Migra operatori_ruoli
     await migrateOperatoriRuoli(src, dst);

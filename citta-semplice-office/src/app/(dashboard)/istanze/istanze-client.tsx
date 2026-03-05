@@ -211,6 +211,12 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
     return <Badge variant="secondary">In Attesa</Badge>;
   };
 
+
+  const formatEvidenza = (evidenza: string | null) => {
+    if(!evidenza) return '-';
+    return evidenza.replace(/\|/g, '<br />');
+  };
+
   const totalPages = Math.ceil(total / searchState.pageSize) || 1;
 
   return (
@@ -337,22 +343,20 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                     initialDirection={searchState.sort.direction}
                   >
                     <THead field="protoNumero" width="12%">Protocollo</THead>
-                    <THead field="cognome" width="18%">Utente</THead>
-                    <THead field="modulo" width="12%">Modulo</THead>
                     <THead field="dataInvio" width="9%">Data Invio</THead>
+                    <THead field="cognome" width="18%">Utente</THead>
+                    <THead field="servizio" width="12%">Servizio</THead>
+                    <THead field="datiInEvidenza" width="15%">Dati in Evidenza</THead>
                     <THead field="" width="10%">Stato</THead>
-                    <THead field="operatore" width="14%">Operatore</THead>
-                    <THead field="" width="15%">Dati in Evidenza</THead>
                     <THead field="" width="5%">&nbsp;</THead>
                   </THeadGroup>
                   <TFilterHeadGroup key={filterResetKey} onFilter={handleColumnFilter}>
                     <TFilterHead field="protoNumero" placeholder="Cerca protocollo" />
-                    <TFilterHead field="cognome" placeholder="Cerca utente" />
-                    <TFilterHead />
                     <TFilterHead field="dataInvio" placeholder="Cerca per data" />
+                    <TFilterHead field="cognome" placeholder="Cerca utente" />
+                    <TFilterHead field="servizio" placeholder="Cerca servizio" />
+                    <TFilterHead field="datiInEvidenza" placeholder="Cerca per dato"/>
                     <TFilterHead />
-                    <TFilterHead field="operatore" placeholder="Cerca operatore" />
-                    <TFilterHead field="datiInEvidenza" />
                     <TFilterHead />
                   </TFilterHeadGroup>
                   <tbody>
@@ -363,6 +367,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                           <td>
                             {istanza.protoNumero || <span className="text-muted">-</span>}
                           </td>
+                          <td>{new Date(istanza.dataInvio).toLocaleDateString('it-IT')}</td>
                           <td>
                             <div>
                               {istanza.utente.cognome} {istanza.utente.nome}
@@ -372,23 +377,11 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                           <td>
                             <small>{istanza.servizio.titolo}</small>
                           </td>
-                          <td>{new Date(istanza.dataInvio).toLocaleDateString('it-IT')}</td>
-                          <td>{getStatusBadge(istanza)}</td>
                           <td>
-                            {lastWorkflow?.operatore ? (
-                              <small>
-                                {lastWorkflow.operatore.cognome} {lastWorkflow.operatore.nome}
-                                {lastWorkflow.operatore.id === operatoreId && (
-                                  <Badge variant="info" className="ms-1">Tu</Badge>
-                                )}
-                              </small>
-                            ) : (
-                              <span className="text-muted">-</span>
-                            )}
+                            {/* <small className="text-muted">{formatEvidenza(istanza.datiInEvidenza)}</small> */}
+                            <small className="text-muted" dangerouslySetInnerHTML={{ __html: formatEvidenza(istanza.datiInEvidenza) }}></small>
                           </td>
-                          <td>
-                            <small className="text-muted">{istanza.datiInEvidenza || '-'}</small>
-                          </td>
+                          <td>{getStatusBadge(istanza)}</td>                          
                           <td>
                             <Link
                               href={`/istanze/${istanza.id}`}
