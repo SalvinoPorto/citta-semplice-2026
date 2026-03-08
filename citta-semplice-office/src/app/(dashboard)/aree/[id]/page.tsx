@@ -51,10 +51,8 @@ export default async function ModificaAreaPage({ params }: PageProps) {
           descrizione: area.descrizione || '',
           icona: area.icona || '',
           ordine: area.ordine,
-          attiva: area.attiva,
-          enteId: area.enteId,
+          attiva: area.attiva
         }}
-        enti={enti}
       />
     </div>
   );

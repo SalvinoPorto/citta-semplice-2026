@@ -6,7 +6,10 @@ async function getServizio(id: number) {
   return prisma.servizio.findUnique({
     where: { id },
     include: {
-      steps: { orderBy: { ordine: 'asc' } },
+      steps: {
+        include: { pagamentoConfig: true },
+        orderBy: { ordine: 'asc' },
+      },
     },
   });
 }
@@ -22,37 +25,27 @@ async function getUnitaOrganizzative() {
   ];
 }
 
-// TODO: sostituire con chiamata API esterna reale
-async function getServiziPagamento() {
-  return [
-    { id: 'PAY001', nome: 'PagoPA - Gateway Nazionale' },
-    { id: 'PAY002', nome: 'MyPay' },
-    { id: 'PAY003', nome: 'Telemaco' },
-  ];
-}
-
 async function getFormData() {
-  const [aree, moduli, uffici, unitaOrganizzative, serviziPagamento] = await Promise.all([
+  const [aree, uffici, tributi, unitaOrganizzative] = await Promise.all([
     prisma.area.findMany({
       where: { attiva: true },
       orderBy: { titolo: 'asc' },
       select: { id: true, titolo: true },
-    }),
-    prisma.modulo.findMany({
-      where: { attivo: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, tipo: true },
     }),
     prisma.ufficio.findMany({
       where: { attivo: true },
       orderBy: { nome: 'asc' },
       select: { id: true, nome: true },
     }),
+    prisma.tributo.findMany({
+      where: { attivo: true },
+      orderBy: { codice: 'asc' },
+      select: { id: true, codice: true, descrizione: true },
+    }),
     getUnitaOrganizzative(),
-    getServiziPagamento(),
   ]);
 
-  return { aree, moduli, uffici, unitaOrganizzative, serviziPagamento };
+  return { aree, uffici, tributi, unitaOrganizzative };
 }
 
 interface PageProps {
@@ -67,7 +60,7 @@ export default async function ModificaServizioPage({ params }: PageProps) {
     notFound();
   }
 
-  const [servizio, { aree, moduli, uffici, unitaOrganizzative, serviziPagamento }] = await Promise.all([
+  const [servizio, { aree, uffici, tributi, unitaOrganizzative }] = await Promise.all([
     getServizio(servizioId),
     getFormData(),
   ]);
@@ -98,7 +91,6 @@ export default async function ModificaServizioPage({ params }: PageProps) {
           ordine: servizio.ordine,
           attivo: servizio.attivo,
           areaId: servizio.areaId,
-          moduloId: servizio.moduloId,
           ufficioId: servizio.ufficioId,
           dataInizio: servizio.dataInizio?.toISOString().split('T')[0] ?? '',
           dataFine: servizio.dataFine?.toISOString().split('T')[0] ?? '',
@@ -106,13 +98,18 @@ export default async function ModificaServizioPage({ params }: PageProps) {
           unicoInvioPerUtente: servizio.unicoInvioPerUtente,
           campiUnicoInvio: servizio.campiUnicoInvio || '',
           numeroMaxIstanze: servizio.numeroMaxIstanze,
-          avvisoSoglia: servizio.avvisoSoglia,
+          msgSopraSoglia: servizio.msgSopraSoglia || '',
           msgExtraServizio: servizio.msgExtraServizio || '',
           campiInEvidenza: servizio.campiInEvidenza || '',
           campiDaEsportare: servizio.campiDaEsportare || '',
-          prevedeDocumentoFinale: servizio.prevedeDocumentoFinale,
-          templateDocumentoFinale: servizio.templateDocumentoFinale || '',
-          nomeDocumentoFinale: servizio.nomeDocumentoFinale || '',
+          // prevedeDocumentoFinale: servizio.prevedeDocumentoFinale,
+          // templateDocumentoFinale: servizio.templateDocumentoFinale || '',
+          // nomeDocumentoFinale: servizio.nomeDocumentoFinale || '',
+          moduloTipo: (servizio.moduloTipo as 'HTML' | 'PDF') || 'HTML',
+          attributi: servizio.attributi || '',
+          postFormValidation: servizio.postFormValidation,
+          postFormValidationAPI: servizio.postFormValidationAPI || '',
+          postFormValidationFields: servizio.postFormValidationFields || '',
           steps: servizio.steps.map((step) => ({
             id: step.id,
             descrizione: step.descrizione,
@@ -124,14 +121,21 @@ export default async function ModificaServizioPage({ params }: PageProps) {
             allegatiRequired: step.allegatiRequired,
             allegatiOpRequired: step.allegatiOpRequired,
             protocollo: step.protocollo,
+            tipoProtocollo: (step.tipoProtocollo as 'E' | 'U' | undefined) || undefined,
             unitaOrganizzativa: step.unitaOrganizzativa || '',
+            pagamentoCodiceTributoId: step.pagamentoConfig?.codiceTributoId ?? null,
+            pagamentoImporto: step.pagamentoConfig?.importo ?? null,
+            pagamentoImportoVariabile: step.pagamentoConfig?.importoVariabile ?? false,
+            pagamentoCausale: step.pagamentoConfig?.causale || '',
+            pagamentoCausaleVariabile: step.pagamentoConfig?.causaleVariabile ?? false,
+            pagamentoObbligatorio: step.pagamentoConfig?.obbligatorio ?? false,
+            pagamentoTipologia: step.pagamentoConfig?.tipologiaPagamento || '',
           })),
         }}
         aree={aree}
-        moduli={moduli}
         uffici={uffici}
+        tributi={tributi}
         unitaOrganizzative={unitaOrganizzative}
-        serviziPagamento={serviziPagamento}
       />
     </div>
   );

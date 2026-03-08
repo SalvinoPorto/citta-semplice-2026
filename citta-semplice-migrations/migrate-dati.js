@@ -248,22 +248,41 @@ async function migrateServizi(src, dst) {
   console.log('\n── Migrazione servizi ────────────────────────────────────────────────');
 
   const { rows } = await src.query(`SELECT 
-    s.id, 
+    m.id, 
     s.corpo as descrizione, 
-    requisiti as come_fare, 
+    requisiti as cosa_serve,
+    come_fare, 
     riferimento as contatti, 
     s.slug, 
     sottotitolo as sotto_titolo, 
     titolo, 
     id_area as area_id, 
     s.attivo,
-    m.id as modulo_id,
+    s.altre_info as altre_info,
+    m.attributes as attributi,
     m.data_inizio as data_inizio,
     m.data_fine as data_fine,
-    m.data_inizio as updated_at
+    m.data_inizio as updated_at,
+    m.campi_in_evidenza as campi_in_evidenza,
+    m.campi_da_esportare as campi_da_esportare,
+    --COALESCE(m.prevede_documento_finale, false) as prevede_documento_finale,
+    --m.template_documento_finale as template_documento_finale,
+    --m.nome_documento_finale as nome_documento_finale,
+    --m.nome_file as modulo_nome_file,
+    m.tipo as modulo_tipo,
+    m.id_ufficio as ufficio_id,
+    m.unico_invio,
+    m.campi_unico_invio,
+    m.unico_invio_per_utente,
+    m.numero_max_istanze,
+    m.avviso_soglia as msg_sopra_soglia,
+    m.msg_extra_modulo as msg_extra_servizio,
+    COALESCE(m.post_form_validation, false) as post_form_validation,
+    m.post_form_validation_api,
+    m.post_form_validation_fields
     FROM servizi s
 	  LEFT JOIN moduli m ON m.id_servizio=s.id	 
-    WHERE id_area in (SELECT id FROM aree WHERE id_ente=1)
+    WHERE id_area in (SELECT id FROM aree WHERE id_ente=1) AND m.id IS NOT NULL
     ORDER BY id
     `);
   console.log(`Servizi trovati: ${rows.length}`);
@@ -291,7 +310,7 @@ async function migrateServizi(src, dst) {
   await dst.query("DELETE FROM servizi");
   for (const row of rows) {
     const values = columns.map(col => {
-      //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
+      if (col === 'attributi') return row.modulo_tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
       return row[col];
     });
 
@@ -554,10 +573,10 @@ async function migrateOperatoriRuoli(src, dst) {
 }
 
 // ── migrazione moduli ─────────────────────────────────────────────────────────
-
+/*
 async function migrateModuli(src, dst) {
   console.log('\n── Migrazione moduli ────────────────────────────────────────────────');
-
+  	
   const { rows } = await src.query(`SELECT 
     id, 
     attributes, 
@@ -610,7 +629,7 @@ async function migrateModuli(src, dst) {
     FROM moduli 
     WHERE id_servizio IN (
       SELECT id FROM servizi
-	    WHERE id_area IN (
+      WHERE id_area IN (
         SELECT id FROM aree WHERE id_ente=1))
     ORDER BY id`);
   console.log(`Moduli trovati: ${rows.length}`);
@@ -661,7 +680,7 @@ async function migrateModuli(src, dst) {
 
   console.log(`Moduli: ${ok} OK, ${errors} errori`);
 }
-
+*/
 // ── migrazione utenti ─────────────────────────────────────────────────────────
 
 async function migrateUtenti(src, dst) {
@@ -724,13 +743,13 @@ async function migrateSteps(src, dst) {
     SELECT 
     s.id, 
     s.attivo, 
-    descrizione, 
+    s.descrizione, 
     pagamento, 
     allegati, 
     protocollo, 
     unita_organizzativa, 
     ordine, 
-    m.id_servizio as servizio_id, 
+    m.id as servizio_id, 
     allegati_richiesti, 
     COALESCE(allegati_op, false) as allegati_op, 
     allegati_op_richiesti, 
@@ -741,7 +760,9 @@ async function migrateSteps(src, dst) {
     --termine_risposta
     FROM step s
     LEFT JOIN moduli m ON m.id=s.id_modulo
-    ORDER BY id
+    LEFT JOIN servizi se ON se.id=m.id_servizio
+	  WHERE se.id_area in (SELECT id FROM aree WHERE id_ente=1)
+    ORDER BY s.id
   `);
   console.log(`Step trovati: ${rows.length}`);
 
@@ -759,6 +780,7 @@ async function migrateSteps(src, dst) {
     INSERT INTO steps (${colList})
     VALUES (${placeholders})
     ON CONFLICT (id) DO NOTHING
+    --ON CONFLICT (servizio_id, steps.ordine) DO UPDATE SET steps.ordine=${columns[7]}+1
   `;
 
   let ok = 0, errors = 0;
@@ -806,7 +828,7 @@ async function migrateIstanze(src, dst) {
       i.id,
       i.data_invio,
       i.dati,
-      m.id_servizio     AS servizio_id,
+      i.id_modulo       AS servizio_id,
       i.id_utente       AS utente_id,
       i.proto_data,
       i.proto_numero,
@@ -903,40 +925,37 @@ async function main() {
   await dst.connect();
 
   try {
-    /*
+
     // 1. Migra utenti
-    await migrateUtenti(src, dst);
+    // await migrateUtenti(src, dst);
 
     // 2. Migra operatori
-    await migrateOperatori(src, dst);
-*/
+    // await migrateOperatori(src, dst);
     // 3. Migra ruoli
-    await migrateRuoli(src, dst);
+    // await migrateRuoli(src, dst);
 
     // 4. Migra operatori_ruoli
-    await migrateOperatoriRuoli(src, dst);
-    /*
-        //  5. Migra enti
-        await migrateEnti(src, dst);
-    
-        //  6. Migra aree
-        await migrateAree(src, dst);
-    
-        //  7. Migra moduli (converte il campo attributes nel nuovo formato)
-        await migrateModuli(src, dst);
-    
-        //  8. Migra servizi
-        await migrateServizi(src, dst);
-    
-        //  9. Migra uffici
-        await migrateUffici(src, dst);
-    
-        // 10. Migra steps
-        await migrateSteps(src, dst);
-    
-        // 11. Migra istanze (risolve CF→id interrogando dst per ogni riga)
-        await migrateIstanze(src, dst);
-    */
+    // await migrateOperatoriRuoli(src, dst);
+    //  5. Migra enti
+    // await migrateEnti(src, dst);
+
+    //  6. Migra aree
+    // await migrateAree(src, dst);
+
+    //  7. Migra moduli (converte il campo attributes nel nuovo formato)
+    // await migrateModuli(src, dst);
+
+    //  8. Migra servizi
+    // await migrateServizi(src, dst);
+    //  9. Migra uffici
+    // await migrateUffici(src, dst);
+
+    // 10. Migra steps
+    await migrateSteps(src, dst);
+
+    // 11. Migra istanze (risolve CF→id interrogando dst per ogni riga)
+    // await migrateIstanze(src, dst);
+
     console.log('\n✓ Migrazione completata.');
   } finally {
     await src.end();

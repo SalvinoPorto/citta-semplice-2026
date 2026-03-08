@@ -9,7 +9,7 @@ async function getDashboardStats() {
     istanzeAperte,
     istanzeConcluse,
     istanzeRespinte,
-    moduliAttivi,
+    serviziAttivi,
     operatoriAttivi,
   ] = await Promise.all([
     prisma.istanza.count(),
@@ -22,7 +22,7 @@ async function getDashboardStats() {
     prisma.istanza.count({
       where: { respinta: true },
     }),
-    prisma.modulo.count({
+    prisma.servizio.count({
       where: { attivo: true },
     }),
     prisma.operatore.count({
@@ -35,7 +35,7 @@ async function getDashboardStats() {
     istanzeAperte,
     istanzeConcluse,
     istanzeRespinte,
-    moduliAttivi,
+    serviziAttivi,
     operatoriAttivi,
   };
 }
@@ -108,12 +108,12 @@ export default async function DashboardPage() {
         <div className="col-12 col-md-6">
           <Card>
             <CardBody>
-              <CardTitle>Moduli Attivi</CardTitle>
+              <CardTitle>Servizi Attivi</CardTitle>
               <p className="text-muted mb-3">
-                {stats.moduliAttivi} moduli disponibili
+                {stats.serviziAttivi} servizi disponibili
               </p>
-              <Link href="/moduli" className="btn btn-outline-primary btn-sm">
-                Gestisci Moduli
+              <Link href="/servizi" className="btn btn-outline-primary btn-sm">
+                Gestisci servizi
               </Link>
             </CardBody>
           </Card>

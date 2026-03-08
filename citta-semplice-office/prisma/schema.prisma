@@ -122,23 +122,29 @@ model Area {
 
 model Servizio {
   id          Int       @id @default(autoincrement())
-  titolo      String
-  sottoTitolo String?   @map("sotto_titolo")
+  titolo      String    @db.VarChar(255)
+  sottoTitolo String?   @db.VarChar(255) @map("sotto_titolo")
   descrizione String?
   comeFare    String?   @map("come_fare")
   cosaServe   String?   @map("cosa_serve")
   altreInfo   String?   @map("altre_info")
   contatti    String?
-  slug        String?
-  icona       String?
+  slug        String?   @db.VarChar(255)
+  icona       String?   @db.VarChar(255)
   ordine      Int       @default(0)
   attivo      Boolean   @default(true)
 
   areaId      Int       @map("area_id")
   area        Area      @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  moduloId    Int?      @map("modulo_id")
-  modulo      Modulo?   @relation(fields: [moduloId], references: [id], onDelete: SetNull)
+  // Modulo (form dati richiedente, incorporato nel servizio)
+  moduloTipo                String    @db.VarChar(4) @default("HTML") @map("modulo_tipo") // HTML, PDF
+  //moduloNomeFile          String?   @db.VarChar(255) @map("modulo_nome_file")
+  attributi                 String?   @db.Text @map("attributi") // JSON form schema
+  moduloCorpo               String?   @db.Text @map("modulo_corpo")
+  postFormValidation        Boolean   @default(false) @map("post_form_validation")
+  postFormValidationAPI     String?   @db.VarChar(255) @map("post_form_validation_api")
+  postFormValidationFields  String?   @db.VarChar(255) @map("post_form_validation_fields")
 
   ufficioId   Int?      @map("ufficio_id")
   ufficio     Ufficio?  @relation(fields: [ufficioId], references: [id], onDelete: SetNull)
@@ -151,18 +157,18 @@ model Servizio {
   unicoInvio            Boolean   @default(false) @map("unico_invio")
   unicoInvioPerUtente   Boolean   @default(false) @map("unico_invio_per_utente")
   campiUnicoInvio       String?   @map("campi_unico_invio")
-  numeroMaxIstanze      Int?      @map("numero_max_istanze")
-  avvisoSoglia          Int?      @map("avviso_soglia")
-  msgExtraServizio      String?   @map("msg_extra_servizio")
+  numeroMaxIstanze      Int?      @default(0) @map("numero_max_istanze")
+  msgSopraSoglia        String?   @db.VarChar(300) @map("msg_sopra_soglia")
+  msgExtraServizio      String?   @db.VarChar(500) @map("msg_extra_servizio")
 
   // Visualizzazione istanze
   campiInEvidenza       String?   @map("campi_in_evidenza")
   campiDaEsportare      String?   @map("campi_da_esportare")
 
   // Documento finale
-  prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
-  templateDocumentoFinale   String?   @map("template_documento_finale") @db.Text
-  nomeDocumentoFinale       String?   @map("nome_documento_finale")
+  //prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
+  //templateDocumentoFinale   String?   @db.VarChar(255) @map("template_documento_finale") @db.Text
+  //nomeDocumentoFinale       String?   @db.VarChar(255) @map("nome_documento_finale")
 
   createdAt             DateTime? @default(now()) @map("created_at")
   updatedAt             DateTime? @map("updated_at")
@@ -194,8 +200,10 @@ model Ufficio {
 
 // ============================================
 // MODULES (MODULI) - Form Templates
+// (Modello rimosso: i campi sono stati incorporati in Servizio)
 // ============================================
 
+/*
 model Modulo {
   id                    Int       @id @default(autoincrement())
   name                  String
@@ -212,7 +220,7 @@ model Modulo {
   campiInEvidenza       String?   @map("campi_in_evidenza")
   campiDaEsportare      String?   @map("campi_da_esportare")
 
-/*
+
   // Unique submission rules
   unicoInvio            Boolean   @default(false) @map("unico_invio")
   unicoInvioPerUtente   Boolean   @default(false) @map("unico_invio_per_utente")
@@ -250,7 +258,7 @@ model Modulo {
   prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
   templateDocumentoFinale   String?   @map("template_documento_finale") @db.Text
   nomeDocumentoFinale       String?   @map("nome_documento_finale")
-*/
+
   // Post-form validation
   postFormValidation        Boolean   @default(false) @map("post_form_validation")
   postFormValidationAPI     String?   @map("post_form_validation_api")
@@ -262,30 +270,10 @@ model Modulo {
   //servizioId            Int       @map("servizio_id")
   //servizio              Servizio  @relation(fields: [servizioId], references: [id])
 
-  servizi               Servizio[]
-/*
-
-  ufficioId             Int?      @map("ufficio_id")
-  ufficio               Ufficio?  @relation(fields: [ufficioId], references: [id])
-
-  // attributoTypeId       Int?      @map("attributo_type_id")
-  // attributoType         AttributoType? @relation(fields: [attributoTypeId], references: [id])
-
-  
-  steps                 Step[]
-  istanze               Istanza[]
-  formule               Formula[]
-  operatori             OperatoreModulo[]
-  ruoli                 ModuloRuoloUser[]
-  validationFieldsPdf   ValidationFieldsPdf[]
-  documentoFinaleAttributi DocumentoFinaleAttributo[]
-  customerSatisfaction  CustomerSatisfaction?
-  ricevuta              Ricevuta?
-  fieldImportedDataRel  FieldImportedDataRel?
-  logModifiche          LogModificheModuli[]
-*/
   @@map("moduli")
 }
+*/
+
 
 model OperatoreServizio {
   operatoreId Int       @map("operatore_id")
@@ -353,6 +341,7 @@ model Step {
 
   // Protocol
   protocollo                  Boolean   @default(false)
+  tipoProtocollo              String?   @map("tipo_protocollo") // 'E' = Entrata, 'U' = Uscita
   unitaOrganizzativa          String?   @map("unita_organizzativa")
 
   // Assignment
@@ -366,7 +355,7 @@ model Step {
   allegatiRichiestiList       AllegatoRichiesto[]
   pagamentoConfig             Pagamento?
 
-  @@unique([servizioId, ordine])
+  //@@unique([servizioId, ordine])
   @@map("steps")
 }
 
@@ -438,9 +427,9 @@ model Istanza {
   respinta            Boolean   @default(false)
 
   // Protocol
-  protoNumero         String?   @map("proto_numero")
+  protoNumero         String?   @db.VarChar(10) @map("proto_numero")
   protoData           DateTime? @map("proto_data")
-  protoFinaleNumero   String?   @map("proto_finale_numero")
+  protoFinaleNumero   String?   @db.VarChar(10) @map("proto_finale_numero")
   protoFinaleData     DateTime? @map("proto_finale_data")
 
   // Dates
@@ -448,8 +437,8 @@ model Istanza {
   createdAt           DateTime  @default(now()) @map("created_at")
 
   // Bulk send
-  invioMassivo        String?   @map("invio_massivo")
-  msgInvioMassivo     String?   @map("msg_invio_massivo")
+  //invioMassivo        String?   @map("invio_massivo")
+  //msgInvioMassivo     String?   @map("msg_invio_massivo")
 
   // Relations
   utenteId            Int       @map("utente_id")
@@ -567,8 +556,11 @@ model Tributo {
 model Pagamento {
   id                  Int       @id @default(autoincrement())
   importo             Float?
+  importoVariabile    Boolean   @default(false) @map("importo_variabile")
   obbligatorio        Boolean   @default(false)
   tipologiaPagamento  String?   @map("tipologia_pagamento")
+  causale             String?   @db.Text
+  causaleVariabile    Boolean   @default(false) @map("causale_variabile")
 
   stepId              Int       @unique @map("step_id")
   step                Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)

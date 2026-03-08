@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Textarea, Input, Select } from '@/components/ui';
 import {
   advanceWorkflow,
+  regressWorkflow,
   rejectIstanza,
   reopenIstanza,
   assignProtocollo,
@@ -15,6 +16,25 @@ import {
   takeCharge,
   assignAttributo,
 } from './actions';
+
+interface PagamentoConfig {
+  importo: number | null;
+  importoVariabile: boolean;
+  causale: string | null;
+  causaleVariabile: boolean;
+  obbligatorio: boolean;
+}
+
+interface CurrentStep {
+  id: number;
+  descrizione: string;
+  ordine: number;
+  protocollo: boolean;
+  tipoProtocollo: string | null;
+  unitaOrganizzativa: string | null;
+  pagamento: boolean;
+  pagamentoConfig: PagamentoConfig | null;
+}
 
 interface IstanzaActionsProps {
   istanza: {
@@ -32,15 +52,26 @@ interface IstanzaActionsProps {
   };
   notifiche: { id: number; descrizione: string }[];
   isAssignedToMe: boolean;
+  currentStep: CurrentStep | null;
+  stepOrdine: number;
   attributoType?: {
     tipoAttributo: string;
     attributi: { id: number; valore: string }[];
   } | null;
 }
 
-export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, attributoType }: IstanzaActionsProps) {
+export function IstanzaActions({
+  istanza,
+  utente,
+  notifiche,
+  isAssignedToMe,
+  currentStep,
+  stepOrdine,
+  attributoType,
+}: IstanzaActionsProps) {
   const router = useRouter();
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showRegressModal, setShowRegressModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showProtocolloModal, setShowProtocolloModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -48,21 +79,47 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
   const [showConcludeModal, setShowConcludeModal] = useState(false);
   const [showAttributoModal, setShowAttributoModal] = useState(false);
 
+  // Advance state
   const [note, setNote] = useState('');
+  const [pagamentoImporto, setPagamentoImporto] = useState('');
+  const [pagamentoCausale, setPagamentoCausale] = useState('');
+  const [protocolloManuale, setProtocolloManuale] = useState(false);
+  const [protoNumeroPasso, setProtoNumeroPasso] = useState('');
+  const [protoDataPasso, setProtoDataPasso] = useState('');
+
+  // Regress state
+  const [regressNote, setRegressNote] = useState('');
+
+  // Reject state
   const [motivo, setMotivo] = useState('');
+
+  // Protocol state
   const [protoNumero, setProtoNumero] = useState(istanza.protoNumero || '');
   const [protoData, setProtoData] = useState(
     istanza.protoData ? new Date(istanza.protoData).toISOString().split('T')[0] : ''
   );
+
+  // Note state
   const [noteText, setNoteText] = useState('');
+
+  // Communication state
   const [communicationSubject, setCommunicationSubject] = useState('');
   const [communicationMessage, setCommunicationMessage] = useState('');
   const [selectedNotifica, setSelectedNotifica] = useState('');
+
+  // Conclude state
   const [concludeNote, setConcludeNote] = useState('');
+
+  // Attributo state
   const [selectedAttributoId, setSelectedAttributoId] = useState(
     istanza.attributoId ? String(istanza.attributoId) : ''
   );
+
   const [loading, setLoading] = useState(false);
+
+  const hasPaymentStep = currentStep?.pagamento && currentStep.pagamentoConfig;
+  const hasProtocolloStep = currentStep?.protocollo;
+  const paymentConfig = currentStep?.pagamentoConfig ?? null;
 
   const handleTakeCharge = async () => {
     setLoading(true);
@@ -82,16 +139,62 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
   };
 
   const handleAdvance = async () => {
+    // Validate payment fields if needed
+    if (hasPaymentStep && paymentConfig?.importoVariabile && !pagamentoImporto) {
+      toast.error('Inserire l\'importo del pagamento');
+      return;
+    }
+    if (hasPaymentStep && paymentConfig?.causaleVariabile && !pagamentoCausale.trim()) {
+      toast.error('Inserire la causale del pagamento');
+      return;
+    }
+    if (hasProtocolloStep && protocolloManuale && !protoNumeroPasso.trim()) {
+      toast.error('Inserire il numero di protocollo');
+      return;
+    }
+
     setLoading(true);
     try {
-      const result = await advanceWorkflow(istanza.id, note);
+      const result = await advanceWorkflow({
+        istanzaId: istanza.id,
+        note,
+        pagamentoImporto: pagamentoImporto ? parseFloat(pagamentoImporto) : undefined,
+        pagamentoCausale: pagamentoCausale || undefined,
+        protocolloManuale,
+        protoNumero: protoNumeroPasso || undefined,
+        protoData: protoDataPasso || undefined,
+      });
       if (result.success) {
         toast.success(result.message || 'Workflow avanzato con successo');
         setShowAdvanceModal(false);
         setNote('');
+        setPagamentoImporto('');
+        setPagamentoCausale('');
+        setProtocolloManuale(false);
+        setProtoNumeroPasso('');
+        setProtoDataPasso('');
         router.refresh();
       } else {
         toast.error(result.message || 'Errore durante l\'avanzamento');
+      }
+    } catch {
+      toast.error('Si è verificato un errore');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegress = async () => {
+    setLoading(true);
+    try {
+      const result = await regressWorkflow(istanza.id, regressNote);
+      if (result.success) {
+        toast.success(result.message || 'Retrocesso allo step precedente');
+        setShowRegressModal(false);
+        setRegressNote('');
+        router.refresh();
+      } else {
+        toast.error(result.message || 'Errore durante la retrocessione');
       }
     } catch {
       toast.error('Si è verificato un errore');
@@ -297,6 +400,14 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
         >
           Avanza Step
         </Button>
+        {stepOrdine > 1 && (
+          <Button
+            variant="outline-warning"
+            onClick={() => setShowRegressModal(true)}
+          >
+            Retrocedi
+          </Button>
+        )}
         <Button
           variant="info"
           onClick={() => setShowCommunicationModal(true)}
@@ -345,8 +456,104 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
       >
         <ModalHeader onClose={() => setShowAdvanceModal(false)}>
           Avanza Step
+          {currentStep && (
+            <small className="d-block text-muted fw-normal">
+              Step corrente: {currentStep.descrizione}
+            </small>
+          )}
         </ModalHeader>
         <ModalBody>
+          {/* Sezione Protocollo */}
+          {hasProtocolloStep && (
+            <div className="mb-4 p-3 bg-light rounded">
+              <h6 className="mb-2">
+                Protocollo{' '}
+                <span className="badge bg-secondary">
+                  {currentStep?.tipoProtocollo === 'U' ? 'Uscita' : 'Entrata'}
+                </span>
+              </h6>
+              <p className="small text-muted mb-2">
+                Questo step prevede la protocollazione del documento. Il sistema tenterà di
+                protocollare automaticamente tramite Urbismart.
+              </p>
+              <div className="form-check mb-2">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="protocollo-manuale"
+                  checked={protocolloManuale}
+                  onChange={(e) => setProtocolloManuale(e.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="protocollo-manuale">
+                  Inserisci protocollo manualmente
+                </label>
+              </div>
+              {protocolloManuale && (
+                <div className="row">
+                  <div className="col-md-7">
+                    <Input
+                      type="text"
+                      label="Numero Protocollo"
+                      value={protoNumeroPasso}
+                      onChange={(e) => setProtoNumeroPasso(e.target.value)}
+                      placeholder="2026/00001"
+                    />
+                  </div>
+                  <div className="col-md-5">
+                    <Input
+                      type="date"
+                      label="Data Protocollo"
+                      value={protoDataPasso}
+                      onChange={(e) => setProtoDataPasso(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sezione Pagamento */}
+          {hasPaymentStep && paymentConfig && (
+            <div className="mb-4 p-3 border border-primary rounded">
+              <h6 className="mb-2 text-primary">Pagamento PagoPA</h6>
+              {paymentConfig.importoVariabile ? (
+                <div className="mb-2">
+                  <Input
+                    type="number"
+                    label="Importo (€) *"
+                    step="0.01"
+                    min={0}
+                    value={pagamentoImporto}
+                    onChange={(e) => setPagamentoImporto(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+              ) : (
+                <p className="small mb-2">
+                  <strong>Importo:</strong> € {paymentConfig.importo?.toFixed(2) ?? '—'}
+                </p>
+              )}
+              {paymentConfig.causaleVariabile ? (
+                <div className="mb-2">
+                  <Input
+                    type="text"
+                    label="Causale *"
+                    value={pagamentoCausale}
+                    onChange={(e) => setPagamentoCausale(e.target.value)}
+                    placeholder="Inserisci la causale..."
+                  />
+                </div>
+              ) : (
+                <p className="small mb-2">
+                  <strong>Causale:</strong> {paymentConfig.causale ?? '—'}
+                </p>
+              )}
+              <p className="small text-muted mb-0">
+                Verrà generato un bollettino PagoPA e inserito nella timeline.
+              </p>
+            </div>
+          )}
+
           <p>Confermi di voler avanzare allo step successivo?</p>
           <Textarea
             label="Note (opzionale)"
@@ -374,6 +581,46 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
         </ModalFooter>
       </Modal>
 
+      {/* Regress Modal */}
+      <Modal
+        isOpen={showRegressModal}
+        onClose={() => setShowRegressModal(false)}
+        size="md"
+      >
+        <ModalHeader onClose={() => setShowRegressModal(false)}>
+          Retrocedi allo Step Precedente
+        </ModalHeader>
+        <ModalBody>
+          <div className="alert alert-warning">
+            L&apos;istanza tornerà allo step precedente. Usare questa funzione per creare un loop
+            e richiedere integrazioni o correzioni.
+          </div>
+          <Textarea
+            label="Motivo della retrocessione (opzionale)"
+            value={regressNote}
+            onChange={(e) => setRegressNote(e.target.value)}
+            rows={3}
+            placeholder="Inserisci il motivo della retrocessione..."
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="secondary"
+            onClick={() => setShowRegressModal(false)}
+            disabled={loading}
+          >
+            Annulla
+          </Button>
+          <Button
+            variant="warning"
+            onClick={handleRegress}
+            loading={loading}
+          >
+            Retrocedi
+          </Button>
+        </ModalFooter>
+      </Modal>
+
       {/* Reject Modal */}
       <Modal
         isOpen={showRejectModal}
@@ -388,7 +635,7 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
             Attenzione: questa azione respingerà l&apos;istanza e invierà una notifica all&apos;utente.
           </p>
           <Textarea
-            label="Motivo del rifiuto"
+            label="Motivo del rifiuto *"
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             rows={3}
@@ -426,7 +673,8 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
         <ModalBody>
           {!utente.email ? (
             <div className="alert alert-warning">
-              L&apos;utente non ha un indirizzo email configurato. La comunicazione verrà registrata ma non sarà possibile inviarla via email.
+              L&apos;utente non ha un indirizzo email configurato. La comunicazione verrà registrata
+              ma non sarà possibile inviarla via email.
             </div>
           ) : (
             <p className="text-muted mb-3">
@@ -497,16 +745,20 @@ export function IstanzaActions({ istanza, utente, notifiche, isAssignedToMe, att
         size="md"
       >
         <ModalHeader onClose={() => setShowProtocolloModal(false)}>
-          Assegna Protocollo
+          Assegna Protocollo Manuale
         </ModalHeader>
         <ModalBody>
+          <p className="text-muted small mb-3">
+            Usa questo form per assegnare manualmente un numero di protocollo all&apos;istanza
+            (indipendente dagli step).
+          </p>
           <div className="mb-3">
             <Input
               type="text"
               label="Numero Protocollo"
               value={protoNumero}
               onChange={(e) => setProtoNumero(e.target.value)}
-              placeholder="2024/00001"
+              placeholder="2026/00001"
               required
             />
           </div>

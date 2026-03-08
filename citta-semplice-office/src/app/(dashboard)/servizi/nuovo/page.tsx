@@ -12,41 +12,31 @@ async function getUnitaOrganizzative() {
   ];
 }
 
-// TODO: sostituire con chiamata API esterna reale
-async function getServiziPagamento() {
-  return [
-    { id: 'PAY001', nome: 'PagoPA - Gateway Nazionale' },
-    { id: 'PAY002', nome: 'MyPay' },
-    { id: 'PAY003', nome: 'Telemaco' },
-  ];
-}
-
 async function getFormData() {
-  const [aree, moduli, uffici, unitaOrganizzative, serviziPagamento] = await Promise.all([
+  const [aree, uffici, tributi, unitaOrganizzative] = await Promise.all([
     prisma.area.findMany({
       where: { attiva: true },
       orderBy: { titolo: 'asc' },
       select: { id: true, titolo: true },
-    }),
-    prisma.modulo.findMany({
-      where: { attivo: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, tipo: true },
     }),
     prisma.ufficio.findMany({
       where: { attivo: true },
       orderBy: { nome: 'asc' },
       select: { id: true, nome: true },
     }),
+    prisma.tributo.findMany({
+      where: { attivo: true },
+      orderBy: { codice: 'asc' },
+      select: { id: true, codice: true, descrizione: true },
+    }),
     getUnitaOrganizzative(),
-    getServiziPagamento(),
   ]);
 
-  return { aree, moduli, uffici, unitaOrganizzative, serviziPagamento };
+  return { aree, uffici, tributi, unitaOrganizzative };
 }
 
 export default async function NuovoServizioPage() {
-  const { aree, moduli, uffici, unitaOrganizzative, serviziPagamento } = await getFormData();
+  const { aree, uffici, tributi, unitaOrganizzative } = await getFormData();
 
   return (
     <div>
@@ -57,10 +47,9 @@ export default async function NuovoServizioPage() {
 
       <ServizioForm
         aree={aree}
-        moduli={moduli}
         uffici={uffici}
+        tributi={tributi}
         unitaOrganizzative={unitaOrganizzative}
-        serviziPagamento={serviziPagamento}
         isNew
       />
     </div>

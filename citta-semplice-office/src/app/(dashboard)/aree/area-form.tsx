@@ -20,16 +20,14 @@ interface AreaData {
   icona: string;
   ordine: number;
   attiva: boolean;
-  enteId: number;
 }
 
 interface AreaFormProps {
   area?: AreaData;
-  enti: Ente[];
   isNew?: boolean;
 }
 
-export function AreaForm({ area, enti, isNew }: AreaFormProps) {
+export function AreaForm({ area, isNew }: AreaFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -46,7 +44,6 @@ export function AreaForm({ area, enti, isNew }: AreaFormProps) {
       icona: '',
       ordine: 0,
       attiva: true,
-      enteId: enti[0]?.id || 0,
     },
   });
 
@@ -89,21 +86,6 @@ export function AreaForm({ area, enti, isNew }: AreaFormProps) {
           <Card className="mb-4">
             <CardBody>
               <h5 className="mb-4">Informazioni Area</h5>
-
-              <div className="mb-3">
-                <Select
-                  label="Ente *"
-                  {...register('enteId', { valueAsNumber: true })}
-                  error={errors.enteId?.message}
-                >
-                  <option value="">Seleziona un ente</option>
-                  {enti.map((ente) => (
-                    <option key={ente.id} value={ente.id}>
-                      {ente.ente}
-                    </option>
-                  ))}
-                </Select>
-              </div>
 
               <div className="mb-3">
                 <Input

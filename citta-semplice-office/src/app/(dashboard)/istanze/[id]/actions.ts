@@ -4,12 +4,26 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
+import { pmPayService } from '@/lib/external/pmpay';
+import { urbiSmartService } from '@/lib/external/urbismart';
 
 const STATUS_ELABORAZIONE = 1;
 const STATUS_SUCCESSO = 2;
 const STATUS_RESPINTA = 4;
 
-export async function advanceWorkflow(istanzaId: number, note: string) {
+export interface AdvanceWorkflowParams {
+  istanzaId: number;
+  note: string;
+  // Pagamento (se lo step corrente ha pagamento)
+  pagamentoImporto?: number;
+  pagamentoCausale?: string;
+  // Protocollo (se lo step corrente ha protocollo)
+  protocolloManuale?: boolean;
+  protoNumero?: string;
+  protoData?: string;
+}
+
+export async function advanceWorkflow(params: AdvanceWorkflowParams) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -17,22 +31,25 @@ export async function advanceWorkflow(istanzaId: number, note: string) {
     }
 
     const operatoreId = parseInt(user.id);
+    const { istanzaId, note } = params;
 
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
+        utente: true,
         servizio: {
           include: {
             steps: {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
+              include: { pagamentoConfig: true },
             },
           },
         },
         workflows: {
           orderBy: { dataVariazione: 'desc' },
           take: 1,
-          include: { step: true },
+          include: { step: { include: { pagamentoConfig: true } } },
         },
       },
     });
@@ -48,9 +65,93 @@ export async function advanceWorkflow(istanzaId: number, note: string) {
     const lastWorkflow = istanza.workflows[0];
     const steps = istanza.servizio.steps;
     const currentStepOrder = lastWorkflow?.step?.ordine || 0;
+    const currentStep = lastWorkflow?.step;
     const nextStep = steps.find((s) => s.ordine === currentStepOrder + 1);
 
     const now = new Date();
+
+    // --- Gestione pagamento step corrente ---
+    let pagamentoEffettuatoId: number | undefined;
+    if (currentStep?.pagamento && currentStep.pagamentoConfig) {
+      const cfg = currentStep.pagamentoConfig;
+      const importo = cfg.importoVariabile
+        ? (params.pagamentoImporto ?? 0)
+        : (cfg.importo ?? 0);
+      const causale = cfg.causaleVariabile
+        ? (params.pagamentoCausale ?? '')
+        : (cfg.causale ?? '');
+
+      if (importo > 0 && cfg.codiceTributoId) {
+        const tributo = await prisma.tributo.findUnique({
+          where: { id: cfg.codiceTributoId },
+        });
+
+        if (tributo) {
+          const payResult = await pmPayService.createPayment({
+            importo,
+            causale,
+            codiceTributo: tributo.codice,
+            codiceFiscale: istanza.utente.codiceFiscale,
+            nome: istanza.utente.nome,
+            cognome: istanza.utente.cognome,
+            email: istanza.utente.email ?? undefined,
+          });
+
+          if (payResult.success && payResult.iuv) {
+            const pagEff = await prisma.pagamentoEffettuato.create({
+              data: {
+                workflowId: lastWorkflow!.id,
+                iuv: payResult.iuv,
+                importoTotale: importo,
+                stato: 'PENDING',
+                causale,
+                cfUtente: istanza.utente.codiceFiscale,
+                nomeUtente: istanza.utente.nome,
+                cognomeUtente: istanza.utente.cognome,
+                emailUtente: istanza.utente.email,
+              },
+            });
+            pagamentoEffettuatoId = pagEff.id;
+          }
+        }
+      }
+    }
+
+    // --- Gestione protocollo step corrente ---
+    if (currentStep?.protocollo && !params.protocolloManuale) {
+      // Chiamata automatica a Urbismart (se configurato)
+      try {
+        const tipo = (currentStep.tipoProtocollo as 'E' | 'U' | null) ?? 'E';
+        const unitaOrg = currentStep.unitaOrganizzativa ?? '';
+        await urbiSmartService.registraProtocollo({
+          tipo,
+          oggetto: `Istanza #${istanzaId} - ${istanza.servizio.titolo}`,
+          tipoMezzo: 'PEC',
+          corrispondente: {
+            cognome: istanza.utente.cognome,
+            nome: istanza.utente.nome,
+            codiceFiscale: istanza.utente.codiceFiscale,
+          },
+          unitaOrganizzativa: unitaOrg,
+          nomeFile: `istanza_${istanzaId}.pdf`,
+          filePath: '',
+          classificazione: 'V/5',
+        });
+      } catch {
+        // Non blocchiamo l'avanzamento per errori di protocollo
+      }
+    }
+
+    // Protocollo manuale
+    if (currentStep?.protocollo && params.protocolloManuale && params.protoNumero) {
+      await prisma.istanza.update({
+        where: { id: istanzaId },
+        data: {
+          protoNumero: params.protoNumero,
+          protoData: params.protoData ? new Date(params.protoData) : now,
+        },
+      });
+    }
 
     // Update current workflow to success
     if (lastWorkflow) {
@@ -99,10 +200,104 @@ export async function advanceWorkflow(istanzaId: number, note: string) {
       message: nextStep
         ? `Avanzato allo step: ${nextStep.descrizione}`
         : 'Istanza conclusa con successo',
+      pagamentoEffettuatoId,
     };
   } catch (error) {
     console.error('Error advancing workflow:', error);
     return { success: false, message: 'Errore durante l\'avanzamento' };
+  }
+}
+
+export async function regressWorkflow(istanzaId: number, note: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+
+    const operatoreId = parseInt(user.id);
+
+    const istanza = await prisma.istanza.findUnique({
+      where: { id: istanzaId },
+      include: {
+        servizio: {
+          include: {
+            steps: {
+              where: { attivo: true },
+              orderBy: { ordine: 'asc' },
+            },
+          },
+        },
+        workflows: {
+          orderBy: { dataVariazione: 'desc' },
+          take: 1,
+          include: { step: true },
+        },
+      },
+    });
+
+    if (!istanza) {
+      return { success: false, message: 'Istanza non trovata' };
+    }
+
+    if (istanza.conclusa || istanza.respinta) {
+      return { success: false, message: 'Impossibile retrocedere: istanza già conclusa o respinta' };
+    }
+
+    const lastWorkflow = istanza.workflows[0];
+    const currentStepOrder = lastWorkflow?.step?.ordine || 0;
+
+    if (currentStepOrder <= 1) {
+      return { success: false, message: 'Impossibile retrocedere: siamo già al primo step' };
+    }
+
+    const steps = istanza.servizio.steps;
+    const prevStep = steps.find((s) => s.ordine === currentStepOrder - 1);
+
+    if (!prevStep) {
+      return { success: false, message: 'Step precedente non trovato' };
+    }
+
+    const now = new Date();
+
+    // Mark current workflow as "retroceded"
+    if (lastWorkflow) {
+      await prisma.workflow.update({
+        where: { id: lastWorkflow.id },
+        data: {
+          statusId: STATUS_ELABORAZIONE,
+          note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
+          dataVariazione: now,
+          operatoreId,
+        },
+      });
+    }
+
+    // Create new workflow at previous step
+    await prisma.workflow.create({
+      data: {
+        istanzaId,
+        stepId: prevStep.id,
+        statusId: STATUS_ELABORAZIONE,
+        operatoreId,
+        dataVariazione: now,
+        note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
+      },
+    });
+
+    // Update last step
+    await prisma.istanza.update({
+      where: { id: istanzaId },
+      data: { lastStepId: prevStep.id },
+    });
+
+    revalidatePath(`/istanze/${istanzaId}`);
+    revalidatePath('/istanze');
+
+    return { success: true, message: `Retrocesso a: ${prevStep.descrizione}` };
+  } catch (error) {
+    console.error('Error regressing workflow:', error);
+    return { success: false, message: 'Errore durante la retrocessione' };
   }
 }
 
