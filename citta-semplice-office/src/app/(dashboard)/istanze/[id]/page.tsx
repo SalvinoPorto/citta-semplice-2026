@@ -21,13 +21,16 @@ async function getIstanza(id: number) {
           steps: {
             where: { attivo: true },
             orderBy: { ordine: 'asc' },
+            include: { pagamentoConfig: true },
           },
         },
       },
       workflows: {
         include: {
           status: true,
-          step: true,
+          step: {
+            include: { pagamentoConfig: true },
+          },
           notifica: true,
           operatore: {
             select: { id: true, nome: true, cognome: true },
@@ -90,8 +93,11 @@ export default async function IstanzaDetailPage({
 
   const lastWorkflow = istanza.workflows[0];
   const isAssignedToMe = lastWorkflow?.operatore?.id === operatoreId;
-  console.log('istanza.dati: ', istanza.dati);
   const dati = istanza.dati ? JSON.parse(istanza.dati) : {};
+
+  // Informazioni sullo step corrente
+  const currentStep = lastWorkflow?.step ?? null;
+  const stepPagamentoConfig = currentStep?.pagamentoConfig ?? null;
 
   const getStatusBadge = () => {
     if (istanza.conclusa) {
@@ -137,6 +143,23 @@ export default async function IstanzaDetailPage({
           }}
           notifiche={notifiche}
           isAssignedToMe={isAssignedToMe}
+          currentStep={currentStep ? {
+            id: currentStep.id,
+            descrizione: currentStep.descrizione,
+            ordine: currentStep.ordine,
+            protocollo: currentStep.protocollo,
+            tipoProtocollo: currentStep.tipoProtocollo,
+            unitaOrganizzativa: currentStep.unitaOrganizzativa,
+            pagamento: currentStep.pagamento,
+            pagamentoConfig: stepPagamentoConfig ? {
+              importo: stepPagamentoConfig.importo,
+              importoVariabile: stepPagamentoConfig.importoVariabile,
+              causale: stepPagamentoConfig.causale,
+              causaleVariabile: stepPagamentoConfig.causaleVariabile,
+              obbligatorio: stepPagamentoConfig.obbligatorio,
+            } : null,
+          } : null}
+          stepOrdine={currentStep?.ordine ?? 0}
         />
       </div>
 

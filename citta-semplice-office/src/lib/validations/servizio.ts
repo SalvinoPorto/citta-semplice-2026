@@ -5,14 +5,27 @@ export const stepSchema = z.object({
   descrizione: z.string().min(1, 'La descrizione è obbligatoria'),
   ordine: z.number().int().min(1),
   attivo: z.boolean().default(true),
-  pagamento: z.boolean().default(false),
+
+  // Allegati
   allegati: z.boolean().default(false),
   allegatiOp: z.boolean().default(false),
   allegatiRequired: z.boolean().default(false),
   allegatiOpRequired: z.boolean().default(false),
+
+  // Protocollo
   protocollo: z.boolean().default(false),
+  tipoProtocollo: z.enum(['E', 'U']).optional(), // E = Entrata, U = Uscita
   unitaOrganizzativa: z.string().optional(),
-  servizioPagamentoId: z.string().optional(),
+
+  // Pagamento
+  pagamento: z.boolean().default(false),
+  pagamentoCodiceTributoId: z.number().int().nullable().optional(),
+  pagamentoImporto: z.number().nullable().optional(),
+  pagamentoImportoVariabile: z.boolean().default(false),
+  pagamentoCausale: z.string().optional(),
+  pagamentoCausaleVariabile: z.boolean().default(false),
+  pagamentoObbligatorio: z.boolean().default(false),
+  pagamentoTipologia: z.string().optional(),
 });
 
 export const servizioSchema = z.object({
@@ -31,7 +44,6 @@ export const servizioSchema = z.object({
   areaId: z.number().int().min(1, "Seleziona un'area"),
 
   // Configurazione istanze
-  moduloId: z.number().int().nullable().optional(),
   ufficioId: z.number().int().nullable().optional(),
   dataInizio: z.string().optional(),
   dataFine: z.string().optional(),
@@ -41,7 +53,7 @@ export const servizioSchema = z.object({
   unicoInvioPerUtente: z.boolean().default(false),
   campiUnicoInvio: z.string().optional(),
   numeroMaxIstanze: z.number().int().min(0).nullable().optional(),
-  avvisoSoglia: z.number().int().min(0).nullable().optional(),
+  msgSopraSoglia: z.string().optional(),
   msgExtraServizio: z.string().optional(),
 
   // Visualizzazione
@@ -49,9 +61,16 @@ export const servizioSchema = z.object({
   campiDaEsportare: z.string().optional(),
 
   // Documento finale
-  prevedeDocumentoFinale: z.boolean().default(false),
-  templateDocumentoFinale: z.string().optional(),
-  nomeDocumentoFinale: z.string().optional(),
+  // prevedeDocumentoFinale: z.boolean().default(false),
+  // templateDocumentoFinale: z.string().optional(),
+  // nomeDocumentoFinale: z.string().optional(),
+
+  // Modulo (form dati richiedente)
+  moduloTipo: z.enum(['HTML', 'PDF']).default('HTML'),
+  attributi: z.string().optional(),
+  postFormValidation: z.boolean().default(false),
+  postFormValidationAPI: z.string().optional(),
+  postFormValidationFields: z.string().optional(),
 
   // Workflow
   steps: z.array(stepSchema).default([]),
