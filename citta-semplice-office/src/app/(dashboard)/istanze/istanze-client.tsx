@@ -7,7 +7,7 @@ import { Card, CardBody, Badge, Button, Input, Select } from '@/components/ui';
 import { THeadGroup, THead, Paginatore, TFilterHead, TFilterHeadGroup } from '@/components/shared';
 import type { Order, Filter } from '@/lib/models/table';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 const PRIMO_ANNO = 2020;
 const anni = Array.from(
   { length: new Date().getFullYear() - PRIMO_ANNO + 1 },

@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   const {
     tab = 'nuove',
     page = 1,
-    pageSize = 20,
+    pageSize = 10,
     sort = { field: 'dataInvio', direction: -1 },
     formFilters = { protocollo: '', codiceFiscale: '', modulo: '', anno: '', cerca: '' },
     columnFilters = [],

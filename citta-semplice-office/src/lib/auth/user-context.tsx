@@ -10,7 +10,6 @@ export interface UserData {
   nome: string;
   cognome: string;
   ruoli: string[];
-  entiIds: number[];
 }
 
 interface UserContextValue {

@@ -3,7 +3,7 @@ import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
 import { ServiziRequest } from '@/lib/models/requests';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export async function POST(request: NextRequest) {
   const session = await auth();

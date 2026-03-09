@@ -9,6 +9,7 @@ interface Workflow {
     icon: string | null;
   };
   step: {
+    id: number;
     descrizione: string;
     ordine: number;
   } | null;
@@ -32,6 +33,25 @@ interface WorkflowTimelineProps {
   steps: Step[];
 }
 
+type EntryType = 'communication' | 'retrocession' | 'event';
+
+function getEntryType(note: string | null): EntryType {
+  if (!note) return 'event';
+  if (note.startsWith('[Comunicazione]')) return 'communication';
+  if (note.startsWith('[Retrocessione')) return 'retrocession';
+  return 'event';
+}
+
+function formatDateTime(date: Date) {
+  return new Date(date).toLocaleString('it-IT', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
   const getStatusClass = (status: string) => {
     const lowerStatus = status.toLowerCase();
@@ -51,44 +71,102 @@ export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
     return <p className="text-muted">Nessun workflow disponibile</p>;
   }
 
+  // Sort oldest-first for display
+  const sorted = [...workflows].sort(
+    (a, b) => new Date(a.dataVariazione).getTime() - new Date(b.dataVariazione).getTime()
+  );
+
+  // Group events by step ordine
+  const eventsByOrdine = new Map<number, Workflow[]>();
+  for (const wf of sorted) {
+    const key = wf.step?.ordine ?? 0;
+    if (!eventsByOrdine.has(key)) eventsByOrdine.set(key, []);
+    eventsByOrdine.get(key)!.push(wf);
+  }
+
+  // Determine step visual status from its latest event
+  function stepStatus(ordine: number) {
+    const events = eventsByOrdine.get(ordine);
+    if (!events || events.length === 0) return '';
+    return getStatusClass(events[events.length - 1].status.stato);
+  }
+
   return (
     <div className="timeline">
-      {workflows.map((workflow) => (
-        <div
-          key={workflow.id}
-          className={`timeline-item ${getStatusClass(workflow.status.stato)}`}
-        >
-          <div className="d-flex justify-content-between align-items-start mb-1">
-            <strong>
-              {workflow.step?.descrizione || workflow.notifica?.descrizione || '-'}
-            </strong>
-            <small className="text-muted">
-              {new Date(workflow.dataVariazione).toLocaleDateString('it-IT')}
-            </small>
+      {steps.map((step) => {
+        const status = stepStatus(step.ordine);
+        const events = eventsByOrdine.get(step.ordine) ?? [];
+        const reached = events.length > 0;
+
+        return (
+          <div key={step.id} className={`timeline-item ${status} ${!reached ? 'opacity-50' : ''}`}>
+            {/* Step header */}
+            <div className="d-flex justify-content-between align-items-start mb-1">
+              <strong>{step.ordine}. {step.descrizione}</strong>
+              {reached && events[events.length - 1] && (
+                <small className="text-muted">
+                  {new Date(events[events.length - 1].dataVariazione).toLocaleDateString('it-IT')}
+                </small>
+              )}
+            </div>
+            {reached && (
+              <div className="mb-1">
+                <span className={`badge ${
+                  status === 'completed' ? 'bg-success' :
+                  status === 'rejected'  ? 'bg-danger' :
+                  status === 'pending'   ? 'bg-warning text-dark' : 'bg-secondary'
+                }`}>
+                  {events[events.length - 1].status.stato}
+                </span>
+              </div>
+            )}
+
+            {/* Events under this step */}
+            {events.map((wf) => {
+              const type = getEntryType(wf.note);
+
+              if (type === 'communication') {
+                const text = (wf.note ?? '').replace(/^\[Comunicazione\]\s*/, '');
+                return (
+                  <div key={wf.id} className="mt-2 p-2 rounded border border-info small"
+                       style={{ backgroundColor: 'rgba(13,202,240,0.07)' }}>
+                    <span className="badge bg-info text-dark me-1">Comunicazione</span>
+                    <span>{text}</span>
+                    <div className="text-muted mt-1">
+                      {formatDateTime(wf.dataVariazione)}
+                      {wf.operatore && <span className="ms-1">— {wf.operatore.cognome} {wf.operatore.nome}</span>}
+                    </div>
+                  </div>
+                );
+              }
+
+              if (type === 'retrocession') {
+                const text = (wf.note ?? '').replace(/^\[Retrocessione[^\]]*\]\s*/, '');
+                return (
+                  <div key={wf.id} className="mt-1 small text-warning">
+                    ↩ {text || 'Retrocesso allo step precedente'}
+                    <span className="text-muted ms-2">{formatDateTime(wf.dataVariazione)}</span>
+                  </div>
+                );
+              }
+
+              // Regular note — skip if empty
+              if (!wf.note) return null;
+
+              return (
+                <p key={wf.id} className="mt-2 mb-0 small text-muted">{wf.note}</p>
+              );
+            })}
+
+            {/* Operator label from first event */}
+            {events[0]?.operatore && (
+              <small className="text-muted d-block mt-1">
+                {events[0].operatore.cognome} {events[0].operatore.nome}
+              </small>
+            )}
           </div>
-          <div className="mb-1">
-            <span
-              className={`badge ${
-                getStatusClass(workflow.status.stato) === 'completed'
-                  ? 'bg-success'
-                  : getStatusClass(workflow.status.stato) === 'rejected'
-                  ? 'bg-danger'
-                  : 'bg-warning text-dark'
-              }`}
-            >
-              {workflow.status.stato}
-            </span>
-          </div>
-          {workflow.operatore && (
-            <small className="text-muted d-block">
-              {workflow.operatore.cognome} {workflow.operatore.nome}
-            </small>
-          )}
-          {workflow.note && (
-            <p className="mt-2 mb-0 small text-muted">{workflow.note}</p>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

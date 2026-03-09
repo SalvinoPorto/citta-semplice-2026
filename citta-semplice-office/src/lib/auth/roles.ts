@@ -2,7 +2,7 @@
 export const ROLES = {
   ADMIN: 'AMMINISTRATORE',
   OPERATORE: 'OPERATORE',
-  GESTORE: 'GESTORE_MODULI',
+  GESTORE: 'GESTORE_SERVIZI',
 } as const;
 
 export type RoleName = (typeof ROLES)[keyof typeof ROLES];
@@ -12,10 +12,6 @@ export const PERMISSIONS = {
   // Istanze
   ISTANZE_VIEW: 'istanze:view',
   ISTANZE_MANAGE: 'istanze:manage',
-
-  // Moduli
-  MODULI_VIEW: 'moduli:view',
-  MODULI_MANAGE: 'moduli:manage',
 
   // Operatori
   OPERATORI_VIEW: 'operatori:view',
@@ -50,13 +46,11 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
   [ROLES.GESTORE]: [
     PERMISSIONS.ISTANZE_VIEW,
     PERMISSIONS.ISTANZE_MANAGE,
-    PERMISSIONS.MODULI_VIEW,
-    PERMISSIONS.MODULI_MANAGE,
   ],
   [ROLES.OPERATORE]: [
     PERMISSIONS.ISTANZE_VIEW,
     PERMISSIONS.ISTANZE_MANAGE,
-    PERMISSIONS.MODULI_VIEW,
+    PERMISSIONS.SERVIZI_VIEW,
     PERMISSIONS.STATISTICHE_VIEW,
   ],
 };

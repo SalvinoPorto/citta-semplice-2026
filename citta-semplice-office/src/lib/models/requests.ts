@@ -18,3 +18,5 @@ export type ServiziRequest = BaseRequest & {
     area?: number;
     soloAttivi?: boolean;
 }
+
+export type UtentiRequest = BaseRequest;

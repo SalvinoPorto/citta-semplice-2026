@@ -687,10 +687,16 @@ async function migrateUtenti(src, dst) {
   console.log('\n── Migrazione utenti ────────────────────────────────────────────────');
 
   const { rows } = await src.query(`
-    SELECT codice_fiscale, cognome, nome, email,
-           mobile AS telefono, data_nascita, luogo_nascita
+    SELECT 
+    codice_fiscale, 
+    cognome, 
+    nome, 
+    email,
+    mobile AS telefono, 
+    data_nascita, 
+    luogo_nascita
     FROM utenti
-    ORDER BY codice_fiscale --LIMIT 100
+    ORDER BY codice_fiscale LIMIT 100
   `);
   console.log(`Utenti trovati: ${rows.length}`);
 
@@ -713,7 +719,10 @@ async function migrateUtenti(src, dst) {
   let ok = 0, errors = 0;
 
   for (const row of rows) {
-    const values = columns.map(c => row[c]);
+    const values = columns.map(c => {
+      if (c === 'cognome' || c === 'nome') return row[c].toUpperCase();
+      return row[c];
+    });
     try {
       await dst.query(sql, values);
       ok++;
@@ -927,15 +936,17 @@ async function main() {
   try {
 
     // 1. Migra utenti
-    // await migrateUtenti(src, dst);
+    await migrateUtenti(src, dst);
 
     // 2. Migra operatori
     // await migrateOperatori(src, dst);
+    
     // 3. Migra ruoli
     // await migrateRuoli(src, dst);
 
     // 4. Migra operatori_ruoli
     // await migrateOperatoriRuoli(src, dst);
+    
     //  5. Migra enti
     // await migrateEnti(src, dst);
 
@@ -947,11 +958,12 @@ async function main() {
 
     //  8. Migra servizi
     // await migrateServizi(src, dst);
+    
     //  9. Migra uffici
     // await migrateUffici(src, dst);
 
     // 10. Migra steps
-    await migrateSteps(src, dst);
+    // await migrateSteps(src, dst);
 
     // 11. Migra istanze (risolve CF→id interrogando dst per ogni riga)
     // await migrateIstanze(src, dst);

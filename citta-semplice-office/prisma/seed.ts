@@ -25,9 +25,9 @@ async function main() {
 
   // Create Ruoli
   const ruoli = [
-    { nome: 'ADMIN', descrizione: 'Amministratore del sistema', permessi: ['*'] },
+    { nome: 'AMMINISTRATORE', descrizione: 'Amministratore del sistema', permessi: ['*'] },
     { nome: 'OPERATORE', descrizione: 'Operatore standard', permessi: ['read', 'write'] },
-    { nome: 'VIEWER', descrizione: 'Solo visualizzazione', permessi: ['read'] },
+    { nome: 'GESTORE_SERVIZI', descrizione: 'Operatore avanzato',permessi: ['create','read', 'write'] },
   ];
 
   for (const ruolo of ruoli) {
@@ -40,7 +40,7 @@ async function main() {
   console.log('Created ruoli');
 
   // Create Ente
-  const ente = await prisma.ente.upsert({
+  await prisma.ente.upsert({
     where: { id: 1 },
     update: {},
     create: {
@@ -69,8 +69,6 @@ async function main() {
   });
   console.log('Created area');
 
-  
-
   // Create Ufficio
   const ufficio = await prisma.ufficio.upsert({
     where: { id: 1 },
@@ -89,7 +87,7 @@ async function main() {
   // Create Admin Operatore
   const adminPassword = await hash('admin123', 12);
   const admin = await prisma.operatore.upsert({
-    where: { id:1 },
+    where: { id: 1 },
     update: {},
     create: {
       email: 'admin@comune.catania.it',
@@ -102,7 +100,7 @@ async function main() {
   });
 
   // Assign admin role
-  const adminRuolo = await prisma.ruolo.findUnique({ where: { nome: 'ADMIN' } });
+  const adminRuolo = await prisma.ruolo.findUnique({ where: { nome: 'AMMINISTRATORE' } });
   if (adminRuolo) {
     await prisma.operatoreRuolo.upsert({
       where: {
@@ -118,28 +116,9 @@ async function main() {
       },
     });
   }
+  console.log('Created admin operatore');
 
-  // Create sample Modulo
-  const modulo = await prisma.modulo.upsert({
-    where: { slug: 'richiesta-certificato-anagrafico' },
-    update: {},
-    create: {
-      name: 'Richiesta Certificato Anagrafico',
-      slug: 'richiesta-certificato-anagrafico',
-      description: 'Modulo per la richiesta di certificati anagrafici',
-      tipo: 'HTML',
-      attivo: true,
-      attributes: JSON.stringify({
-        fields: [
-          { name: 'tipoCertificato', label: 'Tipo Certificato', type: 'select' },
-          { name: 'motivazione', label: 'Motivazione', type: 'textarea' },
-        ],
-      }),
-    },
-  });
-  console.log('Created modulo');
-
-// Create Servizio
+  // Create Servizio (con modulo incorporato)
   const servizio = await prisma.servizio.upsert({
     where: { id: 1 },
     update: {},
@@ -150,8 +129,16 @@ async function main() {
       attivo: true,
       dataInizio: new Date('2024-01-01'),
       dataFine: new Date('2030-12-31'),
-      moduloId: 1,
       areaId: area.id,
+      ufficioId: ufficio.id,
+      // Modulo (form) incorporato nel servizio
+      moduloTipo: 'HTML',
+      attributi: JSON.stringify({
+        fields: [
+          { name: 'tipoCertificato', label: 'Tipo Certificato', type: 'select' },
+          { name: 'motivazione', label: 'Motivazione', type: 'textarea' },
+        ],
+      }),
     },
   });
   console.log('Created servizio');
@@ -164,15 +151,8 @@ async function main() {
   ];
 
   for (const step of steps) {
-    await prisma.step.upsert({
-      where: {
-        servizioId_ordine: {
-          servizioId: modulo.id,
-          ordine: step.ordine,
-        },
-      },
-      update: {},
-      create: {
+    await prisma.step.create({
+      data: {
         ...step,
         attivo: true,
         servizioId: servizio.id,
@@ -181,7 +161,7 @@ async function main() {
   }
   console.log('Created steps');
 
-  // Assign modulo to admin
+  // Assign servizio to admin
   await prisma.operatoreServizio.upsert({
     where: {
       operatoreId_servizioId: {
@@ -195,7 +175,45 @@ async function main() {
       servizioId: servizio.id,
     },
   });
-  console.log('Assigned modulo to admin');
+  console.log('Assigned servizio to admin');
+
+  // Create Utente fittizio
+  const utente = await prisma.utente.upsert({
+    where: { codiceFiscale: 'RSSMRA80A01C351Z' },
+    update: {},
+    create: {
+      codiceFiscale: 'RSSMRA80A01C351Z',
+      nome: 'Mario',
+      cognome: 'Rossi',
+      email: 'mario.rossi@example.com',
+      telefono: '3331234567',
+      dataNascita: new Date('1980-01-01'),
+      luogoNascita: 'Catania',
+      indirizzo: 'Via Roma, 10',
+      cap: '95100',
+      citta: 'Catania',
+      provincia: 'CT',
+    },
+  });
+  console.log('Created utente');
+
+  // Create Istanza fittizia
+  const istanza = await prisma.istanza.create({
+    data: {
+      utenteId: utente.id,
+      servizioId: servizio.id,
+      dataInvio: new Date('2026-01-15'),
+      dati: JSON.stringify({
+        tipoCertificato: 'Nascita',
+        motivazione: 'Uso personale',
+      }),
+      datiInEvidenza: 'Certificato di nascita - Uso personale',
+      municipalita: 'I Municipalità',
+      conclusa: false,
+      respinta: false,
+    },
+  });
+  console.log('Created istanza', istanza.id);
 
   // Create Tributo
   await prisma.tributo.upsert({
@@ -213,6 +231,7 @@ async function main() {
   console.log('');
   console.log('=================================');
   console.log('Default admin credentials:');
+  console.log('User: admin');
   console.log('Email: admin@comune.catania.it');
   console.log('Password: admin123');
   console.log('=================================');

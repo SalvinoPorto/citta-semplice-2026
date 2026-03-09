@@ -47,7 +47,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           },
         },
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
           include: { step: { include: { pagamentoConfig: true } } },
         },
@@ -153,14 +153,13 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       });
     }
 
-    // Update current workflow to success
+    // Update current workflow to success (mantieni dataVariazione originale)
     if (lastWorkflow) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
           statusId: STATUS_SUCCESSO,
           note: note || lastWorkflow.note,
-          dataVariazione: now,
           operatoreId,
         },
       });
@@ -229,7 +228,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
           },
         },
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
           include: { step: true },
         },
@@ -314,7 +313,7 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
       where: { id: istanzaId },
       include: {
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
         },
       },
@@ -373,7 +372,7 @@ export async function reopenIstanza(istanzaId: number) {
       where: { id: istanzaId },
       include: {
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
         },
       },
@@ -469,7 +468,7 @@ export async function addNote(istanzaId: number, noteText: string) {
       where: { id: istanzaId },
       include: {
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
         },
       },
@@ -515,8 +514,17 @@ export async function takeCharge(istanzaId: number) {
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
+        servizio: {
+          include: {
+            steps: {
+              where: { attivo: true },
+              orderBy: { ordine: 'asc' },
+              take: 1,
+            },
+          },
+        },
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
         },
       },
@@ -530,35 +538,41 @@ export async function takeCharge(istanzaId: number) {
       return { success: false, message: 'Impossibile prendere in carico un\'istanza conclusa o respinta' };
     }
 
-    const now = new Date();
+    const firstStep = istanza.servizio.steps[0];
+    if (!firstStep) {
+      return { success: false, message: 'Il servizio non ha step configurati' };
+    }
+
     const lastWorkflow = istanza.workflows[0];
 
-    if (lastWorkflow) {
-      // Update last workflow to assign operator
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
-        data: {
-          operatoreId,
-          dataVariazione: now,
-        },
-      });
-    } else {
-      // Create first workflow entry
-      await prisma.workflow.create({
-        data: {
-          istanzaId,
-          statusId: STATUS_ELABORAZIONE,
-          operatoreId,
-          dataVariazione: now,
-          note: '',
-        },
-      });
+    // Se c'è già un workflow a step 1 assegnato, non fare nulla
+    if (lastWorkflow?.stepId === firstStep.id) {
+      return { success: false, message: 'Istanza già presa in carico' };
     }
+
+    const now = new Date();
+
+    // Avanza al primo step (presa in carico)
+    await prisma.workflow.create({
+      data: {
+        istanzaId,
+        stepId: firstStep.id,
+        statusId: STATUS_ELABORAZIONE,
+        operatoreId,
+        dataVariazione: now,
+        note: '',
+      },
+    });
+
+    await prisma.istanza.update({
+      where: { id: istanzaId },
+      data: { lastStepId: firstStep.id },
+    });
 
     revalidatePath(`/istanze/${istanzaId}`);
     revalidatePath('/istanze');
 
-    return { success: true, message: 'Istanza presa in carico' };
+    return { success: true, message: `Presa in carico — step: ${firstStep.descrizione}` };
   } catch (error) {
     console.error('Error taking charge:', error);
     return { success: false, message: 'Errore durante la presa in carico' };
@@ -584,7 +598,7 @@ export async function sendCommunication(
       include: {
         utente: true,
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
         },
       },
@@ -719,7 +733,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
           include: {
             servizio: { select: { titolo: true } },
             workflows: {
-              orderBy: { dataVariazione: 'desc' },
+              orderBy: { id: 'desc' },
               take: 1,
               include: { status: true, step: true },
             },
@@ -764,7 +778,7 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
       where: { id: istanzaId },
       include: {
         workflows: {
-          orderBy: { dataVariazione: 'desc' },
+          orderBy: { id: 'desc' },
           take: 1,
         },
       },
