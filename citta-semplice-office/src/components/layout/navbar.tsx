@@ -1,4 +1,4 @@
-import { isAdmin, hasRole } from '@/lib/auth/roles';
+import { hasPermission, PERMISSIONS } from '@/lib/auth/roles';
 import Link from "next/link";
 
 interface NavbarProps {
@@ -31,7 +31,7 @@ export function Navbar({ userRoles }: NavbarProps) {
                                         <li className="nav-item">
                                             <Link className="nav-link" href="/istanze" ><span>Istanze</span></Link>
                                         </li>
-                                        {(hasRole(userRoles, 'GESTORE_SERVIZI')) &&
+                                        {(hasPermission(userRoles, PERMISSIONS.SERVIZI_MANAGE)) &&
                                             <li className="nav-item dropdown">
                                                 <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown0">
                                                     <span>Configurazione</span>
@@ -47,21 +47,27 @@ export function Navbar({ userRoles }: NavbarProps) {
                                                 </div>
                                             </li>
                                         }
-                                        <li className="nav-item dropdown">
-                                            <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown0">
-                                                <span>Report</span>
-                                                <svg className="icon icon-xs"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-expand"></use></svg>
-                                            </Link>
-                                            <div className="dropdown-menu" role="region" aria-labelledby="mainNavDropdown0">
-                                                <div className="link-list-wrapper">
-                                                    <ul className="link-list">
-                                                        <li><Link className="dropdown-item list-item" href="/statistiche"><span>Statistiche</span></Link></li>
-                                                        <li><Link className="dropdown-item list-item" href="/ricerche"><span>Ricerche</span></Link></li>
-                                                    </ul>
+                                        {(hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW) || hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW)) &&
+                                            <li className="nav-item dropdown">
+                                                <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown1">
+                                                    <span>Report</span>
+                                                    <svg className="icon icon-xs"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-expand"></use></svg>
+                                                </Link>
+                                                <div className="dropdown-menu" role="region" aria-labelledby="mainNavDropdown1">
+                                                    <div className="link-list-wrapper">
+                                                        <ul className="link-list">
+                                                            {hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW) &&
+                                                                <li><Link className="dropdown-item list-item" href="/statistiche"><span>Statistiche</span></Link></li>
+                                                            }
+                                                            {hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW) &&
+                                                                <li><Link className="dropdown-item list-item" href="/ricerche"><span>Ricerche</span></Link></li>
+                                                            }
+                                                        </ul>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </li>
-                                        {isAdmin(userRoles) &&
+                                            </li>
+                                        }
+                                        {hasPermission(userRoles, PERMISSIONS.ADMIN_ACCESS) &&
                                             <li className="nav-item">
                                                 <Link className="nav-link" href="/amministrazione">
                                                     <span>Amministrazione</span>

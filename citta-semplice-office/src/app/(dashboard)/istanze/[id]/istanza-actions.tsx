@@ -16,6 +16,7 @@ import {
   takeCharge,
   assignAttributo,
 } from './actions';
+import { ASSIGNEDTO } from '@/lib/models/assigned-to';
 
 interface PagamentoConfig {
   importo: number | null;
@@ -51,7 +52,7 @@ interface IstanzaActionsProps {
     cognome: string;
   };
   notifiche: { id: number; descrizione: string }[];
-  isAssignedToMe: boolean;
+  assignedTo: number;
   currentStep: CurrentStep | null;
   stepOrdine: number;
   isLastStep: boolean;
@@ -65,7 +66,7 @@ export function IstanzaActions({
   istanza,
   utente,
   notifiche,
-  isAssignedToMe,
+  assignedTo,
   currentStep,
   stepOrdine,
   isLastStep,
@@ -387,7 +388,7 @@ export function IstanzaActions({
   return (
     <>
       <div className="action-buttons d-flex flex-wrap gap-2">
-        {!isAssignedToMe && (
+        {assignedTo === ASSIGNEDTO.NOONE ? (
           <Button
             variant="primary"
             onClick={handleTakeCharge}
@@ -395,62 +396,65 @@ export function IstanzaActions({
           >
             Prendi in Carico
           </Button>
-        )}
-        {!isLastStep && (
-          <Button
-            variant="success"
-            onClick={() => setShowAdvanceModal(true)}
-          >
-            Avanza Step
-          </Button>
-        )}
-        {stepOrdine > 1 && (
-          <Button
-            variant="outline-warning"
-            onClick={() => setShowRegressModal(true)}
-          >
-            Retrocedi
-          </Button>
-        )}
-        <Button
-          variant="info"
-          onClick={() => setShowCommunicationModal(true)}
-        >
-          Invia Comunicazione
-        </Button>
-        <Button
-          variant="outline-primary"
-          onClick={() => setShowProtocolloModal(true)}
-        >
-          Protocollo
-        </Button>
-        <Button
-          variant="outline-secondary"
-          onClick={() => setShowNoteModal(true)}
-        >
-          Nota
-        </Button>
-        {isLastStep && (
-          <Button
-            variant="warning"
-            onClick={() => setShowConcludeModal(true)}
-          >
-            Concludi
-          </Button>
-        )}
-        <Button
-          variant="danger"
-          onClick={() => setShowRejectModal(true)}
-        >
-          Respingi
-        </Button>
-        {attributoType && (
-          <Button
-            variant="outline-secondary"
-            onClick={() => setShowAttributoModal(true)}
-          >
-            {attributoType.tipoAttributo}
-          </Button>
+        ) : (
+          <>
+            {!isLastStep && (
+              <Button
+                variant="success"
+                onClick={() => setShowAdvanceModal(true)}
+              >
+                Avanza Step
+              </Button>
+            )}
+            {stepOrdine > 1 && (
+              <Button
+                variant="outline-warning"
+                onClick={() => setShowRegressModal(true)}
+              >
+                Retrocedi
+              </Button>
+            )}
+            <Button
+              variant="info"
+              onClick={() => setShowCommunicationModal(true)}
+            >
+              Invia Comunicazione
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={() => setShowProtocolloModal(true)}
+            >
+              Protocollo
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => setShowNoteModal(true)}
+            >
+              Nota
+            </Button>
+            {isLastStep && (
+              <Button
+                variant="warning"
+                onClick={() => setShowConcludeModal(true)}
+              >
+                Concludi
+              </Button>
+            )}
+            <Button
+              variant="danger"
+              onClick={() => setShowRejectModal(true)}
+            >
+              Respingi
+            </Button>
+            {attributoType && (
+              <Button
+                variant="outline-secondary"
+                onClick={() => setShowAttributoModal(true)}
+              >
+                {attributoType.tipoAttributo}
+              </Button>
+            )}
+          </>
         )}
       </div>
 

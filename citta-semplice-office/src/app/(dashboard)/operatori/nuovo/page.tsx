@@ -11,13 +11,11 @@ async function getFormData() {
     }),
   ]);
 
-  const moduli = servizi.map((s) => ({ id: s.id, name: s.titolo }));
-
-  return { ruoli, enti: [], moduli };
+  return { ruoli, servizi };
 }
 
 export default async function NuovoOperatorePage() {
-  const { ruoli, enti, moduli } = await getFormData();
+  const { ruoli, servizi } = await getFormData();
 
   return (
     <div>
@@ -28,9 +26,8 @@ export default async function NuovoOperatorePage() {
 
       <OperatoreForm
         ruoli={ruoli}
-        enti={enti}
-        moduli={moduli}
-        isNew
+        servizi={servizi}
+        isNew={true}
       />
     </div>
   );
