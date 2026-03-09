@@ -48,7 +48,6 @@ export const authConfig: NextAuthConfig = {
           nome: operatore.nome,
           cognome: operatore.cognome,
           ruoli: operatore.ruoli.map((r) => r.ruolo.nome),
-          entiIds: [],
         };
       },
     }),
@@ -68,7 +67,6 @@ export const authConfig: NextAuthConfig = {
         token.nome = user.nome;
         token.cognome = user.cognome;
         token.ruoli = user.ruoli;
-        token.entiIds = user.entiIds;
       }
       return token;
     },
@@ -78,7 +76,6 @@ export const authConfig: NextAuthConfig = {
         session.user.nome = token.nome as string;
         session.user.cognome = token.cognome as string;
         session.user.ruoli = token.ruoli as string[];
-        session.user.entiIds = token.entiIds as number[];
       }
       return session;
     },

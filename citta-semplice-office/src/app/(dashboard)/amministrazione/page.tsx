@@ -8,37 +8,31 @@ async function getSystemInfo() {
     entiCount,
     areeCount,
     serviziCount,
-    moduliCount,
     operatoriCount,
+    utentiCount,
     ruoliCount,
     tributiCount,
     emailConfig,
-    logRecenti,
   ] = await Promise.all([
     prisma.ente.count(),
     prisma.area.count(),
     prisma.servizio.count(),
-    prisma.modulo.count(),
     prisma.operatore.count(),
+    prisma.utente.count(),
     prisma.ruolo.count(),
     prisma.tributo.count(),
     prisma.emailConfig.findFirst(),
-    prisma.logModificheModuli.findMany({
-      take: 10,
-      orderBy: { dataModifica: 'desc' },
-    }),
   ]);
 
   return {
     entiCount,
     areeCount,
     serviziCount,
-    moduliCount,
     operatoriCount,
+    utentiCount,
     ruoliCount,
     tributiCount,
     emailConfig,
-    logRecenti,
   };
 }
 
@@ -52,7 +46,6 @@ export default async function AmministrazionePage() {
       items: [
         { href: '/enti', label: 'Enti', count: info.entiCount },
         { href: '/aree', label: 'Aree', count: info.areeCount },
-        { href: '/servizi', label: 'Servizi', count: info.serviziCount },
         { href: '/uffici', label: 'Uffici', count: 0 },
       ],
     },
@@ -61,12 +54,13 @@ export default async function AmministrazionePage() {
       items: [
         { href: '/operatori', label: 'Operatori', count: info.operatoriCount },
         { href: '/amministrazione/ruoli', label: 'Ruoli', count: info.ruoliCount },
+        { href: '/utenti', label: 'Utenti', count: info.utentiCount },
       ],
     },
     {
       title: 'Configurazione',
       items: [
-        { href: '/moduli', label: 'Moduli', count: info.moduliCount },
+        { href: '/servizi', label: 'Servizi', count: info.serviziCount },
         { href: '/amministrazione/tributi', label: 'Codici Tributo', count: info.tributiCount },
         { href: '/amministrazione/attributi', label: 'Attributi', count: 0 },
       ],
@@ -125,7 +119,8 @@ export default async function AmministrazionePage() {
 
         {/* Recent Activity Log */}
         <div className="col-12 col-lg-4">
-          <Card>
+
+          {/* <Card>
             <CardBody>
               <CardTitle>Ultime Modifiche Moduli</CardTitle>
               {info.logRecenti.length > 0 ? (
@@ -144,7 +139,7 @@ export default async function AmministrazionePage() {
                 <p className="text-muted mb-0">Nessuna modifica recente</p>
               )}
             </CardBody>
-          </Card>
+          </Card> */}
 
           {/* System Status */}
           <Card className="mt-4">

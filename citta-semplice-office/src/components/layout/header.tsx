@@ -22,8 +22,8 @@ export function Header({ user }: HeaderProps) {
     if (isAdmin(user.ruoli)) {
       return <span className="badge bg-danger ms-2">Admin</span>;
     }
-    if (user.ruoli.includes(ROLES.RESPONSABILE)) {
-      return <span className="badge bg-warning ms-2">Responsabile</span>;
+    if (user.ruoli.includes(ROLES.GESTORE)) {
+      return <span className="badge bg-warning ms-2">Gestore</span>;
     }
     return <span className="badge bg-info ms-2">Operatore</span>;
   };

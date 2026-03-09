@@ -10,7 +10,7 @@ import { ServiziRequest } from '@/lib/models/requests';
 import { useRouter } from 'next/navigation';
 import { Area } from '@prisma/client';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 interface Servizio {
   id: number;

@@ -54,6 +54,7 @@ interface IstanzaActionsProps {
   isAssignedToMe: boolean;
   currentStep: CurrentStep | null;
   stepOrdine: number;
+  isLastStep: boolean;
   attributoType?: {
     tipoAttributo: string;
     attributi: { id: number; valore: string }[];
@@ -67,6 +68,7 @@ export function IstanzaActions({
   isAssignedToMe,
   currentStep,
   stepOrdine,
+  isLastStep,
   attributoType,
 }: IstanzaActionsProps) {
   const router = useRouter();
@@ -394,12 +396,14 @@ export function IstanzaActions({
             Prendi in Carico
           </Button>
         )}
-        <Button
-          variant="success"
-          onClick={() => setShowAdvanceModal(true)}
-        >
-          Avanza Step
-        </Button>
+        {!isLastStep && (
+          <Button
+            variant="success"
+            onClick={() => setShowAdvanceModal(true)}
+          >
+            Avanza Step
+          </Button>
+        )}
         {stepOrdine > 1 && (
           <Button
             variant="outline-warning"
@@ -426,12 +430,14 @@ export function IstanzaActions({
         >
           Nota
         </Button>
-        <Button
-          variant="warning"
-          onClick={() => setShowConcludeModal(true)}
-        >
-          Concludi
-        </Button>
+        {isLastStep && (
+          <Button
+            variant="warning"
+            onClick={() => setShowConcludeModal(true)}
+          >
+            Concludi
+          </Button>
+        )}
         <Button
           variant="danger"
           onClick={() => setShowRejectModal(true)}

@@ -9,7 +9,6 @@ declare module 'next-auth' {
     nome: string;
     cognome: string;
     ruoli: string[];
-    entiIds: number[];
   }
 
   interface Session {

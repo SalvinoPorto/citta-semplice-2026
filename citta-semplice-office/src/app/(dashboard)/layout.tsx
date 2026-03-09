@@ -16,7 +16,6 @@ export default async function DashboardLayout({
     nome: sessionUser.nome,
     cognome: sessionUser.cognome,
     ruoli: sessionUser.ruoli,
-    entiIds: sessionUser.entiIds,
   };
 
   return (

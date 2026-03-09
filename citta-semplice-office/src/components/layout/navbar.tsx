@@ -31,48 +31,22 @@ export function Navbar({ userRoles }: NavbarProps) {
                                         <li className="nav-item">
                                             <Link className="nav-link" href="/istanze" ><span>Istanze</span></Link>
                                         </li>
-                                        <li className="nav-item dropdown">
-                                            <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown0">
-                                                <span>Configurazione</span>
-                                                <svg className="icon icon-xs"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-expand"></use></svg>
-                                            </Link>
-                                            <div className="dropdown-menu" role="region" aria-labelledby="mainNavDropdown0">
-                                                <div className="link-list-wrapper">
-                                                    <ul className="link-list">
-                                                        {isAdmin(userRoles) && (<>
-                                                            <li><Link className="dropdown-item list-item" href="/enti"><span>Enti</span></Link></li>
-                                                            <li><Link className="dropdown-item list-item" href="/aree"><span>Aree</span></Link></li>
-                                                            <li><Link className="dropdown-item list-item" href="/servizi"><span>Servizi</span></Link></li>
-                                                            <li><Link className="dropdown-item list-item" href="/uffici"><span>Uffici</span></Link></li>
-                                                            <li><span className="divider"></span></li>
-                                                        </>)}
-                                                        {(isAdmin(userRoles) || hasRole(userRoles, 'responsabile')) && (<>
-                                                            <li><Link className="dropdown-item list-item" href="/moduli"><span>Moduli</span></Link></li>
-                                                            <li><span className="divider"></span></li>
-                                                        </>)}
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        {isAdmin(userRoles) &&
+                                        {(hasRole(userRoles, 'GESTORE_SERVIZI')) &&
                                             <li className="nav-item dropdown">
                                                 <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown0">
-                                                    <span>Utenti</span>
+                                                    <span>Configurazione</span>
                                                     <svg className="icon icon-xs"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-expand"></use></svg>
                                                 </Link>
                                                 <div className="dropdown-menu" role="region" aria-labelledby="mainNavDropdown0">
                                                     <div className="link-list-wrapper">
                                                         <ul className="link-list">
-                                                            <li>
-                                                                <Link className="dropdown-item list-item" href="/operatori"><span>Operatori</span></Link>
-                                                            </li>
-                                                            <li>
-                                                                <Link className="dropdown-item list-item" href="/utenti"><span>Utenti</span></Link>
-                                                            </li>
+                                                            <li><Link className="dropdown-item list-item" href="/servizi"><span>Servizi</span></Link></li>
+                                                            <li><span className="divider"></span></li>
                                                         </ul>
                                                     </div>
                                                 </div>
-                                            </li>}
+                                            </li>
+                                        }
                                         <li className="nav-item dropdown">
                                             <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown0">
                                                 <span>Report</span>
@@ -88,7 +62,11 @@ export function Navbar({ userRoles }: NavbarProps) {
                                             </div>
                                         </li>
                                         {isAdmin(userRoles) &&
-                                            <li className="nav-item"><Link className="nav-link" href="/amministrazione"><span>Amministrazione</span></Link></li>
+                                            <li className="nav-item">
+                                                <Link className="nav-link" href="/amministrazione">
+                                                    <span>Amministrazione</span>
+                                                </Link>
+                                            </li>
                                         }
                                     </ul>
                                 </div>

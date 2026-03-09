@@ -1,4 +1,5 @@
 import React, { MouseEventHandler } from 'react';
+import './paginatore.css';
 
 type PaginatoreProps = {
   page: number;

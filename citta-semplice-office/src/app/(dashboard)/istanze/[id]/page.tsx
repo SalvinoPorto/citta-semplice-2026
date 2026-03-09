@@ -38,7 +38,7 @@ async function getIstanza(id: number) {
           allegati: true,
           pagamentoEffettuato: true,
         },
-        orderBy: { dataVariazione: 'desc' },
+        orderBy: { id: 'desc' },
       },
       avvisi: {
         where: { visibile: true },
@@ -98,6 +98,9 @@ export default async function IstanzaDetailPage({
   // Informazioni sullo step corrente
   const currentStep = lastWorkflow?.step ?? null;
   const stepPagamentoConfig = currentStep?.pagamentoConfig ?? null;
+  const steps = istanza.servizio.steps;
+  const lastStepOrdine = steps.length > 0 ? steps[steps.length - 1].ordine : 0;
+  const isLastStep = currentStep ? currentStep.ordine === lastStepOrdine : false;
 
   const getStatusBadge = () => {
     if (istanza.conclusa) {
@@ -160,6 +163,7 @@ export default async function IstanzaDetailPage({
             } : null,
           } : null}
           stepOrdine={currentStep?.ordine ?? 0}
+          isLastStep={isLastStep}
         />
       </div>
 
