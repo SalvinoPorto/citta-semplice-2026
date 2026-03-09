@@ -12,7 +12,10 @@
       "Bash(ls \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)\")",
       "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/moduli\" -type f)",
       "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/operatori\" -type f)",
-      "Bash(npx prisma db push)"
+      "Bash(npx prisma db push)",
+      "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/)",
+      "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/ruoli/)",
+      "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/tributi/)"
     ]
   }
 }

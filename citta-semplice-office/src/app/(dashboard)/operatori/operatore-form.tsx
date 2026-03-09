@@ -15,38 +15,32 @@ interface Ruolo {
   descrizione: string | null;
 }
 
-interface Ente {
-  id: number;
-  ente: string;
-}
 
-interface Modulo {
+interface Servizio {
   id: number;
-  name: string;
+  titolo: string;
 }
 
 interface OperatoreData {
   id: number;
   email: string;
+  userName: string;
   nome: string;
   cognome: string;
-  codiceFiscale: string;
   telefono: string;
   attivo: boolean;
   ruoliIds: number[];
-  entiIds: number[];
-  moduliIds: number[];
+  serviziIds: number[];
 }
 
 interface OperatoreFormProps {
   operatore?: OperatoreData;
   ruoli: Ruolo[];
-  enti: Ente[];
-  moduli: Modulo[];
+  servizi: Servizio[];
   isNew?: boolean;
 }
 
-export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: OperatoreFormProps) {
+export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -62,23 +56,20 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
     resolver: zodResolver(isNew ? operatoreCreateSchema : operatoreSchema),
     defaultValues: operatore || {
       email: '',
+      userName: '',
       password: '',
       nome: '',
       cognome: '',
-      codiceFiscale: '',
       telefono: '',
       attivo: true,
       ruoliIds: [],
-      entiIds: [],
-      moduliIds: [],
+      serviziIds: []
     },
   });
 
   const selectedRuoli = watch('ruoliIds') || [];
-  const selectedEnti = watch('entiIds') || [];
-  const selectedModuli = watch('moduliIds') || [];
-
-  const toggleSelection = (field: 'ruoliIds' | 'entiIds' | 'moduliIds', id: number) => {
+  const selectedServizi = watch('serviziIds') || [];
+  const toggleSelection = (field: 'ruoliIds' | 'serviziIds', id: number) => {
     const current = watch(field) || [];
     if (current.includes(id)) {
       setValue(field, current.filter((v) => v !== id));
@@ -157,6 +148,17 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
                 </div>
                 <div className="col-md-6 mb-3">
                   <Input
+                    type="text"
+                    label="Nome utente (login) *"
+                    {...register('userName')}
+                    error={errors.userName?.message}
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <Input
                     label={isNew ? 'Password *' : 'Password (lascia vuoto per non modificare)'}
                     type="password"
                     {...register('password')}
@@ -166,16 +168,7 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
               </div>
 
               <div className="row">
-                <div className="col-md-6 mb-3">
-                  <Input
-                    type="text"
-                    label="Codice Fiscale"
-                    {...register('codiceFiscale')}
-                    error={errors.codiceFiscale?.message}
-                    maxLength={16}
-                  />
-                </div>
-                <div className="col-md-6 mb-3">
+                <div className="col-md-12 mb-3">
                   <Input
                     type="text"
                     label="Telefono"
@@ -233,44 +226,20 @@ export function OperatoreForm({ operatore, ruoli, enti, moduli, isNew }: Operato
 
           <Card className="mb-4">
             <CardBody>
-              <h5 className="mb-4">Enti Associati</h5>
+              <h5 className="mb-4">Servizi Assegnati</h5>
               <div className="row">
-                {enti.map((ente) => (
-                  <div key={ente.id} className="col-md-6 mb-2">
+                {servizi.map((servizio) => (
+                  <div key={servizio.id} className="col-md-6 mb-2">
                     <div className="form-check">
                       <input
                         type="checkbox"
                         className="form-check-input"
-                        id={`ente-${ente.id}`}
-                        checked={selectedEnti.includes(ente.id)}
-                        onChange={() => toggleSelection('entiIds', ente.id)}
+                        id={`servizio-${servizio.id}`}
+                        checked={selectedServizi.includes(servizio.id)}
+                        onChange={() => toggleSelection('serviziIds', servizio.id)}
                       />
-                      <label className="form-check-label" htmlFor={`ente-${ente.id}`}>
-                        {ente.ente}
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="mb-4">
-            <CardBody>
-              <h5 className="mb-4">Moduli Assegnati</h5>
-              <div className="row">
-                {moduli.map((modulo) => (
-                  <div key={modulo.id} className="col-md-6 mb-2">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id={`modulo-${modulo.id}`}
-                        checked={selectedModuli.includes(modulo.id)}
-                        onChange={() => toggleSelection('moduliIds', modulo.id)}
-                      />
-                      <label className="form-check-label" htmlFor={`modulo-${modulo.id}`}>
-                        {modulo.name}
+                      <label className="form-check-label" htmlFor={`servizio-${servizio.id}`}>
+                        {servizio.titolo}
                       </label>
                     </div>
                   </div>

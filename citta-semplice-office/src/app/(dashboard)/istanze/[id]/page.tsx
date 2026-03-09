@@ -8,6 +8,7 @@ import { AllegatiList } from './allegati-list';
 import { IstanzaActions } from './istanza-actions';
 import { AvvisiManager } from './avvisi-manager';
 import { AltreIstanzeModal } from './altre-istanze-modal';
+import { ASSIGNEDTO } from '@/lib/models/assigned-to';
 
 async function getIstanza(id: number) {
   const istanza = await prisma.istanza.findUnique({
@@ -92,7 +93,7 @@ export default async function IstanzaDetailPage({
   }
 
   const lastWorkflow = istanza.workflows[0];
-  const isAssignedToMe = lastWorkflow?.operatore?.id === operatoreId;
+  const assignedTo = lastWorkflow === undefined ? ASSIGNEDTO.NOONE : lastWorkflow?.operatore?.id === operatoreId ? ASSIGNEDTO.ME : ASSIGNEDTO.OTHER;
   const dati = istanza.dati ? JSON.parse(istanza.dati) : {};
 
   // Informazioni sullo step corrente
@@ -108,6 +109,9 @@ export default async function IstanzaDetailPage({
     }
     if (istanza.respinta) {
       return <Badge variant="danger">Respinta</Badge>;
+    }
+    if (assignedTo === ASSIGNEDTO.NOONE) {
+      return <Badge variant='warning'>In Attesa</Badge>;
     }
     return <Badge variant="warning">In Lavorazione</Badge>;
   };
@@ -145,7 +149,7 @@ export default async function IstanzaDetailPage({
             cognome: istanza.utente.cognome,
           }}
           notifiche={notifiche}
-          isAssignedToMe={isAssignedToMe}
+          assignedTo={assignedTo}
           currentStep={currentStep ? {
             id: currentStep.id,
             descrizione: currentStep.descrizione,

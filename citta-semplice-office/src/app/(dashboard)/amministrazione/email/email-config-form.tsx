@@ -41,8 +41,8 @@ export function EmailConfigForm({ initialData }: EmailConfigFormProps) {
     try {
       const result = await saveEmailConfig(formData);
       if (result.success) {
-        toast.success(result.message);
-        router.refresh();
+        toast.success(result.message, { duration: 1500 });
+        setTimeout(() => router.push('/amministrazione'), 1500);
       } else {
         toast.error(result.message);
       }
