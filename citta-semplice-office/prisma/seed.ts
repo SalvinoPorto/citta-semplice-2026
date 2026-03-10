@@ -25,7 +25,7 @@ async function main() {
 
   // Create Ruoli
   const ruoli = [
-    { nome: 'AMMINISTRATORE', descrizione: 'Amministratore del sistema', permessi: ['*'] },
+    { nome: 'AMMINISTRATORE', descrizione: 'Amministratore del sistema', permessi: ['admin:access'] },
     { nome: 'OPERATORE', descrizione: 'Operatore standard', permessi: ['istanze:manage','istanze:view'] },
     { nome: 'GESTORE_SERVIZI', descrizione: 'Operatore avanzato',permessi: ['istanze:manage','istanze:view','servizi:manage','servizi:view'] },
   ];

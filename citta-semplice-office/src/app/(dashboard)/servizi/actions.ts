@@ -21,6 +21,19 @@ function buildStepData(step: ServizioFormData['steps'][number], idx: number) {
   };
 }
 
+async function createAllegatiRichiestiForStep(stepId: number, step: ServizioFormData['steps'][number]) {
+  if (!step.allegatiRichiestiList || step.allegatiRichiestiList.length === 0) return;
+  await prisma.allegatoRichiesto.createMany({
+    data: step.allegatiRichiestiList.map((a) => ({
+      stepId,
+      nomeAllegatoRichiesto: a.nomeAllegatoRichiesto,
+      obbligatorio: a.obbligatorio,
+      interno: a.interno,
+      soggetto: a.soggetto,
+    })),
+  });
+}
+
 async function upsertPagamentoForStep(stepId: number, step: ServizioFormData['steps'][number]) {
   if (!step.pagamento) return;
 
@@ -100,13 +113,14 @@ export async function createServizio(data: ServizioFormData) {
   for (let i = 0; i < validated.steps.length; i++) {
     const step = validated.steps[i];
     const createdStep = servizio.steps.find((s) => s.ordine === i + 1);
-    if (createdStep && step.pagamento) {
-      await upsertPagamentoForStep(createdStep.id, step);
+    if (createdStep) {
+      if (step.pagamento) await upsertPagamentoForStep(createdStep.id, step);
+      await createAllegatiRichiestiForStep(createdStep.id, step);
     }
   }
 
   revalidatePath('/servizi');
-  redirect('/servizi');
+  return { success: true, message: 'Servizio creato con successo' };
 }
 
 export async function updateServizio(id: number, data: ServizioFormData) {
@@ -134,14 +148,15 @@ export async function updateServizio(id: number, data: ServizioFormData) {
   for (let i = 0; i < validated.steps.length; i++) {
     const step = validated.steps[i];
     const createdStep = steps.find((s) => s.ordine === i + 1);
-    if (createdStep && step.pagamento) {
-      await upsertPagamentoForStep(createdStep.id, step);
+    if (createdStep) {
+      if (step.pagamento) await upsertPagamentoForStep(createdStep.id, step);
+      await createAllegatiRichiestiForStep(createdStep.id, step);
     }
   }
 
   revalidatePath('/servizi');
   revalidatePath(`/servizi/${id}`);
-  redirect('/servizi');
+  return { success: true, message: 'Servizio aggiornato con successo' };
 }
 
 export async function deleteServizio(id: number) {
@@ -150,15 +165,13 @@ export async function deleteServizio(id: number) {
   });
 
   if (istanzeCount > 0) {
-    return { error: `Impossibile eliminare: il servizio ha ${istanzeCount} istanze associate` };
+    return { success: false, message: `Impossibile eliminare: il servizio ha ${istanzeCount} istanze associate` };
   }
 
-  await prisma.servizio.delete({
-    where: { id },
-  });
+  await prisma.servizio.delete({ where: { id } });
 
   revalidatePath('/servizi');
-  redirect('/servizi');
+  return { success: true, message: 'Servizio eliminato con successo' };
 }
 
 export async function cloneServizio(id: number) {
@@ -166,7 +179,7 @@ export async function cloneServizio(id: number) {
     where: { id },
     include: {
       steps: {
-        include: { pagamentoConfig: true },
+        include: { pagamentoConfig: true, allegatiRichiestiList: true },
         orderBy: { ordine: 'asc' },
       },
     },
@@ -244,24 +257,36 @@ export async function cloneServizio(id: number) {
     include: { steps: true },
   });
 
-  // Clone payment configs
+  // Clone payment configs and allegati richiesti
   for (const originalStep of original.steps) {
+    const clonedStep = cloned.steps.find((s) => s.ordine === originalStep.ordine);
+    if (!clonedStep) continue;
+
     if (originalStep.pagamentoConfig) {
-      const clonedStep = cloned.steps.find((s) => s.ordine === originalStep.ordine);
-      if (clonedStep) {
-        await prisma.pagamento.create({
-          data: {
-            stepId: clonedStep.id,
-            codiceTributoId: originalStep.pagamentoConfig.codiceTributoId,
-            importo: originalStep.pagamentoConfig.importo,
-            importoVariabile: originalStep.pagamentoConfig.importoVariabile,
-            causale: originalStep.pagamentoConfig.causale,
-            causaleVariabile: originalStep.pagamentoConfig.causaleVariabile,
-            obbligatorio: originalStep.pagamentoConfig.obbligatorio,
-            tipologiaPagamento: originalStep.pagamentoConfig.tipologiaPagamento,
-          },
-        });
-      }
+      await prisma.pagamento.create({
+        data: {
+          stepId: clonedStep.id,
+          codiceTributoId: originalStep.pagamentoConfig.codiceTributoId,
+          importo: originalStep.pagamentoConfig.importo,
+          importoVariabile: originalStep.pagamentoConfig.importoVariabile,
+          causale: originalStep.pagamentoConfig.causale,
+          causaleVariabile: originalStep.pagamentoConfig.causaleVariabile,
+          obbligatorio: originalStep.pagamentoConfig.obbligatorio,
+          tipologiaPagamento: originalStep.pagamentoConfig.tipologiaPagamento,
+        },
+      });
+    }
+
+    if (originalStep.allegatiRichiestiList.length > 0) {
+      await prisma.allegatoRichiesto.createMany({
+        data: originalStep.allegatiRichiestiList.map((a) => ({
+          stepId: clonedStep.id,
+          nomeAllegatoRichiesto: a.nomeAllegatoRichiesto,
+          obbligatorio: a.obbligatorio,
+          interno: a.interno,
+          soggetto: a.soggetto,
+        })),
+      });
     }
   }
 

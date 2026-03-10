@@ -1,17 +1,11 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardBody, Button, Input, Textarea, Select, Alert } from '@/components/ui';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Card, CardBody, Button, Input, Textarea } from '@/components/ui';
 import { createArea, updateArea, deleteArea } from './actions';
-import { areaSchema, type AreaFormData } from '@/lib/validations/area';
-import Link from 'next/link';
-
-interface Ente {
-  id: number;
-  ente: string;
-}
+import type { AreaFormData } from '@/lib/validations/area';
 
 interface AreaData {
   id: number;
@@ -28,59 +22,67 @@ interface AreaFormProps {
 }
 
 export function AreaForm({ area, isNew }: AreaFormProps) {
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AreaFormData>({
-    resolver: zodResolver(areaSchema),
-    defaultValues: area || {
-      titolo: '',
-      descrizione: '',
-      icona: '',
-      ordine: 0,
-      attiva: true,
-    },
+  const [formData, setFormData] = useState<AreaFormData>({
+    titolo: area?.titolo || '',
+    descrizione: area?.descrizione || '',
+    icona: area?.icona || '',
+    ordine: area?.ordine ?? 0,
+    attiva: area?.attiva ?? true,
   });
 
-  const onSubmit = (data: AreaFormData) => {
-    setError(null);
-    startTransition(async () => {
-      try {
-        if (isNew) {
-          await createArea(data);
-        } else if (area) {
-          await updateArea(area.id, data);
-        }
-      } catch (e) {
-        setError('Si è verificato un errore');
-      }
-    });
+  const updateField = (field: keyof AreaFormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDelete = () => {
-    if (!area) return;
-    startTransition(async () => {
-      const result = await deleteArea(area.id);
-      if (result?.error) {
-        setError(result.error);
-        setShowDeleteConfirm(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.titolo.trim()) {
+      toast.error('Il titolo è obbligatorio');
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = isNew
+        ? await createArea(formData)
+        : await updateArea(area!.id, formData);
+      if (result.success) {
+        toast.success(result.message, { duration: 1500 });
+        setTimeout(() => router.push('/aree'), 1500);
+      } else {
+        toast.error(result.message);
       }
-    });
+    } catch {
+      toast.error('Si è verificato un errore');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!area) return;
+    if (!confirm('Sei sicuro di voler eliminare questa area?')) return;
+    setDeleteLoading(true);
+    try {
+      const result = await deleteArea(area.id);
+      if (result.success) {
+        toast.success(result.message, { duration: 1500 });
+        setTimeout(() => router.push('/aree'), 1500);
+      } else {
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error('Si è verificato un errore');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      {error && (
-        <Alert variant="danger" className="mb-4">
-          {error}
-        </Alert>
-      )}
-
+    <form onSubmit={handleSubmit}>
       <div className="row">
         <div className="col-lg-8">
           <Card className="mb-4">
@@ -91,15 +93,17 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
                 <Input
                   type="text"
                   label="Titolo *"
-                  {...register('titolo')}
-                  error={errors.titolo?.message}
+                  value={formData.titolo}
+                  onChange={(e) => updateField('titolo', e.target.value)}
+                  required
                 />
               </div>
 
               <div className="mb-3">
                 <Textarea
                   label="Descrizione"
-                  {...register('descrizione')}
+                  value={formData.descrizione}
+                  onChange={(e) => updateField('descrizione', e.target.value)}
                   rows={3}
                 />
               </div>
@@ -109,14 +113,16 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
                   <Input
                     type="text"
                     label="Icona (classe CSS o URL)"
-                    {...register('icona')}
+                    value={formData.icona}
+                    onChange={(e) => updateField('icona', e.target.value)}
                   />
                 </div>
                 <div className="col-md-6 mb-3">
                   <Input
                     label="Ordine"
                     type="number"
-                    {...register('ordine', { valueAsNumber: true })}
+                    value={formData.ordine}
+                    onChange={(e) => updateField('ordine', parseInt(e.target.value) || 0)}
                     min={0}
                   />
                 </div>
@@ -127,7 +133,8 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
                   type="checkbox"
                   className="form-check-input"
                   id="attiva"
-                  {...register('attiva')}
+                  checked={formData.attiva}
+                  onChange={(e) => updateField('attiva', e.target.checked)}
                 />
                 <label className="form-check-label" htmlFor="attiva">
                   Area attiva
@@ -143,47 +150,31 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
               <h5 className="mb-4">Azioni</h5>
 
               <div className="d-grid gap-2">
-                <Button type="submit" variant="primary" loading={isPending}>
+                <Button type="submit" variant="primary" loading={loading} disabled={deleteLoading}>
                   {isNew ? 'Crea Area' : 'Salva Modifiche'}
                 </Button>
 
-                <Link href="/aree" className="btn btn-outline-secondary">
+                <Button
+                  type="button"
+                  variant="outline-secondary"
+                  onClick={() => router.push('/aree')}
+                  disabled={loading || deleteLoading}
+                >
                   Annulla
-                </Link>
+                </Button>
 
                 {!isNew && area && (
                   <>
                     <hr />
-                    {!showDeleteConfirm ? (
-                      <Button
-                        type="button"
-                        variant="outline-danger"
-                        onClick={() => setShowDeleteConfirm(true)}
-                      >
-                        Elimina Area
-                      </Button>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-danger mb-2">Confermi l&apos;eliminazione?</p>
-                        <div className="d-flex gap-2">
-                          <Button
-                            type="button"
-                            variant="danger"
-                            onClick={handleDelete}
-                            loading={isPending}
-                          >
-                            Elimina
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => setShowDeleteConfirm(false)}
-                          >
-                            Annulla
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                    <Button
+                      type="button"
+                      variant="outline-danger"
+                      onClick={handleDelete}
+                      loading={deleteLoading}
+                      disabled={loading}
+                    >
+                      Elimina Area
+                    </Button>
                   </>
                 )}
               </div>

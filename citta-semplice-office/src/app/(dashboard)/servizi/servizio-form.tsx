@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useTransition, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardBody, Button, Input, Select, Alert, Textarea } from '@/components/ui';
+import { Card, CardBody, Button, Input, Select } from '@/components/ui';
 import Editor from '@/components/ui/editor';
 import { createServizio, updateServizio, deleteServizio } from './actions';
 import { servizioSchema, type ServizioFormData } from '@/lib/validations/servizio';
+import { AllegatiRichiestiEditor } from './allegati-richiesti-editor';
 import { FormBuilder, type FormSchema } from '@/components/form-builder';
-import Link from 'next/link';
 
 interface Area {
   id: number;
@@ -77,10 +79,9 @@ interface ServizioFormProps {
 }
 
 export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tributi, isNew }: ServizioFormProps) {
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'informazioni' | 'configurazione' | 'workflow' | 'modulo'>('informazioni');
 
   const {
@@ -186,6 +187,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
       pagamentoCausaleVariabile: false,
       pagamentoObbligatorio: false,
       pagamentoTipologia: '',
+      allegatiRichiestiList: [],
     });
   };
 
@@ -199,7 +201,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
   // Mappa i campi ai tab per mostrare dove si trovano gli errori
   const tabFields: Record<string, string[]> = {
     informazioni: ['titolo', 'sottoTitolo', 'descrizione', 'comeFare', 'cosaServe', 'altreInfo', 'contatti', 'slug', 'icona', 'ordine', 'attivo', 'areaId'],
-    configurazione: ['ufficioId', 'dataInizio', 'dataFine', 'unicoInvio', 'unicoInvioPerUtente', 'campiUnicoInvio', 'numeroMaxIstanze', 'msgSopraSoglia', 'msgExtraServizio', 'campiInEvidenza', 'campiDaEsportare', 'prevedeDocumentoFinale', 'templateDocumentoFinale', 'nomeDocumentoFinale'],
+    configurazione: ['ufficioId', 'dataInizio', 'dataFine', 'unicoInvio', 'unicoInvioPerUtente', 'campiUnicoInvio', 'numeroMaxIstanze', 'msgSopraSoglia', 'msgExtraServizio', 'campiInEvidenza', 'campiDaEsportare'],
     workflow: ['steps'],
     modulo: ['moduloTipo', 'moduloAttributes', 'postFormValidation', 'postFormValidationAPI', 'postFormValidationFields'],
   };
@@ -217,42 +219,50 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
     const labels: Record<string, string> = {
       titolo: 'Titolo',
       areaId: 'Area',
-      'steps': 'Workflow (descrizione step mancante)',
+      steps: 'Workflow',
     };
     const messages = Object.keys(errs)
       .map((k) => labels[k] || k)
       .join(', ');
-    setValidationError(`Correggi i seguenti campi: ${messages}`);
+    toast.error(`Correggi i seguenti campi: ${messages}`);
   };
 
-  const onSubmit = (data: ServizioFormData) => {
-    setError(null);
-    setValidationError(null);
-    startTransition(async () => {
-      try {
-        if (isNew) {
-          await createServizio(data);
-        } else if (servizio) {
-          await updateServizio(servizio.id, data);
-        }
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : '';
-        if (!msg.includes('NEXT_REDIRECT')) {
-          setError('Si è verificato un errore');
-        }
+  const onSubmit = async (data: ServizioFormData) => {
+    setLoading(true);
+    try {
+      const result = isNew
+        ? await createServizio(data)
+        : await updateServizio(servizio!.id, data);
+      if (result.success) {
+        toast.success(result.message, { duration: 1500 });
+        setTimeout(() => router.push('/servizi'), 1500);
+      } else {
+        toast.error(result.message);
       }
-    });
+    } catch {
+      toast.error('Si è verificato un errore');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!servizio) return;
-    startTransition(async () => {
+    if (!confirm('Sei sicuro di voler eliminare questo servizio?')) return;
+    setDeleteLoading(true);
+    try {
       const result = await deleteServizio(servizio.id);
-      if (result?.error) {
-        setError(result.error);
-        setShowDeleteConfirm(false);
+      if (result.success) {
+        toast.success(result.message, { duration: 1500 });
+        setTimeout(() => router.push('/servizi'), 1500);
+      } else {
+        toast.error(result.message);
       }
-    });
+    } catch {
+      toast.error('Si è verificato un errore');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   // const prevedeDoc = watch('prevedeDocumentoFinale');
@@ -260,16 +270,6 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
 
   return (
     <form onSubmit={handleSubmit(onSubmit, onError)}>
-      {error && (
-        <Alert variant="danger" className="mb-4">
-          {error}
-        </Alert>
-      )}
-      {validationError && (
-        <Alert variant="warning" className="mb-4">
-          {validationError}
-        </Alert>
-      )}
 
       <div className="row">
         <div className="col-lg-9">
@@ -287,11 +287,11 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
             <li className="nav-item">
               <button
                 type="button"
-                className={`nav-link ${activeTab === 'configurazione' ? 'active' : ''}`}
-                onClick={() => setActiveTab('configurazione')}
+                className={`nav-link ${activeTab === 'modulo' ? 'active' : ''}`}
+                onClick={() => setActiveTab('modulo')}
               >
-                Configurazione
-                {tabHasErrors('configurazione') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
+                Modulo
+                {tabHasErrors('modulo') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
               </button>
             </li>
             <li className="nav-item">
@@ -307,11 +307,11 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
             <li className="nav-item">
               <button
                 type="button"
-                className={`nav-link ${activeTab === 'modulo' ? 'active' : ''}`}
-                onClick={() => setActiveTab('modulo')}
+                className={`nav-link ${activeTab === 'configurazione' ? 'active' : ''}`}
+                onClick={() => setActiveTab('configurazione')}
               >
-                Modulo
-                {tabHasErrors('modulo') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
+                Configurazione
+                {tabHasErrors('configurazione') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
               </button>
             </li>
           </ul>
@@ -435,6 +435,61 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                     Servizio attivo
                   </label>
                 </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* Tab: Modulo */}
+          {activeTab === 'modulo' && (
+            <Card className="mb-4">
+              <CardBody>
+                <div className="row mb-3">
+                  <div className="col-md-4">
+                    <Select label="Tipo modulo *" {...register('moduloTipo')}>
+                      <option value="HTML">HTML (Form Builder)</option>
+                      <option value="PDF">PDF</option>
+                    </Select>
+                  </div>
+                </div>
+
+                {tipoModulo === 'HTML' && (
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Form Builder</label>
+                    <FormBuilder
+                      initialSchema={initialFormSchema}
+                      onChange={handleFormSchemaChange}
+                    />
+                  </div>
+                )}
+
+                <hr />
+
+                <div className="form-check mb-3">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="postFormValidation"
+                    {...register('postFormValidation')}
+                  />
+                  <label className="form-check-label" htmlFor="postFormValidation">
+                    Validazione post-invio via API esterna
+                  </label>
+                </div>
+
+                {watch('postFormValidation') && (
+                  <div className="row">
+                    <div className="col-md-8 mb-3">
+                      <Input type="text" label="URL API di validazione" {...register('postFormValidationAPI')} />
+                    </div>
+                    <div className="col-md-4 mb-3">
+                      <Input
+                        type="text"
+                        label="Campi da validare (separati da virgola)"
+                        {...register('postFormValidationFields')}
+                      />
+                    </div>
+                  </div>
+                )}
               </CardBody>
             </Card>
           )}
@@ -621,7 +676,6 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                   const hasPagamento = stepData?.pagamento;
                   const hasProtocollo = stepData?.protocollo;
                   const hasAllegati = stepData?.allegati;
-                  const hasAllegatiOp = stepData?.allegatiOp;
                   const importoVariabile = stepData?.pagamentoImportoVariabile;
                   const causaleVariabile = stepData?.pagamentoCausaleVariabile;
 
@@ -756,18 +810,18 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                       </div>
 
                       {hasAllegati && (
-                        <div className="ms-4 mb-2">
-                          <div className="form-check">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`step-${index}-allegati-required`}
-                              {...register(`steps.${index}.allegatiRequired`)}
-                            />
-                            <label className="form-check-label small" htmlFor={`step-${index}-allegati-required`}>
-                              Allegati obbligatori
-                            </label>
-                          </div>
+                        <div className="ms-4 mb-3">
+                          <Controller
+                            control={control}
+                            name={`steps.${index}.allegatiRichiestiList`}
+                            render={({ field: { value, onChange } }) => (
+                              <AllegatiRichiestiEditor
+                                value={value ?? []}
+                                onChange={onChange}
+                                prefix={`step-${index}-allegato`}
+                              />
+                            )}
+                          />
                         </div>
                       )}
 
@@ -783,22 +837,6 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                           Prevede allegati per il richiedente (da parte dell&apos;operatore)
                         </label>
                       </div>
-
-                      {hasAllegatiOp && (
-                        <div className="ms-4 mb-2">
-                          <div className="form-check">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`step-${index}-allegati-op-required`}
-                              {...register(`steps.${index}.allegatiOpRequired`)}
-                            />
-                            <label className="form-check-label small" htmlFor={`step-${index}-allegati-op-required`}>
-                              Allegati operatore obbligatori
-                            </label>
-                          </div>
-                        </div>
-                      )}
 
                       {/* Pagamento */}
                       <div className="form-check mb-2">
@@ -947,60 +985,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
             </Card>
           )}
 
-          {/* Tab: Modulo */}
-          {activeTab === 'modulo' && (
-            <Card className="mb-4">
-              <CardBody>
-                <div className="row mb-3">
-                  <div className="col-md-4">
-                    <Select label="Tipo modulo *" {...register('moduloTipo')}>
-                      <option value="HTML">HTML (Form Builder)</option>
-                      <option value="PDF">PDF</option>
-                    </Select>
-                  </div>
-                </div>
 
-                {tipoModulo === 'HTML' && (
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold">Form Builder</label>
-                    <FormBuilder
-                      initialSchema={initialFormSchema}
-                      onChange={handleFormSchemaChange}
-                    />
-                  </div>
-                )}
-
-                <hr />
-
-                <div className="form-check mb-3">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="postFormValidation"
-                    {...register('postFormValidation')}
-                  />
-                  <label className="form-check-label" htmlFor="postFormValidation">
-                    Validazione post-invio via API esterna
-                  </label>
-                </div>
-
-                {watch('postFormValidation') && (
-                  <div className="row">
-                    <div className="col-md-8 mb-3">
-                      <Input type="text" label="URL API di validazione" {...register('postFormValidationAPI')} />
-                    </div>
-                    <div className="col-md-4 mb-3">
-                      <Input
-                        type="text"
-                        label="Campi da validare (separati da virgola)"
-                        {...register('postFormValidationFields')}
-                      />
-                    </div>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          )}
         </div>
 
         <div className="col-lg-3">
@@ -1009,47 +994,31 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
               <h5 className="mb-4">Azioni</h5>
 
               <div className="d-grid gap-2">
-                <Button type="submit" variant="primary" loading={isPending}>
+                <Button type="submit" variant="primary" loading={loading} disabled={deleteLoading}>
                   {isNew ? 'Crea Servizio' : 'Salva Modifiche'}
                 </Button>
 
-                <Link href="/servizi" className="btn btn-outline-secondary">
+                <Button
+                  type="button"
+                  variant="outline-secondary"
+                  onClick={() => router.push('/servizi')}
+                  disabled={loading || deleteLoading}
+                >
                   Annulla
-                </Link>
+                </Button>
 
                 {!isNew && servizio && (
                   <>
                     <hr />
-                    {!showDeleteConfirm ? (
-                      <Button
-                        type="button"
-                        variant="outline-danger"
-                        onClick={() => setShowDeleteConfirm(true)}
-                      >
-                        Elimina Servizio
-                      </Button>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-danger mb-2">Confermi l&apos;eliminazione?</p>
-                        <div className="d-flex gap-2">
-                          <Button
-                            type="button"
-                            variant="danger"
-                            onClick={handleDelete}
-                            loading={isPending}
-                          >
-                            Elimina
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => setShowDeleteConfirm(false)}
-                          >
-                            Annulla
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                    <Button
+                      type="button"
+                      variant="outline-danger"
+                      onClick={handleDelete}
+                      loading={deleteLoading}
+                      disabled={loading}
+                    >
+                      Elimina Servizio
+                    </Button>
                   </>
                 )}
               </div>
