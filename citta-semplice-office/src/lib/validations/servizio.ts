@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+export const allegatoRichiestoSchema = z.object({
+  id: z.number().optional(),
+  nomeAllegatoRichiesto: z.string().min(1, 'Il nome è obbligatorio'),
+  obbligatorio: z.boolean().default(false),
+  interno: z.boolean().default(false),
+  soggetto: z.enum(['UT', 'OP']).default('UT'),
+});
+
 export const stepSchema = z.object({
   id: z.number().optional(),
   descrizione: z.string().min(1, 'La descrizione è obbligatoria'),
@@ -11,6 +19,7 @@ export const stepSchema = z.object({
   allegatiOp: z.boolean().default(false),
   allegatiRequired: z.boolean().default(false),
   allegatiOpRequired: z.boolean().default(false),
+  allegatiRichiestiList: z.array(allegatoRichiestoSchema).default([]),
 
   // Protocollo
   protocollo: z.boolean().default(false),

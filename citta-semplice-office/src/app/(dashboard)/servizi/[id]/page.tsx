@@ -7,7 +7,7 @@ async function getServizio(id: number) {
     where: { id },
     include: {
       steps: {
-        include: { pagamentoConfig: true },
+        include: { pagamentoConfig: true, allegatiRichiestiList: true },
         orderBy: { ordine: 'asc' },
       },
     },
@@ -130,6 +130,13 @@ export default async function ModificaServizioPage({ params }: PageProps) {
             pagamentoCausaleVariabile: step.pagamentoConfig?.causaleVariabile ?? false,
             pagamentoObbligatorio: step.pagamentoConfig?.obbligatorio ?? false,
             pagamentoTipologia: step.pagamentoConfig?.tipologiaPagamento || '',
+            allegatiRichiestiList: step.allegatiRichiestiList.map((a) => ({
+              id: a.id,
+              nomeAllegatoRichiesto: a.nomeAllegatoRichiesto,
+              obbligatorio: a.obbligatorio,
+              interno: a.interno,
+              soggetto: (a.soggetto ?? 'UT') as 'UT' | 'OP',
+            })),
           })),
         }}
         aree={aree}

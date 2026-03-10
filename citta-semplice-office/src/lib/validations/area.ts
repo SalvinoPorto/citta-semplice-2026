@@ -6,7 +6,6 @@ export const areaSchema = z.object({
   icona: z.string().optional(),
   ordine: z.number().int().min(0).default(0),
   attiva: z.boolean().default(true),
-  enteId: z.number().int().min(1, 'Seleziona un ente'),
 });
 
 export type AreaFormData = z.infer<typeof areaSchema>;
