@@ -75,7 +75,10 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
         </thead>
         <tbody>
           {allAllegati.map((allegato) => (
-            <tr key={allegato.id}>
+            <tr
+              key={allegato.id}
+              className={allegato.invUtente ? 'table-info' : 'table-warning'}
+            >
               <td>{getFileIcon(allegato.mimeType)}</td>
               <td>{allegato.nomeFile}</td>
               <td>
@@ -94,11 +97,12 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
                 </small>
               </td>
               <td>
-                {allegato.invUtente && (
-                  <Badge variant="info" className="me-1">
-                    Utente
-                  </Badge>
-                )}
+                <Badge
+                  variant={allegato.invUtente ? 'info' : 'warning'}
+                  className="me-1"
+                >
+                  {allegato.invUtente ? 'Utente' : 'Operatore'}
+                </Badge>
                 {allegato.visto ? (
                   <Badge variant="success">Visto</Badge>
                 ) : (
@@ -132,6 +136,14 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
           ))}
         </tbody>
       </table>
+      <div className="d-flex gap-3 mt-2">
+        <small className="d-flex align-items-center gap-1">
+          <span className="badge bg-info">&nbsp;</span> Allegato dal cittadino
+        </small>
+        <small className="d-flex align-items-center gap-1">
+          <span className="badge bg-warning">&nbsp;</span> Allegato dall&apos;operatore
+        </small>
+      </div>
     </div>
   );
 }
