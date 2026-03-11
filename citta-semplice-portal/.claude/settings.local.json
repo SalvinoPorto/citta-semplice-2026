@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//e/workspaces/citta-semplice-2026/**)",
+      "Bash(npx create-next-app@latest citta-semplice-portal --typescript --eslint --tailwind=false --src-dir --app --import-alias \"@/*\" --no-git)",
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npx create-next-app@latest . --typescript --eslint --tailwind=false --src-dir --app --import-alias \"@/*\" --no-git 2>&1)",
+      "Read(//e/tmp/**)",
+      "Bash(cd /tmp && npx create-next-app@latest citta-semplice-portal --typescript --eslint --tailwind=false --src-dir --app --import-alias \"@/*\" --no-git --no-react-compiler 2>&1)",
+      "Bash(ls \"E:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/\" 2>/dev/null)",
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm install 2>&1 | tail -20)",
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npx prisma generate 2>&1 | tail -10)",
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npx tsc --noEmit 2>&1)",
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -30)",
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -20)"
+    ]
+  }
+}
