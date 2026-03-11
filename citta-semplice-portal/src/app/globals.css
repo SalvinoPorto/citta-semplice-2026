@@ -1,0 +1,98 @@
+:root {
+  --font-titillium: 'Titillium Web', sans-serif;
+}
+
+body {
+  font-family: var(--font-titillium);
+}
+
+/* Bootstrap Italia overrides */
+.bg-grey-card {
+  background-color: #f5f6f7;
+}
+
+.pt-lg-60 {
+  padding-top: 60px;
+}
+
+.pb-lg-60 {
+  padding-bottom: 60px;
+}
+
+.pt-lg-50 {
+  padding-top: 50px;
+}
+
+.pb-lg-50 {
+  padding-bottom: 50px;
+}
+
+.pt-30 {
+  padding-top: 30px;
+}
+
+.pt-lg-5 {
+  padding-top: 1.25rem;
+}
+
+.mb-30 {
+  margin-bottom: 30px;
+}
+
+.mb-lg-10 {
+  margin-bottom: 10px;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+.mt-lg-80 {
+  margin-top: 80px;
+}
+
+.pb-lg-80 {
+  padding-bottom: 80px;
+}
+
+.pb-40 {
+  padding-bottom: 40px;
+}
+
+.border-col {
+  border-right: 1px solid #e5e5e5;
+}
+
+/* Stepper */
+.it-steppers-container {
+  padding: 1rem 0;
+}
+
+/* Cards servizi */
+.cmp-card-latest-messages .card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.cmp-card-latest-messages .card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+.green-title-big a {
+  color: var(--bs-primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}

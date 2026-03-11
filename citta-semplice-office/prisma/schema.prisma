@@ -112,9 +112,7 @@ model Area {
   attiva      Boolean   @default(true)
   slug        String?
   privata     Boolean   @default(false)
-  // enteId      Int       @map("ente_id")
-  // ente        Ente      @relation(fields: [enteId], references: [id], onDelete: Cascade)
-
+  
   servizi     Servizio[]
 
   @@map("aree")
@@ -191,8 +189,7 @@ model Ufficio {
   telefono    String?
   indirizzo   String?
   attivo      Boolean   @default(true)
-  // enteId      Int       @map("ente_id")
-
+  
   servizi     Servizio[]
 
   @@map("uffici")
