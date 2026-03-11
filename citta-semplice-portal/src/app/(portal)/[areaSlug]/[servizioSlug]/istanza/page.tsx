@@ -29,7 +29,19 @@ async function getServizio(areaSlug: string, servizioSlug: string) {
       areaId: area.id,
       attivo: true,
     },
-    include: { area: true, steps: { where: { attivo: true }, orderBy: { ordine: 'asc' } } },
+    include: {
+      area: true,
+      steps: {
+        where: { attivo: true },
+        orderBy: { ordine: 'asc' },
+        include: {
+          allegatiRichiestiList: {
+            where: { interno: false },
+            orderBy: { id: 'asc' },
+          },
+        },
+      },
+    },
   });
 }
 

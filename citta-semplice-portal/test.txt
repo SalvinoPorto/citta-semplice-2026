@@ -1,0 +1,41 @@
+Message: Error in Prisma Client request: 
+
+
+Invalid `STUDIO_EMBED_BUILD<"u"&&STUDIO_EMBED_BUILD?_ke():require(`${l.prismaClient}/runtime/${c}`),F=e,k=(0,TH.createHash)("sha256").update()` invocation in
+/home/salvino/Progetti/citta-semplice-2026/citta-semplice-portal/node_modules/prisma/build/index.js:4825:10635
+
+  4822       }
+  4823     }
+  4824   }
+→ 4825 `}}),i=n.workspaces.find(a=>a.isDefault);if(!i)throw new Error("No default workspace found");return i};var qke=require("@prisma/engines");var mFe=require("buffer");function hFe(e,r,n,i){Object.defineProperty(e,r,{get:n,set:i,enumerable:!0,configurable:!0})}var gFe={};hFe(gFe,"serializeRPCMessage",()=>_V);hFe(gFe,"deserializeRPCMessage",()=>DV);var wV="PrismaBigInt::",EV="PrismaBytes::";function _V(e){return JSON.stringify(e,(r,n)=>typeof n=="bigint"?wV+n:n?.type==="Buffer"&&Array.isArray(n?.data)?EV+mFe.Buffer.from(n.data).toString("base64"):n)}function DV(e){return JSON.parse(e,(r,n)=>typeof n=="string"&&n.startsWith(wV)?BigInt(n.substr(wV.length)):typeof n=="string"&&n.startsWith(EV)?n.substr(EV.length):n)}var Fke=G(_Fe()),XI=G(R6e()),Rke=G(require("http")),Oke=G(M6e()),Ike=require("zlib");var Vf=require("path");var TH=require("crypto"),Tke=require("fs/promises"),Ske=G(CW());function _H(e,r,n,i){Object.defineProperty(e,r,{get:n,set:i,enumerable:!0,configurable:!0})}var Cke=globalThis,wH={},QI={},wg=Cke.parcelRequire94c2;wg==null&&(wg=function(e){if(e in wH)return wH[e].exports;if(e in QI){var r=QI[e];delete QI[e];var n={id:e,exports:{}};return wH[e]=n,r.call(n.exports,n,n.exports),n.exports}var i=new Error("Cannot find module '"+e+"'");throw i.code="MODULE_NOT_FOUND",i},wg.register=function(r,n){QI[r]=n},Cke.parcelRequire94c2=wg);var Pke=wg.register;Pke("9lTzd",function(module,exports){_H(module.exports,"guessEnginePaths",()=>guessEnginePaths),_H(module.exports,"guessPrismaClientPath",()=>guessPrismaClientPath);var $5COlq=wg("5COlq");async function guessEnginePaths({forceBinary,forceLibrary,resolveOverrides}){let queryEngineName,queryEngineType;if(forceLibrary?(queryEngineName=await(0,$5COlq.prismaEngineName)("query-engine","library"),queryEngineType="library"):forceBinary?(queryEngineName=await(0,$5COlq.prismaEngineName)("query-engine","binary"),queryEngineType="binary"):(queryEngineName=void 0,queryEngineType=void 0),!queryEngineName||!queryEngineType)return{queryEngine:void 0};let queryEnginePath;if(resolveOverrides[".prisma/client"])queryEnginePath=(0,Vf.resolve)(resolveOverrides[".prisma/client"],`../${queryEngineName}`);else if(resolveOverrides["@prisma/engines"])queryEnginePath=(0,Vf.resolve)(resolveOverrides["@prisma/engines"],`../../${queryEngineName}`);else{let atPrismaEnginesPath;try{atPrismaEnginesPath=eval("require.resolve('@prisma/engines')")}catch(e){throw new Error("Unable to resolve Prisma engine paths. This is a bug.")}queryEnginePath=(0,Vf.resolve)(atPrismaEnginesPath`../../${queryEngineName}`)}return{queryEngine:{type:queryEngineType,path:queryEnginePath}}}function guessPrismaClientPath({resolveOverrides}){let prismaClientPath=resolveOverrides["@prisma/client"]||eval("require.resolve('@prisma/client')");return(0,Vf.resolve)(prismaClientPath,"../")}});Pke("5COlq",function(e,r){_H(e.exports,"prismaEngineName",()=>n);async function n(i,a){let o=await Ni(),u=o==="windows"?".exe":"";if(a==="library")return ls(o,"fs");if(a==="binary")return`${i}-${o}${u}`;throw new Error(`Unknown engine type: ${a}`)}});function i4t(e){return{models:EH(e.models),enums:EH(e.enums),types:EH(e.types)}}function EH(e){let r={};for(let{name:n,...i}of e)r[n]=i;return r}var l_=(0,Ske.debug)("prisma:studio-pcw"),a4t=/^\s*datasource\s+([^\s]+)\s*{/m,s4t=/url *= *env\("(.*)"\)/,o4t=/url *= *"(.*)"/;async function u4t({schema:e,schemaPath:r,dmmf:n,adapter:i,datasourceProvider:a,previewFeatures:o,datasources:u,engineType:c,paths:l,directUrl:p,versions:f}){let g=e.match(a4t)?.[1]??"",v=e.match(s4t)?.[1]??null,x=e.match(o4t)?.[1]??null,{getPrismaClient:b,PrismaClientKnownRequestError:_,PrismaClientRustPanicError:D,PrismaClientInitializationError:C,PrismaClientValidationError:R}=typeof STUDIO_EMBED_BUILD<"u"&&STUDIO_EMBED_BUILD?_ke():require(`${l.prismaClient}/runtime/${c}`),F=e,k=(0,TH.createHash)("sha256").update(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   | 
+ 6 |   provider = "postgresql"
+ 7 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+  
+Query:
+{
+  "modelName": "Allegato",
+  "operation": "findMany",
+  "args": {
+    "take": 100,
+    "skip": 0,
+    "select": {
+      "id": true,
+      "nomeFile": true,
+      "nomeHash": true,
+      "nomeFileRichiesto": true,
+      "mimeType": true,
+      "invUtente": true,
+      "visto": true,
+      "dataInserimento": true,
+      "workflowId": true,
+      "workflow": true
+    }
+  }
+}
+  
