@@ -64,6 +64,11 @@ export async function submitIstanza(formData: FormData) {
 
   const primoStep = servizio.steps[0];
 
+  const primoStatus = await prisma.status.findFirst({ orderBy: { ordine: 'asc' } });
+  if (!primoStatus) {
+    return { error: 'Configurazione stati non trovata' };
+  }
+
   try {
     const istanza = await prisma.istanza.create({
       data: {
@@ -77,6 +82,8 @@ export async function submitIstanza(formData: FormData) {
               create: {
                 stepId: primoStep.id,
                 operatoreId: null,
+                statusId: primoStatus.id,
+                dataVariazione: new Date(),
               },
             }
           : undefined,

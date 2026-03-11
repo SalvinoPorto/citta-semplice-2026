@@ -1,17 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { PrivacyStep } from './PrivacyStep';
-import { ModuloStep } from './ModuloStep';
-import { AllegatiStep } from './AllegatiStep';
+import { ModuloStep, ModuloStepHandle } from './ModuloStep';
+import { AllegatiStep, AllegatiStepHandle, AllegatoCaricato, AllegatoRichiesto } from './AllegatiStep';
 import { RiepilogoStep } from './RiepilogoStep';
 import { submitIstanza } from '@/lib/actions/istanza';
 import { toast } from 'sonner';
 
-interface Step {
+interface StepWorkflow {
   id: number;
   descrizione: string;
   allegati: boolean;
+  allegatiRichiestiList: AllegatoRichiesto[];
 }
 
 interface Servizio {
@@ -20,7 +21,7 @@ interface Servizio {
   moduloTipo: string;
   attributi?: string | null;
   moduloCorpo?: string | null;
-  steps: Step[];
+  steps: StepWorkflow[];
 }
 
 interface Props {
@@ -41,16 +42,31 @@ export function IstanzaStepper({ servizio, userId }: Props) {
   const [activeStep, setActiveStep] = useState(0);
   const [privacyAccettata, setPrivacyAccettata] = useState(false);
   const [datiModulo, setDatiModulo] = useState<Record<string, unknown>>({});
-  const [allegati, setAllegati] = useState<File[]>([]);
+  const [allegatiCaricati, setAllegatiCaricati] = useState<AllegatoCaricato[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const moduloRef = useRef<ModuloStepHandle>(null);
+  const allegatiRef = useRef<AllegatiStepHandle>(null);
+
+  // Gli allegati del primo step destinati al cittadino (non interni, non operatore)
+  const allegatiRichiesti: AllegatoRichiesto[] = servizio.steps[0]?.allegatiRichiestiList ?? [];
 
   const canGoForward = () => {
     if (activeStep === 0) return privacyAccettata;
     return true;
   };
 
-  const handleForward = () => {
-    if (canGoForward()) setActiveStep((s) => Math.min(s + 1, STEPS.length - 1));
+  const handleForward = async () => {
+    if (!canGoForward()) return;
+    if (activeStep === 1) {
+      const valid = await moduloRef.current?.validate();
+      if (!valid) return;
+    }
+    if (activeStep === 2) {
+      const valid = allegatiRef.current?.validate();
+      if (!valid) return;
+    }
+    setActiveStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
   const handleBack = () => {
@@ -64,7 +80,7 @@ export function IstanzaStepper({ servizio, userId }: Props) {
       formData.append('servizioId', String(servizio.id));
       formData.append('userId', userId);
       formData.append('dati', JSON.stringify(datiModulo));
-      allegati.forEach((file) => formData.append('allegati', file));
+      allegatiCaricati.forEach(({ file }) => formData.append('allegati', file));
 
       const result = await submitIstanza(formData);
       if (result.error) {
@@ -107,19 +123,25 @@ export function IstanzaStepper({ servizio, userId }: Props) {
         )}
         {activeStep === 1 && (
           <ModuloStep
+            ref={moduloRef}
             servizio={servizio}
             dati={datiModulo}
             onChangeDati={setDatiModulo}
           />
         )}
         {activeStep === 2 && (
-          <AllegatiStep files={allegati} onChangeFiles={setAllegati} />
+          <AllegatiStep
+            ref={allegatiRef}
+            allegatiRichiesti={allegatiRichiesti}
+            allegatiCaricati={allegatiCaricati}
+            onChangeAllegati={setAllegatiCaricati}
+          />
         )}
         {activeStep === 3 && (
           <RiepilogoStep
             servizio={servizio}
             datiModulo={datiModulo}
-            allegati={allegati}
+            allegati={allegatiCaricati.map((a) => a.file)}
           />
         )}
       </div>
