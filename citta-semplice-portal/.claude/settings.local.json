@@ -11,7 +11,8 @@
       "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npx prisma generate 2>&1 | tail -10)",
       "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npx tsc --noEmit 2>&1)",
       "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -30)",
-      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -20)"
+      "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -20)",
+      "Bash(npx prisma:*)"
     ]
   }
 }

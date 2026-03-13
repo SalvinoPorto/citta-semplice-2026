@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const { PrismaClient } = require\\(''''@prisma/client''''\\); const p = new PrismaClient\\(\\); console.log\\(typeof p.servizio.findMany\\);\")",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

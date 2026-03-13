@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import NavBar from "./nav-bar";
 
 export function Header() {
   return (
@@ -13,11 +14,14 @@ export function Header() {
                   Regione Sicilia
                 </a>
                 <div className="it-header-slim-right-zone">
-                  <div className="it-access-top-wrapper">
-                    <Link href="/login" className="btn btn-primary btn-sm">
-                      Accedi
-                    </Link>
-                  </div>
+                  <Link href="/login" className="btn-full btn-icon btn btn-primary" type="button">
+                    <span className="rounded-icon">
+                      <svg className="icon icon-primary" aria-hidden="true">
+                        <use href="/bootstrap-italia/dist/svg/sprites.svg#it-user"></use>
+                      </svg>
+                    </span>
+                    <span className="d-none d-lg-block">Accedi all'area personale</span>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -27,7 +31,7 @@ export function Header() {
 
       {/* Center header */}
       <div className="it-nav-wrapper">
-        <div className="it-header-center-wrapper">
+        <div className="it-header-center-wrapper it-small-header">
           <div className="container">
             <div className="row">
               <div className="col-12">
@@ -58,6 +62,11 @@ export function Header() {
                           </a>
                         </li>
                         <li>
+                          <a href="https://twitter.com/ComunediCatania" aria-label="Twitter" target="_blank">
+                            <svg className="icon" aria-hidden="true"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-twitter" xlinkHref="/bootstrap-italia/dist/svg/sprites.svg#it-twitter"></use></svg>
+                          </a>
+                        </li>
+                        <li>
                           <a href="https://www.youtube.com/channel/UCGzL2M1pmX0s0iXrSg5W_EQ" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
                             <svg className="icon"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-youtube" /></svg>
                           </a>
@@ -70,54 +79,7 @@ export function Header() {
             </div>
           </div>
         </div>
-
-        {/* Navigation */}
-        <div className="it-header-navbar-wrapper">
-          <div className="container">
-            <div className="row">
-              <div className="col-12">
-                <nav className="navbar navbar-expand-lg has-megamenu" aria-label="Navigazione principale">
-                  <button
-                    className="custom-navbar-toggler"
-                    type="button"
-                    aria-controls="nav01"
-                    aria-expanded="false"
-                    aria-label="Mostra/Nascondi la navigazione"
-                    data-bs-toggle="navbarcollapsible"
-                    data-bs-target="#nav01"
-                  >
-                    <svg className="icon bg-override">
-                      <use href="/bootstrap-italia/dist/svg/sprites.svg#it-burger" />
-                    </svg>
-                  </button>
-                  <div className="navbar-collapsible-wrapper" id="nav01">
-                    <div className="navbar-collapsible-wrapper-overlay" data-bs-dismiss="navbarcollapsible" data-bs-target="#nav01" />
-                    <div className="navbar-collapsible" id="navbarNav">
-                      <div className="close-div">
-                        <button className="btn close-menu-wrapper" type="button" data-bs-dismiss="navbarcollapsible" data-bs-target="#nav01">
-                          <span className="it-close" />
-                          Chiudi
-                        </button>
-                      </div>
-                      <ul className="navbar-nav">
-                        <li className="nav-item">
-                          <Link className="nav-link" href="/servizi">
-                            <span>Servizi</span>
-                          </Link>
-                        </li>
-                        <li className="nav-item">
-                          <Link className="nav-link" href="/le-mie-istanze">
-                            <span>Le mie istanze</span>
-                          </Link>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </nav>
-              </div>
-            </div>
-          </div>
-        </div>
+        <NavBar />
       </div>
     </header>
   );
