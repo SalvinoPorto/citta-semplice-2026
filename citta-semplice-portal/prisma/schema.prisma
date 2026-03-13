@@ -163,6 +163,7 @@ model Servizio {
   campiInEvidenza       String?   @map("campi_in_evidenza")
   campiDaEsportare      String?   @map("campi_da_esportare")
 
+  evidenza              Boolean   @default(false)
   // Documento finale
   //prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
   //templateDocumentoFinale   String?   @db.VarChar(255) @map("template_documento_finale") @db.Text

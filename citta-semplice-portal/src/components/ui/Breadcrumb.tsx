@@ -18,7 +18,7 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
               <span>{item.label}</span>
             )}
             {i < items.length - 1 && (
-              <span className="separator">/</span>
+              <span className="separator">&gt;</span>
             )}
           </li>
         ))}
