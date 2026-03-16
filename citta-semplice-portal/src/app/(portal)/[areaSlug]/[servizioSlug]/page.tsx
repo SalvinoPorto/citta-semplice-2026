@@ -14,7 +14,7 @@ interface Props {
 async function getServizio(areaSlug: string, servizioSlug: string) {
   const area = await prisma.area.findFirst({
     where: {
-      OR: [{ slug: areaSlug }, { id: isNaN(Number(areaSlug)) ? undefined : Number(areaSlug) }],
+      slug: areaSlug,
       attiva: true,
     },
   });
@@ -22,10 +22,7 @@ async function getServizio(areaSlug: string, servizioSlug: string) {
 
   return prisma.servizio.findFirst({
     where: {
-      OR: [
-        { slug: servizioSlug },
-        { id: isNaN(Number(servizioSlug)) ? undefined : Number(servizioSlug) },
-      ],
+      slug: servizioSlug,
       areaId: area.id,
       attivo: true,
     },

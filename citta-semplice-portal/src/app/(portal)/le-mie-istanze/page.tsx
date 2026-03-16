@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 async function getIstanze(utenteId: number) {
   return prisma.istanza.findMany({
-    where: { utenteId },
+    where: { utenteId, inBozza: false },
     include: {
       servizio: { include: { area: true } },
       workflows: {
@@ -25,6 +25,16 @@ async function getIstanze(utenteId: number) {
       },
     },
     orderBy: { dataInvio: 'desc' },
+  });
+}
+
+async function getBozze(utenteId: number) {
+  return prisma.istanza.findMany({
+    where: { utenteId, inBozza: true },
+    include: {
+      servizio: { include: { area: true } },
+    },
+    orderBy: { createdAt: 'desc' },
   });
 }
 
@@ -43,7 +53,10 @@ export default async function LeMieIstanzePage() {
   const utente = await prisma.utente.findUnique({ where: { id: Number(session.user.id) } });
   if (!utente) redirect('/login');
 
-  const istanze = await getIstanze(utente.id);
+  const [istanze, bozze] = await Promise.all([
+    getIstanze(utente.id),
+    getBozze(utente.id),
+  ]);
 
   return (
     <>
@@ -60,13 +73,12 @@ export default async function LeMieIstanzePage() {
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
             <div className="cmp-hero">
-              <section className="it-hero-wrapper bg-white align-items-start">
+              <section className="bg-white align-items-start">
                 <div className="it-hero-text-wrapper pt-0 ps-0 pb-4">
-                  <h1 className="text-black">Le mie istanze</h1>
-                  <p>
-                    Benvenuto, <strong>{utente.nome} {utente.cognome}</strong>.
-                    Qui puoi monitorare lo stato delle tue richieste.
-                  </p>
+                  
+                    <h1>Benvenuto, <strong>{utente.nome} {utente.cognome}</strong>.</h1>
+                    <h2>Qui puoi monitorare lo stato delle tue richieste.</h2>
+                  
                 </div>
               </section>
             </div>
@@ -74,9 +86,68 @@ export default async function LeMieIstanzePage() {
         </div>
       </div>
 
+      {/* Sezione bozze */}
+      {bozze.length > 0 && (
+        <div className="container mb-4">
+          <div className="row justify-content-center">
+            <div className="col-12 col-lg-10">
+              <h2 className="h4 mb-3">
+                <svg className="icon icon-sm me-2 text-warning" aria-hidden="true">
+                  <use href="/bootstrap-italia/dist/svg/sprites.svg#it-save" />
+                </svg>
+                Bozze salvate
+              </h2>
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col">Servizio</th>
+                      <th scope="col">Ultimo aggiornamento</th>
+                      <th scope="col">Step</th>
+                      <th scope="col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bozze.map((bozza) => {
+                      const stepLabel = bozza.activeStep !== null && bozza.activeStep !== undefined
+                        ? ['Privacy', 'Modulo', 'Allegati', 'Riepilogo'][bozza.activeStep] ?? '—'
+                        : '—';
+                      const riprendiUrl = `/${bozza.servizio.area.slug ?? bozza.servizio.area.id}/${bozza.servizio.slug ?? bozza.servizio.id}/istanza?bozzaId=${bozza.id}`;
+                      return (
+                        <tr key={bozza.id}>
+                          <td>{bozza.servizio.titolo}</td>
+                          <td>
+                            {format(bozza.createdAt, 'dd/MM/yyyy HH:mm', { locale: it })}
+                          </td>
+                          <td>
+                            <span className="badge bg-warning text-dark">{stepLabel}</span>
+                          </td>
+                          <td className="text-end">
+                            <Link href={riprendiUrl} className="btn btn-sm btn-outline-primary">
+                              <svg className="icon icon-sm me-1" aria-hidden="true">
+                                <use href="/bootstrap-italia/dist/svg/sprites.svg#it-restore" />
+                              </svg>
+                              Riprendi
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sezione istanze inviate */}
       <div className="container mb-5">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
+            {bozze.length > 0 && (
+              <h2 className="h4 mb-3">Istanze inviate</h2>
+            )}
             {istanze.length === 0 ? (
               <div className="card p-5 text-center">
                 <svg className="icon icon-xl text-muted mx-auto mb-3" aria-hidden="true">
@@ -107,17 +178,23 @@ export default async function LeMieIstanzePage() {
                       const ultimoWorkflow = istanza.workflows[0];
                       return (
                         <tr key={istanza.id}>
-                          <td>{istanza.id}</td>
+                          <td>
+                            <Link href={`/le-mie-istanze/${istanza.id}`} className="text-decoration-none fw-semibold">
+                              #{istanza.id}
+                            </Link>
+                          </td>
                           <td>
                             <Link
-                              href={`/${istanza.servizio.area.slug ?? istanza.servizio.area.id}/${istanza.servizio.slug ?? istanza.servizio.id}`}
+                              href={`/le-mie-istanze/${istanza.id}`}
                               className="text-decoration-none"
                             >
                               {istanza.servizio.titolo}
                             </Link>
                           </td>
                           <td>
-                            {format(istanza.dataInvio, 'dd/MM/yyyy HH:mm', { locale: it })}
+                            {istanza.dataInvio
+                              ? format(istanza.dataInvio, 'dd/MM/yyyy HH:mm', { locale: it })
+                              : '—'}
                           </td>
                           <td>
                             {istanza.protoNumero ? (

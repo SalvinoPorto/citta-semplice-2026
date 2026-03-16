@@ -63,6 +63,16 @@ body {
   border-right: 1px solid #e5e5e5;
 }
 
+.it-hero-text-wrapper h1 {
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.it-hero-text-wrapper h2 {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
 /* Stepper */
 .it-steppers-container {
   padding: 1rem 0;

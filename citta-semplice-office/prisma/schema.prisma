@@ -110,7 +110,7 @@ model Area {
   icona       String?
   ordine      Int       @default(0)
   attiva      Boolean   @default(true)
-  slug        String?
+  slug        String    @db.VarChar(255) @default("\/")
   privata     Boolean   @default(false)
   
   servizi     Servizio[]
@@ -127,7 +127,7 @@ model Servizio {
   cosaServe   String?   @map("cosa_serve")
   altreInfo   String?   @map("altre_info")
   contatti    String?
-  slug        String?   @db.VarChar(255)
+  slug        String    @db.VarChar(255) @default("\/")
   icona       String?   @db.VarChar(255)
   ordine      Int       @default(0)
   attivo      Boolean   @default(true)
@@ -451,7 +451,6 @@ model Istanza {
   // attributo           Attributo? @relation(fields: [attributoId], references: [id])
 
   workflows           Workflow[]
-  avvisi              AvvisoIstanza[]
 
   @@index([utenteId])
   @@index([servizioId])
@@ -460,16 +459,16 @@ model Istanza {
   @@map("istanze")
 }
 
-model AvvisoIstanza {
-  id          Int       @id @default(autoincrement())
-  avviso      String    @db.Text
-  dataAvviso  DateTime  @map("data_avviso")
-  visibile    Boolean   @default(true)
+model Comunicazione {
+  id                Int       @id @default(autoincrement())
+  testo             String    @db.Text
+  richiedeRisposta  Boolean   @default(false) @map("richiede_risposta")
+  allegatiRichiesti String?   @db.Text @map("allegati_richiesti") // JSON: [{nome: string, obbligatorio: boolean}]
 
-  istanzaId   Int       @map("istanza_id")
-  istanza     Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
+  workflowId        Int       @unique @map("workflow_id")
+  workflow          Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
-  @@map("avvisi_istanza")
+  @@map("comunicazioni")
 }
 
 // ============================================
@@ -508,8 +507,9 @@ model Workflow {
   operatoreId     Int?      @map("operatore_id")
   operatore       Operatore? @relation(fields: [operatoreId], references: [id])
 
-  allegati        Allegato[]
+  allegati            Allegato[]
   pagamentoEffettuato PagamentoEffettuato?
+  comunicazione       Comunicazione?
 
   @@index([istanzaId])
   @@index([dataVariazione])

@@ -13,7 +13,7 @@ interface Props {
 async function getArea(slug: string) {
   const area = await prisma.area.findFirst({
     where: {
-      OR: [{ slug }, { id: isNaN(Number(slug)) ? undefined : Number(slug) }],
+      slug: slug,
       attiva: true,
       privata: false,
     },
@@ -110,7 +110,7 @@ export default async function AreaPage({ params }: Props) {
                     <div className="card-body p-0 my-2">
                       <h3 className="green-title-big t-primary mb-8">
                         <Link
-                          href={`/${areaSlug}/${servizio.slug ?? servizio.id}`}
+                          href={`/${areaSlug}/${servizio.slug}`}
                           className="text-decoration-none"
                           data-element="service-link"
                         >
