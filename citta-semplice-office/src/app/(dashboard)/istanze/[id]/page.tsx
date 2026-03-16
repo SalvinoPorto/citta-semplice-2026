@@ -37,7 +37,17 @@ async function getIstanza(id: number) {
           },
           allegati: true,
           pagamentoEffettuato: true,
-          comunicazione: true,
+          comunicazione: {
+            include: {
+              risposta: {
+                include: {
+                  allegati: {
+                    select: { id: true, nomeFile: true },
+                  },
+                },
+              },
+            },
+          },
         },
         orderBy: { id: 'desc' },
       },
