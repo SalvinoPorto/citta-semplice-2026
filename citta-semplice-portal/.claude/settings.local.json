@@ -12,7 +12,8 @@
       "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npx tsc --noEmit 2>&1)",
       "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -30)",
       "Bash(cd \"E:/workspaces/citta-semplice-2026/citta-semplice-portal\" && npm run build 2>&1 | tail -20)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(grep -r \"upload\\\\|nomeHash\\\\|allegat\" /home/salvino/Progetti/citta-semplice-2026/citta-semplice-portal/src --include=*.ts -l)"
     ]
   }
 }

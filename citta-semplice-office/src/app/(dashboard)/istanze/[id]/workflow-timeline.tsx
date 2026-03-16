@@ -1,5 +1,10 @@
 'use client';
 
+interface AllegatoComunicazione {
+  nome: string;
+  obbligatorio: boolean;
+}
+
 interface Workflow {
   id: number;
   note: string | null;
@@ -20,6 +25,11 @@ interface Workflow {
     nome: string;
     cognome: string;
   } | null;
+  comunicazione: {
+    testo: string;
+    richiedeRisposta: boolean;
+    allegatiRichiesti: string | null;
+  } | null;
 }
 
 interface Step {
@@ -35,10 +45,10 @@ interface WorkflowTimelineProps {
 
 type EntryType = 'communication' | 'retrocession' | 'event';
 
-function getEntryType(note: string | null): EntryType {
-  if (!note) return 'event';
-  if (note.startsWith('[Comunicazione]')) return 'communication';
-  if (note.startsWith('[Retrocessione')) return 'retrocession';
+function getEntryType(wf: Workflow): EntryType {
+  if (wf.comunicazione) return 'communication';
+  if (wf.note?.startsWith('[Comunicazione]')) return 'communication';
+  if (wf.note?.startsWith('[Retrocessione')) return 'retrocession';
   return 'event';
 }
 
@@ -123,15 +133,43 @@ export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
 
             {/* Events under this step */}
             {events.map((wf) => {
-              const type = getEntryType(wf.note);
+              const type = getEntryType(wf);
 
               if (type === 'communication') {
-                const text = (wf.note ?? '').replace(/^\[Comunicazione\]\s*/, '');
+                const com = wf.comunicazione;
+                const legacyText = com ? null : (wf.note ?? '').replace(/^\[Comunicazione\]\s*/, '');
+                const allegati: AllegatoComunicazione[] = com?.allegatiRichiesti
+                  ? JSON.parse(com.allegatiRichiesti)
+                  : [];
                 return (
                   <div key={wf.id} className="mt-2 p-2 rounded border border-info small"
                        style={{ backgroundColor: 'rgba(13,202,240,0.07)' }}>
-                    <span className="badge bg-info text-dark me-1">Comunicazione</span>
-                    <span>{text}</span>
+                    <div className="d-flex gap-1 flex-wrap mb-1">
+                      <span className="badge bg-info text-dark">Comunicazione</span>
+                      {com?.richiedeRisposta && (
+                        <span className="badge bg-warning text-dark">Richiede risposta</span>
+                      )}
+                      {allegati.length > 0 && (
+                        <span className="badge bg-secondary">
+                          {allegati.length} allegato{allegati.length > 1 ? 'i richiesti' : ' richiesto'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mb-1">{com ? com.testo : legacyText}</p>
+                    {allegati.length > 0 && (
+                      <ul className="mb-1 ps-3">
+                        {allegati.map((a, i) => (
+                          <li key={i}>
+                            {a.nome}
+                            {a.obbligatorio && (
+                              <span className="badge bg-danger ms-1" style={{ fontSize: '0.65em' }}>
+                                Obbligatorio
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <div className="text-muted mt-1">
                       {formatDateTime(wf.dataVariazione)}
                       {wf.operatore && <span className="ms-1">— {wf.operatore.cognome} {wf.operatore.nome}</span>}

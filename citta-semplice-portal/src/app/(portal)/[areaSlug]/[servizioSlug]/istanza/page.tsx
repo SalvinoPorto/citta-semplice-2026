@@ -9,6 +9,7 @@ import { IstanzaStepper } from '@/components/istanza/IstanzaStepper';
 
 interface Props {
   params: Promise<{ areaSlug: string; servizioSlug: string }>;
+  searchParams: Promise<{ bozzaId?: string }>;
 }
 
 async function getServizio(areaSlug: string, servizioSlug: string) {
@@ -52,8 +53,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `Richiesta: ${servizio.titolo} - Città Semplice` };
 }
 
-export default async function IstanzaPage({ params }: Props) {
+export default async function IstanzaPage({ params, searchParams }: Props) {
   const { areaSlug, servizioSlug } = await params;
+  const { bozzaId: bozzaIdStr } = await searchParams;
 
   const session = await auth();
   if (!session?.user) {
@@ -70,6 +72,32 @@ export default async function IstanzaPage({ params }: Props) {
     (servizio.dataFine && servizio.dataFine < ora)
   ) {
     redirect(`/${areaSlug}/${servizioSlug}`);
+  }
+
+  // Carica eventuale bozza
+  let bozzaIniziale: { id: number; datiModulo: Record<string, unknown>; activeStep: number } | undefined;
+
+  if (bozzaIdStr) {
+    const bozzaId = Number(bozzaIdStr);
+    const utente = await prisma.utente.findUnique({ where: { id: Number(session.user.id) } });
+    if (utente) {
+      const bozza = await prisma.istanza.findFirst({
+        where: { id: bozzaId, utenteId: utente.id, inBozza: true, servizioId: servizio.id },
+      });
+      if (bozza) {
+        let datiModulo: Record<string, unknown> = {};
+        try {
+          datiModulo = bozza.dati ? JSON.parse(bozza.dati) : {};
+        } catch {
+          datiModulo = {};
+        }
+        bozzaIniziale = {
+          id: bozza.id,
+          datiModulo,
+          activeStep: bozza.activeStep ?? 1,
+        };
+      }
+    }
   }
 
   return (
@@ -90,9 +118,21 @@ export default async function IstanzaPage({ params }: Props) {
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
             <h1 className="title-xxlarge mb-4">{servizio.titolo}</h1>
+            {bozzaIniziale && (
+              <div className="alert alert-info d-flex align-items-center mb-4" role="alert">
+                <svg className="icon icon-sm me-2" aria-hidden="true">
+                  <use href="/bootstrap-italia/dist/svg/sprites.svg#it-info-circle" />
+                </svg>
+                <span>Hai ripreso una bozza salvata. I dati inseriti in precedenza sono stati ripristinati.</span>
+              </div>
+            )}
           </div>
           <div className="col-12">
-            <IstanzaStepper servizio={servizio} userId={session.user.id!} />
+            <IstanzaStepper
+              servizio={servizio}
+              userId={session.user.id!}
+              bozzaIniziale={bozzaIniziale}
+            />
           </div>
         </div>
       </div>

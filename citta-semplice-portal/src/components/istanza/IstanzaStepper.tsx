@@ -5,7 +5,7 @@ import { PrivacyStep } from './PrivacyStep';
 import { ModuloStep, ModuloStepHandle } from './ModuloStep';
 import { AllegatiStep, AllegatiStepHandle, AllegatoCaricato, AllegatoRichiesto } from './AllegatiStep';
 import { RiepilogoStep } from './RiepilogoStep';
-import { submitIstanza } from '@/lib/actions/istanza';
+import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
 import { toast } from 'sonner';
 
 interface StepWorkflow {
@@ -24,9 +24,16 @@ interface Servizio {
   steps: StepWorkflow[];
 }
 
+interface BozzaIniziale {
+  id: number;
+  datiModulo: Record<string, unknown>;
+  activeStep: number;
+}
+
 interface Props {
   servizio: Servizio;
   userId: string;
+  bozzaIniziale?: BozzaIniziale;
 }
 
 type StepId = 'privacy' | 'modulo' | 'allegati' | 'riepilogo';
@@ -38,12 +45,14 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: 'riepilogo', label: 'Riepilogo' },
 ];
 
-export function IstanzaStepper({ servizio, userId }: Props) {
-  const [activeStep, setActiveStep] = useState(0);
-  const [privacyAccettata, setPrivacyAccettata] = useState(false);
-  const [datiModulo, setDatiModulo] = useState<Record<string, unknown>>({});
+export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
+  const [activeStep, setActiveStep] = useState(bozzaIniziale?.activeStep ?? 0);
+  const [privacyAccettata, setPrivacyAccettata] = useState(bozzaIniziale ? true : false);
+  const [datiModulo, setDatiModulo] = useState<Record<string, unknown>>(bozzaIniziale?.datiModulo ?? {});
   const [allegatiCaricati, setAllegatiCaricati] = useState<AllegatoCaricato[]>([]);
   const [loading, setLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [bozzaId, setBozzaId] = useState<number | null>(bozzaIniziale?.id ?? null);
 
   const moduloRef = useRef<ModuloStepHandle>(null);
   const allegatiRef = useRef<AllegatiStepHandle>(null);
@@ -73,6 +82,32 @@ export function IstanzaStepper({ servizio, userId }: Props) {
     setActiveStep((s) => Math.max(s - 1, 0));
   };
 
+  const handleSaveDraft = async () => {
+    setSavingDraft(true);
+    try {
+      const formData = new FormData();
+      formData.append('servizioId', String(servizio.id));
+      formData.append('userId', userId);
+      formData.append('dati', JSON.stringify(datiModulo));
+      formData.append('activeStep', String(activeStep));
+      if (bozzaId) formData.append('bozzaId', String(bozzaId));
+
+      const result = await salvaBozza(formData);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        if (result.bozzaId && result.bozzaId !== bozzaId) {
+          setBozzaId(result.bozzaId);
+        }
+        toast.success('Bozza salvata con successo!');
+      }
+    } catch {
+      toast.error('Errore durante il salvataggio della bozza. Riprova.');
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
   const handleConfirm = async () => {
     setLoading(true);
     try {
@@ -80,7 +115,11 @@ export function IstanzaStepper({ servizio, userId }: Props) {
       formData.append('servizioId', String(servizio.id));
       formData.append('userId', userId);
       formData.append('dati', JSON.stringify(datiModulo));
-      allegatiCaricati.forEach(({ file }) => formData.append('allegati', file));
+      if (bozzaId) formData.append('bozzaId', String(bozzaId));
+      allegatiCaricati.forEach(({ allegatoId, file }) => {
+        formData.append('allegati', file);
+        formData.append('allegatiIds', String(allegatoId));
+      });
 
       const result = await submitIstanza(formData);
       if (result.error) {
@@ -147,7 +186,7 @@ export function IstanzaStepper({ servizio, userId }: Props) {
       </div>
 
       {/* Navigation buttons */}
-      <div className="steppers-nav d-flex justify-content-between mt-4">
+      <div className="steppers-nav d-flex justify-content-between align-items-center mt-4">
         <button
           type="button"
           className="btn btn-outline-primary"
@@ -159,6 +198,30 @@ export function IstanzaStepper({ servizio, userId }: Props) {
           </svg>
           Indietro
         </button>
+
+        {/* Salva in bozza — visibile dal secondo step in poi, non al riepilogo finale */}
+        {activeStep > 0 && activeStep < STEPS.length - 1 && (
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            onClick={handleSaveDraft}
+            disabled={savingDraft}
+          >
+            {savingDraft ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                Salvataggio...
+              </>
+            ) : (
+              <>
+                <svg className="icon icon-sm me-1" aria-hidden="true">
+                  <use href="/bootstrap-italia/dist/svg/sprites.svg#it-save" />
+                </svg>
+                Salva in bozza
+              </>
+            )}
+          </button>
+        )}
 
         {activeStep < STEPS.length - 1 ? (
           <button

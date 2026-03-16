@@ -11,10 +11,11 @@ import {
   reopenIstanza,
   assignProtocollo,
   addNote,
-  sendCommunication,
+  sendComunicazione,
   concludeIstanza,
   takeCharge,
   assignAttributo,
+  type AllegatoComunicazione,
 } from './actions';
 import { ASSIGNEDTO } from '@/lib/models/assigned-to';
 
@@ -51,7 +52,6 @@ interface IstanzaActionsProps {
     nome: string;
     cognome: string;
   };
-  notifiche: { id: number; descrizione: string }[];
   assignedTo: number;
   currentStep: CurrentStep | null;
   stepOrdine: number;
@@ -65,7 +65,6 @@ interface IstanzaActionsProps {
 export function IstanzaActions({
   istanza,
   utente,
-  notifiche,
   assignedTo,
   currentStep,
   stepOrdine,
@@ -105,10 +104,13 @@ export function IstanzaActions({
   // Note state
   const [noteText, setNoteText] = useState('');
 
-  // Communication state
-  const [communicationSubject, setCommunicationSubject] = useState('');
-  const [communicationMessage, setCommunicationMessage] = useState('');
-  const [selectedNotifica, setSelectedNotifica] = useState('');
+  // Comunicazione state
+  const [comunicazioneTesto, setComunicazioneTesto] = useState('');
+  const [richiedeRisposta, setRichiedeRisposta] = useState(false);
+  const [allegatiComunicazione, setAllegatiComunicazione] = useState<AllegatoComunicazione[]>([]);
+  const [showAddAllegato, setShowAddAllegato] = useState(false);
+  const [nuovoAllegatoNome, setNuovoAllegatoNome] = useState('');
+  const [nuovoAllegatoObbligatorio, setNuovoAllegatoObbligatorio] = useState(false);
 
   // Conclude state
   const [concludeNote, setConcludeNote] = useState('');
@@ -295,34 +297,45 @@ export function IstanzaActions({
     }
   };
 
-  const handleSendCommunication = async () => {
-    if (!communicationSubject.trim() || !communicationMessage.trim()) {
-      toast.error('Inserire oggetto e messaggio');
+  const handleSendComunicazione = async () => {
+    if (!comunicazioneTesto.trim()) {
+      toast.error('Inserire il testo della comunicazione');
       return;
     }
     setLoading(true);
     try {
-      const result = await sendCommunication(
+      const result = await sendComunicazione(
         istanza.id,
-        communicationSubject.trim(),
-        communicationMessage.trim(),
-        selectedNotifica ? parseInt(selectedNotifica) : undefined
+        comunicazioneTesto.trim(),
+        richiedeRisposta,
+        allegatiComunicazione
       );
       if (result.success) {
-        toast.success('Comunicazione inviata');
+        toast.success(result.message || 'Comunicazione inviata');
         setShowCommunicationModal(false);
-        setCommunicationSubject('');
-        setCommunicationMessage('');
-        setSelectedNotifica('');
+        setComunicazioneTesto('');
+        setRichiedeRisposta(false);
+        setAllegatiComunicazione([]);
+        setShowAddAllegato(false);
+        setNuovoAllegatoNome('');
+        setNuovoAllegatoObbligatorio(false);
         router.refresh();
       } else {
-        toast.error(result.message || 'Errore durante l\'invio');
+        toast.error(result.message || "Errore durante l'invio");
       }
     } catch {
       toast.error('Si è verificato un errore');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddAllegato = () => {
+    if (!nuovoAllegatoNome.trim()) return;
+    setAllegatiComunicazione([...allegatiComunicazione, { nome: nuovoAllegatoNome.trim(), obbligatorio: nuovoAllegatoObbligatorio }]);
+    setNuovoAllegatoNome('');
+    setNuovoAllegatoObbligatorio(false);
+    setShowAddAllegato(false);
   };
 
   const handleConclude = async () => {
@@ -682,52 +695,105 @@ export function IstanzaActions({
         </ModalHeader>
         <ModalBody>
           {!utente.email ? (
-            <div className="alert alert-warning">
-              L&apos;utente non ha un indirizzo email configurato. La comunicazione verrà registrata
+            <div className="alert alert-warning small mb-3">
+              L&apos;utente non ha un indirizzo email. La comunicazione verrà registrata
               ma non sarà possibile inviarla via email.
             </div>
           ) : (
-            <p className="text-muted mb-3">
-              La comunicazione verrà inviata a: <strong>{utente.email}</strong>
+            <p className="text-muted small mb-3">
+              Verrà inviata a: <strong>{utente.email}</strong>
             </p>
           )}
 
-          {notifiche.length > 0 && (
-            <div className="mb-3">
-              <Select
-                label="Template Comunicazione (opzionale)"
-                value={selectedNotifica}
-                onChange={(e) => setSelectedNotifica(e.target.value)}
-              >
-                <option value="">-- Seleziona un template --</option>
-                {notifiche.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {n.descrizione}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          )}
-
           <div className="mb-3">
-            <Input
-              type="text"
-              label="Oggetto"
-              value={communicationSubject}
-              onChange={(e) => setCommunicationSubject(e.target.value)}
-              placeholder="Oggetto della comunicazione"
+            <Textarea
+              label="Messaggio *"
+              value={comunicazioneTesto}
+              onChange={(e) => setComunicazioneTesto(e.target.value)}
+              rows={5}
+              placeholder="Scrivi il messaggio per l'utente..."
               required
             />
           </div>
+
           <div className="mb-3">
-            <Textarea
-              label="Messaggio"
-              value={communicationMessage}
-              onChange={(e) => setCommunicationMessage(e.target.value)}
-              rows={6}
-              placeholder="Scrivi il messaggio..."
-              required
-            />
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="richiede-risposta"
+                checked={richiedeRisposta}
+                onChange={(e) => setRichiedeRisposta(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="richiede-risposta">
+                Richiedi una risposta testuale dall&apos;utente
+              </label>
+            </div>
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label small fw-semibold">Allegati richiesti</label>
+            {allegatiComunicazione.length > 0 && (
+              <div className="mb-2">
+                {allegatiComunicazione.map((a, i) => (
+                  <div key={i} className="d-flex align-items-center gap-2 mb-1">
+                    <span className="flex-grow-1 small">{a.nome}</span>
+                    <span className={`badge ${a.obbligatorio ? 'bg-danger' : 'bg-secondary'}`}>
+                      {a.obbligatorio ? 'Obbligatorio' : 'Facoltativo'}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-link text-danger p-0"
+                      onClick={() => setAllegatiComunicazione(allegatiComunicazione.filter((_, j) => j !== i))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showAddAllegato ? (
+              <div className="d-flex gap-2 align-items-center flex-wrap p-2 bg-light rounded">
+                <input
+                  className="form-control form-control-sm"
+                  style={{ maxWidth: 260 }}
+                  placeholder="Nome allegato..."
+                  value={nuovoAllegatoNome}
+                  onChange={(e) => setNuovoAllegatoNome(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddAllegato()}
+                />
+                <div className="form-check mb-0">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="nuovo-allegato-obbligatorio"
+                    checked={nuovoAllegatoObbligatorio}
+                    onChange={(e) => setNuovoAllegatoObbligatorio(e.target.checked)}
+                  />
+                  <label className="form-check-label small" htmlFor="nuovo-allegato-obbligatorio">
+                    Obbligatorio
+                  </label>
+                </div>
+                <button type="button" className="btn btn-sm btn-primary" onClick={handleAddAllegato}>
+                  Aggiungi
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => { setShowAddAllegato(false); setNuovoAllegatoNome(''); setNuovoAllegatoObbligatorio(false); }}
+                >
+                  Annulla
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary"
+                onClick={() => setShowAddAllegato(true)}
+              >
+                + Aggiungi allegato richiesto
+              </button>
+            )}
           </div>
         </ModalBody>
         <ModalFooter>
@@ -740,7 +806,7 @@ export function IstanzaActions({
           </Button>
           <Button
             variant="info"
-            onClick={handleSendCommunication}
+            onClick={handleSendComunicazione}
             loading={loading}
           >
             Invia

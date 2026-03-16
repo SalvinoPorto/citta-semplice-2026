@@ -6,7 +6,6 @@ import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
 import { WorkflowTimeline } from './workflow-timeline';
 import { AllegatiList } from './allegati-list';
 import { IstanzaActions } from './istanza-actions';
-import { AvvisiManager } from './avvisi-manager';
 import { AltreIstanzeModal } from './altre-istanze-modal';
 import { ASSIGNEDTO } from '@/lib/models/assigned-to';
 
@@ -38,30 +37,14 @@ async function getIstanza(id: number) {
           },
           allegati: true,
           pagamentoEffettuato: true,
+          comunicazione: true,
         },
         orderBy: { id: 'desc' },
-      },
-      avvisi: {
-        where: { visibile: true },
-        orderBy: { dataAvviso: 'desc' },
       },
     },
   });
 
   return istanza;
-}
-
-async function getStatuses() {
-  return prisma.status.findMany({
-    orderBy: { ordine: 'asc' },
-  });
-}
-
-async function getNotifiche() {
-  return prisma.notifica.findMany({
-    select: { id: true, descrizione: true },
-    orderBy: { descrizione: 'asc' },
-  });
 }
 
 export default async function IstanzaDetailPage({
@@ -82,11 +65,7 @@ export default async function IstanzaDetailPage({
 
   const operatoreId = parseInt(user.id);
 
-  const [istanza, statuses, notifiche] = await Promise.all([
-    getIstanza(id),
-    getStatuses(),
-    getNotifiche(),
-  ]);
+  const istanza = await getIstanza(id);
 
   if (!istanza) {
     notFound();
@@ -148,7 +127,6 @@ export default async function IstanzaDetailPage({
             nome: istanza.utente.nome,
             cognome: istanza.utente.cognome,
           }}
-          notifiche={notifiche}
           assignedTo={assignedTo}
           currentStep={currentStep ? {
             id: currentStep.id,
@@ -301,17 +279,7 @@ export default async function IstanzaDetailPage({
 
         {/* Sidebar */}
         <div className="col-12 col-lg-4">
-          {/* Avvisi */}
-          <Card className="mb-4 border-warning">
-            <CardBody>
-              <AvvisiManager
-                istanzaId={istanza.id}
-                avvisi={istanza.avvisi}
-              />
-            </CardBody>
-          </Card>
-
-          {/* Workflow Timeline */}
+            {/* Workflow Timeline */}
           <Card>
             <CardBody>
               <CardTitle>Storico Workflow</CardTitle>

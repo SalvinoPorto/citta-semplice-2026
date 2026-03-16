@@ -84,7 +84,7 @@ export default async function HomePage() {
                 {serviziInEvidenza.map((s) => (
                   <li key={s.id} className="mb-2">
                     <Link
-                      href={`/${s.area.slug ?? s.area.id}/${s.slug ?? s.id}`}
+                      href={`/${s.area.slug}/${s.slug}`}
                       className="text-primary small text-decoration-none"
                     >
                       {s.titolo}
@@ -127,7 +127,7 @@ export default async function HomePage() {
                       {area.servizi.map((s) => (
                         <li key={s.id} className="mb-1">
                           <Link
-                            href={`/${area.slug ?? area.id}/${s.slug ?? s.id}`}
+                            href={`/${area.slug}/${s.slug}`}
                             className="small text-primary"
                           >
                             {s.titolo}

@@ -579,11 +579,16 @@ export async function takeCharge(istanzaId: number) {
   }
 }
 
-export async function sendCommunication(
+export interface AllegatoComunicazione {
+  nome: string;
+  obbligatorio: boolean;
+}
+
+export async function sendComunicazione(
   istanzaId: number,
-  subject: string,
-  message: string,
-  notificaId?: number
+  testo: string,
+  richiedeRisposta: boolean,
+  allegatiRichiesti: AllegatoComunicazione[]
 ) {
   try {
     const user = await getCurrentUser();
@@ -611,16 +616,23 @@ export async function sendCommunication(
     const now = new Date();
     const lastWorkflow = istanza.workflows[0];
 
-    // Create workflow entry for communication
-    await prisma.workflow.create({
+    const workflow = await prisma.workflow.create({
       data: {
         istanzaId,
         stepId: lastWorkflow?.stepId,
         statusId: lastWorkflow?.statusId ?? STATUS_ELABORAZIONE,
         operatoreId,
         dataVariazione: now,
-        note: `[Comunicazione] ${subject}: ${message}`,
-        notificaId: notificaId || null,
+        note: '[Comunicazione]',
+        comunicazione: {
+          create: {
+            testo,
+            richiedeRisposta,
+            allegatiRichiesti: allegatiRichiesti.length > 0
+              ? JSON.stringify(allegatiRichiesti)
+              : null,
+          },
+        },
       },
     });
 
@@ -629,9 +641,9 @@ export async function sendCommunication(
     if (istanza.utente.email) {
       const emailResult = await sendEmail({
         to: istanza.utente.email,
-        subject,
-        html: `<p>${message.replace(/\n/g, '<br>')}</p>`,
-        text: message,
+        subject: 'Comunicazione dal Comune',
+        html: `<p>${testo.replace(/\n/g, '<br>')}</p>`,
+        text: testo,
       });
       emailSent = emailResult.success;
     }
@@ -647,56 +659,8 @@ export async function sendCommunication(
         : 'Comunicazione registrata (utente senza email)',
     };
   } catch (error) {
-    console.error('Error sending communication:', error);
-    return { success: false, message: 'Errore durante l\'invio della comunicazione' };
-  }
-}
-
-export async function addAvviso(istanzaId: number, testo: string) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return { success: false, message: 'Non autorizzato' };
-    }
-
-    if (!testo.trim()) {
-      return { success: false, message: "Inserire il testo dell'avviso" };
-    }
-
-    await prisma.avvisoIstanza.create({
-      data: {
-        istanzaId,
-        avviso: testo.trim(),
-        dataAvviso: new Date(),
-        visibile: true,
-      },
-    });
-
-    revalidatePath(`/istanze/${istanzaId}`);
-    return { success: true, message: 'Avviso inserito' };
-  } catch (error) {
-    console.error('Error adding avviso:', error);
-    return { success: false, message: "Errore durante l'inserimento dell'avviso" };
-  }
-}
-
-export async function deleteAvviso(avvisoId: number, istanzaId: number) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return { success: false, message: 'Non autorizzato' };
-    }
-
-    await prisma.avvisoIstanza.update({
-      where: { id: avvisoId },
-      data: { visibile: false },
-    });
-
-    revalidatePath(`/istanze/${istanzaId}`);
-    return { success: true, message: 'Avviso eliminato' };
-  } catch (error) {
-    console.error('Error deleting avviso:', error);
-    return { success: false, message: "Errore durante l'eliminazione" };
+    console.error('Error sending comunicazione:', error);
+    return { success: false, message: "Errore durante l'invio della comunicazione" };
   }
 }
 

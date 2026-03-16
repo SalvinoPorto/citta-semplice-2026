@@ -45,9 +45,7 @@ export async function GET(
     });
 
     // Determine file path
-    const dataInserimento = allegato.dataInserimento || allegato.workflow.dataVariazione;
-    const datePath = formatDate(new Date(dataInserimento));
-    const filePath = join(UPLOAD_DIR, datePath, allegato.nomeHash);
+    const filePath = join(UPLOAD_DIR, allegato.nomeHash);
 
     // Read file
     let fileBuffer: Buffer;

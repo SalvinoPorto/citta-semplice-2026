@@ -110,7 +110,7 @@ model Area {
   icona       String?
   ordine      Int       @default(0)
   attiva      Boolean   @default(true)
-  slug        String?
+  slug        String    @db.VarChar(255) @default("\/") @unique
   privata     Boolean   @default(false)
   
   servizi     Servizio[]
@@ -127,7 +127,7 @@ model Servizio {
   cosaServe   String?   @map("cosa_serve")
   altreInfo   String?   @map("altre_info")
   contatti    String?
-  slug        String?   @db.VarChar(255)
+  slug        String    @db.VarChar(255)  @default("\/") @unique
   icona       String?   @db.VarChar(255)
   ordine      Int       @default(0)
   attivo      Boolean   @default(true)
@@ -423,6 +423,8 @@ model Istanza {
   // Status
   conclusa            Boolean   @default(false)
   respinta            Boolean   @default(false)
+  inBozza             Boolean   @default(false) @map("in_bozza")
+  activeStep          Int?      @map("active_step")
 
   // Protocol
   protoNumero         String?   @db.VarChar(10) @map("proto_numero")
@@ -431,7 +433,7 @@ model Istanza {
   protoFinaleData     DateTime? @map("proto_finale_data")
 
   // Dates
-  dataInvio           DateTime  @map("data_invio")
+  dataInvio           DateTime? @map("data_invio")
   createdAt           DateTime  @default(now()) @map("created_at")
 
   // Bulk send
@@ -451,25 +453,12 @@ model Istanza {
   // attributo           Attributo? @relation(fields: [attributoId], references: [id])
 
   workflows           Workflow[]
-  avvisi              AvvisoIstanza[]
 
   @@index([utenteId])
   @@index([servizioId])
   @@index([dataInvio])
   @@index([protoNumero])
   @@map("istanze")
-}
-
-model AvvisoIstanza {
-  id          Int       @id @default(autoincrement())
-  avviso      String    @db.Text
-  dataAvviso  DateTime  @map("data_avviso")
-  visibile    Boolean   @default(true)
-
-  istanzaId   Int       @map("istanza_id")
-  istanza     Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
-
-  @@map("avvisi_istanza")
 }
 
 // ============================================
@@ -508,12 +497,52 @@ model Workflow {
   operatoreId     Int?      @map("operatore_id")
   operatore       Operatore? @relation(fields: [operatoreId], references: [id])
 
-  allegati        Allegato[]
+  allegati            Allegato[]
   pagamentoEffettuato PagamentoEffettuato?
+  comunicazione       Comunicazione?
 
   @@index([istanzaId])
   @@index([dataVariazione])
   @@map("workflows")
+}
+
+model Comunicazione {
+  id                Int       @id @default(autoincrement())
+  testo             String    @db.Text
+  richiedeRisposta  Boolean   @default(false) @map("richiede_risposta")
+  allegatiRichiesti String?   @db.Text @map("allegati_richiesti") // JSON: [{nome: string, obbligatorio: boolean}]
+
+  workflowId        Int       @unique @map("workflow_id")
+  workflow          Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  risposta          RispostaComunicazione?
+
+  @@map("comunicazioni")
+}
+
+model RispostaComunicazione {
+  id              Int       @id @default(autoincrement())
+  testo           String?   @db.Text
+  dataRisposta    DateTime  @default(now()) @map("data_risposta")
+
+  comunicazioneId Int       @unique @map("comunicazione_id")
+  comunicazione   Comunicazione @relation(fields: [comunicazioneId], references: [id], onDelete: Cascade)
+
+  allegati        AllegatoRisposta[]
+
+  @@map("risposte_comunicazioni")
+}
+
+model AllegatoRisposta {
+  id          Int       @id @default(autoincrement())
+  nomeFile    String    @map("nome_file")
+  nomeHash    String    @map("nome_hash")
+  mimeType    String?   @map("mime_type")
+
+  rispostaId  Int       @map("risposta_id")
+  risposta    RispostaComunicazione @relation(fields: [rispostaId], references: [id], onDelete: Cascade)
+
+  @@map("allegati_risposta")
 }
 
 // ============================================
