@@ -423,6 +423,8 @@ model Istanza {
   // Status
   conclusa            Boolean   @default(false)
   respinta            Boolean   @default(false)
+  inBozza             Boolean   @default(false) @map("in_bozza")
+  activeStep          Int?      @map("active_step")
 
   // Protocol
   protoNumero         String?   @db.VarChar(10) @map("proto_numero")
@@ -468,7 +470,34 @@ model Comunicazione {
   workflowId        Int       @unique @map("workflow_id")
   workflow          Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
+  risposta          RispostaComunicazione?
+
   @@map("comunicazioni")
+}
+
+model RispostaComunicazione {
+  id              Int       @id @default(autoincrement())
+  testo           String?   @db.Text
+  dataRisposta    DateTime  @default(now()) @map("data_risposta")
+
+  comunicazioneId Int       @unique @map("comunicazione_id")
+  comunicazione   Comunicazione @relation(fields: [comunicazioneId], references: [id], onDelete: Cascade)
+
+  allegati        AllegatoRisposta[]
+
+  @@map("risposte_comunicazioni")
+}
+
+model AllegatoRisposta {
+  id          Int       @id @default(autoincrement())
+  nomeFile    String    @map("nome_file")
+  nomeHash    String    @map("nome_hash")
+  mimeType    String?   @map("mime_type")
+
+  rispostaId  Int       @map("risposta_id")
+  risposta    RispostaComunicazione @relation(fields: [rispostaId], references: [id], onDelete: Cascade)
+
+  @@map("allegati_risposta")
 }
 
 // ============================================

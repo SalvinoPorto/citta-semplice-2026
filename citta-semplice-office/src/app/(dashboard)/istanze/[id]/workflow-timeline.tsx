@@ -26,9 +26,16 @@ interface Workflow {
     cognome: string;
   } | null;
   comunicazione: {
+    id: number;
     testo: string;
     richiedeRisposta: boolean;
     allegatiRichiesti: string | null;
+    risposta: {
+      id: number;
+      testo: string | null;
+      dataRisposta: Date;
+      allegati: { id: number; nomeFile: string }[];
+    } | null;
   } | null;
 }
 
@@ -138,42 +145,79 @@ export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
               if (type === 'communication') {
                 const com = wf.comunicazione;
                 const legacyText = com ? null : (wf.note ?? '').replace(/^\[Comunicazione\]\s*/, '');
-                const allegati: AllegatoComunicazione[] = com?.allegatiRichiesti
+                const allegatiRichiesti: AllegatoComunicazione[] = com?.allegatiRichiesti
                   ? JSON.parse(com.allegatiRichiesti)
                   : [];
+                const risposta = com?.risposta ?? null;
+                const attesaRisposta = com?.richiedeRisposta && !risposta;
                 return (
-                  <div key={wf.id} className="mt-2 p-2 rounded border border-info small"
-                       style={{ backgroundColor: 'rgba(13,202,240,0.07)' }}>
-                    <div className="d-flex gap-1 flex-wrap mb-1">
-                      <span className="badge bg-info text-dark">Comunicazione</span>
-                      {com?.richiedeRisposta && (
-                        <span className="badge bg-warning text-dark">Richiede risposta</span>
+                  <div key={wf.id} className="mt-2 small">
+                    {/* Comunicazione */}
+                    <div className={`p-2 rounded border ${attesaRisposta ? 'border-warning' : 'border-info'}`}
+                         style={{ backgroundColor: attesaRisposta ? 'rgba(255,193,7,0.07)' : 'rgba(13,202,240,0.07)' }}>
+                      <div className="d-flex gap-1 flex-wrap mb-1">
+                        <span className="badge bg-info text-dark">Comunicazione</span>
+                        {com?.richiedeRisposta && (
+                          risposta
+                            ? <span className="badge bg-success">Risposta ricevuta</span>
+                            : <span className="badge bg-warning text-dark">In attesa di risposta</span>
+                        )}
+                        {allegatiRichiesti.length > 0 && (
+                          <span className="badge bg-secondary">
+                            {allegatiRichiesti.length} allegato{allegatiRichiesti.length > 1 ? 'i richiesti' : ' richiesto'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mb-1">{com ? com.testo : legacyText}</p>
+                      {allegatiRichiesti.length > 0 && (
+                        <ul className="mb-1 ps-3">
+                          {allegatiRichiesti.map((a, i) => (
+                            <li key={i}>
+                              {a.nome}
+                              {a.obbligatorio && (
+                                <span className="badge bg-danger ms-1" style={{ fontSize: '0.65em' }}>
+                                  Obbligatorio
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       )}
-                      {allegati.length > 0 && (
-                        <span className="badge bg-secondary">
-                          {allegati.length} allegato{allegati.length > 1 ? 'i richiesti' : ' richiesto'}
-                        </span>
-                      )}
+                      <div className="text-muted mt-1">
+                        {formatDateTime(wf.dataVariazione)}
+                        {wf.operatore && <span className="ms-1">— {wf.operatore.cognome} {wf.operatore.nome}</span>}
+                      </div>
                     </div>
-                    <p className="mb-1">{com ? com.testo : legacyText}</p>
-                    {allegati.length > 0 && (
-                      <ul className="mb-1 ps-3">
-                        {allegati.map((a, i) => (
-                          <li key={i}>
-                            {a.nome}
-                            {a.obbligatorio && (
-                              <span className="badge bg-danger ms-1" style={{ fontSize: '0.65em' }}>
-                                Obbligatorio
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+
+                    {/* Risposta del cittadino */}
+                    {risposta && (
+                      <div className="mt-1 p-2 rounded border border-success"
+                           style={{ backgroundColor: 'rgba(25,135,84,0.06)' }}>
+                        <div className="d-flex gap-1 flex-wrap mb-1">
+                          <span className="badge bg-success">Risposta cittadino</span>
+                          <span className="text-muted" style={{ fontSize: '0.8em' }}>
+                            {formatDateTime(risposta.dataRisposta)}
+                          </span>
+                        </div>
+                        {risposta.testo && <p className="mb-1">{risposta.testo}</p>}
+                        {risposta.allegati.length > 0 && (
+                          <ul className="list-unstyled mb-0">
+                            {risposta.allegati.map((a) => (
+                              <li key={a.id}>
+                                <a
+                                  href={`/api/risposta-allegati/${a.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="small"
+                                >
+                                  📎 {a.nomeFile}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     )}
-                    <div className="text-muted mt-1">
-                      {formatDateTime(wf.dataVariazione)}
-                      {wf.operatore && <span className="ms-1">— {wf.operatore.cognome} {wf.operatore.nome}</span>}
-                    </div>
                   </div>
                 );
               }
