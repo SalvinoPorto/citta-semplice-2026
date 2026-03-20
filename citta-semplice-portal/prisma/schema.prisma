@@ -71,7 +71,7 @@ model RuoloUser {
 
 model Ente {
   id              Int       @id @default(autoincrement())
-  ente            String
+  nome            String
   descrizione     String?
   codice          String?
   indirizzo       String?
@@ -341,6 +341,7 @@ model Step {
   protocollo                  Boolean   @default(false)
   tipoProtocollo              String?   @map("tipo_protocollo") // 'E' = Entrata, 'U' = Uscita
   unitaOrganizzativa          String?   @map("unita_organizzativa")
+  numerazioneInterna          Boolean   @default(false) @map("numerazione_interna")
 
   // Assignment
   assegnabileASpecificoUfficio Boolean  @default(false) @map("assegnabile_a_specifico_ufficio")

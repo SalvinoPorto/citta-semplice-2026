@@ -1,5 +1,7 @@
 'use client';
 
+import { useEnte } from '@/contexts/EnteContext';
+
 interface Servizio {
   titolo: string;
   attributi?: string | null;
@@ -21,6 +23,7 @@ function parseCampi(attributi: string | null | undefined) {
 }
 
 export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
+  const nomeEnte = useEnte();
   const campi = parseCampi(servizio.attributi);
 
   return (
@@ -70,11 +73,11 @@ export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
       )}
 
       <div className="alert alert-info">
-        <svg className="icon icon-sm me-2" aria-hidden="true">
+        {/* <svg className="icon icon-sm me-2" aria-hidden="true">
           <use href="/bootstrap-italia/dist/svg/sprites.svg#it-info-circle" />
-        </svg>
+        </svg> */}
         Cliccando su <strong>&quot;Invia la richiesta&quot;</strong> la tua istanza verrà inviata
-        al Comune di Catania. Riceverai una conferma via email.
+        al {nomeEnte}. Riceverai una conferma via email.
       </div>
     </div>
   );

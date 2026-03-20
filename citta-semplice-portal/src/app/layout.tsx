@@ -4,6 +4,7 @@ import 'bootstrap-italia/dist/css/bootstrap-italia.min.css';
 import './globals.css';
 import { Providers } from './providers';
 import BootstrapClient from '@/lib/bootstrap-client';
+import { prisma } from '@/lib/db/prisma';
 
 const titillium = Titillium_Web({
   subsets: ['latin'],
@@ -12,16 +13,23 @@ const titillium = Titillium_Web({
   variable: '--font-titillium',
 });
 
-export const metadata: Metadata = {
-  title: 'Città Semplice - Comune di Catania',
-  description: 'Portale dei servizi online a istanza di parte del Comune di Catania',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const ente = await prisma.ente.findFirst();
+  const nomeEnte = ente?.nome ?? 'Comune';
+  return {
+    title: `Città Semplice - ${nomeEnte}`,
+    description: `Portale dei servizi online a istanza di parte del ${nomeEnte}`,
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const ente = await prisma.ente.findFirst();
+  const nomeEnte = ente?.nome ?? 'Comune';
+
   return (
     <html lang="it" className={titillium.variable} data-scroll-behavior="smooth">
       <body>
-        <Providers>
+        <Providers nomeEnte={nomeEnte}>
           {children}
         </Providers>
         <BootstrapClient />

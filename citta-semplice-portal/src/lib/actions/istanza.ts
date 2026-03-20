@@ -167,21 +167,21 @@ export async function submitIstanza(formData: FormData) {
   const bozzaId = formData.get('bozzaId') ? Number(formData.get('bozzaId')) : null;
   const files = formData.getAll('allegati').filter((f): f is File => f instanceof File && f.size > 0);
   const allegatiIds = formData.getAll('allegatiIds').map(Number);
+  
+  if (!servizioId || isNaN(servizioId)) {
+    return { error: 'Servizio non valido' };
+  }
+  
+  const servizio = await prisma.servizio.findFirst({
+    where: { id: servizioId, attivo: true },
+    include: { steps: { where: { attivo: true }, orderBy: { ordine: 'asc' } } },
+  });
 
   // Valida tutti i file prima di procedere
   for (const file of files) {
     const errore = validaFile(file);
     if (errore) return { error: errore };
   }
-
-  if (!servizioId || isNaN(servizioId)) {
-    return { error: 'Servizio non valido' };
-  }
-
-  const servizio = await prisma.servizio.findFirst({
-    where: { id: servizioId, attivo: true },
-    include: { steps: { where: { attivo: true }, orderBy: { ordine: 'asc' } } },
-  });
 
   if (!servizio) {
     return { error: 'Servizio non trovato o non disponibile' };

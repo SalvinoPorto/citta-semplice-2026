@@ -212,3 +212,7 @@ body {
 .empty-state p {
   color: #a0a0a0;
 }
+
+.form-check + .form-check {
+    margin-top: 0;
+}

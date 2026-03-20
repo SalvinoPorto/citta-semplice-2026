@@ -8,6 +8,23 @@ import { RiepilogoStep } from './RiepilogoStep';
 import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
 import { toast } from 'sonner';
 
+function buildDatiConLabel(
+  datiModulo: Record<string, unknown>,
+  attributi: string | null | undefined,
+): string {
+  let campi: Array<{ name: string; label: string }> = [];
+  try {
+    if (attributi) campi = JSON.parse(attributi);
+  } catch { /* ignore */ }
+
+  const arricchiti = campi.map(({ name, label }) => ({
+    name,
+    label,
+    value: datiModulo[name] !== undefined ? String(datiModulo[name]) : '',
+  }));
+  return JSON.stringify(arricchiti);
+}
+
 interface StepWorkflow {
   id: number;
   descrizione: string;
@@ -88,7 +105,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       const formData = new FormData();
       formData.append('servizioId', String(servizio.id));
       formData.append('userId', userId);
-      formData.append('dati', JSON.stringify(datiModulo));
+      formData.append('dati', buildDatiConLabel(datiModulo, servizio.attributi));
       formData.append('activeStep', String(activeStep));
       if (bozzaId) formData.append('bozzaId', String(bozzaId));
 
@@ -114,7 +131,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       const formData = new FormData();
       formData.append('servizioId', String(servizio.id));
       formData.append('userId', userId);
-      formData.append('dati', JSON.stringify(datiModulo));
+      formData.append('dati', buildDatiConLabel(datiModulo, servizio.attributi));
       if (bozzaId) formData.append('bozzaId', String(bozzaId));
       allegatiCaricati.forEach(({ allegatoId, file }) => {
         formData.append('allegati', file);

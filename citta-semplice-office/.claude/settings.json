@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(ls -la \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\")",
+      "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -name \"page.tsx\" -type f)"
+    ]
+  }
+}

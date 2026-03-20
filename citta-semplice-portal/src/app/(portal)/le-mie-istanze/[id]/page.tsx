@@ -14,12 +14,22 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-function parseDati(dati: string | null | undefined): Record<string, unknown> {
-  if (!dati) return {};
+interface CampoDato {
+  name: string;
+  label: string;
+  value: string;
+}
+
+function parseDati(dati: string | null | undefined): CampoDato[] {
+  if (!dati) return [];
   try {
-    return JSON.parse(dati) as Record<string, unknown>;
+    const parsed = JSON.parse(dati);
+    // nuovo formato: array con label
+    if (Array.isArray(parsed)) return parsed as CampoDato[];
+    // vecchio formato: plain object
+    return Object.entries(parsed).map(([name, value]) => ({ name, label: name, value: String(value) }));
   } catch {
-    return {};
+    return [];
   }
 }
 
@@ -149,10 +159,10 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                 <div className="card-body p-0">
                   <table className="table table-sm mb-0">
                     <tbody>
-                      {Object.entries(dati).map(([key, value]) => (
-                        <tr key={key}>
-                          <th style={{ width: '30%' }} className="ps-3">{key}</th>
-                          <td>{String(value) || '-'}</td>
+                      {dati.map((campo) => (
+                        <tr key={campo.name}>
+                          <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
+                          <td>{campo.value || '-'}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -25,6 +25,7 @@ export const stepSchema = z.object({
   protocollo: z.boolean().default(false),
   tipoProtocollo: z.enum(['E', 'U']).optional(), // E = Entrata, U = Uscita
   unitaOrganizzativa: z.string().optional(),
+  numerazioneInterna: z.boolean().default(false),
 
   // Pagamento
   pagamento: z.boolean().default(false),
