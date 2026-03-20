@@ -66,11 +66,11 @@ export function AllegatiRichiestiEditor({ value, onChange, prefix }: Props) {
         <table className="table table-sm table-bordered mb-2">
           <thead className="table-light">
             <tr>
-              <th>Nome allegato</th>
-              <th className="text-center" style={{ width: 110 }}>Obbligatorio</th>
-              <th className="text-center" style={{ width: 80 }}>Interno</th>
-              <th className="text-center" style={{ width: 110 }}>Soggetto</th>
-              <th style={{ width: 70 }}></th>
+              <th style={{ width: "50%" }}>Nome allegato</th>
+              <th className="text-center" style={{ width: "10%" }}>Obbligatorio</th>
+              <th className="text-center" style={{ width: "10%" }}>Interno</th>
+              <th className="text-center" style={{ width: "10%" }}>Soggetto</th>
+              <th style={{ width: "20%" }}></th>
             </tr>
           </thead>
           <tbody>

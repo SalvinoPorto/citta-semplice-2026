@@ -123,6 +123,7 @@ export default async function ModificaServizioPage({ params }: PageProps) {
             protocollo: step.protocollo,
             tipoProtocollo: (step.tipoProtocollo as 'E' | 'U' | undefined) || undefined,
             unitaOrganizzativa: step.unitaOrganizzativa || '',
+            numerazioneInterna: step.numerazioneInterna,
             pagamentoCodiceTributoId: step.pagamentoConfig?.codiceTributoId ?? null,
             pagamentoImporto: step.pagamentoConfig?.importo ?? null,
             pagamentoImportoVariabile: step.pagamentoConfig?.importoVariabile ?? false,

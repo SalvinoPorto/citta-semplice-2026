@@ -18,6 +18,7 @@ function buildStepData(step: ServizioFormData['steps'][number], idx: number) {
     protocollo: step.protocollo,
     tipoProtocollo: step.tipoProtocollo || null,
     unitaOrganizzativa: step.unitaOrganizzativa || null,
+    numerazioneInterna: step.numerazioneInterna,
   };
 }
 
@@ -251,6 +252,7 @@ export async function cloneServizio(id: number) {
           protocollo: step.protocollo,
           tipoProtocollo: step.tipoProtocollo,
           unitaOrganizzativa: step.unitaOrganizzativa,
+          numerazioneInterna: step.numerazioneInterna,
         })),
       },
     },

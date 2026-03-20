@@ -1,4 +1,5 @@
 'use client';
+import { useEnte } from '@/contexts/EnteContext';
 
 interface Props {
   accepted: boolean;
@@ -6,12 +7,13 @@ interface Props {
 }
 
 export function PrivacyStep({ accepted, onAccept }: Props) {
+  const nomeEnte = useEnte();
   return (
     <div className="container">
       <h2 className="mb-4">Informativa sulla privacy</h2>
       <div className="card p-4 mb-4">
         <p className="mb-3">
-          Ai sensi del Regolamento UE 2016/679 (GDPR), il Comune di Catania, in qualità di Titolare
+          Ai sensi del Regolamento UE 2016/679 (GDPR), il {nomeEnte}, in qualità di Titolare
           del trattamento, informa che i dati personali forniti saranno trattati per le finalità
           connesse alla gestione della presente istanza online.
         </p>

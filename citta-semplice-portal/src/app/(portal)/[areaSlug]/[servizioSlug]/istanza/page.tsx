@@ -120,9 +120,9 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
             <h1 className="title-xxlarge mb-4">{servizio.titolo}</h1>
             {bozzaIniziale && (
               <div className="alert alert-info d-flex align-items-center mb-4" role="alert">
-                <svg className="icon icon-sm me-2" aria-hidden="true">
+                {/* <svg className="icon icon-sm me-2" aria-hidden="true">
                   <use href="/bootstrap-italia/dist/svg/sprites.svg#it-info-circle" />
-                </svg>
+                </svg> */}
                 <span>Hai ripreso una bozza salvata. I dati inseriti in precedenza sono stati ripristinati.</span>
               </div>
             )}
