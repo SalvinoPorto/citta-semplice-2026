@@ -9,7 +9,7 @@ import type { AreaFormData } from '@/lib/validations/area';
 
 interface AreaData {
   id: number;
-  titolo: string;
+  nome: string;
   descrizione: string;
   icona: string;
   ordine: number;
@@ -27,7 +27,7 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [formData, setFormData] = useState<AreaFormData>({
-    titolo: area?.titolo || '',
+    nome: area?.nome || '',
     descrizione: area?.descrizione || '',
     icona: area?.icona || '',
     ordine: area?.ordine ?? 0,
@@ -40,8 +40,8 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.titolo.trim()) {
-      toast.error('Il titolo è obbligatorio');
+    if (!formData.nome.trim()) {
+      toast.error('Il nome è obbligatorio');
       return;
     }
     setLoading(true);
@@ -92,9 +92,9 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
               <div className="mb-3">
                 <Input
                   type="text"
-                  label="Titolo *"
-                  value={formData.titolo}
-                  onChange={(e) => updateField('titolo', e.target.value)}
+                  label="Nome *"
+                  value={formData.nome}
+                  onChange={(e) => updateField('nome', e.target.value)}
                   required
                 />
               </div>

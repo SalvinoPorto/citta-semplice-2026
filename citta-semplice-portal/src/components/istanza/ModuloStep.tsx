@@ -53,7 +53,6 @@ interface FormField {
 }
 
 interface Servizio {
-  moduloTipo: string;
   attributi?: string | null;
   moduloCorpo?: string | null;
 }
@@ -177,17 +176,6 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
     onChangeDati(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(values)]);
-
-  if (servizio.moduloTipo === 'PDF') {
-    return (
-      <div className="container">
-        <div className="alert alert-info">
-          Questo servizio richiede la compilazione di un modulo PDF. Scarica il modulo, compilalo
-          e allegalo nella sezione allegati.
-        </div>
-      </div>
-    );
-  }
 
   if (campi.length === 0 && servizio.moduloCorpo) {
     return (
@@ -400,7 +388,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
   return (
     <div className="container">
-      <h2 className="mb-4">Compila il modulo</h2>
+      <h3 className="mb-4">Compila il modulo</h3>
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="row">
           {row.map((campo) => (

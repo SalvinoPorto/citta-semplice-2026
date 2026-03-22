@@ -30,15 +30,14 @@ export default async function ModificaEntePage({ params }: PageProps) {
     <div>
       <div className="page-header">
         <h1>Modifica Ente</h1>
-        <p>{ente.ente}</p>
+        <p>{ente.nome}</p>
       </div>
 
       <EnteForm
         ente={{
           id: ente.id,
-          ente: ente.ente,
+          nome: ente.nome,
           descrizione: ente.descrizione || '',
-          codiceFiscale: ente.codiceFiscale || '',
           indirizzo: ente.indirizzo || '',
           telefono: ente.telefono || '',
           email: ente.email || '',

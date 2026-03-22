@@ -28,7 +28,7 @@ export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
 
   return (
     <div className="container">
-      <h2 className="mb-4">Riepilogo</h2>
+      <h3 className="mb-4">Riepilogo</h3>
       <p className="text-paragraph mb-4">
         Verifica i dati inseriti prima di inviare la richiesta.
       </p>

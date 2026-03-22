@@ -122,8 +122,9 @@ export function IstanzaActions({
 
   const [loading, setLoading] = useState(false);
 
-  const hasPaymentStep = currentStep?.pagamento && currentStep.pagamentoConfig;
-  const hasProtocolloStep = currentStep?.protocollo;
+  const isFirstStep = stepOrdine === 1;
+  const hasPaymentStep = !isFirstStep && currentStep?.pagamento && currentStep.pagamentoConfig;
+  const hasProtocolloStep = !isFirstStep && currentStep?.protocollo;
   const paymentConfig = currentStep?.pagamentoConfig ?? null;
 
   const handleTakeCharge = async () => {

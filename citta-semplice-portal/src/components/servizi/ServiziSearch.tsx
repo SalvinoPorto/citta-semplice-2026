@@ -7,7 +7,7 @@ type Servizio = {
   id: number;
   titolo: string;
   slug: string | null;
-  area: { id: number; titolo: string; slug: string | null };
+  area: { id: number; nome: string; slug: string | null };
 };
 
 const PAGE_SIZE = 10;
@@ -88,7 +88,7 @@ export function ServiziSearch() {
         {servizi.map((s) => (
           <div key={s.id} className="border-bottom py-2">
             <div className="small text-uppercase text-muted mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.05em' }}>
-              {s.area.titolo}
+              {s.area.nome}
             </div>
             <Link
               href={`/${s.area.slug ?? s.area.id}/${s.slug ?? s.id}`}

@@ -545,24 +545,32 @@ export async function takeCharge(istanzaId: number) {
 
     const lastWorkflow = istanza.workflows[0];
 
-    // Se c'è già un workflow a step 1 assegnato, non fare nulla
-    if (lastWorkflow?.stepId === firstStep.id) {
+    // Se c'è già un workflow al primo step con operatore assegnato, è già in carico
+    if (lastWorkflow?.stepId === firstStep.id && lastWorkflow.operatoreId !== null) {
       return { success: false, message: 'Istanza già presa in carico' };
     }
 
     const now = new Date();
 
-    // Avanza al primo step (presa in carico)
-    await prisma.workflow.create({
-      data: {
-        istanzaId,
-        stepId: firstStep.id,
-        statusId: STATUS_ELABORAZIONE,
-        operatoreId,
-        dataVariazione: now,
-        note: '',
-      },
-    });
+    if (lastWorkflow?.stepId === firstStep.id && lastWorkflow.operatoreId === null) {
+      // Workflow auto-creato all'invio: aggiorna solo l'operatore
+      await prisma.workflow.update({
+        where: { id: lastWorkflow.id },
+        data: { operatoreId },
+      });
+    } else {
+      // Nessun workflow esistente: crea il primo step
+      await prisma.workflow.create({
+        data: {
+          istanzaId,
+          stepId: firstStep.id,
+          statusId: STATUS_ELABORAZIONE,
+          operatoreId,
+          dataVariazione: now,
+          note: '',
+        },
+      });
+    }
 
     await prisma.istanza.update({
       where: { id: istanzaId },

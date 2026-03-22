@@ -1,17 +1,7 @@
-import prisma from '@/lib/db/prisma';
 import { AreaForm } from '../area-form';
 
-async function getEnti() {
-  return prisma.ente.findMany({
-    where: { attivo: true },
-    orderBy: { ente: 'asc' },
-    select: { id: true, ente: true },
-  });
-}
-
 export default async function NuovaAreaPage() {
-  const enti = await getEnti();
-
+  
   return (
     <div>
       <div className="page-header">
@@ -19,7 +9,7 @@ export default async function NuovaAreaPage() {
         <p>Crea una nuova area servizi</p>
       </div>
 
-      <AreaForm enti={enti} isNew />
+      <AreaForm isNew />
     </div>
   );
 }

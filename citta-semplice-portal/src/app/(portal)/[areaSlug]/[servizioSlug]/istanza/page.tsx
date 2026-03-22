@@ -107,7 +107,7 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
           items={[
             { label: 'Home', href: '/' },
             { label: 'Servizi', href: '/servizi' },
-            { label: servizio.area.titolo, href: `/${areaSlug}` },
+            { label: servizio.area.nome, href: `/${areaSlug}` },
             { label: servizio.titolo, href: `/${areaSlug}/${servizioSlug}` },
             { label: 'Richiesta', active: true },
           ]}
@@ -117,7 +117,7 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
-            <h1 className="title-xxlarge mb-4">{servizio.titolo}</h1>
+            <h3 className="title-xxlarge mb-4">{servizio.titolo}</h3>
             {bozzaIniziale && (
               <div className="alert alert-info d-flex align-items-center mb-4" role="alert">
                 {/* <svg className="icon icon-sm me-2" aria-hidden="true">

@@ -9,7 +9,7 @@ export async function createArea(data: AreaFormData) {
 
   await prisma.area.create({
     data: {
-      titolo: validated.titolo,
+      nome: validated.nome,
       descrizione: validated.descrizione || null,
       icona: validated.icona || null,
       ordine: validated.ordine,
@@ -27,7 +27,7 @@ export async function updateArea(id: number, data: AreaFormData) {
   await prisma.area.update({
     where: { id },
     data: {
-      titolo: validated.titolo,
+      nome: validated.nome,
       descrizione: validated.descrizione || null,
       icona: validated.icona || null,
       ordine: validated.ordine,

@@ -24,7 +24,7 @@ async function getAree() {
     where: { attiva: true, privata: false },
     select: {
       id: true,
-      titolo: true,
+      nome: true,
       descrizione: true,
       slug: true,
       icona: true,
@@ -116,7 +116,7 @@ export default async function HomePage() {
                           <use href={`/bootstrap-italia/dist/svg/sprites.svg#${area.icona}`} />
                         </svg>
                       )}
-                      {area.titolo}
+                      {area.nome}
                     </Link>
                   </h3>
                   {area.descrizione && (

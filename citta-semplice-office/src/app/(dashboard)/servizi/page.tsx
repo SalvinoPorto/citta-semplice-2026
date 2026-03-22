@@ -10,7 +10,7 @@ interface SearchParams {
 async function getAree() {
   return prisma.area.findMany({
     where: { attiva: true },
-    orderBy: { titolo: 'asc' },
+    orderBy: { nome: 'asc' },
   });
 }
 

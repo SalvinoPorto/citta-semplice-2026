@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +19,7 @@ interface Ruolo {
 interface Servizio {
   id: number;
   titolo: string;
+  area: { nome: string } | null;
 }
 
 interface OperatoreData {
@@ -45,6 +46,10 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [serviziSearch, setServiziSearch] = useState('');
+  const [serviziPage, setServiziPage] = useState(1);
+  const [soloSelezionati, setSoloSelezionati] = useState(false);
+  const PAGE_SIZE = 10;
 
   const {
     register,
@@ -69,6 +74,19 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
 
   const selectedRuoli = watch('ruoliIds') || [];
   const selectedServizi = watch('serviziIds') || [];
+
+  const filteredServizi = useMemo(() => {
+    const q = serviziSearch.trim().toLowerCase();
+    return servizi.filter((s) => {
+      const matchSearch = !q || s.titolo.toLowerCase().includes(q) || (s.area?.nome ?? '').toLowerCase().includes(q);
+      const matchSelezione = !soloSelezionati || selectedServizi.includes(s.id);
+      return matchSearch && matchSelezione;
+    });
+  }, [servizi, serviziSearch, soloSelezionati, selectedServizi]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredServizi.length / PAGE_SIZE));
+  const pagedServizi = filteredServizi.slice((serviziPage - 1) * PAGE_SIZE, serviziPage * PAGE_SIZE);
+
   const toggleSelection = (field: 'ruoliIds' | 'serviziIds', id: number) => {
     const current = watch(field) || [];
     if (current.includes(id)) {
@@ -226,25 +244,88 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
 
           <Card className="mb-4">
             <CardBody>
-              <h5 className="mb-4">Servizi Assegnati</h5>
-              <div className="row">
-                {servizi.map((servizio) => (
-                  <div key={servizio.id} className="col-md-6 mb-2">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id={`servizio-${servizio.id}`}
-                        checked={selectedServizi.includes(servizio.id)}
-                        onChange={() => toggleSelection('serviziIds', servizio.id)}
-                      />
-                      <label className="form-check-label" htmlFor={`servizio-${servizio.id}`}>
-                        {servizio.titolo}
-                      </label>
-                    </div>
-                  </div>
-                ))}
+              <div className="d-flex align-items-center justify-content-between mb-3">
+                <h5 className="mb-0">Servizi Assegnati</h5>
+                <small className="text-muted">{selectedServizi.length} selezionati</small>
               </div>
+
+              <div className="d-flex gap-2 align-items-center mb-3">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Cerca servizio..."
+                  value={serviziSearch}
+                  onChange={(e) => { setServiziSearch(e.target.value); setServiziPage(1); }}
+                />
+                <div className="form-check mb-0 text-nowrap">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="solo-selezionati"
+                    checked={soloSelezionati}
+                    onChange={(e) => { setSoloSelezionati(e.target.checked); setServiziPage(1); }}
+                  />
+                  <label className="form-check-label small" htmlFor="solo-selezionati">
+                    Solo selezionati
+                  </label>
+                </div>
+              </div>
+
+              <div className="table-responsive">
+                <table className="table table-sm table-hover mb-2">
+                  <tbody>
+                    {pagedServizi.length === 0 ? (
+                      <tr>
+                        <td className="text-muted fst-italic">Nessun servizio trovato</td>
+                      </tr>
+                    ) : pagedServizi.map((servizio) => (
+                      <tr
+                        key={servizio.id}
+                        onClick={() => toggleSelection('serviziIds', servizio.id)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <td style={{ width: 32 }}>
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            checked={selectedServizi.includes(servizio.id)}
+                            onChange={() => toggleSelection('serviziIds', servizio.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </td>
+                        <td>{servizio.titolo}</td>
+                        <td className="text-muted small">{servizio.area?.nome ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="d-flex align-items-center justify-content-between">
+                  <small className="text-muted">
+                    Pagina {serviziPage} di {totalPages} ({filteredServizi.length} risultati)
+                  </small>
+                  <div className="d-flex gap-1">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      disabled={serviziPage === 1}
+                      onClick={() => setServiziPage((p) => p - 1)}
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      disabled={serviziPage === totalPages}
+                      onClick={() => setServiziPage((p) => p + 1)}
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+              )}
             </CardBody>
           </Card>
         </div>

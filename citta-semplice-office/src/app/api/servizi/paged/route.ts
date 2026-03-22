@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
   // Build sort
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let orderBy: any = [{ area: { titolo: 'asc' } }, { ordine: 'asc' }];
+  let orderBy: any = [{ area: { nome:'asc' } }, { ordine: 'asc' }];
   if (order?.field && order.direction !== 0) {
     const dir = order.direction === 1 ? 'asc' : 'desc';
     switch (order.field) {
@@ -63,10 +63,10 @@ export async function POST(request: NextRequest) {
         orderBy = { titolo: dir };
         break;
       case 'area':
-        orderBy = { area: { titolo: dir } };
+        orderBy = { area: { nome:dir } };
         break;
       default:
-        orderBy = [{ area: { titolo: 'asc' } }, { ordine: 'asc' }];
+        orderBy = [{ area: { nome:'asc' } }, { ordine: 'asc' }];
     }
   }
 
@@ -87,9 +87,8 @@ export async function POST(request: NextRequest) {
         descrizione: true,
         attivo: true,
         dataFine: true,
-        moduloTipo: true,
         area: {
-          select: { titolo: true },
+          select: { nome: true },
         },
         _count: {
           select: { steps: true },

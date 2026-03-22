@@ -17,8 +17,7 @@ interface Servizio {
   titolo: string;
   descrizione: string | null;
   attivo: boolean;
-  moduloTipo: string;
-  area: { titolo: string };
+  area: { nome: string };
   _count: { steps: number };
 }
 
@@ -97,7 +96,7 @@ export function ServiziTable({ areaId, aree }: Props) {
               href={`/servizi?area=${area.id}`}
               className={`btn btn-sm ${areaId === area.id ? 'btn-primary' : 'btn-outline-primary'}`}
             >
-              {area.titolo}
+              {area.nome}
             </Link>
           ))}
         </div>
@@ -129,7 +128,6 @@ export function ServiziTable({ areaId, aree }: Props) {
               <THeadGroup onChange={(e) => setOrder(e)}>
                 <THead field="titolo">Titolo</THead>
                 <THead field="area">Area</THead>
-                <THead field="" width="8%">Tipo</THead>
                 <THead field="steps" width="8%">Steps</THead>
                 <THead field="" width="10%">Stato</THead>
                 <THead field="" width="12%"></THead>
@@ -163,10 +161,7 @@ export function ServiziTable({ areaId, aree }: Props) {
                           </div>
                         )}
                       </td>
-                      <td>{servizio.area.titolo}</td>
-                      <td>
-                        <span className="badge bg-secondary small">{servizio.moduloTipo}</span>
-                      </td>
+                      <td>{servizio.area.nome}</td>
                       <td>{servizio._count.steps}</td>
                       <td>
                         {servizio.attivo ? (
