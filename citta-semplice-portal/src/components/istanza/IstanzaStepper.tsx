@@ -12,16 +12,16 @@ function buildDatiConLabel(
   datiModulo: Record<string, unknown>,
   attributi: string | null | undefined,
 ): string {
-  let campi: Array<{ name: string; label: string }> = [];
+  let campi: { fields: Array<{ name: string; label: string }> } = { fields: [] };
   try {
     if (attributi) campi = JSON.parse(attributi);
-  } catch { /* ignore */ }
-
-  const arricchiti = campi.map(({ name, label }) => ({
+  } catch (e){ console.error('Errore durante il parsing degli attributi', e); }
+console.log('Campi del modulo:', datiModulo);
+  const arricchiti = campi.fields.map(({ name, label }) => ({
     name,
     label,
     value: datiModulo[name] !== undefined ? String(datiModulo[name]) : '',
-  }));
+  })).filter((campo) => campo.name !== 'paragraph'); // Filtra i campi testo statico
   return JSON.stringify(arricchiti);
 }
 
@@ -35,7 +35,6 @@ interface StepWorkflow {
 interface Servizio {
   id: number;
   titolo: string;
-  moduloTipo: string;
   attributi?: string | null;
   moduloCorpo?: string | null;
   steps: StepWorkflow[];
@@ -145,7 +144,8 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
         toast.success('Istanza inviata con successo!');
         window.location.href = '/le-mie-istanze';
       }
-    } catch {
+    } catch (e){
+      console.error('Errore durante l\'invio dell\'istanza', e);
       toast.error('Errore durante l\'invio. Riprova.');
     } finally {
       setLoading(false);
@@ -206,7 +206,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       <div className="steppers-nav d-flex justify-content-between align-items-center mt-4">
         <button
           type="button"
-          className="btn btn-outline-primary"
+          className="btn btn-primary"
           onClick={handleBack}
           disabled={activeStep === 0}
         >
@@ -232,7 +232,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
             ) : (
               <>
                 <svg className="icon icon-sm me-1" aria-hidden="true">
-                  <use href="/bootstrap-italia/dist/svg/sprites.svg#it-save" />
+                  <use href="/bootstrap-italia/dist/svg/sprites.svg#it-clock" />
                 </svg>
                 Salva in bozza
               </>

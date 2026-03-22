@@ -15,7 +15,8 @@
       "Bash(npx prisma db push)",
       "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/)",
       "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/ruoli/)",
-      "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/tributi/)"
+      "Bash(ls /home/salvino/Progetti/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/amministrazione/tributi/)",
+      "Bash(npx prisma:*)"
     ]
   }
 }

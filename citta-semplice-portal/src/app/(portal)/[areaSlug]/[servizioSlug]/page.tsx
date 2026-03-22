@@ -58,7 +58,7 @@ export default async function ServizioPage({ params }: Props) {
           items={[
             { label: 'Home', href: '/' },
             { label: 'Servizi', href: '/servizi' },
-            { label: servizio.area.titolo, href: `/${areaSlug}` },
+            { label: servizio.area.nome, href: `/${areaSlug}` },
             { label: servizio.titolo, active: true },
           ]}
         />

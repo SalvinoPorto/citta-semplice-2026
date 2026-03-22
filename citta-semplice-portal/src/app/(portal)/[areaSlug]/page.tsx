@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const area = await getArea(areaSlug);
   if (!area) return { title: 'Area non trovata' };
   return {
-    title: `${area.titolo} - Città Semplice`,
+    title: `${area.nome} - Città Semplice`,
     description: area.descrizione ?? undefined,
   };
 }
@@ -51,7 +51,7 @@ export default async function AreaPage({ params }: Props) {
           items={[
             { label: 'Home', href: '/' },
             { label: 'Servizi', href: '/servizi' },
-            { label: area.titolo, active: true },
+            { label: area.nome, active: true },
           ]}
         />
       </div>
@@ -62,7 +62,7 @@ export default async function AreaPage({ params }: Props) {
             <div className="cmp-hero">
               <section className="it-hero-wrapper bg-white align-items-start">
                 <div className="it-hero-text-wrapper pt-0 ps-0 pb-4 pb-lg-60">
-                  <h1 className="text-black" data-element="page-name">{area.titolo}</h1>
+                  <h1 className="text-black" data-element="page-name">{area.nome}</h1>
                   {area.descrizione && (
                     <div className="hero-text">
                       <p>{area.descrizione}</p>

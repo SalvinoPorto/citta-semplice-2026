@@ -76,7 +76,6 @@ export const servizioSchema = z.object({
   // nomeDocumentoFinale: z.string().optional(),
 
   // Modulo (form dati richiedente)
-  moduloTipo: z.enum(['HTML', 'PDF']).default('HTML'),
   attributi: z.string().optional(),
   postFormValidation: z.boolean().default(false),
   postFormValidationAPI: z.string().optional(),

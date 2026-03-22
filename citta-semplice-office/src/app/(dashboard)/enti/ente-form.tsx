@@ -10,9 +10,8 @@ import Link from 'next/link';
 
 interface EnteData {
   id: number;
-  ente: string;
+  nome: string;
   descrizione: string;
-  codiceFiscale: string;
   indirizzo: string;
   telefono: string;
   email: string;
@@ -69,10 +68,10 @@ export function EnteForm({ ente, isNew }: EnteFormProps) {
     if (!ente) return;
     startTransition(async () => {
       const result = await deleteEnte(ente.id);
-      if (result?.error) {
+      /* if (result?.error) {
         setError(result.error);
         setShowDeleteConfirm(false);
-      }
+      } */
     });
   };
 

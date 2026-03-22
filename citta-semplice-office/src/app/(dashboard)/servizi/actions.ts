@@ -65,36 +65,35 @@ async function upsertPagamentoForStep(stepId: number, step: ServizioFormData['st
 function buildServizioData(validated: ServizioFormData) {
   return {
     titolo: validated.titolo,
-    sottoTitolo: validated.sottoTitolo || null,
-    descrizione: validated.descrizione || null,
-    comeFare: validated.comeFare || null,
-    cosaServe: validated.cosaServe || null,
-    altreInfo: validated.altreInfo || null,
-    contatti: validated.contatti || null,
-    slug: validated.slug || null,
-    icona: validated.icona || null,
+    sottoTitolo: validated.sottoTitolo || undefined,
+    descrizione: validated.descrizione || undefined,
+    comeFare: validated.comeFare || undefined,
+    cosaServe: validated.cosaServe || undefined,
+    altreInfo: validated.altreInfo || undefined,
+    contatti: validated.contatti || undefined,
+    slug: validated.slug || undefined,
+    icona: validated.icona || undefined,
     ordine: validated.ordine,
     attivo: validated.attivo,
     areaId: validated.areaId,
-    ufficioId: validated.ufficioId || null,
-    dataInizio: validated.dataInizio ? new Date(validated.dataInizio) : null,
-    dataFine: validated.dataFine ? new Date(validated.dataFine) : null,
+    ufficioId: validated.ufficioId || undefined,
+    dataInizio: validated.dataInizio ? new Date(validated.dataInizio) : undefined,
+    dataFine: validated.dataFine ? new Date(validated.dataFine) : undefined,
     unicoInvio: validated.unicoInvio,
     unicoInvioPerUtente: validated.unicoInvioPerUtente,
-    campiUnicoInvio: validated.campiUnicoInvio || null,
-    numeroMaxIstanze: validated.numeroMaxIstanze || null,
-    msgSopraSoglia: validated.msgSopraSoglia || null,
-    msgExtraServizio: validated.msgExtraServizio || null,
-    campiInEvidenza: validated.campiInEvidenza || null,
-    campiDaEsportare: validated.campiDaEsportare || null,
+    campiUnicoInvio: validated.campiUnicoInvio || undefined,
+    numeroMaxIstanze: validated.numeroMaxIstanze || undefined,
+    msgSopraSoglia: validated.msgSopraSoglia || undefined,
+    msgExtraServizio: validated.msgExtraServizio || undefined,
+    campiInEvidenza: validated.campiInEvidenza || undefined,
+    campiDaEsportare: validated.campiDaEsportare || undefined,
     // prevedeDocumentoFinale: validated.prevedeDocumentoFinale,
     // templateDocumentoFinale: validated.templateDocumentoFinale || null,
     // nomeDocumentoFinale: validated.nomeDocumentoFinale || null,
-    moduloTipo: validated.moduloTipo,
-    attributi: validated.attributi || null,
+    attributi: validated.attributi || undefined,
     postFormValidation: validated.postFormValidation,
-    postFormValidationAPI: validated.postFormValidationAPI || null,
-    postFormValidationFields: validated.postFormValidationFields || null,
+    postFormValidationAPI: validated.postFormValidationAPI || undefined,
+    postFormValidationFields: validated.postFormValidationFields || undefined,
   };
 }
 
@@ -197,7 +196,7 @@ export async function cloneServizio(id: number) {
   });
 
   // Generate new slug
-  let newSlug = original.slug ? `${original.slug}-copia` : null;
+  let newSlug = original.slug ? `${original.slug}-copia` : undefined;
   if (newSlug) {
     let counter = 1;
     while (await prisma.servizio.findFirst({ where: { slug: newSlug } })) {

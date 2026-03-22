@@ -105,7 +105,7 @@ model OperatoreEnte {
 
 model Area {
   id          Int       @id @default(autoincrement())
-  titolo      String
+  nome        String
   descrizione String?
   icona       String?
   ordine      Int       @default(0)
@@ -136,7 +136,6 @@ model Servizio {
   area        Area      @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
   // Modulo (form dati richiedente, incorporato nel servizio)
-  moduloTipo                String    @db.VarChar(4) @default("HTML") @map("modulo_tipo") // HTML, PDF
   //moduloNomeFile          String?   @db.VarChar(255) @map("modulo_nome_file")
   attributi                 String?   @db.Text @map("attributi") // JSON form schema
   moduloCorpo               String?   @db.Text @map("modulo_corpo")

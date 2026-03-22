@@ -82,8 +82,21 @@ export default async function IstanzaDetailPage({
   }
 
   const lastWorkflow = istanza.workflows[0];
-  const assignedTo = lastWorkflow === undefined ? ASSIGNEDTO.NOONE : lastWorkflow?.operatore?.id === operatoreId ? ASSIGNEDTO.ME : ASSIGNEDTO.OTHER;
-  const dati = istanza.dati ? JSON.parse(istanza.dati) : {};
+  const assignedTo = (lastWorkflow === undefined || lastWorkflow.operatore === null)
+    ? ASSIGNEDTO.NOONE
+    : lastWorkflow.operatore.id === operatoreId
+      ? ASSIGNEDTO.ME
+      : ASSIGNEDTO.OTHER;
+  interface CampoDato { name: string; label: string; value: string; }
+  function parseDati(raw: string | null | undefined): CampoDato[] {
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as CampoDato[];
+      return Object.entries(parsed).map(([name, value]) => ({ name, label: name, value: String(value) }));
+    } catch { return []; }
+  }
+  const dati = parseDati(istanza.dati);
 
   // Informazioni sullo step corrente
   const currentStep = lastWorkflow?.step ?? null;
@@ -259,14 +272,14 @@ export default async function IstanzaDetailPage({
           <Card className="mb-4">
             <CardBody>
               <CardTitle>Dati Inseriti</CardTitle>
-              {Object.keys(dati).length > 0 ? (
+              {dati.length > 0 ? (
                 <div className="table-responsive">
                   <table className="table table-sm">
                     <tbody>
-                      {Object.entries(dati).map(([key, value]) => (
-                        <tr key={key}>
-                          <th style={{ width: '30%' }}>{key}</th>
-                          <td>{String(value) || '-'}</td>
+                      {dati.map((campo) => (
+                        <tr key={campo.name}>
+                          <th style={{ width: '30%' }}>{campo.label}</th>
+                          <td>{campo.value || '-'}</td>
                         </tr>
                       ))}
                     </tbody>

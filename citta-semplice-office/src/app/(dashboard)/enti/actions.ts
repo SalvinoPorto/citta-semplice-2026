@@ -10,9 +10,8 @@ export async function createEnte(data: EnteFormData) {
 
   await prisma.ente.create({
     data: {
-      ente: validated.ente,
+      nome: validated.ente,
       descrizione: validated.descrizione || null,
-      codiceFiscale: validated.codiceFiscale || null,
       indirizzo: validated.indirizzo || null,
       telefono: validated.telefono || null,
       email: validated.email || null,
@@ -32,9 +31,8 @@ export async function updateEnte(id: number, data: EnteFormData) {
   await prisma.ente.update({
     where: { id },
     data: {
-      ente: validated.ente,
+      nome: validated.ente,
       descrizione: validated.descrizione || null,
-      codiceFiscale: validated.codiceFiscale || null,
       indirizzo: validated.indirizzo || null,
       telefono: validated.telefono || null,
       email: validated.email || null,
@@ -50,15 +48,7 @@ export async function updateEnte(id: number, data: EnteFormData) {
 }
 
 export async function deleteEnte(id: number) {
-  // Check for dependent aree
-  const areeCount = await prisma.area.count({
-    where: { enteId: id },
-  });
-
-  if (areeCount > 0) {
-    return { error: `Impossibile eliminare: l'ente ha ${areeCount} aree associate` };
-  }
-
+  
   await prisma.ente.delete({
     where: { id },
   });

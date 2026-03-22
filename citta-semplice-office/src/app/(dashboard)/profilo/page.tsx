@@ -55,12 +55,6 @@ export default async function ProfiloPage() {
                   <label className="form-label text-muted small">Email</label>
                   <div className="fw-bold">{operatore.email}</div>
                 </div>
-                {operatore.codiceFiscale && (
-                  <div className="col-md-6">
-                    <label className="form-label text-muted small">Codice Fiscale</label>
-                    <div className="fw-bold">{operatore.codiceFiscale}</div>
-                  </div>
-                )}
                 {operatore.telefono && (
                   <div className="col-md-6">
                     <label className="form-label text-muted small">Telefono</label>

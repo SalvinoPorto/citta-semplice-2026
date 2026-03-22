@@ -79,7 +79,7 @@ export const AllegatiStep = forwardRef<AllegatiStepHandle, Props>(function Alleg
 
   return (
     <div className="container">
-      <h2 className="mb-4">Allegati richiesti</h2>
+      <h3 className="mb-4">Allegati richiesti</h3>
 
       <div className="card mb-4">
         <div className="card-body p-0">

@@ -82,7 +82,7 @@ export default async function ServiziPage() {
                           <use href={`/bootstrap-italia/dist/svg/sprites.svg#${area.icona}`} />
                         </svg>
                       )}
-                      {area.titolo}
+                      {area.nome}
                     </Link>
                   </h3>
                   {area.descrizione && (

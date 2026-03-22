@@ -44,7 +44,7 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      ente: 'Comune di Catania',
+      nome: 'Comune di Catania',
       descrizione: 'Comune di Catania - Città Metropolitana di Catania',
       codice: 'COCAT',
       indirizzo: 'Piazza Duomo, 1 - 95100 Catania (CT)',
@@ -61,7 +61,7 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      titolo: 'Servizi al Cittadino',
+      nome: 'Servizi al Cittadino',
       descrizione: 'Area servizi dedicati ai cittadini',
       ordine: 1,
       attiva: true,
@@ -132,7 +132,6 @@ async function main() {
       areaId: area.id,
       ufficioId: ufficio.id,
       // Modulo (form) incorporato nel servizio
-      moduloTipo: 'HTML',
       attributi: JSON.stringify({
         fields: [
           { name: 'tipoCertificato', label: 'Tipo Certificato', type: 'select' },

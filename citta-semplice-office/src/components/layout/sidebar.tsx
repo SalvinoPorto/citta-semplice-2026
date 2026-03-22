@@ -20,9 +20,6 @@ const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: 'it-pa', section: 'principale' },
   { href: '/istanze', label: 'Istanze', icon: 'it-files', permission: PERMISSIONS.ISTANZE_VIEW, section: 'principale' },
 
-  // Sezione Configurazione (Responsabile+)
-  { href: '/moduli', label: 'Moduli', icon: 'it-file', permission: PERMISSIONS.MODULI_VIEW, section: 'configurazione' },
-
   // Sezione Organizzazione (Admin)
   { href: '/enti', label: 'Enti', icon: 'it-pa', permission: PERMISSIONS.ENTI_VIEW, section: 'organizzazione' },
   { href: '/aree', label: 'Aree', icon: 'it-folder', permission: PERMISSIONS.AREE_VIEW, section: 'organizzazione' },

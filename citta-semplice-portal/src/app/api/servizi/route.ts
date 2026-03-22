@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         id: true,
         titolo: true,
         slug: true,
-        area: { select: { titolo: true, slug: true, id: true } },
+        area: { select: { nome: true, slug: true, id: true } },
       },
       orderBy: { titolo: 'asc' },
       take: limit,

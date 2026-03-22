@@ -36,7 +36,7 @@ export default async function AreePage() {
             <Card>
               <CardBody>
                 <div className="d-flex justify-content-between align-items-start mb-2">
-                  <h5 className="card-title mb-0">{area.titolo}</h5>
+                  <h5 className="card-title mb-0">{area.nome}</h5>
                   {area.attiva ? (
                     <Badge variant="success">Attiva</Badge>
                   ) : (

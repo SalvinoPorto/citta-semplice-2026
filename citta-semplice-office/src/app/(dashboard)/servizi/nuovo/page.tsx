@@ -16,8 +16,8 @@ async function getFormData() {
   const [aree, uffici, tributi, unitaOrganizzative] = await Promise.all([
     prisma.area.findMany({
       where: { attiva: true },
-      orderBy: { titolo: 'asc' },
-      select: { id: true, titolo: true },
+      orderBy: { nome: 'asc' },
+      select: { id: true, nome: true },
     }),
     prisma.ufficio.findMany({
       where: { attivo: true },

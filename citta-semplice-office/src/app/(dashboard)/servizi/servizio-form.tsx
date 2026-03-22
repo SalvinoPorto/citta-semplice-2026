@@ -14,7 +14,7 @@ import { FormBuilder, type FormSchema } from '@/components/form-builder';
 
 interface Area {
   id: number;
-  titolo: string;
+  nome: string;
 }
 
 interface UfficioRef {
@@ -61,7 +61,6 @@ interface ServizioData {
   // prevedeDocumentoFinale: boolean;
   // templateDocumentoFinale: string;
   // nomeDocumentoFinale: string;
-  moduloTipo: 'HTML' | 'PDF';
   attributi: string;
   postFormValidation: boolean;
   postFormValidationAPI: string;
@@ -120,7 +119,6 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
       // prevedeDocumentoFinale: false,
       // templateDocumentoFinale: '',
       // nomeDocumentoFinale: '',
-      moduloTipo: 'HTML',
       attributi: '',
       postFormValidation: false,
       postFormValidationAPI: '',
@@ -183,8 +181,6 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
     (schema: FormSchema) => { setValue('attributi', JSON.stringify(schema)); },
     [setValue]
   );
-
-  const tipoModulo = watch('moduloTipo');
 
   const { fields, remove, move, insert } = useFieldArray({
     control,
@@ -360,7 +356,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                     <option value="">Seleziona un&apos;area</option>
                     {aree.map((area) => (
                       <option key={area.id} value={area.id}>
-                        {area.titolo}
+                        {area.nome}
                       </option>
                     ))}
                   </Select>
@@ -472,24 +468,13 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
           {activeTab === 'modulo' && (
             <Card className="mb-4">
               <CardBody>
-                <div className="row mb-3">
-                  <div className="col-md-4">
-                    <Select label="Tipo modulo *" {...register('moduloTipo')}>
-                      <option value="HTML">HTML (Form Builder)</option>
-                      <option value="PDF">PDF</option>
-                    </Select>
-                  </div>
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">Form Builder</label>
+                  <FormBuilder
+                    initialSchema={initialFormSchema}
+                    onChange={handleFormSchemaChange}
+                  />
                 </div>
-
-                {tipoModulo === 'HTML' && (
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold">Form Builder</label>
-                    <FormBuilder
-                      initialSchema={initialFormSchema}
-                      onChange={handleFormSchemaChange}
-                    />
-                  </div>
-                )}
 
                 <hr />
 

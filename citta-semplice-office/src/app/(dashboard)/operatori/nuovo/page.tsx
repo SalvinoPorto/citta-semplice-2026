@@ -7,7 +7,8 @@ async function getFormData() {
     prisma.servizio.findMany({
       where: { attivo: true },
       orderBy: { titolo: 'asc' },
-      select: { id: true, titolo: true }
+      select: { id: true, titolo: true, area: { select: { nome: true } } },
+      //orderBy: [{ area: { nome: 'asc' } }, { titolo: 'asc' }]
     }),
   ]);
 

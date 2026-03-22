@@ -11,8 +11,8 @@ async function getArea(id: number) {
 async function getEnti() {
   return prisma.ente.findMany({
     where: { attivo: true },
-    orderBy: { ente: 'asc' },
-    select: { id: true, ente: true },
+    orderBy: { nome: 'asc' },
+    select: { id: true, nome: true },
   });
 }
 
@@ -28,10 +28,7 @@ export default async function ModificaAreaPage({ params }: PageProps) {
     notFound();
   }
 
-  const [area, enti] = await Promise.all([
-    getArea(areaId),
-    getEnti(),
-  ]);
+  const area = await getArea(areaId);
 
   if (!area) {
     notFound();
@@ -41,13 +38,13 @@ export default async function ModificaAreaPage({ params }: PageProps) {
     <div>
       <div className="page-header">
         <h1>Modifica Area</h1>
-        <p>{area.titolo}</p>
+        <p>{area.nome}</p>
       </div>
 
       <AreaForm
         area={{
           id: area.id,
-          titolo: area.titolo,
+          nome: area.nome,
           descrizione: area.descrizione || '',
           icona: area.icona || '',
           ordine: area.ordine,
