@@ -44,25 +44,24 @@ export default async function AmministrazionePage() {
     {
       title: 'Organizzazione',
       items: [
-        { href: '/enti', label: 'Enti', count: info.entiCount },
-        { href: '/aree', label: 'Aree', count: info.areeCount },
-        { href: '/uffici', label: 'Uffici', count: 0 },
+        { href: '/amministrazione/enti', label: 'Enti', count: info.entiCount },
+        { href: '/amministrazione/aree', label: 'Aree', count: info.areeCount },
+        { href: '/amministrazione/uffici', label: 'Uffici', count: 0 },
       ],
     },
     {
       title: 'Utenti e Ruoli',
       items: [
-        { href: '/operatori', label: 'Operatori', count: info.operatoriCount },
+        { href: '/amministrazione/operatori', label: 'Operatori', count: info.operatoriCount },
         { href: '/amministrazione/ruoli', label: 'Ruoli', count: info.ruoliCount },
-        { href: '/utenti', label: 'Utenti', count: info.utentiCount },
+        { href: '/amministrazione/utenti', label: 'Utenti', count: info.utentiCount },
       ],
     },
     {
       title: 'Configurazione',
       items: [
-        { href: '/servizi', label: 'Servizi', count: info.serviziCount },
+        { href: '/amministrazione/servizi', label: 'Servizi', count: info.serviziCount },
         { href: '/amministrazione/tributi', label: 'Codici Tributo', count: info.tributiCount },
-        { href: '/amministrazione/attributi', label: 'Attributi', count: 0 },
       ],
     },
     {

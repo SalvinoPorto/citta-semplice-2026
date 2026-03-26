@@ -31,22 +31,6 @@ export function Navbar({ userRoles }: NavbarProps) {
                                         <li className="nav-item">
                                             <Link className="nav-link" href="/istanze" ><span>Istanze</span></Link>
                                         </li>
-                                        {(hasPermission(userRoles, PERMISSIONS.SERVIZI_MANAGE)) &&
-                                            <li className="nav-item dropdown">
-                                                <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown0">
-                                                    <span>Configurazione</span>
-                                                    <svg className="icon icon-xs"><use href="/bootstrap-italia/dist/svg/sprites.svg#it-expand"></use></svg>
-                                                </Link>
-                                                <div className="dropdown-menu" role="region" aria-labelledby="mainNavDropdown0">
-                                                    <div className="link-list-wrapper">
-                                                        <ul className="link-list">
-                                                            <li><Link className="dropdown-item list-item" href="/servizi"><span>Servizi</span></Link></li>
-                                                            <li><span className="divider"></span></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        }
                                         {(hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW) || hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW)) &&
                                             <li className="nav-item dropdown">
                                                 <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown1">

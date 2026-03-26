@@ -45,11 +45,11 @@ export async function POST(request: NextRequest) {
     whereClause.titolo = { contains: String(titoloFilter.value), mode: 'insensitive' };
   }
 
-  // Column filter: area (by titolo)
+  // Column filter: area (by nome)
   const areaFilter = filters.find((f) => f.key === 'area');
   if (areaFilter?.value) {
     whereClause.area = {
-      titolo: { contains: String(areaFilter.value), mode: 'insensitive' },
+      nome: { contains: String(areaFilter.value), mode: 'insensitive' },
     };
   }
 
