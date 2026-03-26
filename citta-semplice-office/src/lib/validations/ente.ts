@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const enteSchema = z.object({
-  ente: z.string().min(1, 'Il nome è obbligatorio'),
+  nome: z.string().min(1, 'Il nome è obbligatorio'),
   descrizione: z.string().optional(),
   codiceFiscale: z.string().optional(),
   indirizzo: z.string().optional(),

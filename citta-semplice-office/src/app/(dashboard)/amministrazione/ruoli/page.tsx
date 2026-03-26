@@ -20,6 +20,10 @@ export default async function RuoliPage() {
 
   return (
     <div>
+      <Link href="/amministrazione" className="btn btn-link p-0">
+        ← Torna ad Amministrazione
+      </Link>
+
       <div className="page-header d-flex justify-content-between align-items-start">
         <div>
           <h1>Ruoli</h1>

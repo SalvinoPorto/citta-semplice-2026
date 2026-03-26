@@ -9,12 +9,10 @@ export default async function EmailConfigPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div className="d-flex align-items-center gap-2 mb-2">
-          <Link href="/amministrazione" className="btn btn-link p-0">
-            ← Torna all&apos;amministrazione
-          </Link>
-        </div>
+      <Link href="/amministrazione" className="btn btn-link p-0">
+        ← Torna ad Amministrazione
+      </Link>
+      <div className="page-headerd-flex align-items-center gap-2 mb-2">
         <h1>Configurazione Email</h1>
         <p>Configura il sistema di invio email per le notifiche e comunicazioni.</p>
       </div>

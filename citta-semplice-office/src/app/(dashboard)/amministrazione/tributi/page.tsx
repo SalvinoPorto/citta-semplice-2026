@@ -20,7 +20,12 @@ export default async function TributiPage() {
 
   return (
     <div>
-      <div className="page-header d-flex justify-content-between align-items-start">
+      <div className="page-header">
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <Link href="/amministrazione" className="btn btn-link p-0">
+            ← Torna ad Amministrazione
+          </Link>
+        </div>
         <div>
           <h1>Codici Tributo</h1>
           <p>Gestione dei codici tributo per i pagamenti</p>
