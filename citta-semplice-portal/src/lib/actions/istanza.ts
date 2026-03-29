@@ -5,6 +5,8 @@ import { auth } from '@/lib/auth/config';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { protocolla, generaProtocolloEmergenza } from '@/lib/services/protocollazione/UrbiProtocolloService';
+import { generaModuloBuffer, generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -82,6 +84,78 @@ async function salvaFileAllegati(
         workflowId,
       },
     });
+  }
+}
+
+function estraiDatiInEvidenza(
+  datiRaw: string | null | undefined,
+  campiInEvidenza: string | null | undefined,
+): string | null {
+  if (!datiRaw || !campiInEvidenza) return null;
+  const campi = campiInEvidenza.split(',').map((c) => c.trim()).filter(Boolean);
+  if (campi.length === 0) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(datiRaw);
+  } catch {
+    return null;
+  }
+
+  // I dati sono serializzati come array [{name, label, value}] da buildDatiConLabel
+  let datiMap: Record<string, string>;
+  if (Array.isArray(parsed)) {
+    datiMap = Object.fromEntries(
+      (parsed as Array<{ name: string; value: string }>)
+        .filter((e) => e.name)
+        .map((e) => [e.name, e.value ?? ''])
+    );
+  } else if (parsed && typeof parsed === 'object') {
+    datiMap = parsed as Record<string, string>;
+  } else {
+    return null;
+  }
+
+  const valori = campi
+    .map((campo) => {
+      const val = datiMap[campo];
+      return val !== null && val !== undefined && val !== '' ? String(val) : null;
+    })
+    .filter((v): v is string => v !== null);
+  return valori.length > 0 ? valori.join(' | ') : null;
+}
+
+type DatiDocumenti = {
+  istanza: { id: number; protoNumero: string | null; protoData: Date | null; dataInvio: Date | null; municipalita: string | null };
+  servizio: { titolo: string; areaNome: string };
+  ricevuta: { intestazione: string | null; corpo: string | null; footer: string | null } | null;
+  datiRaw: string | null;
+};
+
+async function salvaDocumentiInterni(
+  istanzaId: number,
+  workflowId: number | null,
+  dati: DatiDocumenti,
+): Promise<void> {
+  if (!workflowId) return;
+
+  try {
+    // Documento finale: modulo con proto numero + ricevuta art.18 accodata (se configurata)
+    const doc = await generaDocumentoPdf(dati.istanza, dati.servizio, dati.datiRaw, dati.ricevuta);
+    await prisma.allegato.create({
+      data: {
+        nomeFile: doc.nomeFile,
+        nomeHash: doc.nomeHash,
+        nomeFileRichiesto: dati.ricevuta ? 'Modulo e ricevuta art. 18' : 'Modulo istanza',
+        mimeType: 'application/pdf',
+        invUtente: false,
+        visto: false,
+        dataInserimento: new Date(),
+        workflowId,
+      },
+    });
+  } catch (err) {
+    console.error(`Errore generazione documento PDF (istanza ${istanzaId}):`, err);
   }
 }
 
@@ -174,7 +248,15 @@ export async function submitIstanza(formData: FormData) {
   
   const servizio = await prisma.servizio.findFirst({
     where: { id: servizioId, attivo: true },
-    include: { steps: { where: { attivo: true }, orderBy: { ordine: 'asc' } } },
+    include: {
+      area: { select: { nome: true } },
+      ricevuta: true,
+      steps: {
+        where: { attivo: true },
+        orderBy: { ordine: 'asc' },
+        include: { allegatiRichiestiList: { where: { interno: false } } },
+      },
+    },
   });
 
   // Valida tutti i file prima di procedere
@@ -219,6 +301,8 @@ export async function submitIstanza(formData: FormData) {
     }
   }
 
+  const datiServizioDoc = { titolo: servizio.titolo, areaNome: servizio.area.nome };
+
   const primoStep = servizio.steps[0];
   const primoStatus = await prisma.status.findFirst({ orderBy: { ordine: 'asc' } });
   if (!primoStatus) {
@@ -232,10 +316,12 @@ export async function submitIstanza(formData: FormData) {
       });
       if (!bozza) return { error: 'Bozza non trovata' };
 
+      const datiFinali = datiRaw ? String(datiRaw) : bozza.dati;
       await prisma.istanza.update({
         where: { id: bozzaId },
         data: {
-          dati: datiRaw ? String(datiRaw) : bozza.dati,
+          dati: datiFinali,
+          datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
           dataInvio: new Date(),
           inBozza: false,
           activeStep: null,
@@ -261,13 +347,52 @@ export async function submitIstanza(formData: FormData) {
         await salvaFileAllegati(files, allegatiIds, workflowId);
       }
 
-      return { success: true, istanzaId: bozzaId };
+      // Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
+      const moduloBuffer = await generaModuloBuffer(
+        { id: bozzaId, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
+        datiServizioDoc,
+        datiFinali,
+      );
+      const moduloFile = new File([moduloBuffer], `modulo_istanza_${bozzaId}.pdf`, { type: 'application/pdf' });
+
+      // Protocollazione: sempre obbligatoria (reale o di emergenza)
+      const protoResult =
+        primoStep?.protocollo && primoStep.unitaOrganizzativa
+          ? await protocolla({
+              istanzaId: bozzaId,
+              servizioTitolo: servizio.titolo,
+              tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
+              unitaOrganizzativa: primoStep.unitaOrganizzativa,
+              utente: {
+                codiceFiscale: utente.codiceFiscale,
+                nome: utente.nome,
+                cognome: utente.cognome,
+              },
+              files: [...files, moduloFile],
+            })
+          : await generaProtocolloEmergenza(bozzaId, 'INGRESSO');
+
+      await prisma.istanza.update({
+        where: { id: bozzaId },
+        data: { protoNumero: protoResult.numero, protoData: protoResult.data },
+      });
+
+      await salvaDocumentiInterni(bozzaId, workflowId, {
+        istanza: { id: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },
+        servizio: datiServizioDoc,
+        ricevuta: servizio.ricevuta,
+        datiRaw: datiFinali,
+      });
+
+      return { success: true, istanzaId: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data };
     }
 
     // Nuova istanza
+    const datiFinali = datiRaw ? String(datiRaw) : null;
     const istanza = await prisma.istanza.create({
       data: {
-        dati: datiRaw ? String(datiRaw) : null,
+        dati: datiFinali,
+        datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
         dataInvio: new Date(),
         inBozza: false,
         utenteId: utente.id,
@@ -286,14 +411,55 @@ export async function submitIstanza(formData: FormData) {
       },
     });
 
-    if (primoStep && files.length > 0) {
+    let wfId: number | null = null;
+    if (primoStep) {
       const wf = await prisma.workflow.findFirst({ where: { istanzaId: istanza.id } });
       if (wf) {
-        await salvaFileAllegati(files, allegatiIds, wf.id);
+        wfId = wf.id;
+        if (files.length > 0) {
+          await salvaFileAllegati(files, allegatiIds, wf.id);
+        }
       }
     }
 
-    return { success: true, istanzaId: istanza.id };
+    // Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
+    const moduloBuffer = await generaModuloBuffer(
+      { id: istanza.id, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
+      datiServizioDoc,
+      datiFinali,
+    );
+    const moduloFile = new File([moduloBuffer], `modulo_istanza_${istanza.id}.pdf`, { type: 'application/pdf' });
+
+    // Protocollazione: sempre obbligatoria (reale o di emergenza)
+    const protoResult =
+      primoStep?.protocollo && primoStep.unitaOrganizzativa
+        ? await protocolla({
+            istanzaId: istanza.id,
+            servizioTitolo: servizio.titolo,
+            tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
+            unitaOrganizzativa: primoStep.unitaOrganizzativa,
+            utente: {
+              codiceFiscale: utente.codiceFiscale,
+              nome: utente.nome,
+              cognome: utente.cognome,
+            },
+            files: [...files, moduloFile],
+          })
+        : await generaProtocolloEmergenza(istanza.id, 'INGRESSO');
+
+    await prisma.istanza.update({
+      where: { id: istanza.id },
+      data: { protoNumero: protoResult.numero, protoData: protoResult.data },
+    });
+
+    await salvaDocumentiInterni(istanza.id, wfId, {
+      istanza: { id: istanza.id, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },
+      servizio: datiServizioDoc,
+      ricevuta: servizio.ricevuta,
+      datiRaw: datiFinali,
+    });
+
+    return { success: true, istanzaId: istanza.id, protoNumero: protoResult.numero, protoData: protoResult.data };
   } catch (error) {
     console.error('Errore creazione istanza:', error);
     return { error: 'Errore durante il salvataggio della richiesta. Riprova.' };

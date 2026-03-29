@@ -11,23 +11,13 @@ async function getServizio(id: number) {
         include: { pagamentoConfig: true, allegatiRichiestiList: true },
         orderBy: { ordine: 'asc' },
       },
+      ricevuta: true,
     },
   });
 }
 
-// TODO: sostituire con chiamata API esterna reale
-async function getUnitaOrganizzative() {
-  return [
-    { id: 'UO001', nome: 'Ufficio Protocollo Generale' },
-    { id: 'UO002', nome: 'Ufficio Anagrafe' },
-    { id: 'UO003', nome: 'Ufficio Tributi' },
-    { id: 'UO004', nome: 'Ufficio Edilizia Privata' },
-    { id: 'UO005', nome: 'Ufficio Lavori Pubblici' },
-  ];
-}
-
 async function getFormData() {
-  const [aree, uffici, tributi, unitaOrganizzative] = await Promise.all([
+  const [aree, uffici, tributi] = await Promise.all([
     prisma.area.findMany({
       where: { attiva: true },
       orderBy: { nome: 'asc' },
@@ -43,10 +33,9 @@ async function getFormData() {
       orderBy: { codice: 'asc' },
       select: { id: true, codice: true, descrizione: true },
     }),
-    getUnitaOrganizzative(),
   ]);
 
-  return { aree, uffici, tributi, unitaOrganizzative };
+  return { aree, uffici, tributi };
 }
 
 interface PageProps {
@@ -61,7 +50,7 @@ export default async function ModificaServizioPage({ params }: PageProps) {
     notFound();
   }
 
-  const [servizio, { aree, uffici, tributi, unitaOrganizzative }] = await Promise.all([
+  const [servizio, { aree, uffici, tributi }] = await Promise.all([
     getServizio(servizioId),
     getFormData(),
   ]);
@@ -145,11 +134,21 @@ export default async function ModificaServizioPage({ params }: PageProps) {
               soggetto: (a.soggetto ?? 'UT') as 'UT' | 'OP',
             })),
           })),
+          ricevutaArt18: servizio.ricevuta ? {
+            richiestaArt18: servizio.ricevuta.richiestaArt18,
+            unitaOrganizzativaCompetente: servizio.ricevuta.unitaOrganizzativaCompetente || '',
+            ufficioCompetente: servizio.ricevuta.ufficioCompetente || '',
+            responsabileProcedimento: servizio.ricevuta.responsabileProcedimento || '',
+            durataMassimaProcedimento: servizio.ricevuta.durataMassimaProcedimento,
+            responsabileProvvedimentoFinale: servizio.ricevuta.responsabileProvvedimentoFinale || '',
+            personaPotereSostitutivo: servizio.ricevuta.personaPotereSostitutivo || '',
+            urlServizioWeb: servizio.ricevuta.urlServizioWeb || '',
+            ufficioRicevimento: servizio.ricevuta.ufficioRicevimento || '',
+          } : undefined,
         }}
         aree={aree}
         uffici={uffici}
         tributi={tributi}
-        unitaOrganizzative={unitaOrganizzative}
       />
     </div>
   );

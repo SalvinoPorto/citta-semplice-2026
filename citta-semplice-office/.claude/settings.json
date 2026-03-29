@@ -3,7 +3,12 @@
     "allow": [
       "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -type f -name \"*.tsx\" -o -name \"*.ts\")",
       "Bash(ls -la \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\")",
-      "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -name \"page.tsx\" -type f)"
+      "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -name \"page.tsx\" -type f)",
+      "Read(//Users/salvino/Projects/citta-semplice-2026/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/salvino/Projects/citta-semplice-2026/citta-semplice-portal/prisma",
+      "/Users/salvino/Projects/citta-semplice-2026/citta-semplice-portal/src/lib/services/protocollazione"
     ]
   }
 }

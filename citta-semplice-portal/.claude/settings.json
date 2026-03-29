@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(node -e \"const { PrismaClient } = require\\(''''@prisma/client''''\\); const p = new PrismaClient\\(\\); console.log\\(typeof p.servizio.findMany\\);\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(jq -r .item[].name)",
+      "Bash(jq .variable[])",
+      "Read(//Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/**)",
+      "Read(//Users/salvino/Projects/citta-semplice-2026/**)"
     ]
   }
 }

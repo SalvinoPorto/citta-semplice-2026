@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
@@ -66,22 +66,174 @@ interface ServizioData {
   postFormValidationAPI: string;
   postFormValidationFields: string;
   steps: ServizioFormData['steps'];
+  ricevutaArt18?: ServizioFormData['ricevutaArt18'];
 }
 
 interface ServizioFormProps {
   servizio?: ServizioData;
   aree: Area[];
   uffici: UfficioRef[];
-  unitaOrganizzative: UnitaOrganizzativa[];
   tributi: TributoRef[];
   isNew?: boolean;
 }
 
-export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tributi, isNew }: ServizioFormProps) {
+interface DualListPickerProps {
+  availableFields: { name: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+  helpText?: string;
+}
+
+function DualListPicker({ availableFields, value, onChange, label, helpText }: DualListPickerProps) {
+  const selected = value ? value.split(',').map((s) => s.trim()).filter(Boolean) : [];
+  const [leftSelected, setLeftSelected] = useState<string[]>([]);
+  const [rightSelected, setRightSelected] = useState<string[]>([]);
+
+  const available = availableFields.filter((f) => !selected.includes(f.name));
+
+  const getLabel = (name: string) => {
+    const field = availableFields.find((f) => f.name === name);
+    return field ? field.label : name;
+  };
+
+  const moveRight = () => {
+    if (leftSelected.length === 0) return;
+    const newSelected = [...selected, ...leftSelected.filter((s) => !selected.includes(s))];
+    onChange(newSelected.join(','));
+    setLeftSelected([]);
+  };
+
+  const moveLeft = () => {
+    if (rightSelected.length === 0) return;
+    onChange(selected.filter((s) => !rightSelected.includes(s)).join(','));
+    setRightSelected([]);
+  };
+
+  const moveAllRight = () => {
+    onChange([...selected, ...available.map((f) => f.name)].join(','));
+    setLeftSelected([]);
+  };
+
+  const moveAllLeft = () => {
+    onChange('');
+    setRightSelected([]);
+  };
+
+  const moveUp = () => {
+    if (rightSelected.length !== 1) return;
+    const idx = selected.indexOf(rightSelected[0]);
+    if (idx <= 0) return;
+    const next = [...selected];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    onChange(next.join(','));
+  };
+
+  const moveDown = () => {
+    if (rightSelected.length !== 1) return;
+    const idx = selected.indexOf(rightSelected[0]);
+    if (idx < 0 || idx >= selected.length - 1) return;
+    const next = [...selected];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    onChange(next.join(','));
+  };
+
+  const toggleLeft = (name: string) =>
+    setLeftSelected((prev) => (prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]));
+
+  const toggleRight = (name: string) =>
+    setRightSelected((prev) => (prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]));
+
+  const listStyle: React.CSSProperties = { overflowY: 'auto', maxHeight: 200, minHeight: 120 };
+
+  return (
+    <div>
+      {label && <label className="form-label">{label}</label>}
+      <div className="d-flex gap-2 align-items-stretch">
+        <div className="flex-fill border rounded">
+          <div className="bg-light px-2 py-1 border-bottom small fw-semibold text-muted">Disponibili</div>
+          <div style={listStyle}>
+            {available.length === 0 ? (
+              <div className="text-muted small px-2 py-2">—</div>
+            ) : (
+              available.map((f) => (
+                <div
+                  key={f.name}
+                  className={`px-2 py-1 small ${leftSelected.includes(f.name) ? 'bg-primary text-white' : ''}`}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => toggleLeft(f.name)}
+                >
+                  {f.label} <span style={{ opacity: 0.65 }}>({f.name})</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="d-flex flex-column justify-content-center gap-1">
+          <button type="button" className="btn btn-sm btn-outline-primary" onClick={moveAllRight} title="Tutti →">»</button>
+          <button type="button" className="btn btn-sm btn-outline-primary" onClick={moveRight} disabled={leftSelected.length === 0} title="Selezionati →">›</button>
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={moveLeft} disabled={rightSelected.length === 0} title="← Selezionati">‹</button>
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={moveAllLeft} title="← Tutti">«</button>
+        </div>
+
+        <div className="flex-fill border rounded">
+          <div className="bg-light px-2 py-1 border-bottom small fw-semibold text-muted">Selezionati</div>
+          <div style={listStyle}>
+            {selected.length === 0 ? (
+              <div className="text-muted small px-2 py-2">—</div>
+            ) : (
+              selected.map((name) => (
+                <div
+                  key={name}
+                  className={`px-2 py-1 small ${rightSelected.includes(name) ? 'bg-primary text-white' : ''}`}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => toggleRight(name)}
+                >
+                  {getLabel(name)} <span style={{ opacity: 0.65 }}>({name})</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="d-flex flex-column justify-content-center gap-1">
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={moveUp} disabled={rightSelected.length !== 1} title="Su">↑</button>
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={moveDown} disabled={rightSelected.length !== 1} title="Giù">↓</button>
+        </div>
+      </div>
+      {helpText && <small className="text-muted">{helpText}</small>}
+    </div>
+  );
+}
+
+export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: ServizioFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'informazioni' | 'configurazione' | 'workflow' | 'modulo'>('informazioni');
+  const [activeTab, setActiveTab] = useState<'informazioni' | 'configurazione' | 'workflow' | 'modulo' | 'art18'>('informazioni');
+
+  // Uffici Urbi SMART — caricati dinamicamente al primo uso del protocollo
+  const [urbiUffici, setUrbiUffici] = useState<{ codice: string; descrizione: string }[] | null>(null);
+  const [ufficiLoading, setUfficiLoading] = useState(false);
+
+  const loadUffici = useCallback(async () => {
+    if (urbiUffici !== null || ufficiLoading) return;
+    setUfficiLoading(true);
+    try {
+      const res = await fetch('/api/urbi/uffici');
+      if (res.ok) {
+        const data = await res.json();
+        setUrbiUffici(data.uffici ?? []);
+      } else {
+        setUrbiUffici([]);
+      }
+    } catch {
+      setUrbiUffici([]);
+    } finally {
+      setUfficiLoading(false);
+    }
+  }, [urbiUffici, ufficiLoading]);
 
   const {
     register,
@@ -92,7 +244,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
     formState: { errors },
   } = useForm<ServizioFormData>({
     resolver: zodResolver(servizioSchema),
-    defaultValues: servizio || {
+    defaultValues: servizio ?? {
       titolo: '',
       sottoTitolo: '',
       descrizione: '',
@@ -182,6 +334,10 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
     [setValue]
   );
 
+  const formFields: { name: string; label: string }[] = initialFormSchema?.fields
+    .filter((f) => f.name && !['heading', 'paragraph', 'divider'].includes(f.type))
+    .map((f) => ({ name: f.name, label: f.label || f.name })) ?? [];
+
   const { fields, remove, move, insert } = useFieldArray({
     control,
     name: 'steps',
@@ -229,6 +385,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
     configurazione: ['ufficioId', 'dataInizio', 'dataFine', 'unicoInvio', 'unicoInvioPerUtente', 'campiUnicoInvio', 'numeroMaxIstanze', 'msgSopraSoglia', 'msgExtraServizio', 'campiInEvidenza', 'campiDaEsportare'],
     workflow: ['steps'],
     modulo: ['moduloTipo', 'moduloAttributes', 'postFormValidation', 'postFormValidationAPI', 'postFormValidationFields'],
+    art18: ['ricevutaArt18'],
   };
 
   const tabHasErrors = (tab: string) => {
@@ -293,6 +450,14 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
   // const prevedeDoc = watch('prevedeDocumentoFinale');
   const watchedSteps = watch('steps');
 
+  // Carica uffici se almeno uno step ha già protocollo esterno (modalità editing)
+  useEffect(() => {
+    const steps = watchedSteps ?? [];
+    const hasExternal = steps.some((s) => s.protocollo && !s.numerazioneInterna);
+    if (hasExternal) loadUffici();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <form onSubmit={handleSubmit(onSubmit, onError)}>
 
@@ -337,6 +502,16 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
               >
                 Configurazione
                 {tabHasErrors('configurazione') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                type="button"
+                className={`nav-link ${activeTab === 'art18' ? 'active' : ''}`}
+                onClick={() => setActiveTab('art18')}
+              >
+                Art. 18
+                {tabHasErrors('art18') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
               </button>
             </li>
           </ul>
@@ -606,22 +781,36 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                 <CardBody>
                   <h5 className="mb-4">Visualizzazione Istanze</h5>
 
-                  <div className="mb-3">
-                    <Input
-                      type="text"
-                      label="Campi in evidenza (separati da virgola)"
-                      {...register('campiInEvidenza')}
+                  <div className="mb-4">
+                    <Controller
+                      control={control}
+                      name="campiInEvidenza"
+                      render={({ field }) => (
+                        <DualListPicker
+                          availableFields={formFields}
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          label="Campi in evidenza"
+                          helpText="Campi mostrati nella lista istanze"
+                        />
+                      )}
                     />
-                    <small className="text-muted">Campi mostrati nella lista istanze</small>
                   </div>
 
                   <div className="mb-3">
-                    <Input
-                      type="text"
-                      label="Campi da esportare (separati da virgola)"
-                      {...register('campiDaEsportare')}
+                    <Controller
+                      control={control}
+                      name="campiDaEsportare"
+                      render={({ field }) => (
+                        <DualListPicker
+                          availableFields={formFields}
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          label="Campi da esportare"
+                          helpText="Campi inclusi nell'export CSV"
+                        />
+                      )}
                     />
-                    <small className="text-muted">Campi inclusi nell&apos;export CSV</small>
                   </div>
                 </CardBody>
               </Card>
@@ -703,6 +892,7 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                     setValue(`steps.${index}.numerazioneInterna`, mode === 'interno');
                     if (mode === 'esterno') {
                       setValue(`steps.${index}.tipoProtocollo`, isFirst ? 'E' : 'U');
+                      loadUffici();
                     } else {
                       setValue(`steps.${index}.tipoProtocollo`, undefined);
                     }
@@ -829,10 +1019,12 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                           {protoMode === 'esterno' && (
                             <div className="ms-4 mt-2">
                               <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
-                                <option value="">Nessuna selezione</option>
-                                {unitaOrganizzative.map((uo) => (
-                                  <option key={uo.id} value={uo.id}>
-                                    {uo.nome}
+                                <option value="">
+                                  {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
+                                </option>
+                                {(urbiUffici ?? []).map((uo) => (
+                                  <option key={uo.codice} value={uo.codice}>
+                                    {uo.descrizione || uo.codice}
                                   </option>
                                 ))}
                               </Select>
@@ -902,10 +1094,12 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                                 </div>
                                 <div className="col-md-8 mb-2">
                                   <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
-                                    <option value="">Nessuna selezione</option>
-                                    {unitaOrganizzative.map((uo) => (
-                                      <option key={uo.id} value={uo.id}>
-                                        {uo.nome}
+                                    <option value="">
+                                      {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
+                                    </option>
+                                    {(urbiUffici ?? []).map((uo) => (
+                                      <option key={uo.codice} value={uo.codice}>
+                                        {uo.descrizione || uo.codice}
                                       </option>
                                     ))}
                                   </Select>
@@ -916,50 +1110,34 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
                         </>
                       )}
 
-                      {/* ── Allegati dal richiedente: primo e step intermedi ── */}
-                      {(isFirst || isMiddle) && (
-                        <>
-                          <div className="form-check mb-2">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`step-${index}-allegati`}
-                              {...register(`steps.${index}.allegati`)}
-                            />
-                            <label className="form-check-label" htmlFor={`step-${index}-allegati`}>
-                              Richiede allegati dal richiedente
-                            </label>
-                          </div>
-                          {hasAllegati && (
-                            <div className="ms-4 mb-3">
-                              <Controller
-                                control={control}
-                                name={`steps.${index}.allegatiRichiestiList`}
-                                render={({ field: { value, onChange } }) => (
-                                  <AllegatiRichiestiEditor
-                                    value={value ?? []}
-                                    onChange={onChange}
-                                    prefix={`step-${index}-allegato`}
-                                  />
-                                )}
+                      {/* ── Allegati: tutti gli step ── */}
+                      <div className="form-check mb-2">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id={`step-${index}-allegati`}
+                          {...register(`steps.${index}.allegati`)}
+                        />
+                        <label className="form-check-label" htmlFor={`step-${index}-allegati`}>
+                          Prevede allegati
+                        </label>
+                      </div>
+                      {hasAllegati && (
+                        <div className="ms-4 mb-3">
+                          <Controller
+                            control={control}
+                            name={`steps.${index}.allegatiRichiestiList`}
+                            render={({ field: { value, onChange } }) => (
+                              <AllegatiRichiestiEditor
+                                value={value ?? []}
+                                onChange={onChange}
+                                prefix={`step-${index}-allegato`}
                               />
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                      {/* ── Allegati operatore: ultimo e step intermedi ── */}
-                      {(isLast || isMiddle) && (
-                        <div className="form-check mb-2">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={`step-${index}-allegati-op`}
-                            {...register(`steps.${index}.allegatiOp`)}
+                            )}
                           />
-                          <label className="form-check-label" htmlFor={`step-${index}-allegati-op`}>
-                            Prevede allegati per il richiedente (da parte dell&apos;operatore)
-                          </label>
+                          <small className="text-muted d-block mt-1">
+                            Usa il campo <strong>Soggetto</strong> per indicare se l&apos;allegato è a carico del richiedente (Utente) o dell&apos;operatore.
+                          </small>
                         </div>
                       )}
 
@@ -1108,6 +1286,124 @@ export function ServizioForm({ servizio, aree, uffici, unitaOrganizzative, tribu
             </Card>
           )}
 
+
+          {/* Tab: Art. 18 */}
+          {activeTab === 'art18' && (
+            <Card className="mb-4">
+              <CardBody>
+                <h5 className="mb-4">Ricevuta ai sensi dell&apos;art. 18 bis L 241/1990 e L.R. 7/2019</h5>
+
+                <div className="form-check mb-4">
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.richiestaArt18"
+                    defaultValue={false}
+                    render={({ field: { value, onChange } }) => (
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="richiestaArt18"
+                        checked={!!value}
+                        onChange={(e) => onChange(e.target.checked)}
+                      />
+                    )}
+                  />
+                  <label className="form-check-label" htmlFor="richiestaArt18">
+                    Richiede ricevuta ai sensi dell&apos;art. 18 bis L 241/1990 e L.R. 7/2019
+                  </label>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Unità organizzativa competente</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.unitaOrganizzativaCompetente"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Ufficio competente</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.ufficioCompetente"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Responsabile del procedimento</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.responsabileProcedimento"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <Input
+                    type="number"
+                    label="Durata massima del procedimento (giorni)"
+                    min={0}
+                    max={180}
+                    {...register('ricevutaArt18.durataMassimaProcedimento', {
+                      setValueAs: (v) => (v === '' || v === null || v === undefined ? null : parseInt(v, 10)),
+                    })}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Responsabile del provvedimento finale</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.responsabileProvvedimentoFinale"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Persona con potere sostitutivo in caso di inerzia</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.personaPotereSostitutivo"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">URL per presa visione degli atti</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.urlServizioWeb"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Ufficio per presa visione degli atti</label>
+                  <Controller
+                    control={control}
+                    name="ricevutaArt18.ufficioRicevimento"
+                    render={({ field: { value, onChange } }) => (
+                      <Editor value={value || ''} onChange={onChange} />
+                    )}
+                  />
+                </div>
+              </CardBody>
+            </Card>
+          )}
 
         </div>
 

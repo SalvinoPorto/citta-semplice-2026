@@ -81,6 +81,19 @@ export const servizioSchema = z.object({
   postFormValidationAPI: z.string().optional(),
   postFormValidationFields: z.string().optional(),
 
+  // Art. 18 bis L 241/1990
+  ricevutaArt18: z.object({
+    richiestaArt18: z.boolean().default(false),
+    unitaOrganizzativaCompetente: z.string().optional(),
+    ufficioCompetente: z.string().optional(),
+    responsabileProcedimento: z.string().optional(),
+    durataMassimaProcedimento: z.number().int().min(0).nullable().optional(),
+    responsabileProvvedimentoFinale: z.string().optional(),
+    personaPotereSostitutivo: z.string().optional(),
+    urlServizioWeb: z.string().optional(),
+    ufficioRicevimento: z.string().optional(),
+  }).optional(),
+
   // Workflow
   steps: z.array(stepSchema).default([]),
 });

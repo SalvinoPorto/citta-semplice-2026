@@ -16,7 +16,6 @@ function buildDatiConLabel(
   try {
     if (attributi) campi = JSON.parse(attributi);
   } catch (e){ console.error('Errore durante il parsing degli attributi', e); }
-console.log('Campi del modulo:', datiModulo);
   const arricchiti = campi.fields.map(({ name, label }) => ({
     name,
     label,
@@ -141,7 +140,10 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success('Istanza inviata con successo!');
+        const msg = result.protoNumero
+          ? `Istanza inviata! Numero protocollo: ${result.protoNumero}`
+          : 'Istanza inviata con successo!';
+        toast.success(msg);
         window.location.href = '/le-mie-istanze';
       }
     } catch (e){

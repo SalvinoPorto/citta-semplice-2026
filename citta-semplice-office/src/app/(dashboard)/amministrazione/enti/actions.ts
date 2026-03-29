@@ -10,7 +10,7 @@ export async function createEnte(data: EnteFormData) {
 
   await prisma.ente.create({
     data: {
-      nome: validated.ente,
+      nome: validated.nome,
       descrizione: validated.descrizione || null,
       indirizzo: validated.indirizzo || null,
       telefono: validated.telefono || null,
@@ -31,7 +31,7 @@ export async function updateEnte(id: number, data: EnteFormData) {
   await prisma.ente.update({
     where: { id },
     data: {
-      nome: validated.ente,
+      nome: validated.nome,
       descrizione: validated.descrizione || null,
       indirizzo: validated.indirizzo || null,
       telefono: validated.telefono || null,

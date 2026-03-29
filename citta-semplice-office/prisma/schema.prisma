@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  
 }
 
 // ============================================
@@ -427,9 +428,9 @@ model Istanza {
   activeStep          Int?      @map("active_step")
 
   // Protocol
-  protoNumero         String?   @db.VarChar(10) @map("proto_numero")
+  protoNumero         String?   @db.VarChar(50) @map("proto_numero")
   protoData           DateTime? @map("proto_data")
-  protoFinaleNumero   String?   @db.VarChar(10) @map("proto_finale_numero")
+  protoFinaleNumero   String?   @db.VarChar(50) @map("proto_finale_numero")
   protoFinaleData     DateTime? @map("proto_finale_data")
 
   // Dates
@@ -708,12 +709,19 @@ model CustomerSatisfaction {
 // ============================================
 
 model Ricevuta {
-  id              Int       @id @default(autoincrement())
-  intestazione    String?
-  corpo           String?   @db.Text
-  footer          String?
+  id                              Int       @id @default(autoincrement())
+  // Art. 18 bis L 241/1990 e L.R. 7/2019
+  richiestaArt18                  Boolean   @default(false) @map("richiesta_art18")
+  unitaOrganizzativaCompetente    String?   @db.Text @map("unita_organizzativa_competente")
+  ufficioCompetente               String?   @db.Text @map("ufficio_competente")
+  responsabileProcedimento        String?   @db.Text @map("responsabile_procedimento")
+  durataMassimaProcedimento       Int?      @map("durata_massima_procedimento")
+  responsabileProvvedimentoFinale String?   @db.Text @map("responsabile_provvedimento_finale")
+  personaPotereSostitutivo        String?   @db.Text @map("persona_potere_sostitutivo")
+  urlServizioWeb                  String?   @db.Text @map("url_servizio_web")
+  ufficioRicevimento              String?   @db.Text @map("ufficio_ricevimento")
 
-  servizioId      Int       @unique @map("modulo_id")
+  servizioId      Int       @unique @map("servizio_id")
   servizio        Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
   @@map("ricevute")
@@ -763,9 +771,18 @@ model ImportedData {
 // EMERGENCY PROTOCOL
 // ============================================
 
+model ProtocolloEmergenzaCounter {
+  anno        Int  @id
+  progressivo Int  @default(0)
+
+  @@map("protocollo_emergenza_counters")
+}
+
 model ProtocolloEmergenza {
   id          Int       @id @default(autoincrement())
-  data        DateTime
+  anno        Int       @default(0)
+  progressivo Int       @default(0)
+  data        DateTime  @default(now())
   tipo        String    // INGRESSO, USCITA
   rettificato Boolean   @default(false)
   istanzaId   Int?      @map("istanza_id")

@@ -1,0 +1,1492 @@
+{
+  "info": {
+    "_postman_id": "4cd01d7f-63a4-4a84-a908-9097c847a6f3",
+    "name": "Urbi SMART",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "8771576"
+  },
+  "item": [
+    {
+      "name": "InsProtocollo",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=insProtocollo&PRCORE03_99991009_IDAOO=1&PRCORE03_99991009_Sezione=A&PRCORE03_99991009_Oggetto=test%20Protocollo%20xapirest%20postman&PRCORE03_99991009_Utente_Registratore=apirest_wt00041571&PRCORE03_99991009_Num_Allegati=0&PRCORE03_99991009_Num_Uffici_Destinatari=1&PRCORE03_99991009_1_Ufficio_Destinatario=SEGRETERIA&PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici=S&PRCORE03_99991009_Num_Corrispondenti=1&PRCORE03_99991009_1_Corrispondente_CodiceSoggetto=2",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "A"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test%20Protocollo%20xapirest%20postman"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "SEGRETERIA"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsCorrispondente",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=insCorrispondente&PRCORE03_99991007_TipoPersona=F&PRCORE03_99991007_Nome=Salvatore&PRCORE03_99991007_Cognome=Porto&PRCORE03_99991007_CodiceFiscale=PRTSVT63R05C351E",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insCorrispondente",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991007_TipoPersona",
+              "value": "F",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991007_Nome",
+              "value": "Salvatore",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991007_Cognome",
+              "value": "Porto",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991007_CodiceFiscale",
+              "value": "PRTSVT63R05C351E",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST Ingresso",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "A",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test xapirest protocollo in arrivo postman con  allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "57e6ea45-cfad-4b9a-8dfe-eecdfbae15fc"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "SEGRETERIA",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "32",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_PathFile",
+              "type": "file",
+              "uuid": "5d823093-f58c-4d23-bc73-d6e20dbe6d6c",
+              "src": "/C:/Users/salvino/Documents/Citta-semplice/1.pdf"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST Ingresso Produzione",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "A",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test xapirest protocollo in arrivo postman con  allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "57e6ea45-cfad-4b9a-8dfe-eecdfbae15fc"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "DIR.SISTEMIINFORMATIVI",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "50848",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_PathFile",
+              "type": "text",
+              "uuid": "5d823093-f58c-4d23-bc73-d6e20dbe6d6c",
+              "value": "JVBERi0xLjUKJeLjz9MKNCAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDI5ND4+c3RyZWFtCnicjZLBS8MwFMbv7694RwXJkrRpM4+6eRA8TAsexENosy2jaV1MFfrXm2RWhgiVQMj33vf78gI5wk0FFGXOiJRYNbCuYANHoIRmpcBP4Hgf+gdgFB/g5ZViA1mBkorotyDEknA56XbSWUFoHmSwnh1/XHt4hi7ExuV2cYTFHUOWh0ux2gJLDRZQLCUjLBQtXDxp92FGgytt+51TW1Mb1EHVuvNO2bD3l9UhPmDK47/DREZylsJWpt4b5dRo+s5gY9D2zus5nheEicQ/Rl6/e4Vq8L0z45iiNKq2VegHO7SnwkxksZRELlPkutVd3ccAvVPeXJ+T/A+y5ITKRDLy1mzn7EKS4jQ7/489Cx8iuW+VV51RV0jZgpYLTrn4ZuM/2cAXEY2KtAplbmRzdHJlYW0KZW5kb2JqCjEgMCBvYmoKPDwvQ29udGVudHMgNCAwIFIvVHlwZS9QYWdlL1Jlc291cmNlczw8L1Byb2NTZXQgWy9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUldL0ZvbnQ8PC9GMSAyIDAgUi9GMiAzIDAgUj4+Pj4vUGFyZW50IDUgMCBSL01lZGlhQm94WzAgMCA1OTUuMjggODQxLjg4XT4+CmVuZG9iago4IDAgb2JqCjw8L0Rlc3RbMSAwIFIvWFlaIDAgNzc4LjA1IDBdL05leHQgOSAwIFIvVGl0bGUoRGljaGlhcmF6aW9uaSBkaSBtb3J0ZSkvUGFyZW50IDcgMCBSPj4KZW5kb2JqCjkgMCBvYmoKPDwvRGVzdFsxIDAgUi9YWVogMCA3NTAuNzkgMF0vTmV4dCAxMCAwIFIvVGl0bGUoUmljaGllc3RhIGF1dG9yaXp6YXppb25lIGFsbGEgdHVtdWxhemlvbmUpL1BhcmVudCA3IDAgUi9QcmV2IDggMCBSPj4KZW5kb2JqCjEwIDAgb2JqCjw8L0Rlc3RbMSAwIFIvWFlaIDAgNzIzLjUzIDBdL1RpdGxlKEVsZW5jbyBhbGxlZ2F0aTopL1BhcmVudCA3IDAgUi9QcmV2IDkgMCBSPj4KZW5kb2JqCjcgMCBvYmoKPDwvRGVzdFsxIDAgUi9YWVogMCA4MDUuODggMF0vQ291bnQgMy9UaXRsZShTZXJ2aXppIERlbW9ncmFmaWNpIGUgRGVjZW50cmFtZW50bykvUGFyZW50IDYgMCBSL0ZpcnN0IDggMCBSL0xhc3QgMTAgMCBSPj4KZW5kb2JqCjYgMCBvYmoKPDwvVHlwZS9PdXRsaW5lcy9Db3VudCA0L0ZpcnN0IDcgMCBSL0xhc3QgNyAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9TdWJ0eXBlL1R5cGUxL1R5cGUvRm9udC9CYXNlRm9udC9UaW1lcy1Cb2xkL0VuY29kaW5nL1dpbkFuc2lFbmNvZGluZz4+CmVuZG9iagozIDAgb2JqCjw8L1N1YnR5cGUvVHlwZTEvVHlwZS9Gb250L0Jhc2VGb250L1RpbWVzLVJvbWFuL0VuY29kaW5nL1dpbkFuc2lFbmNvZGluZz4+CmVuZG9iago1IDAgb2JqCjw8L0tpZHNbMSAwIFJdL1R5cGUvUGFnZXMvQ291bnQgMS9JVFhUKDEuMy4xMSk+PgplbmRvYmoKMTEgMCBvYmoKPDwvUGFnZU1vZGUvVXNlT3V0bGluZXMvVHlwZS9DYXRhbG9nL091dGxpbmVzIDYgMCBSL1BhZ2VzIDUgMCBSPj4KZW5kb2JqCjEyIDAgb2JqCjw8Pj4KZW5kb2JqCnhyZWYKMCAxMwowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAzNzYgMDAwMDAgbiAKMDAwMDAwMTA3NyAwMDAwMCBuIAowMDAwMDAxMTY2IDAwMDAwIG4gCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMTI1NiAwMDAwMCBuIAowMDAwMDAxMDEyIDAwMDAwIG4gCjAwMDAwMDA4NzcgMDAwMDAgbiAKMDAwMDAwMDU0OCAwMDAwMCBuIAowMDAwMDAwNjQ5IDAwMDAwIG4gCjAwMDAwMDA3ODEgMDAwMDAgbiAKMDAwMDAwMTMyMCAwMDAwMCBuIAowMDAwMDAxNDAyIDAwMDAwIG4gCnRyYWlsZXIKPDwvSW5mbyAxMiAwIFIvSUQgWzw5ZWFmMTE5NmU4ZjllZjY5OWE2M2FkMWNkYmI4MDk1Nz48N2IxZjdjNTcyNjU2MTYwZGZhMzlmMmU2MjAyYzE5MWM+XS9Sb290IDExIDAgUi9TaXplIDEzPj4Kc3RhcnR4cmVmCjE0MjMKJSVFT0YK"
+            },
+            {
+              "key": "PRCORE03_99991009_TipoMezzo",
+              "value": "ISTANZA ONLINE",
+              "type": "text",
+              "uuid": "9ae9c5f1-92aa-459b-a24b-6b3d241405d0"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_Classificazione_1",
+              "value": "15",
+              "type": "text",
+              "uuid": "df3096b3-9d49-4672-b6f4-faf5402c8efd"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST Uscita",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "P",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test xapirest protocollo in partenza postman con  allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "57e6ea45-cfad-4b9a-8dfe-eecdfbae15fc"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "SEGRETERIA",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "1",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Mittenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "3d2ddc22-6653-49de-8478-0f10fccb4148"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Mittente",
+              "value": "RAGIONERIA",
+              "type": "text",
+              "uuid": "993e6f76-296a-436b-bf45-492927fcb1e8"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "5f9a4250-922d-4702-8728-edbc9864109c"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_PathFile",
+              "type": "file",
+              "uuid": "884624b9-670c-4627-9500-25e072e68e80",
+              "src": "postman-cloud:///1f024e2f-c6bd-46e0-b995-9abd7849ce84"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST Uscita Produzione",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "P",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test xapirest protocollo in partenza postman con  allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "57e6ea45-cfad-4b9a-8dfe-eecdfbae15fc"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "DIR.SISTEMIINFORMATIVI",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "50848",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Mittenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "3d2ddc22-6653-49de-8478-0f10fccb4148"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Mittente",
+              "value": "DIR.SISTEMIINFORMATIVI",
+              "type": "text",
+              "uuid": "993e6f76-296a-436b-bf45-492927fcb1e8"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "5f9a4250-922d-4702-8728-edbc9864109c"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_PathFile",
+              "type": "file",
+              "uuid": "884624b9-670c-4627-9500-25e072e68e80",
+              "src": "postman-cloud:///1f024e2f-c6bd-46e0-b995-9abd7849ce84"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_Classificazione_1",
+              "value": "15",
+              "type": "text",
+              "uuid": "ab6733f2-a5a2-4b4e-a92e-f0230a517928"
+            },
+            {
+              "key": "PRCORE03_99991009_TipoMezzo",
+              "value": "ISTANZA ONLINE",
+              "type": "text",
+              "uuid": "792f1ab2-d3bf-44c7-ab40-853fe5cca9e9"
+            },
+            {
+              "key": "PRCORE03_99991009_TipoMezzo",
+              "value": "",
+              "type": "text",
+              "uuid": "852e5c28-227f-406d-be9d-f3f94ad2089e",
+              "disabled": true
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST Uscita Fake",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "P",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test xapirest protocollo in partenza postman con  allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "57e6ea45-cfad-4b9a-8dfe-eecdfbae15fc"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "SEGRETERIA",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "1",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Mittenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "3d2ddc22-6653-49de-8478-0f10fccb4148"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Mittente",
+              "value": "RAGIONERIA",
+              "type": "text",
+              "uuid": "993e6f76-296a-436b-bf45-492927fcb1e8"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "5f9a4250-922d-4702-8728-edbc9864109c"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_PathFile",
+              "type": "file",
+              "uuid": "884624b9-670c-4627-9500-25e072e68e80",
+              "src": "postman-cloud:///1f024e2f-c6bd-46e0-b995-9abd7849ce84"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://httpbin.org/anything",
+          "protocol": "https",
+          "host": [
+            "httpbin",
+            "org"
+          ],
+          "path": [
+            "anything"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST senza allegato",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "A",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test Protocollo xapirest postman senza allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "SEGRETERIA",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "1",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "f72b4c4a-1f0e-4e92-9bc0-750e9e22ac85"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InsProtocolloPOST fake",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "WTDK_REQ",
+              "value": "insProtocollo",
+              "type": "text",
+              "uuid": "143e045f-b759-4b9b-abcf-d4b372242420"
+            },
+            {
+              "key": "PRCORE03_99991009_IDAOO",
+              "value": "1",
+              "type": "text",
+              "uuid": "4f3ae22e-d27e-4f0a-bf3b-7000e5932602"
+            },
+            {
+              "key": "PRCORE03_99991009_Sezione",
+              "value": "A",
+              "type": "text",
+              "uuid": "2d066e8e-976d-460c-8101-89e040f5a712"
+            },
+            {
+              "key": "PRCORE03_99991009_Oggetto",
+              "value": "test%20Protocollo%20xapirest%20postman%20con%20allegato",
+              "type": "text",
+              "uuid": "faf099d3-9a06-4122-a4f5-4c873f6d4f45"
+            },
+            {
+              "key": "PRCORE03_99991009_Utente_Registratore",
+              "value": "apirest_wt00041571",
+              "type": "text",
+              "uuid": "43880410-0c14-46fd-991c-ff5bd03981b7"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Allegati",
+              "value": "0",
+              "type": "text",
+              "uuid": "57e6ea45-cfad-4b9a-8dfe-eecdfbae15fc"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Uffici_Destinatari",
+              "value": "1",
+              "type": "text",
+              "uuid": "b6c37e79-adaa-4426-a353-30f8b640247d"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario",
+              "value": "SEGRETERIA",
+              "type": "text",
+              "uuid": "672823b5-d1c2-4c69-9950-89f69ec9b9c7"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Ufficio_Destinatario_Utenti_CO_Automatici",
+              "value": "S",
+              "type": "text",
+              "uuid": "e9ac8d36-ef7d-4392-8db6-c34f47288201"
+            },
+            {
+              "key": "PRCORE03_99991009_Num_Corrispondenti",
+              "value": "1",
+              "type": "text",
+              "uuid": "5596e565-1168-4dfd-afb4-db2c62e951c6"
+            },
+            {
+              "key": "PRCORE03_99991009_1_Corrispondente_CodiceSoggetto",
+              "value": "1",
+              "type": "text",
+              "uuid": "0b575461-13b9-4ddd-9848-fdf4f6221e9b"
+            },
+            {
+              "key": "PRCORE03_99991009_0_Allegato_PathFile",
+              "type": "file",
+              "uuid": "5d823093-f58c-4d23-bc73-d6e20dbe6d6c",
+              "src": "/C:/Users/salvino/Documents/Citta-semplice/1.pdf"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://httpbin.org/anything",
+          "protocol": "https",
+          "host": [
+            "httpbin",
+            "org"
+          ],
+          "path": [
+            "anything"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetInitApirest",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=GetInitApirest&LICENZA=PR_APIREST",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "GetInitApirest"
+            },
+            {
+              "key": "LICENZA",
+              "value": "PR_APIREST"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetElencoAOO",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getElencoAOO",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getElencoAOO"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetElencoCorrispondenti",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getElencoCorrispondenti&PRCORE03_99991006_CodiceFiscale=PRTSVT63R05C351E&PRCORE03_99991006_EseguiUguale=S",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getElencoCorrispondenti"
+            },
+            {
+              "key": "PRCORE03_99991006_Cognome",
+              "value": "PA",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991006_EseguiUguale",
+              "value": "N",
+              "disabled": true
+            },
+            {
+              "key": "PRCORE03_99991006_CodiceFiscale",
+              "value": "PRTSVT63R05C351E",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991006_EseguiUguale",
+              "value": "S",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetElencoUffici",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getElencoUffici",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getElencoUffici"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetInterrogazioneProtocollo",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getInterrogazioneProtocollo&PRCORE03_99991013_IDAOO=1&PRCORE03_99991013_Sezione=TUTTI&PRCORE03_99991013_Anno=2025&PRCORE03_99991013_DaNumero=340743&PRCORE03_99991013_ANumero=340743",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getInterrogazioneProtocollo"
+            },
+            {
+              "key": "PRCORE03_99991013_IDAOO",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991013_Sezione",
+              "value": "TUTTI",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991013_Anno",
+              "value": "2025",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991013_DaNumero",
+              "value": "340743",
+              "type": "text"
+            },
+            {
+              "key": "PRCORE03_99991013_ANumero",
+              "value": "340743",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetElencoTitolario",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getElencoTitolario&PRCORE03_99991008_IDAOO=1",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getElencoTitolario"
+            },
+            {
+              "key": "PRCORE03_99991008_IDAOO",
+              "value": "1",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetElencoTipiMezzo",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getElencoTipiMezzo",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getElencoTipiMezzo"
+            },
+            {
+              "key": "PRCORE03_99991001_Descrizione",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetElencoUtentiAssegnatariUfficio",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{user}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://{{HostUrbi}}/{{DirUrbi}}/progs/main/xapirest.sto?WTDK_REQ=getElencoUtentiAssegnatariUfficio&PRCORE03_99991003_CodiceUfficio=DIR. SEGR.RIO/DIR.ORE GENERALE&PRCORE03_99991003_Sezione=I",
+          "protocol": "https",
+          "host": [
+            "{{HostUrbi}}"
+          ],
+          "path": [
+            "{{DirUrbi}}",
+            "progs",
+            "main",
+            "xapirest.sto"
+          ],
+          "query": [
+            {
+              "key": "WTDK_REQ",
+              "value": "getElencoUtentiAssegnatariUfficio"
+            },
+            {
+              "key": "PRCORE03_99991003_CodiceUfficio",
+              "value": "DIR. SEGR.RIO/DIR.ORE GENERALE"
+            },
+            {
+              "key": "PRCORE03_99991003_Sezione",
+              "value": "I"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "HostUrbi",
+      "value": "apirest.urbi.it",
+      "disabled": true
+    },
+    {
+      "key": "DirUrbi",
+      "value": "urbi",
+      "disabled": true
+    },
+    {
+      "key": "user",
+      "value": "apirest_wt00041571@wt00041571",
+      "disabled": true
+    },
+    {
+      "key": "password",
+      "value": "M205EAMTDF",
+      "disabled": true
+    },
+    {
+      "key": "HostUrbi",
+      "value": "cloud.urbi.it"
+    },
+    {
+      "key": "DirUrbi",
+      "value": "urbi"
+    },
+    {
+      "key": "user",
+      "value": "apirest_wt00041571@wt00041571"
+    },
+    {
+      "key": "password",
+      "value": "api.catania2025."
+    }
+  ]
+}
