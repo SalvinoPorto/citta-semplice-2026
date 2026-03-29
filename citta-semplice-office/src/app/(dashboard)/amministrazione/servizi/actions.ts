@@ -97,6 +97,20 @@ function buildServizioData(validated: ServizioFormData) {
   };
 }
 
+function buildRicevutaArt18Data(r: NonNullable<ServizioFormData['ricevutaArt18']>) {
+  return {
+    richiestaArt18: r.richiestaArt18,
+    unitaOrganizzativaCompetente: r.unitaOrganizzativaCompetente || null,
+    ufficioCompetente: r.ufficioCompetente || null,
+    responsabileProcedimento: r.responsabileProcedimento || null,
+    durataMassimaProcedimento: r.durataMassimaProcedimento ?? null,
+    responsabileProvvedimentoFinale: r.responsabileProvvedimentoFinale || null,
+    personaPotereSostitutivo: r.personaPotereSostitutivo || null,
+    urlServizioWeb: r.urlServizioWeb || null,
+    ufficioRicevimento: r.ufficioRicevimento || null,
+  };
+}
+
 export async function createServizio(data: ServizioFormData) {
   const validated = servizioSchema.parse(data);
 
@@ -106,6 +120,9 @@ export async function createServizio(data: ServizioFormData) {
       steps: {
         create: validated.steps.map((step, idx) => buildStepData(step, idx)),
       },
+      ...(validated.ricevutaArt18 && {
+        ricevuta: { create: buildRicevutaArt18Data(validated.ricevutaArt18) },
+      }),
     },
     include: { steps: true },
   });
@@ -136,6 +153,14 @@ export async function updateServizio(id: number, data: ServizioFormData) {
         steps: {
           create: validated.steps.map((step, idx) => buildStepData(step, idx)),
         },
+        ...(validated.ricevutaArt18 && {
+          ricevuta: {
+            upsert: {
+              create: buildRicevutaArt18Data(validated.ricevutaArt18),
+              update: buildRicevutaArt18Data(validated.ricevutaArt18),
+            },
+          },
+        }),
       },
     });
 

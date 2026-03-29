@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -427,9 +427,9 @@ model Istanza {
   activeStep          Int?      @map("active_step")
 
   // Protocol
-  protoNumero         String?   @db.VarChar(10) @map("proto_numero")
+  protoNumero         String?   @db.VarChar(50) @map("proto_numero")
   protoData           DateTime? @map("proto_data")
-  protoFinaleNumero   String?   @db.VarChar(10) @map("proto_finale_numero")
+  protoFinaleNumero   String?   @db.VarChar(50) @map("proto_finale_numero")
   protoFinaleData     DateTime? @map("proto_finale_data")
 
   // Dates
@@ -763,9 +763,18 @@ model ImportedData {
 // EMERGENCY PROTOCOL
 // ============================================
 
+model ProtocolloEmergenzaCounter {
+  anno        Int  @id
+  progressivo Int  @default(0)
+
+  @@map("protocollo_emergenza_counters")
+}
+
 model ProtocolloEmergenza {
   id          Int       @id @default(autoincrement())
-  data        DateTime
+  anno        Int       @default(0)
+  progressivo Int       @default(0)
+  data        DateTime  @default(now())
   tipo        String    // INGRESSO, USCITA
   rettificato Boolean   @default(false)
   istanzaId   Int?      @map("istanza_id")

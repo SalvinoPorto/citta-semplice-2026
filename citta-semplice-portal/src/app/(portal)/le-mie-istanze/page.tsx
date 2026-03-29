@@ -8,25 +8,11 @@ import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { IstanzeTable } from './IstanzeTable';
 
 export const metadata: Metadata = {
   title: 'Le mie istanze - Città Semplice',
 };
-
-async function getIstanze(utenteId: number) {
-  return prisma.istanza.findMany({
-    where: { utenteId, inBozza: false },
-    include: {
-      servizio: { include: { area: true } },
-      workflows: {
-        include: { step: true },
-        orderBy: { dataVariazione: 'desc' },
-        take: 1,
-      },
-    },
-    orderBy: { dataInvio: 'desc' },
-  });
-}
 
 async function getBozze(utenteId: number) {
   return prisma.istanza.findMany({
@@ -38,12 +24,6 @@ async function getBozze(utenteId: number) {
   });
 }
 
-function getStatoBadge(istanza: { conclusa: boolean; respinta: boolean }) {
-  if (istanza.conclusa) return { label: 'Conclusa', cls: 'bg-success' };
-  if (istanza.respinta) return { label: 'Respinta', cls: 'bg-danger' };
-  return { label: 'In lavorazione', cls: 'bg-primary' };
-}
-
 export default async function LeMieIstanzePage() {
   const session = await auth();
   if (!session?.user) {
@@ -53,10 +33,7 @@ export default async function LeMieIstanzePage() {
   const utente = await prisma.utente.findUnique({ where: { id: Number(session.user.id) } });
   if (!utente) redirect('/login');
 
-  const [istanze, bozze] = await Promise.all([
-    getIstanze(utente.id),
-    getBozze(utente.id),
-  ]);
+  const bozze = await getBozze(utente.id);
 
   return (
     <>
@@ -75,10 +52,8 @@ export default async function LeMieIstanzePage() {
             <div className="cmp-hero">
               <section className="bg-white align-items-start">
                 <div className="it-hero-text-wrapper pt-0 ps-0 pb-4">
-                  
-                    <h1>Benvenuto, <strong>{utente.nome} {utente.cognome}</strong>.</h1>
-                    <h2>Qui puoi monitorare lo stato delle tue richieste.</h2>
-                  
+                  <h1>Benvenuto, <strong>{utente.nome} {utente.cognome}</strong>.</h1>
+                  <h2>Qui puoi monitorare lo stato delle tue richieste.</h2>
                 </div>
               </section>
             </div>
@@ -148,83 +123,7 @@ export default async function LeMieIstanzePage() {
             {bozze.length > 0 && (
               <h2 className="h4 mb-3">Istanze inviate</h2>
             )}
-            {istanze.length === 0 ? (
-              <div className="card p-5 text-center">
-                <svg className="icon icon-xl text-muted mx-auto mb-3" aria-hidden="true">
-                  <use href="/bootstrap-italia/dist/svg/sprites.svg#it-inbox" />
-                </svg>
-                <h2 className="h5 text-muted">Nessuna istanza trovata</h2>
-                <p className="text-muted mb-4">Non hai ancora inviato nessuna richiesta.</p>
-                <Link href="/servizi" className="btn btn-primary mx-auto" style={{ width: 'fit-content' }}>
-                  Esplora i servizi
-                </Link>
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
-                    <tr>
-                      <th scope="col">N°</th>
-                      <th scope="col">Servizio</th>
-                      <th scope="col">Data invio</th>
-                      <th scope="col">Protocollo</th>
-                      <th scope="col">Stato</th>
-                      <th scope="col">Fase attuale</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {istanze.map((istanza) => {
-                      const stato = getStatoBadge(istanza);
-                      const ultimoWorkflow = istanza.workflows[0];
-                      return (
-                        <tr key={istanza.id}>
-                          <td>
-                            <Link href={`/le-mie-istanze/${istanza.id}`} className="text-decoration-none fw-semibold">
-                              #{istanza.id}
-                            </Link>
-                          </td>
-                          <td>
-                            <Link
-                              href={`/le-mie-istanze/${istanza.id}`}
-                              className="text-decoration-none"
-                            >
-                              {istanza.servizio.titolo}
-                            </Link>
-                          </td>
-                          <td>
-                            {istanza.dataInvio
-                              ? format(istanza.dataInvio, 'dd/MM/yyyy HH:mm', { locale: it })
-                              : '—'}
-                          </td>
-                          <td>
-                            {istanza.protoNumero ? (
-                              <span>
-                                {istanza.protoNumero}
-                                {istanza.protoData && (
-                                  <small className="text-muted d-block">
-                                    {format(istanza.protoData, 'dd/MM/yyyy', { locale: it })}
-                                  </small>
-                                )}
-                              </span>
-                            ) : (
-                              <span className="text-muted">—</span>
-                            )}
-                          </td>
-                          <td>
-                            <span className={`badge ${stato.cls}`}>{stato.label}</span>
-                          </td>
-                          <td>
-                            {ultimoWorkflow?.step
-                              ? ultimoWorkflow.step.descrizione
-                              : <span className="text-muted">—</span>}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <IstanzeTable utenteId={utente.id} />
           </div>
         </div>
       </div>

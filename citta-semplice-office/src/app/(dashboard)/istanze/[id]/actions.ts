@@ -4,8 +4,10 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { pmPayService } from '@/lib/external/pmpay';
-import { urbiSmartService } from '@/lib/external/urbismart';
+import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
 
 const STATUS_ELABORAZIONE = 1;
 const STATUS_SUCCESSO = 2;
@@ -14,13 +16,8 @@ const STATUS_RESPINTA = 4;
 export interface AdvanceWorkflowParams {
   istanzaId: number;
   note: string;
-  // Pagamento (se lo step corrente ha pagamento)
   pagamentoImporto?: number;
   pagamentoCausale?: string;
-  // Protocollo (se lo step corrente ha protocollo)
-  protocolloManuale?: boolean;
-  protoNumero?: string;
-  protoData?: string;
 }
 
 export async function advanceWorkflow(params: AdvanceWorkflowParams) {
@@ -39,6 +36,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         utente: true,
         servizio: {
           include: {
+            area: { select: { nome: true } },
             steps: {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
@@ -49,7 +47,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
-          include: { step: { include: { pagamentoConfig: true } } },
+          include: { step: { include: { pagamentoConfig: true } }, allegati: true },
         },
       },
     });
@@ -118,39 +116,43 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
     }
 
     // --- Gestione protocollo step corrente ---
-    if (currentStep?.protocollo && !params.protocolloManuale) {
-      // Chiamata automatica a Urbismart (se configurato)
-      try {
-        const tipo = (currentStep.tipoProtocollo as 'E' | 'U' | null) ?? 'E';
-        const unitaOrg = currentStep.unitaOrganizzativa ?? '';
-        await urbiSmartService.registraProtocollo({
-          tipo,
-          oggetto: `Istanza #${istanzaId} - ${istanza.servizio.titolo}`,
-          tipoMezzo: 'PEC',
-          corrispondente: {
-            cognome: istanza.utente.cognome,
-            nome: istanza.utente.nome,
-            codiceFiscale: istanza.utente.codiceFiscale,
-          },
-          unitaOrganizzativa: unitaOrg,
-          nomeFile: `istanza_${istanzaId}.pdf`,
-          filePath: '',
-          classificazione: 'V/5',
-        });
-      } catch {
-        // Non blocchiamo l'avanzamento per errori di protocollo
-      }
-    }
+    let protoNumeroStep: string | undefined;
+    let protoDataStep: Date | undefined;
 
-    // Protocollo manuale
-    if (currentStep?.protocollo && params.protocolloManuale && params.protoNumero) {
-      await prisma.istanza.update({
-        where: { id: istanzaId },
-        data: {
-          protoNumero: params.protoNumero,
-          protoData: params.protoData ? new Date(params.protoData) : now,
-        },
-      });
+    if (currentStep?.protocollo) {
+        const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
+        const files = await Promise.all(
+          (lastWorkflow?.allegati ?? []).map(async (a) => {
+            try {
+              const buf = await readFile(join(UPLOAD_DIR, a.nomeHash));
+              return new File([buf], a.nomeFile, { type: 'application/pdf' });
+            } catch {
+              return null;
+            }
+          })
+        ).then((arr) => arr.filter((f): f is File => f !== null));
+
+        const oggetto = `Richiesta - ${istanza.servizio.area?.nome ?? ''} - ${istanza.servizio.titolo} - ${istanza.utente.codiceFiscale}`;
+        const result = await protocolla({
+          istanzaId,
+          oggetto,
+          tipoProtocollo: (currentStep.tipoProtocollo as 'E' | 'U') ?? 'E',
+          unitaOrganizzativa: currentStep.unitaOrganizzativa ?? '',
+          utente: {
+            codiceFiscale: istanza.utente.codiceFiscale,
+            nome: istanza.utente.nome,
+            cognome: istanza.utente.cognome,
+          },
+          files,
+          isFinal: false,
+        });
+        protoNumeroStep = result.numero;
+        protoDataStep = result.data;
+        await prisma.istanza.update({
+          where: { id: istanzaId },
+          data: { protoNumero: result.numero, protoData: result.data },
+        });
+      
     }
 
     // Update current workflow to success (mantieni dataVariazione originale)
@@ -200,6 +202,8 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         ? `Avanzato allo step: ${nextStep.descrizione}`
         : 'Istanza conclusa con successo',
       pagamentoEffettuatoId,
+      protoNumero: protoNumeroStep,
+      protoData: protoDataStep,
     };
   } catch (error) {
     console.error('Error advancing workflow:', error);
@@ -749,9 +753,12 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
+        utente: true,
+        servizio: { include: { area: { select: { nome: true } } } },
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
+          include: { step: true, allegati: true },
         },
       },
     });
@@ -765,11 +772,47 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     }
 
     if (istanza.respinta) {
-      return { success: false, message: 'Impossibile concludere un\'istanza respinta' };
+      return { success: false, message: "Impossibile concludere un'istanza respinta" };
     }
 
     const now = new Date();
     const lastWorkflow = istanza.workflows[0];
+    const lastStep = lastWorkflow?.step;
+
+    // --- Protocollo finale (sempre Uscita) ---
+    let protoFinaleNumero: string | undefined;
+    let protoFinaleData: Date | undefined;
+
+    if (lastStep?.protocollo) {
+      const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
+      const files = await Promise.all(
+        (lastWorkflow?.allegati ?? []).map(async (a) => {
+          try {
+            const buf = await readFile(join(UPLOAD_DIR, a.nomeHash));
+            return new File([buf], a.nomeFile, { type: 'application/pdf' });
+          } catch {
+            return null;
+          }
+        })
+      ).then((arr) => arr.filter((f): f is File => f !== null));
+
+      const oggetto = `Richiesta - ${istanza.servizio?.area?.nome ?? ''} - ${istanza.servizio?.titolo ?? ''} - ${istanza.utente.codiceFiscale}`;
+      const result = await protocolla({
+        istanzaId,
+        oggetto,
+        tipoProtocollo: 'U',
+        unitaOrganizzativa: lastStep.unitaOrganizzativa ?? '',
+        utente: {
+          codiceFiscale: istanza.utente.codiceFiscale,
+          nome: istanza.utente.nome,
+          cognome: istanza.utente.cognome,
+        },
+        files,
+        isFinal: true,
+      });
+      protoFinaleNumero = result.numero;
+      protoFinaleData = result.data;
+    }
 
     // Update last workflow to success
     if (lastWorkflow) {
@@ -787,13 +830,21 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     // Mark istanza as concluded
     await prisma.istanza.update({
       where: { id: istanzaId },
-      data: { conclusa: true },
+      data: {
+        conclusa: true,
+        ...(protoFinaleNumero && { protoFinaleNumero, protoFinaleData }),
+      },
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
     revalidatePath('/istanze');
 
-    return { success: true, message: 'Istanza conclusa con successo' };
+    return {
+      success: true,
+      message: 'Istanza conclusa con successo',
+      protoFinaleNumero,
+      protoFinaleData,
+    };
   } catch (error) {
     console.error('Error concluding istanza:', error);
     return { success: false, message: 'Errore durante la conclusione' };

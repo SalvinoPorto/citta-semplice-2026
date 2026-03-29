@@ -9,7 +9,6 @@ import {
   regressWorkflow,
   rejectIstanza,
   reopenIstanza,
-  assignProtocollo,
   addNote,
   sendComunicazione,
   concludeIstanza,
@@ -75,7 +74,6 @@ export function IstanzaActions({
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
   const [showRegressModal, setShowRegressModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [showProtocolloModal, setShowProtocolloModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showCommunicationModal, setShowCommunicationModal] = useState(false);
   const [showConcludeModal, setShowConcludeModal] = useState(false);
@@ -85,9 +83,6 @@ export function IstanzaActions({
   const [note, setNote] = useState('');
   const [pagamentoImporto, setPagamentoImporto] = useState('');
   const [pagamentoCausale, setPagamentoCausale] = useState('');
-  const [protocolloManuale, setProtocolloManuale] = useState(false);
-  const [protoNumeroPasso, setProtoNumeroPasso] = useState('');
-  const [protoDataPasso, setProtoDataPasso] = useState('');
 
   // Regress state
   const [regressNote, setRegressNote] = useState('');
@@ -124,7 +119,6 @@ export function IstanzaActions({
 
   const isFirstStep = stepOrdine === 1;
   const hasPaymentStep = !isFirstStep && currentStep?.pagamento && currentStep.pagamentoConfig;
-  const hasProtocolloStep = !isFirstStep && currentStep?.protocollo;
   const paymentConfig = currentStep?.pagamentoConfig ?? null;
 
   const handleTakeCharge = async () => {
@@ -154,11 +148,6 @@ export function IstanzaActions({
       toast.error('Inserire la causale del pagamento');
       return;
     }
-    if (hasProtocolloStep && protocolloManuale && !protoNumeroPasso.trim()) {
-      toast.error('Inserire il numero di protocollo');
-      return;
-    }
-
     setLoading(true);
     try {
       const result = await advanceWorkflow({
@@ -166,9 +155,6 @@ export function IstanzaActions({
         note,
         pagamentoImporto: pagamentoImporto ? parseFloat(pagamentoImporto) : undefined,
         pagamentoCausale: pagamentoCausale || undefined,
-        protocolloManuale,
-        protoNumero: protoNumeroPasso || undefined,
-        protoData: protoDataPasso || undefined,
       });
       if (result.success) {
         toast.success(result.message || 'Workflow avanzato con successo');
@@ -176,9 +162,6 @@ export function IstanzaActions({
         setNote('');
         setPagamentoImporto('');
         setPagamentoCausale('');
-        setProtocolloManuale(false);
-        setProtoNumeroPasso('');
-        setProtoDataPasso('');
         router.refresh();
       } else {
         toast.error(result.message || 'Errore durante l\'avanzamento');
@@ -241,32 +224,6 @@ export function IstanzaActions({
         router.refresh();
       } else {
         toast.error(result.message || 'Errore durante la riapertura');
-      }
-    } catch {
-      toast.error('Si è verificato un errore');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAssignProtocollo = async () => {
-    if (!protoNumero.trim()) {
-      toast.error('Inserire il numero di protocollo');
-      return;
-    }
-    if (!protoData) {
-      toast.error('Inserire la data del protocollo');
-      return;
-    }
-    setLoading(true);
-    try {
-      const result = await assignProtocollo(istanza.id, protoNumero.trim(), new Date(protoData));
-      if (result.success) {
-        toast.success('Protocollo assegnato');
-        setShowProtocolloModal(false);
-        router.refresh();
-      } else {
-        toast.error(result.message || 'Errore durante l\'assegnazione del protocollo');
       }
     } catch {
       toast.error('Si è verificato un errore');
@@ -344,7 +301,10 @@ export function IstanzaActions({
     try {
       const result = await concludeIstanza(istanza.id, concludeNote.trim());
       if (result.success) {
-        toast.success('Istanza conclusa');
+        const msg = result.protoFinaleNumero
+          ? `Istanza conclusa — Protocollo: ${result.protoFinaleNumero}`
+          : 'Istanza conclusa con successo';
+        toast.success(msg);
         setShowConcludeModal(false);
         setConcludeNote('');
         router.refresh();
@@ -435,12 +395,6 @@ export function IstanzaActions({
               Invia Comunicazione
             </Button>
             <Button
-              variant="outline-primary"
-              onClick={() => setShowProtocolloModal(true)}
-            >
-              Protocollo
-            </Button>
-            <Button
               variant="outline-secondary"
               onClick={() => setShowNoteModal(true)}
             >
@@ -487,55 +441,6 @@ export function IstanzaActions({
           )}
         </ModalHeader>
         <ModalBody>
-          {/* Sezione Protocollo */}
-          {hasProtocolloStep && (
-            <div className="mb-4 p-3 bg-light rounded">
-              <h6 className="mb-2">
-                Protocollo{' '}
-                <span className="badge bg-secondary">
-                  {currentStep?.tipoProtocollo === 'U' ? 'Uscita' : 'Entrata'}
-                </span>
-              </h6>
-              <p className="small text-muted mb-2">
-                Questo step prevede la protocollazione del documento. Il sistema tenterà di
-                protocollare automaticamente tramite Urbismart.
-              </p>
-              <div className="form-check mb-2">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="protocollo-manuale"
-                  checked={protocolloManuale}
-                  onChange={(e) => setProtocolloManuale(e.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="protocollo-manuale">
-                  Inserisci protocollo manualmente
-                </label>
-              </div>
-              {protocolloManuale && (
-                <div className="row">
-                  <div className="col-md-7">
-                    <Input
-                      type="text"
-                      label="Numero Protocollo"
-                      value={protoNumeroPasso}
-                      onChange={(e) => setProtoNumeroPasso(e.target.value)}
-                      placeholder="2026/00001"
-                    />
-                  </div>
-                  <div className="col-md-5">
-                    <Input
-                      type="date"
-                      label="Data Protocollo"
-                      value={protoDataPasso}
-                      onChange={(e) => setProtoDataPasso(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Sezione Pagamento */}
           {hasPaymentStep && paymentConfig && (
             <div className="mb-4 p-3 border border-primary rounded">
@@ -815,58 +720,6 @@ export function IstanzaActions({
         </ModalFooter>
       </Modal>
 
-      {/* Protocollo Modal */}
-      <Modal
-        isOpen={showProtocolloModal}
-        onClose={() => setShowProtocolloModal(false)}
-        size="md"
-      >
-        <ModalHeader onClose={() => setShowProtocolloModal(false)}>
-          Assegna Protocollo Manuale
-        </ModalHeader>
-        <ModalBody>
-          <p className="text-muted small mb-3">
-            Usa questo form per assegnare manualmente un numero di protocollo all&apos;istanza
-            (indipendente dagli step).
-          </p>
-          <div className="mb-3">
-            <Input
-              type="text"
-              label="Numero Protocollo"
-              value={protoNumero}
-              onChange={(e) => setProtoNumero(e.target.value)}
-              placeholder="2026/00001"
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <Input
-              type="date"
-              label="Data Protocollo"
-              value={protoData}
-              onChange={(e) => setProtoData(e.target.value)}
-              required
-            />
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            variant="secondary"
-            onClick={() => setShowProtocolloModal(false)}
-            disabled={loading}
-          >
-            Annulla
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleAssignProtocollo}
-            loading={loading}
-          >
-            Assegna
-          </Button>
-        </ModalFooter>
-      </Modal>
-
       {/* Note Modal */}
       <Modal
         isOpen={showNoteModal}
@@ -914,7 +767,7 @@ export function IstanzaActions({
           Concludi Istanza
         </ModalHeader>
         <ModalBody>
-          <p>Confermi di voler concludere l&apos;istanza?</p>
+          <p className="mb-2">Confermi di voler concludere l&apos;istanza?</p>
           <Textarea
             label="Note conclusive (opzionale)"
             value={concludeNote}
@@ -926,7 +779,9 @@ export function IstanzaActions({
         <ModalFooter>
           <Button
             variant="secondary"
-            onClick={() => setShowConcludeModal(false)}
+            onClick={() => {
+              setShowConcludeModal(false);
+            }}
             disabled={loading}
           >
             Annulla
