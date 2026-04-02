@@ -28,6 +28,7 @@ model Operatore {
   // enti              OperatoreEnte[]
   servizi           OperatoreServizio[]
   workflows         Workflow[]
+  comunicazioni     Comunicazione[]
 
   @@index([userName])
   @@map("operatori")
@@ -71,21 +72,17 @@ model RuoloUser {
 
 model Ente {
   id              Int       @id @default(autoincrement())
-  nome            String
-  descrizione     String?
-  codice          String?
-  indirizzo       String?
-  telefono        String?
-  email           String?
-  pec             String?
-  logo            String?
+  nome            String    @db.VarChar(255)
+  descrizione     String?   @db.VarChar(255)
+  sede            String?   @db.VarChar(255)
+  codice          String?   @db.VarChar(255)
+  indirizzo       String?   @db.VarChar(255)
+  telefono        String?   @db.VarChar(255)
+  email           String?   @db.VarChar(255)
+  pec             String?   @db.VarChar(255)
+  logo            String?   @db.VarChar(255)
   attivo          Boolean   @default(true)
   createdAt       DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  // aree            Area[]
-  //operatori       OperatoreEnte[]
-  //pagamenti       Pagamento[]
 
   @@map("enti")
 }
@@ -427,7 +424,7 @@ model Istanza {
   activeStep          Int?      @map("active_step")
 
   // Protocol
-  protoNumero         String?   @db.VarChar(50) @map("proto_numero")
+  protoNumero         String   @db.VarChar(50) @map("proto_numero")
   protoData           DateTime? @map("proto_data")
   protoFinaleNumero   String?   @db.VarChar(50) @map("proto_finale_numero")
   protoFinaleData     DateTime? @map("proto_finale_data")
@@ -449,10 +446,8 @@ model Istanza {
 
   lastStepId          Int?      @map("last_step_id")
 
-  // attributoId         Int?      @map("attributo_id")
-  // attributo           Attributo? @relation(fields: [attributoId], references: [id])
-
   workflows           Workflow[]
+  comunicazioni       Comunicazione[]
 
   @@index([utenteId])
   @@index([servizioId])
@@ -465,42 +460,29 @@ model Istanza {
 // WORKFLOW
 // ============================================
 
-model Status {
-  id          Int       @id @default(autoincrement())
-  stato       String
-  ordine      Int       @unique
-  icon        String?
-
-  workflows   Workflow[]
-
-  @@map("status")
-}
-
+// stato: null operatore_id = In attesa, 0 = In lavorazione, 1 = Completata
 model Workflow {
   id              Int       @id @default(autoincrement())
   note            String?   @db.Text
   dataVariazione  DateTime  @map("data_variazione")
+  stato           Int       @default(0)
 
   // Relations
   istanzaId       Int       @map("istanza_id")
   istanza         Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
 
-  stepId          Int?      @map("step_id")
+  stepId          Int      @map("step_id")
   step            Step?     @relation(fields: [stepId], references: [id])
 
   notificaId      Int?      @map("notifica_id")
   notifica        Notifica? @relation(fields: [notificaId], references: [id])
-
-  statusId        Int       @map("status_id")
-  status          Status    @relation(fields: [statusId], references: [id])
 
   operatoreId     Int?      @map("operatore_id")
   operatore       Operatore? @relation(fields: [operatoreId], references: [id])
 
   allegati            Allegato[]
   pagamentoEffettuato PagamentoEffettuato?
-  comunicazione       Comunicazione?
-
+  
   @@index([istanzaId])
   @@index([dataVariazione])
   @@map("workflows")
@@ -511,19 +493,24 @@ model Comunicazione {
   testo             String    @db.Text
   richiedeRisposta  Boolean   @default(false) @map("richiede_risposta")
   allegatiRichiesti String?   @db.Text @map("allegati_richiesti") // JSON: [{nome: string, obbligatorio: boolean}]
+  dataCreazione     DateTime  @default(now()) @map("data_creazione")
 
-  workflowId        Int       @unique @map("workflow_id")
-  workflow          Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  istanzaId         Int       @map("istanza_id")
+  istanza           Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
+
+  operatoreId       Int?      @map("operatore_id")
+  operatore         Operatore? @relation(fields: [operatoreId], references: [id])
 
   risposta          RispostaComunicazione?
 
+  @@index([istanzaId])
   @@map("comunicazioni")
 }
 
 model RispostaComunicazione {
   id              Int       @id @default(autoincrement())
   testo           String?   @db.Text
-  dataRisposta    DateTime  @default(now()) @map("data_risposta")
+  createdAt       DateTime  @default(now()) @map("created_at")
 
   comunicazioneId Int       @unique @map("comunicazione_id")
   comunicazione   Comunicazione @relation(fields: [comunicazioneId], references: [id], onDelete: Cascade)
@@ -589,15 +576,13 @@ model Pagamento {
   causale             String?   @db.Text
   causaleVariabile    Boolean   @default(false) @map("causale_variabile")
 
+  // codice del servizio/tributo configurato in PmPay
+  codiceTributo       String?   @map("codice_tributo")
+  descrizioneTributo  String?   @map("descrizione_tributo")
+
   stepId              Int       @unique @map("step_id")
   step                Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
-  codiceTributoId     Int?      @map("codice_tributo_id")
-  codiceTributo       Tributo?  @relation(fields: [codiceTributoId], references: [id])
-/*
-  enteId              Int?      @map("ente_id")
-  ente                Ente?     @relation(fields: [enteId], references: [id])
-*/
   @@map("pagamenti")
 }
 
@@ -708,12 +693,19 @@ model CustomerSatisfaction {
 // ============================================
 
 model Ricevuta {
-  id              Int       @id @default(autoincrement())
-  intestazione    String?
-  corpo           String?   @db.Text
-  footer          String?
+  id                              Int       @id @default(autoincrement())
+  // Art. 18 bis L 241/1990 e L.R. 7/2019
+  richiestaArt18                  Boolean   @default(false) @map("richiesta_art18")
+  unitaOrganizzativaCompetente    String?   @db.Text @map("unita_organizzativa_competente")
+  ufficioCompetente               String?   @db.Text @map("ufficio_competente")
+  responsabileProcedimento        String?   @db.Text @map("responsabile_procedimento")
+  durataMassimaProcedimento       Int?      @map("durata_massima_procedimento")
+  responsabileProvvedimentoFinale String?   @db.Text @map("responsabile_provvedimento_finale")
+  personaPotereSostitutivo        String?   @db.Text @map("persona_potere_sostitutivo")
+  urlServizioWeb                  String?   @db.Text @map("url_servizio_web")
+  ufficioRicevimento              String?   @db.Text @map("ufficio_ricevimento")
 
-  servizioId      Int       @unique @map("modulo_id")
+  servizioId      Int       @unique @map("servizio_id")
   servizio        Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
   @@map("ricevute")

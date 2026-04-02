@@ -117,11 +117,6 @@ export type Utente = Prisma.UtenteModel
  */
 export type Istanza = Prisma.IstanzaModel
 /**
- * Model Status
- * 
- */
-export type Status = Prisma.StatusModel
-/**
  * Model Workflow
  * 
  */

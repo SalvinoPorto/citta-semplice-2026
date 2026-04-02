@@ -28,35 +28,55 @@ export type AggregateRicevuta = {
 
 export type RicevutaAvgAggregateOutputType = {
   id: number | null
+  durataMassimaProcedimento: number | null
   servizioId: number | null
 }
 
 export type RicevutaSumAggregateOutputType = {
   id: number | null
+  durataMassimaProcedimento: number | null
   servizioId: number | null
 }
 
 export type RicevutaMinAggregateOutputType = {
   id: number | null
-  intestazione: string | null
-  corpo: string | null
-  footer: string | null
+  richiestaArt18: boolean | null
+  unitaOrganizzativaCompetente: string | null
+  ufficioCompetente: string | null
+  responsabileProcedimento: string | null
+  durataMassimaProcedimento: number | null
+  responsabileProvvedimentoFinale: string | null
+  personaPotereSostitutivo: string | null
+  urlServizioWeb: string | null
+  ufficioRicevimento: string | null
   servizioId: number | null
 }
 
 export type RicevutaMaxAggregateOutputType = {
   id: number | null
-  intestazione: string | null
-  corpo: string | null
-  footer: string | null
+  richiestaArt18: boolean | null
+  unitaOrganizzativaCompetente: string | null
+  ufficioCompetente: string | null
+  responsabileProcedimento: string | null
+  durataMassimaProcedimento: number | null
+  responsabileProvvedimentoFinale: string | null
+  personaPotereSostitutivo: string | null
+  urlServizioWeb: string | null
+  ufficioRicevimento: string | null
   servizioId: number | null
 }
 
 export type RicevutaCountAggregateOutputType = {
   id: number
-  intestazione: number
-  corpo: number
-  footer: number
+  richiestaArt18: number
+  unitaOrganizzativaCompetente: number
+  ufficioCompetente: number
+  responsabileProcedimento: number
+  durataMassimaProcedimento: number
+  responsabileProvvedimentoFinale: number
+  personaPotereSostitutivo: number
+  urlServizioWeb: number
+  ufficioRicevimento: number
   servizioId: number
   _all: number
 }
@@ -64,35 +84,55 @@ export type RicevutaCountAggregateOutputType = {
 
 export type RicevutaAvgAggregateInputType = {
   id?: true
+  durataMassimaProcedimento?: true
   servizioId?: true
 }
 
 export type RicevutaSumAggregateInputType = {
   id?: true
+  durataMassimaProcedimento?: true
   servizioId?: true
 }
 
 export type RicevutaMinAggregateInputType = {
   id?: true
-  intestazione?: true
-  corpo?: true
-  footer?: true
+  richiestaArt18?: true
+  unitaOrganizzativaCompetente?: true
+  ufficioCompetente?: true
+  responsabileProcedimento?: true
+  durataMassimaProcedimento?: true
+  responsabileProvvedimentoFinale?: true
+  personaPotereSostitutivo?: true
+  urlServizioWeb?: true
+  ufficioRicevimento?: true
   servizioId?: true
 }
 
 export type RicevutaMaxAggregateInputType = {
   id?: true
-  intestazione?: true
-  corpo?: true
-  footer?: true
+  richiestaArt18?: true
+  unitaOrganizzativaCompetente?: true
+  ufficioCompetente?: true
+  responsabileProcedimento?: true
+  durataMassimaProcedimento?: true
+  responsabileProvvedimentoFinale?: true
+  personaPotereSostitutivo?: true
+  urlServizioWeb?: true
+  ufficioRicevimento?: true
   servizioId?: true
 }
 
 export type RicevutaCountAggregateInputType = {
   id?: true
-  intestazione?: true
-  corpo?: true
-  footer?: true
+  richiestaArt18?: true
+  unitaOrganizzativaCompetente?: true
+  ufficioCompetente?: true
+  responsabileProcedimento?: true
+  durataMassimaProcedimento?: true
+  responsabileProvvedimentoFinale?: true
+  personaPotereSostitutivo?: true
+  urlServizioWeb?: true
+  ufficioRicevimento?: true
   servizioId?: true
   _all?: true
 }
@@ -185,9 +225,15 @@ export type RicevutaGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type RicevutaGroupByOutputType = {
   id: number
-  intestazione: string | null
-  corpo: string | null
-  footer: string | null
+  richiestaArt18: boolean
+  unitaOrganizzativaCompetente: string | null
+  ufficioCompetente: string | null
+  responsabileProcedimento: string | null
+  durataMassimaProcedimento: number | null
+  responsabileProvvedimentoFinale: string | null
+  personaPotereSostitutivo: string | null
+  urlServizioWeb: string | null
+  ufficioRicevimento: string | null
   servizioId: number
   _count: RicevutaCountAggregateOutputType | null
   _avg: RicevutaAvgAggregateOutputType | null
@@ -216,18 +262,30 @@ export type RicevutaWhereInput = {
   OR?: Prisma.RicevutaWhereInput[]
   NOT?: Prisma.RicevutaWhereInput | Prisma.RicevutaWhereInput[]
   id?: Prisma.IntFilter<"Ricevuta"> | number
-  intestazione?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
-  corpo?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
-  footer?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  richiestaArt18?: Prisma.BoolFilter<"Ricevuta"> | boolean
+  unitaOrganizzativaCompetente?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  ufficioCompetente?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  responsabileProcedimento?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  durataMassimaProcedimento?: Prisma.IntNullableFilter<"Ricevuta"> | number | null
+  responsabileProvvedimentoFinale?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  personaPotereSostitutivo?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  urlServizioWeb?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  ufficioRicevimento?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
   servizioId?: Prisma.IntFilter<"Ricevuta"> | number
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
 }
 
 export type RicevutaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  intestazione?: Prisma.SortOrderInput | Prisma.SortOrder
-  corpo?: Prisma.SortOrderInput | Prisma.SortOrder
-  footer?: Prisma.SortOrderInput | Prisma.SortOrder
+  richiestaArt18?: Prisma.SortOrder
+  unitaOrganizzativaCompetente?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficioCompetente?: Prisma.SortOrderInput | Prisma.SortOrder
+  responsabileProcedimento?: Prisma.SortOrderInput | Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrderInput | Prisma.SortOrder
+  responsabileProvvedimentoFinale?: Prisma.SortOrderInput | Prisma.SortOrder
+  personaPotereSostitutivo?: Prisma.SortOrderInput | Prisma.SortOrder
+  urlServizioWeb?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficioRicevimento?: Prisma.SortOrderInput | Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   servizio?: Prisma.ServizioOrderByWithRelationInput
 }
@@ -238,17 +296,29 @@ export type RicevutaWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.RicevutaWhereInput | Prisma.RicevutaWhereInput[]
   OR?: Prisma.RicevutaWhereInput[]
   NOT?: Prisma.RicevutaWhereInput | Prisma.RicevutaWhereInput[]
-  intestazione?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
-  corpo?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
-  footer?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  richiestaArt18?: Prisma.BoolFilter<"Ricevuta"> | boolean
+  unitaOrganizzativaCompetente?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  ufficioCompetente?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  responsabileProcedimento?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  durataMassimaProcedimento?: Prisma.IntNullableFilter<"Ricevuta"> | number | null
+  responsabileProvvedimentoFinale?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  personaPotereSostitutivo?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  urlServizioWeb?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
+  ufficioRicevimento?: Prisma.StringNullableFilter<"Ricevuta"> | string | null
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
 }, "id" | "servizioId">
 
 export type RicevutaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  intestazione?: Prisma.SortOrderInput | Prisma.SortOrder
-  corpo?: Prisma.SortOrderInput | Prisma.SortOrder
-  footer?: Prisma.SortOrderInput | Prisma.SortOrder
+  richiestaArt18?: Prisma.SortOrder
+  unitaOrganizzativaCompetente?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficioCompetente?: Prisma.SortOrderInput | Prisma.SortOrder
+  responsabileProcedimento?: Prisma.SortOrderInput | Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrderInput | Prisma.SortOrder
+  responsabileProvvedimentoFinale?: Prisma.SortOrderInput | Prisma.SortOrder
+  personaPotereSostitutivo?: Prisma.SortOrderInput | Prisma.SortOrder
+  urlServizioWeb?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficioRicevimento?: Prisma.SortOrderInput | Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   _count?: Prisma.RicevutaCountOrderByAggregateInput
   _avg?: Prisma.RicevutaAvgOrderByAggregateInput
@@ -262,61 +332,109 @@ export type RicevutaScalarWhereWithAggregatesInput = {
   OR?: Prisma.RicevutaScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RicevutaScalarWhereWithAggregatesInput | Prisma.RicevutaScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Ricevuta"> | number
-  intestazione?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
-  corpo?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
-  footer?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  richiestaArt18?: Prisma.BoolWithAggregatesFilter<"Ricevuta"> | boolean
+  unitaOrganizzativaCompetente?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  ufficioCompetente?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  responsabileProcedimento?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  durataMassimaProcedimento?: Prisma.IntNullableWithAggregatesFilter<"Ricevuta"> | number | null
+  responsabileProvvedimentoFinale?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  personaPotereSostitutivo?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  urlServizioWeb?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
+  ufficioRicevimento?: Prisma.StringNullableWithAggregatesFilter<"Ricevuta"> | string | null
   servizioId?: Prisma.IntWithAggregatesFilter<"Ricevuta"> | number
 }
 
 export type RicevutaCreateInput = {
-  intestazione?: string | null
-  corpo?: string | null
-  footer?: string | null
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: string | null
+  ufficioCompetente?: string | null
+  responsabileProcedimento?: string | null
+  durataMassimaProcedimento?: number | null
+  responsabileProvvedimentoFinale?: string | null
+  personaPotereSostitutivo?: string | null
+  urlServizioWeb?: string | null
+  ufficioRicevimento?: string | null
   servizio: Prisma.ServizioCreateNestedOneWithoutRicevutaInput
 }
 
 export type RicevutaUncheckedCreateInput = {
   id?: number
-  intestazione?: string | null
-  corpo?: string | null
-  footer?: string | null
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: string | null
+  ufficioCompetente?: string | null
+  responsabileProcedimento?: string | null
+  durataMassimaProcedimento?: number | null
+  responsabileProvvedimentoFinale?: string | null
+  personaPotereSostitutivo?: string | null
+  urlServizioWeb?: string | null
+  ufficioRicevimento?: string | null
   servizioId: number
 }
 
 export type RicevutaUpdateInput = {
-  intestazione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  corpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  footer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  richiestaArt18?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unitaOrganizzativaCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsabileProcedimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durataMassimaProcedimento?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  responsabileProvvedimentoFinale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personaPotereSostitutivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  urlServizioWeb?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioRicevimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutRicevutaNestedInput
 }
 
 export type RicevutaUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  intestazione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  corpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  footer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  richiestaArt18?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unitaOrganizzativaCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsabileProcedimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durataMassimaProcedimento?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  responsabileProvvedimentoFinale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personaPotereSostitutivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  urlServizioWeb?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioRicevimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type RicevutaCreateManyInput = {
   id?: number
-  intestazione?: string | null
-  corpo?: string | null
-  footer?: string | null
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: string | null
+  ufficioCompetente?: string | null
+  responsabileProcedimento?: string | null
+  durataMassimaProcedimento?: number | null
+  responsabileProvvedimentoFinale?: string | null
+  personaPotereSostitutivo?: string | null
+  urlServizioWeb?: string | null
+  ufficioRicevimento?: string | null
   servizioId: number
 }
 
 export type RicevutaUpdateManyMutationInput = {
-  intestazione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  corpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  footer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  richiestaArt18?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unitaOrganizzativaCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsabileProcedimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durataMassimaProcedimento?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  responsabileProvvedimentoFinale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personaPotereSostitutivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  urlServizioWeb?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioRicevimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RicevutaUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  intestazione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  corpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  footer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  richiestaArt18?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unitaOrganizzativaCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsabileProcedimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durataMassimaProcedimento?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  responsabileProvvedimentoFinale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personaPotereSostitutivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  urlServizioWeb?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioRicevimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -327,35 +445,55 @@ export type RicevutaNullableScalarRelationFilter = {
 
 export type RicevutaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  intestazione?: Prisma.SortOrder
-  corpo?: Prisma.SortOrder
-  footer?: Prisma.SortOrder
+  richiestaArt18?: Prisma.SortOrder
+  unitaOrganizzativaCompetente?: Prisma.SortOrder
+  ufficioCompetente?: Prisma.SortOrder
+  responsabileProcedimento?: Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrder
+  responsabileProvvedimentoFinale?: Prisma.SortOrder
+  personaPotereSostitutivo?: Prisma.SortOrder
+  urlServizioWeb?: Prisma.SortOrder
+  ufficioRicevimento?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
 }
 
 export type RicevutaAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
 }
 
 export type RicevutaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  intestazione?: Prisma.SortOrder
-  corpo?: Prisma.SortOrder
-  footer?: Prisma.SortOrder
+  richiestaArt18?: Prisma.SortOrder
+  unitaOrganizzativaCompetente?: Prisma.SortOrder
+  ufficioCompetente?: Prisma.SortOrder
+  responsabileProcedimento?: Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrder
+  responsabileProvvedimentoFinale?: Prisma.SortOrder
+  personaPotereSostitutivo?: Prisma.SortOrder
+  urlServizioWeb?: Prisma.SortOrder
+  ufficioRicevimento?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
 }
 
 export type RicevutaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  intestazione?: Prisma.SortOrder
-  corpo?: Prisma.SortOrder
-  footer?: Prisma.SortOrder
+  richiestaArt18?: Prisma.SortOrder
+  unitaOrganizzativaCompetente?: Prisma.SortOrder
+  ufficioCompetente?: Prisma.SortOrder
+  responsabileProcedimento?: Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrder
+  responsabileProvvedimentoFinale?: Prisma.SortOrder
+  personaPotereSostitutivo?: Prisma.SortOrder
+  urlServizioWeb?: Prisma.SortOrder
+  ufficioRicevimento?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
 }
 
 export type RicevutaSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  durataMassimaProcedimento?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
 }
 
@@ -392,16 +530,28 @@ export type RicevutaUncheckedUpdateOneWithoutServizioNestedInput = {
 }
 
 export type RicevutaCreateWithoutServizioInput = {
-  intestazione?: string | null
-  corpo?: string | null
-  footer?: string | null
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: string | null
+  ufficioCompetente?: string | null
+  responsabileProcedimento?: string | null
+  durataMassimaProcedimento?: number | null
+  responsabileProvvedimentoFinale?: string | null
+  personaPotereSostitutivo?: string | null
+  urlServizioWeb?: string | null
+  ufficioRicevimento?: string | null
 }
 
 export type RicevutaUncheckedCreateWithoutServizioInput = {
   id?: number
-  intestazione?: string | null
-  corpo?: string | null
-  footer?: string | null
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: string | null
+  ufficioCompetente?: string | null
+  responsabileProcedimento?: string | null
+  durataMassimaProcedimento?: number | null
+  responsabileProvvedimentoFinale?: string | null
+  personaPotereSostitutivo?: string | null
+  urlServizioWeb?: string | null
+  ufficioRicevimento?: string | null
 }
 
 export type RicevutaCreateOrConnectWithoutServizioInput = {
@@ -421,56 +571,92 @@ export type RicevutaUpdateToOneWithWhereWithoutServizioInput = {
 }
 
 export type RicevutaUpdateWithoutServizioInput = {
-  intestazione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  corpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  footer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  richiestaArt18?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unitaOrganizzativaCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsabileProcedimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durataMassimaProcedimento?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  responsabileProvvedimentoFinale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personaPotereSostitutivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  urlServizioWeb?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioRicevimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RicevutaUncheckedUpdateWithoutServizioInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  intestazione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  corpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  footer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  richiestaArt18?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unitaOrganizzativaCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioCompetente?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsabileProcedimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durataMassimaProcedimento?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  responsabileProvvedimentoFinale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personaPotereSostitutivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  urlServizioWeb?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioRicevimento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
 
 export type RicevutaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  intestazione?: boolean
-  corpo?: boolean
-  footer?: boolean
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: boolean
+  ufficioCompetente?: boolean
+  responsabileProcedimento?: boolean
+  durataMassimaProcedimento?: boolean
+  responsabileProvvedimentoFinale?: boolean
+  personaPotereSostitutivo?: boolean
+  urlServizioWeb?: boolean
+  ufficioRicevimento?: boolean
   servizioId?: boolean
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ricevuta"]>
 
 export type RicevutaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  intestazione?: boolean
-  corpo?: boolean
-  footer?: boolean
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: boolean
+  ufficioCompetente?: boolean
+  responsabileProcedimento?: boolean
+  durataMassimaProcedimento?: boolean
+  responsabileProvvedimentoFinale?: boolean
+  personaPotereSostitutivo?: boolean
+  urlServizioWeb?: boolean
+  ufficioRicevimento?: boolean
   servizioId?: boolean
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ricevuta"]>
 
 export type RicevutaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  intestazione?: boolean
-  corpo?: boolean
-  footer?: boolean
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: boolean
+  ufficioCompetente?: boolean
+  responsabileProcedimento?: boolean
+  durataMassimaProcedimento?: boolean
+  responsabileProvvedimentoFinale?: boolean
+  personaPotereSostitutivo?: boolean
+  urlServizioWeb?: boolean
+  ufficioRicevimento?: boolean
   servizioId?: boolean
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ricevuta"]>
 
 export type RicevutaSelectScalar = {
   id?: boolean
-  intestazione?: boolean
-  corpo?: boolean
-  footer?: boolean
+  richiestaArt18?: boolean
+  unitaOrganizzativaCompetente?: boolean
+  ufficioCompetente?: boolean
+  responsabileProcedimento?: boolean
+  durataMassimaProcedimento?: boolean
+  responsabileProvvedimentoFinale?: boolean
+  personaPotereSostitutivo?: boolean
+  urlServizioWeb?: boolean
+  ufficioRicevimento?: boolean
   servizioId?: boolean
 }
 
-export type RicevutaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "intestazione" | "corpo" | "footer" | "servizioId", ExtArgs["result"]["ricevuta"]>
+export type RicevutaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "richiestaArt18" | "unitaOrganizzativaCompetente" | "ufficioCompetente" | "responsabileProcedimento" | "durataMassimaProcedimento" | "responsabileProvvedimentoFinale" | "personaPotereSostitutivo" | "urlServizioWeb" | "ufficioRicevimento" | "servizioId", ExtArgs["result"]["ricevuta"]>
 export type RicevutaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
 }
@@ -488,9 +674,15 @@ export type $RicevutaPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    intestazione: string | null
-    corpo: string | null
-    footer: string | null
+    richiestaArt18: boolean
+    unitaOrganizzativaCompetente: string | null
+    ufficioCompetente: string | null
+    responsabileProcedimento: string | null
+    durataMassimaProcedimento: number | null
+    responsabileProvvedimentoFinale: string | null
+    personaPotereSostitutivo: string | null
+    urlServizioWeb: string | null
+    ufficioRicevimento: string | null
     servizioId: number
   }, ExtArgs["result"]["ricevuta"]>
   composites: {}
@@ -917,9 +1109,15 @@ export interface Prisma__RicevutaClient<T, Null = never, ExtArgs extends runtime
  */
 export interface RicevutaFieldRefs {
   readonly id: Prisma.FieldRef<"Ricevuta", 'Int'>
-  readonly intestazione: Prisma.FieldRef<"Ricevuta", 'String'>
-  readonly corpo: Prisma.FieldRef<"Ricevuta", 'String'>
-  readonly footer: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly richiestaArt18: Prisma.FieldRef<"Ricevuta", 'Boolean'>
+  readonly unitaOrganizzativaCompetente: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly ufficioCompetente: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly responsabileProcedimento: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly durataMassimaProcedimento: Prisma.FieldRef<"Ricevuta", 'Int'>
+  readonly responsabileProvvedimentoFinale: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly personaPotereSostitutivo: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly urlServizioWeb: Prisma.FieldRef<"Ricevuta", 'String'>
+  readonly ufficioRicevimento: Prisma.FieldRef<"Ricevuta", 'String'>
   readonly servizioId: Prisma.FieldRef<"Ricevuta", 'Int'>
 }
     

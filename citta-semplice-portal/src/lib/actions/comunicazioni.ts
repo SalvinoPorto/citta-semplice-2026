@@ -56,13 +56,13 @@ export async function rispondiComunicazione(formData: FormData) {
   const comunicazione = await prisma.comunicazione.findUnique({
     where: { id: comunicazioneId },
     include: {
-      workflow: { include: { istanza: true } },
+      istanza: true,
       risposta: true,
     },
   });
 
   if (!comunicazione) return { error: 'Comunicazione non trovata' };
-  if (comunicazione.workflow.istanza.utenteId !== utente.id) {
+  if (comunicazione.istanza.utenteId !== utente.id) {
     return { error: 'Accesso negato' };
   }
   if (!comunicazione.richiedeRisposta) {

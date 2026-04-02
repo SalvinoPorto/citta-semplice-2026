@@ -38,6 +38,7 @@ export type EnteMinAggregateOutputType = {
   id: number | null
   nome: string | null
   descrizione: string | null
+  sede: string | null
   codice: string | null
   indirizzo: string | null
   telefono: string | null
@@ -52,6 +53,7 @@ export type EnteMaxAggregateOutputType = {
   id: number | null
   nome: string | null
   descrizione: string | null
+  sede: string | null
   codice: string | null
   indirizzo: string | null
   telefono: string | null
@@ -66,6 +68,7 @@ export type EnteCountAggregateOutputType = {
   id: number
   nome: number
   descrizione: number
+  sede: number
   codice: number
   indirizzo: number
   telefono: number
@@ -90,6 +93,7 @@ export type EnteMinAggregateInputType = {
   id?: true
   nome?: true
   descrizione?: true
+  sede?: true
   codice?: true
   indirizzo?: true
   telefono?: true
@@ -104,6 +108,7 @@ export type EnteMaxAggregateInputType = {
   id?: true
   nome?: true
   descrizione?: true
+  sede?: true
   codice?: true
   indirizzo?: true
   telefono?: true
@@ -118,6 +123,7 @@ export type EnteCountAggregateInputType = {
   id?: true
   nome?: true
   descrizione?: true
+  sede?: true
   codice?: true
   indirizzo?: true
   telefono?: true
@@ -219,6 +225,7 @@ export type EnteGroupByOutputType = {
   id: number
   nome: string
   descrizione: string | null
+  sede: string | null
   codice: string | null
   indirizzo: string | null
   telefono: string | null
@@ -256,6 +263,7 @@ export type EnteWhereInput = {
   id?: Prisma.IntFilter<"Ente"> | number
   nome?: Prisma.StringFilter<"Ente"> | string
   descrizione?: Prisma.StringNullableFilter<"Ente"> | string | null
+  sede?: Prisma.StringNullableFilter<"Ente"> | string | null
   codice?: Prisma.StringNullableFilter<"Ente"> | string | null
   indirizzo?: Prisma.StringNullableFilter<"Ente"> | string | null
   telefono?: Prisma.StringNullableFilter<"Ente"> | string | null
@@ -270,6 +278,7 @@ export type EnteOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   descrizione?: Prisma.SortOrderInput | Prisma.SortOrder
+  sede?: Prisma.SortOrderInput | Prisma.SortOrder
   codice?: Prisma.SortOrderInput | Prisma.SortOrder
   indirizzo?: Prisma.SortOrderInput | Prisma.SortOrder
   telefono?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -287,6 +296,7 @@ export type EnteWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.EnteWhereInput | Prisma.EnteWhereInput[]
   nome?: Prisma.StringFilter<"Ente"> | string
   descrizione?: Prisma.StringNullableFilter<"Ente"> | string | null
+  sede?: Prisma.StringNullableFilter<"Ente"> | string | null
   codice?: Prisma.StringNullableFilter<"Ente"> | string | null
   indirizzo?: Prisma.StringNullableFilter<"Ente"> | string | null
   telefono?: Prisma.StringNullableFilter<"Ente"> | string | null
@@ -301,6 +311,7 @@ export type EnteOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   descrizione?: Prisma.SortOrderInput | Prisma.SortOrder
+  sede?: Prisma.SortOrderInput | Prisma.SortOrder
   codice?: Prisma.SortOrderInput | Prisma.SortOrder
   indirizzo?: Prisma.SortOrderInput | Prisma.SortOrder
   telefono?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -323,6 +334,7 @@ export type EnteScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Ente"> | number
   nome?: Prisma.StringWithAggregatesFilter<"Ente"> | string
   descrizione?: Prisma.StringNullableWithAggregatesFilter<"Ente"> | string | null
+  sede?: Prisma.StringNullableWithAggregatesFilter<"Ente"> | string | null
   codice?: Prisma.StringNullableWithAggregatesFilter<"Ente"> | string | null
   indirizzo?: Prisma.StringNullableWithAggregatesFilter<"Ente"> | string | null
   telefono?: Prisma.StringNullableWithAggregatesFilter<"Ente"> | string | null
@@ -336,6 +348,7 @@ export type EnteScalarWhereWithAggregatesInput = {
 export type EnteCreateInput = {
   nome: string
   descrizione?: string | null
+  sede?: string | null
   codice?: string | null
   indirizzo?: string | null
   telefono?: string | null
@@ -350,6 +363,7 @@ export type EnteUncheckedCreateInput = {
   id?: number
   nome: string
   descrizione?: string | null
+  sede?: string | null
   codice?: string | null
   indirizzo?: string | null
   telefono?: string | null
@@ -363,6 +377,7 @@ export type EnteUncheckedCreateInput = {
 export type EnteUpdateInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sede?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   codice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -377,6 +392,7 @@ export type EnteUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sede?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   codice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -391,6 +407,7 @@ export type EnteCreateManyInput = {
   id?: number
   nome: string
   descrizione?: string | null
+  sede?: string | null
   codice?: string | null
   indirizzo?: string | null
   telefono?: string | null
@@ -404,6 +421,7 @@ export type EnteCreateManyInput = {
 export type EnteUpdateManyMutationInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sede?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   codice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -418,6 +436,7 @@ export type EnteUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sede?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   codice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -432,6 +451,7 @@ export type EnteCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   descrizione?: Prisma.SortOrder
+  sede?: Prisma.SortOrder
   codice?: Prisma.SortOrder
   indirizzo?: Prisma.SortOrder
   telefono?: Prisma.SortOrder
@@ -450,6 +470,7 @@ export type EnteMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   descrizione?: Prisma.SortOrder
+  sede?: Prisma.SortOrder
   codice?: Prisma.SortOrder
   indirizzo?: Prisma.SortOrder
   telefono?: Prisma.SortOrder
@@ -464,6 +485,7 @@ export type EnteMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   descrizione?: Prisma.SortOrder
+  sede?: Prisma.SortOrder
   codice?: Prisma.SortOrder
   indirizzo?: Prisma.SortOrder
   telefono?: Prisma.SortOrder
@@ -484,6 +506,7 @@ export type EnteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   nome?: boolean
   descrizione?: boolean
+  sede?: boolean
   codice?: boolean
   indirizzo?: boolean
   telefono?: boolean
@@ -498,6 +521,7 @@ export type EnteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   nome?: boolean
   descrizione?: boolean
+  sede?: boolean
   codice?: boolean
   indirizzo?: boolean
   telefono?: boolean
@@ -512,6 +536,7 @@ export type EnteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   nome?: boolean
   descrizione?: boolean
+  sede?: boolean
   codice?: boolean
   indirizzo?: boolean
   telefono?: boolean
@@ -526,6 +551,7 @@ export type EnteSelectScalar = {
   id?: boolean
   nome?: boolean
   descrizione?: boolean
+  sede?: boolean
   codice?: boolean
   indirizzo?: boolean
   telefono?: boolean
@@ -536,7 +562,7 @@ export type EnteSelectScalar = {
   createdAt?: boolean
 }
 
-export type EnteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "descrizione" | "codice" | "indirizzo" | "telefono" | "email" | "pec" | "logo" | "attivo" | "createdAt", ExtArgs["result"]["ente"]>
+export type EnteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "descrizione" | "sede" | "codice" | "indirizzo" | "telefono" | "email" | "pec" | "logo" | "attivo" | "createdAt", ExtArgs["result"]["ente"]>
 
 export type $EntePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Ente"
@@ -545,6 +571,7 @@ export type $EntePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: number
     nome: string
     descrizione: string | null
+    sede: string | null
     codice: string | null
     indirizzo: string | null
     telefono: string | null
@@ -979,6 +1006,7 @@ export interface EnteFieldRefs {
   readonly id: Prisma.FieldRef<"Ente", 'Int'>
   readonly nome: Prisma.FieldRef<"Ente", 'String'>
   readonly descrizione: Prisma.FieldRef<"Ente", 'String'>
+  readonly sede: Prisma.FieldRef<"Ente", 'String'>
   readonly codice: Prisma.FieldRef<"Ente", 'String'>
   readonly indirizzo: Prisma.FieldRef<"Ente", 'String'>
   readonly telefono: Prisma.FieldRef<"Ente", 'String'>

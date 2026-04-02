@@ -1,10 +1,17 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
-      "command": "npm run dev",
-      "name": "Run npm run dev",
+      "name": "Next.js: debug full stack",
+      "type": "node-terminal",
       "request": "launch",
-      "type": "node-terminal"
+      "command": "npm run dev",
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "pattern": "- Local:.+(https?://.+)",
+        "uriFormat": "%s",
+        "webRoot": "${workspaceFolder}"
+      }
     }
   ]
 }

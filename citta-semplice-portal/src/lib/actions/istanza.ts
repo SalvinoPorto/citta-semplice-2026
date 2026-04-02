@@ -128,7 +128,19 @@ function estraiDatiInEvidenza(
 type DatiDocumenti = {
   istanza: { id: number; protoNumero: string | null; protoData: Date | null; dataInvio: Date | null; municipalita: string | null };
   servizio: { titolo: string; areaNome: string };
-  ricevuta: { intestazione: string | null; corpo: string | null; footer: string | null } | null;
+  ricevuta: { 
+    id: number;
+    servizioId: number;
+    richiestaArt18: boolean;
+    unitaOrganizzativaCompetente: string | null;
+    ufficioCompetente: string | null;
+    responsabileProcedimento: string | null;
+    durataMassimaProcedimento: number | null;
+    responsabileProvvedimentoFinale: string | null;
+    personaPotereSostitutivo: string | null;
+    urlServizioWeb: string | null;
+    ufficioRicevimento: string | null;
+   } | null;
   datiRaw: string | null;
 };
 
@@ -141,7 +153,8 @@ async function salvaDocumentiInterni(
 
   try {
     // Documento finale: modulo con proto numero + ricevuta art.18 accodata (se configurata)
-    const doc = await generaDocumentoPdf(dati.istanza, dati.servizio, dati.datiRaw, dati.ricevuta);
+    const ente = await prisma.ente.findFirst();
+    const doc = await generaDocumentoPdf(ente?.nome ?? 'Comune di Prova', ente?.sede ?? 'Prova', dati.istanza, dati.servizio, dati.datiRaw, dati.ricevuta);
     await prisma.allegato.create({
       data: {
         nomeFile: doc.nomeFile,
@@ -217,6 +230,7 @@ export async function salvaBozza(formData: FormData) {
     const nuovaBozza = await prisma.istanza.create({
       data: {
         dati: datiRaw ? String(datiRaw) : null,
+        protoNumero: 'Bozza non protocollata',
         inBozza: true,
         activeStep,
         utenteId: utente.id,
@@ -277,8 +291,9 @@ export async function submitIstanza(formData: FormData) {
     return { error: servizio.msgExtraServizio ?? 'Il servizio non è attualmente disponibile' };
   }
 
+  const utenteId = Number(session.user.id);
   const utente = await prisma.utente.findUnique({
-    where: { id: Number(session.user.id) },
+    where: { id: utenteId },
   });
 
   if (!utente) {
@@ -304,11 +319,6 @@ export async function submitIstanza(formData: FormData) {
   const datiServizioDoc = { titolo: servizio.titolo, areaNome: servizio.area.nome };
 
   const primoStep = servizio.steps[0];
-  const primoStatus = await prisma.status.findFirst({ orderBy: { ordine: 'asc' } });
-  if (!primoStatus) {
-    return { error: 'Configurazione stati non trovata' };
-  }
-
   try {
     if (bozzaId) {
       const bozza = await prisma.istanza.findFirst({
@@ -317,45 +327,19 @@ export async function submitIstanza(formData: FormData) {
       if (!bozza) return { error: 'Bozza non trovata' };
 
       const datiFinali = datiRaw ? String(datiRaw) : bozza.dati;
-      await prisma.istanza.update({
-        where: { id: bozzaId },
-        data: {
-          dati: datiFinali,
-          datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
-          dataInvio: new Date(),
-          inBozza: false,
-          activeStep: null,
-          lastStepId: primoStep?.id ?? null,
-        },
-      });
 
-      let workflowId: number | null = null;
-      if (primoStep) {
-        const wf = await prisma.workflow.create({
-          data: {
-            istanzaId: bozzaId,
-            stepId: primoStep.id,
-            operatoreId: null,
-            statusId: primoStatus.id,
-            dataVariazione: new Date(),
-          },
-        });
-        workflowId = wf.id;
-      }
-
-      if (workflowId) {
-        await salvaFileAllegati(files, allegatiIds, workflowId);
-      }
-
-      // Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
+      // 1. Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
+      const ente = await prisma.ente.findFirst();
       const moduloBuffer = await generaModuloBuffer(
+        ente?.nome ?? 'Comune di Prova',
+        ente?.sede ?? 'Prova',
         { id: bozzaId, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
         datiServizioDoc,
         datiFinali,
       );
-      const moduloFile = new File([moduloBuffer], `modulo_istanza_${bozzaId}.pdf`, { type: 'application/pdf' });
+      const moduloFile = new File([moduloBuffer], `modulo_${bozzaId}.pdf`, { type: 'application/pdf' });
 
-      // Protocollazione: sempre obbligatoria (reale o di emergenza)
+      // 2. Protocollazione PRIMA di confermare l'istanza
       const protoResult =
         primoStep?.protocollo && primoStep.unitaOrganizzativa
           ? await protocolla({
@@ -372,10 +356,38 @@ export async function submitIstanza(formData: FormData) {
             })
           : await generaProtocolloEmergenza(bozzaId, 'INGRESSO');
 
+      // 3. Solo dopo il protocollo: conferma l'istanza con tutti i dati
       await prisma.istanza.update({
         where: { id: bozzaId },
-        data: { protoNumero: protoResult.numero, protoData: protoResult.data },
+        data: {
+          dati: datiFinali,
+          datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
+          dataInvio: new Date(),
+          inBozza: false,
+          activeStep: null,
+          lastStepId: primoStep?.id ?? null,
+          protoNumero: protoResult.numero,
+          protoData: protoResult.data,
+        },
       });
+
+      let workflowId: number | null = null;
+      if (primoStep) {
+        const wf = await prisma.workflow.create({
+          data: {
+            istanzaId: bozzaId,
+            stepId: primoStep.id,
+            operatoreId: null,
+            stato: 0,
+            dataVariazione: new Date(),
+          },
+        });
+        workflowId = wf.id;
+      }
+
+      if (workflowId) {
+        await salvaFileAllegati(files, allegatiIds, workflowId);
+      }
 
       await salvaDocumentiInterni(bozzaId, workflowId, {
         istanza: { id: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },
@@ -387,14 +399,46 @@ export async function submitIstanza(formData: FormData) {
       return { success: true, istanzaId: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data };
     }
 
-    // Nuova istanza
+    // Nuova istanza: ottieni il protocollo PRIMA di creare il record
     const datiFinali = datiRaw ? String(datiRaw) : null;
+
+    // 1. Genera il modulo in memoria (id=0 come placeholder: non usato nel contenuto PDF)
+    const ente = await prisma.ente.findFirst();
+    const moduloBuffer = await generaModuloBuffer(
+      ente?.nome ?? 'Comune di Prova',
+      ente?.sede ?? 'Prova',
+      { id: 0, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
+      datiServizioDoc,
+      datiFinali,
+    );
+    const moduloFile = new File([moduloBuffer], `modulo_istanza_nuovo.pdf`, { type: 'application/pdf' });
+
+    // 2. Protocollazione PRIMA di creare l'istanza (istanzaId=null: non ancora esistente)
+    const protoResult =
+      primoStep?.protocollo && primoStep.unitaOrganizzativa
+        ? await protocolla({
+            istanzaId: null,
+            servizioTitolo: servizio.titolo,
+            tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
+            unitaOrganizzativa: primoStep.unitaOrganizzativa,
+            utente: {
+              codiceFiscale: utente.codiceFiscale,
+              nome: utente.nome,
+              cognome: utente.cognome,
+            },
+            files: [...files, moduloFile],
+          })
+      : await generaProtocolloEmergenza(null, 'INGRESSO');
+
+    // 3. Crea l'istanza con il numero di protocollo già assegnato
     const istanza = await prisma.istanza.create({
       data: {
         dati: datiFinali,
         datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
         dataInvio: new Date(),
         inBozza: false,
+        protoNumero: protoResult.numero,
+        protoData: protoResult.data,
         utenteId: utente.id,
         servizioId,
         lastStepId: primoStep?.id ?? null,
@@ -403,13 +447,21 @@ export async function submitIstanza(formData: FormData) {
               create: {
                 stepId: primoStep.id,
                 operatoreId: null,
-                statusId: primoStatus.id,
+                stato: 0,
                 dataVariazione: new Date(),
               },
             }
           : undefined,
       },
     });
+
+    // 4. Se era un protocollo di emergenza, aggiorna il record con l'id istanza reale
+    if (protoResult.fallback && protoResult.emergenzaId) {
+      await prisma.protocolloEmergenza.update({
+        where: { id: protoResult.emergenzaId },
+        data: { istanzaId: istanza.id },
+      });
+    }
 
     let wfId: number | null = null;
     if (primoStep) {
@@ -421,36 +473,6 @@ export async function submitIstanza(formData: FormData) {
         }
       }
     }
-
-    // Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
-    const moduloBuffer = await generaModuloBuffer(
-      { id: istanza.id, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
-      datiServizioDoc,
-      datiFinali,
-    );
-    const moduloFile = new File([moduloBuffer], `modulo_istanza_${istanza.id}.pdf`, { type: 'application/pdf' });
-
-    // Protocollazione: sempre obbligatoria (reale o di emergenza)
-    const protoResult =
-      primoStep?.protocollo && primoStep.unitaOrganizzativa
-        ? await protocolla({
-            istanzaId: istanza.id,
-            servizioTitolo: servizio.titolo,
-            tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
-            unitaOrganizzativa: primoStep.unitaOrganizzativa,
-            utente: {
-              codiceFiscale: utente.codiceFiscale,
-              nome: utente.nome,
-              cognome: utente.cognome,
-            },
-            files: [...files, moduloFile],
-          })
-        : await generaProtocolloEmergenza(istanza.id, 'INGRESSO');
-
-    await prisma.istanza.update({
-      where: { id: istanza.id },
-      data: { protoNumero: protoResult.numero, protoData: protoResult.data },
-    });
 
     await salvaDocumentiInterni(istanza.id, wfId, {
       istanza: { id: istanza.id, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },

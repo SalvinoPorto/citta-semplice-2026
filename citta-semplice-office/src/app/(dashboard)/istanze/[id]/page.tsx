@@ -4,6 +4,7 @@ import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
 import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
 import { WorkflowTimeline } from './workflow-timeline';
+import { ComunicazioniTimeline } from './comunicazioni-timeline';
 import { AllegatiList } from './allegati-list';
 import { IstanzaActions } from './istanza-actions';
 import { AltreIstanzeModal } from './altre-istanze-modal';
@@ -27,7 +28,6 @@ async function getIstanza(id: number) {
       },
       workflows: {
         include: {
-          status: true,
           step: {
             include: { pagamentoConfig: true },
           },
@@ -36,20 +36,20 @@ async function getIstanza(id: number) {
             select: { id: true, nome: true, cognome: true },
           },
           allegati: true,
-          pagamentoEffettuato: true,
-          comunicazione: {
+          pagamentoAtteso: true,
+        },
+        orderBy: { id: 'desc' },
+      },
+      comunicazioni: {
+        include: {
+          operatore: { select: { nome: true, cognome: true } },
+          risposta: {
             include: {
-              risposta: {
-                include: {
-                  allegati: {
-                    select: { id: true, nomeFile: true },
-                  },
-                },
-              },
+              allegati: { select: { id: true, nomeFile: true } },
             },
           },
         },
-        orderBy: { id: 'desc' },
+        orderBy: { dataCreazione: 'asc' },
       },
     },
   });
@@ -118,6 +118,8 @@ export default async function IstanzaDetailPage({
     return <Badge variant="warning">In Lavorazione</Badge>;
   };
 
+  const pmpayUrl = `${process.env.PMPAY_URL}/ente/${process.env.PMPAY_ENTE_ID}/pagamento`;
+
   return (
     <div>
       {/* Header */}
@@ -149,6 +151,7 @@ export default async function IstanzaDetailPage({
             email: istanza.utente.email,
             nome: istanza.utente.nome,
             cognome: istanza.utente.cognome,
+            codiceFiscale: istanza.utente.codiceFiscale,
           }}
           assignedTo={assignedTo}
           currentStep={currentStep ? {
@@ -165,8 +168,11 @@ export default async function IstanzaDetailPage({
               causale: stepPagamentoConfig.causale,
               causaleVariabile: stepPagamentoConfig.causaleVariabile,
               obbligatorio: stepPagamentoConfig.obbligatorio,
+              codiceTributo: stepPagamentoConfig.codiceTributo,
+              descrizioneTributo: stepPagamentoConfig.descrizioneTributo,
             } : null,
           } : null}
+          currentPayment={lastWorkflow?.pagamentoAtteso ?? null}
           stepOrdine={currentStep?.ordine ?? 0}
           isLastStep={isLastStep}
         />
@@ -302,13 +308,30 @@ export default async function IstanzaDetailPage({
 
         {/* Sidebar */}
         <div className="col-12 col-lg-4">
-            {/* Workflow Timeline */}
+          {/* Workflow Timeline */}
           <Card>
             <CardBody>
               <CardTitle>Storico Workflow</CardTitle>
               <WorkflowTimeline
                 workflows={istanza.workflows}
                 steps={istanza.servizio.steps}
+                urlPayment={pmpayUrl}
+                istanzaId={istanza.id}
+                utente={{
+                  codiceFiscale: istanza.utente.codiceFiscale,
+                  nome: istanza.utente.nome,
+                  cognome: istanza.utente.cognome,
+                  email: istanza.utente.email,
+                }}
+              />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
+              <CardTitle>Storico Comunicazioni</CardTitle>
+              <ComunicazioniTimeline
+                comunicazioni={istanza.comunicazioni}
               />
             </CardBody>
           </Card>

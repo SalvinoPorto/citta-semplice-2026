@@ -10,10 +10,18 @@ import { getIstanzePage, type IstanzaRow, type IstanzePageResult } from '@/lib/a
 
 type Props = { utenteId: number };
 
-function getStatoBadge(row: IstanzaRow) {
+/* function getStatoBadge(row: IstanzaRow) {
   if (row.conclusa) return { label: 'Conclusa', cls: 'bg-success' };
   if (row.respinta) return { label: 'Respinta', cls: 'bg-danger' };
   return { label: 'In lavorazione', cls: 'bg-primary' };
+} */
+
+function getStatoBadge(row: IstanzaRow) {
+  if (row.conclusa) return { label: 'Conclusa', cls: 'bg-success' };
+  if (row.respinta) return { label: 'Respinta', cls: 'bg-danger' };
+  if (row.stato === -1) return { label: 'In attesa', cls: 'bg-secondary' };
+  if (row.stato === 0) return { label: 'In lavorazione', cls: 'bg-primary' };
+  return { label: 'Completata', cls: 'bg-success' };
 }
 
 export function IstanzeTable({ utenteId }: Props) {
@@ -63,8 +71,8 @@ export function IstanzeTable({ utenteId }: Props) {
             <THead field="servizio" width="40%">Servizio</THead>
             <THead field="dataInvio" width="10%">Data invio</THead>
             <THead field="protoNumero" width="10%">Protocollo</THead>
-            <THead field="" width="15%">Stato</THead>
             <THead field="" width="25%">Fase attuale</THead>
+            <THead field="" width="15%">Stato</THead>
           </THeadGroup>
           <TFilterHeadGroup onFilter={handleFilter}>
             <TFilterHead field="servizio" placeholder="Cerca servizio..." />
@@ -110,10 +118,10 @@ export function IstanzeTable({ utenteId }: Props) {
                       )}
                     </td>
                     <td>
-                      <span className={`badge ${stato.cls}`}>{stato.label}</span>
+                      {istanza.faseAttuale ?? <span className="text-muted">—</span>}
                     </td>
                     <td>
-                      {istanza.faseAttuale ?? <span className="text-muted">—</span>}
+                      <span className={`badge ${stato.cls}`}>{stato.label}</span>
                     </td>
                   </tr>
                 );

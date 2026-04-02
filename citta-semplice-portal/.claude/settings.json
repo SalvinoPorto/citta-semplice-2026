@@ -6,7 +6,9 @@
       "Bash(jq -r .item[].name)",
       "Bash(jq .variable[])",
       "Read(//Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/**)",
-      "Read(//Users/salvino/Projects/citta-semplice-2026/**)"
+      "Read(//Users/salvino/Projects/citta-semplice-2026/**)",
+      "Bash(grep -n \"status\\\\|statusId\" /Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/istanze/[id]/page.tsx)",
+      "Bash(grep -n \"wf\\\\.status\\\\|workflow\\\\.status\\\\|\\\\.status\\\\.\" /Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/istanze/[id]/page.tsx)"
     ]
   }
 }

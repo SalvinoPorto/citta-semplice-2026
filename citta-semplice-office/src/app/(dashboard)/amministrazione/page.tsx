@@ -11,7 +11,6 @@ async function getSystemInfo() {
     operatoriCount,
     utentiCount,
     ruoliCount,
-    tributiCount,
     emailConfig,
   ] = await Promise.all([
     prisma.ente.count(),
@@ -20,7 +19,6 @@ async function getSystemInfo() {
     prisma.operatore.count(),
     prisma.utente.count(),
     prisma.ruolo.count(),
-    prisma.tributo.count(),
     prisma.emailConfig.findFirst(),
   ]);
 
@@ -31,7 +29,6 @@ async function getSystemInfo() {
     operatoriCount,
     utentiCount,
     ruoliCount,
-    tributiCount,
     emailConfig,
   };
 }
@@ -61,7 +58,7 @@ export default async function AmministrazionePage() {
       title: 'Configurazione',
       items: [
         { href: '/amministrazione/servizi', label: 'Servizi', count: info.serviziCount },
-        { href: '/amministrazione/tributi', label: 'Codici Tributo', count: info.tributiCount },
+        // { href: '/amministrazione/tributi', label: 'Codici Tributo', count: info.tributiCount },
       ],
     },
     {

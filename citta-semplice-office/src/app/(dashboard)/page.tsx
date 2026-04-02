@@ -112,7 +112,7 @@ export default async function DashboardPage() {
               <p className="text-muted mb-3">
                 {stats.serviziAttivi} servizi disponibili
               </p>
-              <Link href="/servizi" className="btn btn-outline-primary btn-sm">
+              <Link href="/amministrazione/servizi" className="btn btn-outline-primary btn-sm">
                 Gestisci servizi
               </Link>
             </CardBody>
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
               <p className="text-muted mb-3">
                 {stats.operatoriAttivi} operatori attivi
               </p>
-              <Link href="/operatori" className="btn btn-outline-primary btn-sm">
+              <Link href="/amministrazione/operatori" className="btn btn-outline-primary btn-sm">
                 Gestisci Operatori
               </Link>
             </CardBody>

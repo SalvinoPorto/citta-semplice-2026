@@ -66,7 +66,6 @@ export const ModelName = {
   AllegatoRichiesto: 'AllegatoRichiesto',
   Utente: 'Utente',
   Istanza: 'Istanza',
-  Status: 'Status',
   Workflow: 'Workflow',
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
@@ -147,6 +146,7 @@ export const EnteScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
   descrizione: 'descrizione',
+  sede: 'sede',
   codice: 'codice',
   indirizzo: 'indirizzo',
   telefono: 'telefono',
@@ -331,24 +331,14 @@ export const IstanzaScalarFieldEnum = {
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
 
 
-export const StatusScalarFieldEnum = {
-  id: 'id',
-  stato: 'stato',
-  ordine: 'ordine',
-  icon: 'icon'
-} as const
-
-export type StatusScalarFieldEnum = (typeof StatusScalarFieldEnum)[keyof typeof StatusScalarFieldEnum]
-
-
 export const WorkflowScalarFieldEnum = {
   id: 'id',
   note: 'note',
   dataVariazione: 'dataVariazione',
+  stato: 'stato',
   istanzaId: 'istanzaId',
   stepId: 'stepId',
   notificaId: 'notificaId',
-  statusId: 'statusId',
   operatoreId: 'operatoreId'
 } as const
 
@@ -360,7 +350,9 @@ export const ComunicazioneScalarFieldEnum = {
   testo: 'testo',
   richiedeRisposta: 'richiedeRisposta',
   allegatiRichiesti: 'allegatiRichiesti',
-  workflowId: 'workflowId'
+  dataCreazione: 'dataCreazione',
+  istanzaId: 'istanzaId',
+  operatoreId: 'operatoreId'
 } as const
 
 export type ComunicazioneScalarFieldEnum = (typeof ComunicazioneScalarFieldEnum)[keyof typeof ComunicazioneScalarFieldEnum]
@@ -369,7 +361,7 @@ export type ComunicazioneScalarFieldEnum = (typeof ComunicazioneScalarFieldEnum)
 export const RispostaComunicazioneScalarFieldEnum = {
   id: 'id',
   testo: 'testo',
-  dataRisposta: 'dataRisposta',
+  createdAt: 'createdAt',
   comunicazioneId: 'comunicazioneId'
 } as const
 
@@ -459,9 +451,15 @@ export type CustomerSatisfactionScalarFieldEnum = (typeof CustomerSatisfactionSc
 
 export const RicevutaScalarFieldEnum = {
   id: 'id',
-  intestazione: 'intestazione',
-  corpo: 'corpo',
-  footer: 'footer',
+  richiestaArt18: 'richiestaArt18',
+  unitaOrganizzativaCompetente: 'unitaOrganizzativaCompetente',
+  ufficioCompetente: 'ufficioCompetente',
+  responsabileProcedimento: 'responsabileProcedimento',
+  durataMassimaProcedimento: 'durataMassimaProcedimento',
+  responsabileProvvedimentoFinale: 'responsabileProvvedimentoFinale',
+  personaPotereSostitutivo: 'personaPotereSostitutivo',
+  urlServizioWeb: 'urlServizioWeb',
+  ufficioRicevimento: 'ufficioRicevimento',
   servizioId: 'servizioId'
 } as const
 

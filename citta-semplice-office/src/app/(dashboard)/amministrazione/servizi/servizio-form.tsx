@@ -27,11 +27,6 @@ interface UnitaOrganizzativa {
   nome: string;
 }
 
-interface TributoRef {
-  id: number;
-  codice: string;
-  descrizione: string | null;
-}
 
 interface ServizioData {
   id: number;
@@ -73,7 +68,6 @@ interface ServizioFormProps {
   servizio?: ServizioData;
   aree: Area[];
   uffici: UfficioRef[];
-  tributi: TributoRef[];
   isNew?: boolean;
 }
 
@@ -207,7 +201,7 @@ function DualListPicker({ availableFields, value, onChange, label, helpText }: D
   );
 }
 
-export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: ServizioFormProps) {
+export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -216,6 +210,10 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
   // Uffici Urbi SMART — caricati dinamicamente al primo uso del protocollo
   const [urbiUffici, setUrbiUffici] = useState<{ codice: string; descrizione: string }[] | null>(null);
   const [ufficiLoading, setUfficiLoading] = useState(false);
+
+  // PmPay servizi (tributi) — caricati una volta al primo uso del pagamento
+  const [pmPayServizi, setPmPayServizi] = useState<{ codiceServizio: string; descrizione?: string }[] | null>(null);
+  const [pmPayLoading, setPmPayLoading] = useState(false);
 
   const loadUffici = useCallback(async () => {
     if (urbiUffici !== null || ufficiLoading) return;
@@ -234,6 +232,24 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
       setUfficiLoading(false);
     }
   }, [urbiUffici, ufficiLoading]);
+
+  const loadPmPayServizi = useCallback(async () => {
+    if (pmPayServizi !== null || pmPayLoading) return;
+    setPmPayLoading(true);
+    try {
+      const res = await fetch('/api/pmpay/servizi');
+      if (res.ok) {
+        const data = await res.json();
+        setPmPayServizi(Array.isArray(data) ? data : []);
+      } else {
+        setPmPayServizi([]);
+      }
+    } catch {
+      setPmPayServizi([]);
+    } finally {
+      setPmPayLoading(false);
+    }
+  }, [pmPayServizi, pmPayLoading]);
 
   const {
     register,
@@ -289,7 +305,8 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
           tipoProtocollo: 'E' as const,
           unitaOrganizzativa: '',
           numerazioneInterna: false,
-          pagamentoCodiceTributoId: null,
+          pagamentoCodiceTributo: '',
+          pagamentoDescrizioneTributo: '',
           pagamentoImporto: null,
           pagamentoImportoVariabile: false,
           pagamentoCausale: '',
@@ -311,7 +328,8 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
           tipoProtocollo: undefined,
           unitaOrganizzativa: '',
           numerazioneInterna: false,
-          pagamentoCodiceTributoId: null,
+          pagamentoCodiceTributo: '',
+          pagamentoDescrizioneTributo: '',
           pagamentoImporto: null,
           pagamentoImportoVariabile: false,
           pagamentoCausale: '',
@@ -356,7 +374,8 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
     tipoProtocollo: undefined as 'E' | 'U' | undefined,
     unitaOrganizzativa: '',
     numerazioneInterna: false,
-    pagamentoCodiceTributoId: null as number | null,
+    pagamentoCodiceTributo: '' as string,
+    pagamentoDescrizioneTributo: '' as string,
     pagamentoImporto: null as number | null,
     pagamentoImportoVariabile: false,
     pagamentoCausale: '',
@@ -455,7 +474,7 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
     const steps = watchedSteps ?? [];
     const hasExternal = steps.some((s) => s.protocollo && !s.numerazioneInterna);
     if (hasExternal) loadUffici();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -1150,6 +1169,10 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
                               className="form-check-input"
                               id={`step-${index}-pagamento`}
                               {...register(`steps.${index}.pagamento`)}
+                              onChange={(e) => {
+                                register(`steps.${index}.pagamento`).onChange(e);
+                                if (e.target.checked) loadPmPayServizi();
+                              }}
                             />
                             <label className="form-check-label" htmlFor={`step-${index}-pagamento`}>
                               Richiede pagamento (PagoPA)
@@ -1160,15 +1183,20 @@ export function ServizioForm({ servizio, aree, uffici, tributi, isNew }: Servizi
                             <div className="ms-4 mb-3 p-3 bg-light rounded">
                               <div className="mb-3">
                                 <Select
-                                  label="Codice Tributo"
-                                  {...register(`steps.${index}.pagamentoCodiceTributoId`, {
-                                    setValueAs: (v) => (v === '' ? null : parseInt(v, 10)),
-                                  })}
+                                  label="Servizio / Tributo PmPay"
+                                  value={watchedSteps?.[index]?.pagamentoCodiceTributo ?? ''}
+                                  onChange={(e) => {
+                                    const selected = pmPayServizi?.find(s => s.codiceServizio === e.target.value);
+                                    setValue(`steps.${index}.pagamentoCodiceTributo`, e.target.value);
+                                    setValue(`steps.${index}.pagamentoDescrizioneTributo`, selected?.descrizione ?? '');
+                                  }}
                                 >
-                                  <option value="">Seleziona tributo</option>
-                                  {tributi.map((t) => (
-                                    <option key={t.id} value={t.id}>
-                                      {t.codice} {t.descrizione ? `- ${t.descrizione}` : ''}
+                                  <option value="">
+                                    {pmPayLoading ? 'Caricamento...' : 'Seleziona servizio'}
+                                  </option>
+                                  {(pmPayServizi ?? []).map((s) => (
+                                    <option key={s.codiceServizio} value={s.codiceServizio}>
+                                      {s.codiceServizio}{s.descrizione ? ` - ${s.descrizione}` : ''}
                                     </option>
                                   ))}
                                 </Select>

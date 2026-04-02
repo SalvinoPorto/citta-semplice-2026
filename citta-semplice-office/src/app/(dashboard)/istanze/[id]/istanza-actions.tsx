@@ -14,6 +14,7 @@ import {
   concludeIstanza,
   takeCharge,
   assignAttributo,
+  generatePayment,
   type AllegatoComunicazione,
 } from './actions';
 import { ASSIGNEDTO } from '@/lib/models/assigned-to';
@@ -24,6 +25,8 @@ interface PagamentoConfig {
   causale: string | null;
   causaleVariabile: boolean;
   obbligatorio: boolean;
+  codiceTributo: string | null;
+  descrizioneTributo: string | null;
 }
 
 interface CurrentStep {
@@ -50,9 +53,14 @@ interface IstanzaActionsProps {
     email: string | null;
     nome: string;
     cognome: string;
+    codiceFiscale: string;
   };
   assignedTo: number;
   currentStep: CurrentStep | null;
+  currentPayment: {
+    id: number;
+    stato: string | null;
+  } | null;
   stepOrdine: number;
   isLastStep: boolean;
   attributoType?: {
@@ -66,6 +74,7 @@ export function IstanzaActions({
   utente,
   assignedTo,
   currentStep,
+  currentPayment,
   stepOrdine,
   isLastStep,
   attributoType,
@@ -81,8 +90,7 @@ export function IstanzaActions({
 
   // Advance state
   const [note, setNote] = useState('');
-  const [pagamentoImporto, setPagamentoImporto] = useState('');
-  const [pagamentoCausale, setPagamentoCausale] = useState('');
+  const [confirmAdvanceWithoutPayment, setConfirmAdvanceWithoutPayment] = useState(false);
 
   // Regress state
   const [regressNote, setRegressNote] = useState('');
@@ -118,8 +126,9 @@ export function IstanzaActions({
   const [loading, setLoading] = useState(false);
 
   const isFirstStep = stepOrdine === 1;
-  const hasPaymentStep = !isFirstStep && currentStep?.pagamento && currentStep.pagamentoConfig;
-  const paymentConfig = currentStep?.pagamentoConfig ?? null;
+  const paymentStep = currentStep?.pagamento ?? false;
+  const paymentRequired = currentStep?.pagamentoConfig?.obbligatorio ?? false;
+  const paymentConfirmed = currentPayment?.stato === 'CON';
 
   const handleTakeCharge = async () => {
     setLoading(true);
@@ -139,29 +148,26 @@ export function IstanzaActions({
   };
 
   const handleAdvance = async () => {
-    // Validate payment fields if needed
-    if (hasPaymentStep && paymentConfig?.importoVariabile && !pagamentoImporto) {
-      toast.error('Inserire l\'importo del pagamento');
+    if (paymentStep && paymentRequired && !paymentConfirmed) {
+      toast.error('Pagamento obbligatorio non confermato. Non è possibile avanzare.');
       return;
     }
-    if (hasPaymentStep && paymentConfig?.causaleVariabile && !pagamentoCausale.trim()) {
-      toast.error('Inserire la causale del pagamento');
+    if (paymentStep && !paymentRequired && !paymentConfirmed && !confirmAdvanceWithoutPayment) {
+      toast.error('Per avanzare senza pagamento confermato, selezionare la conferma esplicita.');
       return;
     }
+
     setLoading(true);
     try {
       const result = await advanceWorkflow({
         istanzaId: istanza.id,
         note,
-        pagamentoImporto: pagamentoImporto ? parseFloat(pagamentoImporto) : undefined,
-        pagamentoCausale: pagamentoCausale || undefined,
       });
       if (result.success) {
         toast.success(result.message || 'Workflow avanzato con successo');
         setShowAdvanceModal(false);
         setNote('');
-        setPagamentoImporto('');
-        setPagamentoCausale('');
+        setConfirmAdvanceWithoutPayment(false);
         router.refresh();
       } else {
         toast.error(result.message || 'Errore durante l\'avanzamento');
@@ -408,12 +414,14 @@ export function IstanzaActions({
                 Concludi
               </Button>
             )}
-            <Button
-              variant="danger"
-              onClick={() => setShowRejectModal(true)}
-            >
-              Respingi
-            </Button>
+            {!isLastStep && (
+              <Button
+                variant="danger"
+                onClick={() => setShowRejectModal(true)}
+              >
+                Respingi
+              </Button>
+            )}
             {attributoType && (
               <Button
                 variant="outline-secondary"
@@ -441,49 +449,31 @@ export function IstanzaActions({
           )}
         </ModalHeader>
         <ModalBody>
-          {/* Sezione Pagamento */}
-          {hasPaymentStep && paymentConfig && (
-            <div className="mb-4 p-3 border border-primary rounded">
-              <h6 className="mb-2 text-primary">Pagamento PagoPA</h6>
-              {paymentConfig.importoVariabile ? (
-                <div className="mb-2">
-                  <Input
-                    type="number"
-                    label="Importo (€) *"
-                    step="0.01"
-                    min={0}
-                    value={pagamentoImporto}
-                    onChange={(e) => setPagamentoImporto(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-              ) : (
-                <p className="small mb-2">
-                  <strong>Importo:</strong> € {paymentConfig.importo?.toFixed(2) ?? '—'}
-                </p>
-              )}
-              {paymentConfig.causaleVariabile ? (
-                <div className="mb-2">
-                  <Input
-                    type="text"
-                    label="Causale *"
-                    value={pagamentoCausale}
-                    onChange={(e) => setPagamentoCausale(e.target.value)}
-                    placeholder="Inserisci la causale..."
-                  />
-                </div>
-              ) : (
-                <p className="small mb-2">
-                  <strong>Causale:</strong> {paymentConfig.causale ?? '—'}
-                </p>
-              )}
-              <p className="small text-muted mb-0">
-                Verrà generato un bollettino PagoPA e inserito nella timeline.
-              </p>
+          <p>Confermi di voler avanzare allo step successivo?</p>
+          {paymentStep && !paymentConfirmed && (
+            <div className="alert alert-warning">
+              {paymentRequired
+                ? 'Pagamento obbligatorio non ancora confermato: è necessario confermare il pagamento prima di avanzare.'
+                : (
+                  <>
+                    <div>Il pagamento non è ancora confermato. Se desideri procedere comunque, spunta la conferma.</div>
+                    <div className="form-check mt-2">
+                      <input
+                        type="checkbox"
+                        id="confirmAdvanceWithoutPayment"
+                        className="form-check-input"
+                        checked={confirmAdvanceWithoutPayment}
+                        onChange={(e) => setConfirmAdvanceWithoutPayment(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="confirmAdvanceWithoutPayment">
+                        Procedo con l&apos;avanzamento anche senza pagamento confermato
+                      </label>
+                    </div>
+                  </>
+                )
+              }
             </div>
           )}
-
-          <p>Confermi di voler avanzare allo step successivo?</p>
           <Textarea
             label="Note (opzionale)"
             value={note}

@@ -1,0 +1,2442 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: API PmPay - PagoPA
+  description: Rest API per PmPay PagoPA
+servers:
+  - url: https://service.pmpay.it/pagoparest
+    description: ambiente di test/preproduzione
+  - url: https://secure.pmpay.it/pagoparest
+    description: ambiente di produzione
+tags:
+  - name: Autenticazione
+  - name: Ente
+    description: gestione di un singolo ente
+  - name: Conto
+    description: operazioni sui conti associati ad un ente
+  - name: Servizio
+    description: prestazioni offerte da un ente
+  - name: Anagrafica
+    description: informazioni relative ai soggetti che operano con un ente
+  - name: Pagamento
+    description: gestione dei pagamenti verso un ente
+  - name: Rendicontazione
+  - name: Batch
+    description: gestione delle operazioni massive su un'entità
+  - name: IUV
+    description: utility per il rilascio di un'id univoco per l'ente utilizzabile come IUV
+  - name: Accertamento
+    description: operazioni legate ad accertamenti
+
+paths:
+  /autenticazione:
+    post:
+      tags: [ Autenticazione ]
+      summary: Richiesta nuovo token
+      responses:
+        200:
+          description: Autenticazione avvenuta con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credenziali'
+  /ente/{codiceEnte}:
+    get:
+      tags: [ Ente ]
+      operationId: getEnte
+      summary: Richiedi le informazione di un ente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      responses:
+        200:
+          description: I dati dell'ente corrispondente al codice richiesto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ente'
+  /ente/{codiceEnte}/conto:
+    post:
+      tags: [ Conto ]
+      description: ContoCreate
+      operationId: createConto
+      summary: Inserimento di un nuovo conto
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InserimentoConto'
+      responses:
+        201:
+          description: Conto creato correttamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatoConId'
+    get:
+      tags: [ Conto ]
+      description: ContoByEnte
+      operationId: listContoByEnte
+      summary: Lista dei conti legati ad un ente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      responses:
+        200:
+          description: Lista conti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conto'
+  /ente/{codiceEnte}/conto/{idConto}:
+    put:
+      tags: [ Conto ]
+      description: ContoUpdate
+      operationId: updateConto
+      summary: Modifica di un conto esistente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idConto
+          in: path
+          required: true
+          description: Identificativo del conto
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificaConto'
+      responses:
+        200:
+          description: Modifica avvenuta correttamente
+    get:
+      tags: [ Conto ]
+      description: ContoByIdConto
+      operationId: findContoByIdConto
+      summary: Dettaglio di un conto
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idConto
+          in: path
+          required: true
+          description: Identificativo del conto
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Dettaglio conto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conto'
+  /ente/{codiceEnte}/servizio:
+    post:
+      tags: [ Servizio ]
+      description: ServizioCreate
+      operationId: createServizio
+      summary: Inserimento di un nuovo servizio
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/InserimentoServizioRequest'
+      responses:
+        201:
+          description: Servizio creato correttamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Creato'
+    get:
+      tags: [ Servizio ]
+      description: ServizioByEnte
+      operationId: findServiziByEnte
+      summary: Lista dei servizi legati ad un ente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      responses:
+        200:
+          description: Lista servizi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Servizio'
+  /ente/{codiceEnte}/servizio/{codiceServizio}:
+    put:
+      tags: [ Servizio ]
+      description: ServizioUpdate
+      operationId: updateServizio
+      summary: Modifica di un servizio esistente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceServizio
+          in: path
+          required: true
+          description: Codice del servizio
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/ModificaServizioRequest'
+      responses:
+        200:
+          description: Modifica avvenuta correttamente
+    get:
+      tags: [ Servizio ]
+      description: ServizioByCodiceServizio
+      operationId: findServizioByCodiceServizio
+      summary: Dettaglio di un servizio
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceServizio
+          in: path
+          required: true
+          description: Codice del servizio
+          schema:
+            type: string
+      responses:
+        200:
+          description: Dettaglio servizio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Servizio'
+  /ente/{codiceEnte}/pagamento:
+    post:
+      tags: [ Pagamento ]
+      operationId: insertPagamento
+      description: |
+        Inserimento singolo pagamento.
+        
+        Se non viene popolato il campo `iuv` questi verrà generato automaticamente e restituito in output.
+      summary: Inserimento di un nuovo pagamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pagamento'
+      responses:
+        '201':
+          description: pagamento creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Creato'
+        '400':
+          description: errore nella richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ente/{codiceEnte}/pagamento/{identificativoPagamento}:
+    get:
+      tags: [ Pagamento ]
+      operationId: getPagamento
+      description: Dettaglio di un pagamento
+      summary: Dettaglio di un pagamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Dettaglio pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pagamento'
+    put:
+      tags: [ Pagamento ]
+      operationId: updatePagamento
+      description: Modifica di un pagamento
+      summary: Modifica di un pagamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificaPagamento'
+      responses:
+        '200':
+          description: Modifica avvenuta correttamente
+    delete:
+      tags: [ Pagamento ]
+      operationId: deletePagamento
+      description: "Eliminazione di un pagamento"
+      summary: "Eliminazione di un pagamento"
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: Eliminazione avvenuta correttamente
+
+  /ente/{codiceEnte}/pagamento/{identificativoPagamento}/accertamenti:
+    put:
+      tags: [ ModificaPagamentoAccertamenti ]
+      operationId: updateAccertamentiPagamento
+      description: Modifica accertamenti di un pagamento
+      summary: Modifica accertamenti di un pagamento
+      security:
+        - bearerToken: [ ]
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificaPagamentoAccertamenti'
+      responses:
+        '200':
+          description: Modifica avvenuta correttamente
+
+  /ente/{codiceEnte}/pagamento/ricerca:
+    post:
+      tags: [ Pagamento ]
+      operationId: ricercaPagamento
+      description: Ricerca di pagamenti
+      summary: Ricerca di pagamenti
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RicercaPagamento'
+      responses:
+        '200':
+          description: elenco pagamenti
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RicercaPagamentoRisposta'
+        '400':
+          description: errore nella richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ente/{codiceEnte}/pagamento/{iuv}/bollettino:
+    get:
+      tags: [ Pagamento ]
+      operationId: getBollettinoPagamento
+      description: Ottieni il bollettino di un pagamento
+      summary: Ottieni bollettino
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: iuv
+          in: path
+          required: true
+          description: Identificativo del pagamento
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pdf bollettino pagamento
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /ente/{codiceEnte}/pagamento/{iuv}/ricevutatelematica:
+    get:
+      tags: [ Pagamento ]
+      operationId: getRicevutaTelematicaPagamento
+      description: Ottieni la ricevuta telematica di un pagamento
+      summary: Ottieni RT
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: iuv
+          in: path
+          required: true
+          description: Identificativo del pagamento
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ricevuta telematica pagamento
+          content:
+            text/xml:
+              schema:
+                type: string
+                format: binary
+  /ente/{codiceEnte}/pagamento/{iuv}/ricevutatelematicazip:
+    get:
+      tags: [ Pagamento ]
+      operationId: getRicevutaTelematicaPagamentoZip
+      description: Ottieni un archivio contenente le ricevute telematiche relative allo iuv specificato (modello 1 multi beneficiario può dare luogo a due RT)
+      summary: Ottieni RT
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: iuv
+          in: path
+          required: true
+          description: Identificativo del pagamento
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ricevuta telematica pagamento
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+  /ente/{codiceEnte}/pagamento/{iuv}/urlpagamento:
+    post:
+      tags: [ Pagamento ]
+      operationId: getUrlPagamento
+      description: Ottieni l'url all'indirizzo dove è possibile completare il pagamento
+      summary: Ottieni url pagamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: iuv
+          in: path
+          required: true
+          description: Identificativo del pagamento
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UrlPagamentoRichiesta'
+      responses:
+        '200':
+          description: Risposta con l'url per il pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlPagamentoRisposta'
+  /ente/{codiceEnte}/pagamento/urlpagamentoCarrello:
+    post:
+      tags: [ Pagamento ]
+      operationId: getUrlPagamentoCarrello
+      description: Ottieni l'url all'indirizzo dove è possibile completare il pagamento di un carrello
+      summary: Ottieni url pagamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UrlPagamentoCarrelloRichiesta'
+      responses:
+        '200':
+          description: Risposta con l'url per il pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlPagamentoRisposta'
+  /ente/{codiceEnte}/pagamento/{identificativoPagamento}/stato-confermato:
+    post:
+      tags: [ Pagamento ]
+      operationId: setPagamentoConfermato
+      description: Aggiorna lo stato di un pagamento pagato fuori nodo a `CON`
+      summary: Aggiorna stato Pagamento CON
+      security:
+        - bearerToken: [ ]
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: Aggiornamento stato avvenuto con successo
+        '400':
+          description: Non è possibile modificare lo stato del pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ente/{codiceEnte}/receipt/{identificativoPagamento}:
+    get:
+      tags: [Pagamento]
+      operationId: getReceipt
+      summary: Ottieni la ricevuta (receipt) di un pagamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Dettaglio receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+  /ente/{codiceEnte}/receipt/{partitaIva}/{identificativoPagamento}:
+    get:
+      tags: [Pagamento]
+      operationId: getReceiptEnteTerzo
+      summary: Ottieni la ricevuta (receipt) di un pagamento relativo ad un altro ente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: partitaIva
+          in: path
+          required: true
+          description: Partita iva relativa all'ente owner del pagamento
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Dettaglio receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+  /ente/{codiceEnte}/receipt-pdf/{identificativoPagamento}:
+    get:
+      tags: [ Pagamento ]
+      operationId: getReceiptPdf
+      summary: Ottieni la ricevuta (receipt) di un pagamento in formato pdf
+      security:
+        - bearerToken: [ ]
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Dettaglio receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+  /ente/{codiceEnte}/receipt-pdf/{partitaIva}/{identificativoPagamento}:
+    get:
+      tags: [ Pagamento ]
+      operationId: getReceiptPdfEnteTerzo
+      summary: Ottieni la ricevuta (receipt) in formato pdf di un pagamento relativo ad un altro ente
+      security:
+        - bearerToken: [ ]
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: partitaIva
+          in: path
+          required: true
+          description: Partita iva relativa all'ente owner del pagamento
+          schema:
+            type: string
+        - name: identificativoPagamento
+          in: path
+          required: true
+          description: >-
+            Identificativo del pagamento. Di default viene supportato lo IUV ma è possibile utilizzare l'idDebito aggiungendo il query parameter **idDebito** con valore true.
+            `/ente/{codiceEnte}/pagamento/{identificativoPagamento}?idDebito=true`
+          schema:
+            type: string
+        - name: idDebito
+          in: query
+          required: false
+          description: Uso dell'idDebito come identificativo del pagamento
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Dettaglio receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+  /ente/{codiceEnte}/anagrafica:
+    post:
+      tags: [ Anagrafica ]
+      description: AnagraficaCreate
+      operationId: createAnagrafica
+      summary: Inserimento di una nuova anagrafica
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Anagrafica'
+      responses:
+        201:
+          description: Servizio creato correttamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatoConId'
+    get:
+      tags: [ Anagrafica ]
+      description: AnagraficaByEnte
+      operationId: findAnagraficaByEnte
+      summary: Lista delle anagrafiche legate ad un ente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      responses:
+        200:
+          description: Lista anagrafiche
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Anagrafica'
+  /ente/{codiceEnte}/anagrafica/{idFiscale}:
+    put:
+      tags: [ Anagrafica ]
+      description: AnagraficaUpdate
+      operationId: updateAnagrafica
+      summary: Modifica di una anagrafica esistente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idFiscale
+          in: path
+          required: true
+          description: Identificativo fiscale dell'anagrafica
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Anagrafica'
+      responses:
+        200:
+          description: Modifica avvenuta correttamente
+    get:
+      tags: [ Anagrafica ]
+      description: AnagraficaByIdFiscale
+      operationId: findAnagraficaByIdFiscale
+      summary: Dettaglio di una anagrafica
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idFiscale
+          in: path
+          required: true
+          description: Identificativo fiscale dell'anagrafica
+          schema:
+            type: string
+      responses:
+        200:
+          description: Dettaglio anagrafica
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anagrafica'
+  /ente/{codiceEnte}/rendicontazione/{idFlussoRendicontazione}:
+    get:
+      tags: [ Rendicontazione ]
+      description: RendicontazioneById
+      operationId: findRendicontazioneById
+      summary: Dettaglio rendicontazione
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idFlussoRendicontazione
+          in: path
+          required: true
+          description: Identificativo del flusso di rendicontazione
+          schema:
+            type: string
+      responses:
+        200:
+          description: Dettaglio rendicontazione
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+  /ente/{codiceEnte}/multipartBatch:
+    post:
+      tags:
+        - Batch
+      description: InserimentoMultipartBatch
+      operationId: InserimentoMultipartBatch
+      summary: Inserimento di una nuova operazione batch
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - idBatch
+                - entita
+                - azione
+              properties:
+                idBatch:
+                  type: string
+                  description: identificativo dell'esecuzione batch, univoco per ente
+                entita:
+                  type: string
+                  enum:
+                    - PAGAMENTO
+                azione:
+                  type: string
+                  enum:
+                    - INSERIMENTO
+                    - MODIFICA
+                    - ELIMINAZIONE
+                    - VARIAZIONESTATO
+                urlNotifica:
+                  type: string
+                  format: url
+                  description: url sul quale è possibile ricevere la notifica di completamento dell'operazione batch. Consiste in una chiamata POST con body coerente allo schema di `BatchStato`
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Inserimento di un'operazione schedulata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InserimentoBatch'
+        '400':
+          description: Richiesta non valida
+  /ente/{codiceEnte}/batch:
+    post:
+      tags: [ Batch ]
+      description: InserimentoBatch
+      operationId: inserimentoBatch
+      summary: Inserimento di una nuova operazione batch
+      deprecated: true
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Batch'
+            encoding:
+              file:
+                contentType: application/json, application/zip
+      responses:
+        200:
+          description: Inserimento di un'operazione schedulata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InserimentoBatch'
+        400:
+          description: Richiesta non valida
+  /ente/{codiceEnte}/batch/{idBatch}/stato:
+    get:
+      tags: [ Batch ]
+      description: getStatoBatch
+      operationId: getStatoBatch
+      summary: Get stato di un batch
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idBatch
+          in: path
+          required: true
+          description: id del flusso batch
+          schema:
+            type: string
+      responses:
+        200:
+          description: Stato batch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStato'
+  /ente/{codiceEnte}/batch/{idBatch}/esito:
+    get:
+      tags: [ Batch ]
+      description: getEsitoBatch
+      operationId: getEsitoBatch
+      summary: Ritorna l'esito di un'operazione sotto forma di file
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: idBatch
+          in: path
+          required: true
+          description: id del flusso batch
+          schema:
+            type: string
+      responses:
+        200:
+          description: Esito batch
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: task non esistente o non ancora completato
+  /ente/{codiceEnte}/genera-iuv:
+    post:
+      tags: [ IUV ]
+      description: genera uno nuovo IUV
+      operationId: generateIUV
+      summary: Calcolo di un nuovo identificativo univoco
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/GenerazioneIuvRequest'
+      responses:
+        200:
+          description: IUV generato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerazioneIuvResponse'
+  /ente/{codiceEnte}/genera-multi-iuv:
+    post:
+      tags: [ IUV ]
+      operationId: generateMultipleIUV
+      summary: Generazione di una lista di IUV
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/GenerazioneIuvMultiplaRequest'
+      responses:
+        200:
+          description: Elenco iuv generati
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerazioneIuvMultiplaResponse'
+
+  #accertamenti
+  /ente/{codiceEnte}/accertamento:
+    post:
+      tags: [ Accertamento ]
+      description: AccertamentoCreate
+      operationId: createAccertamento
+      summary: Inserimento di un nuovo accertamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Accertamento'
+      responses:
+        201:
+          description: Accertamento creato correttamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Creato'
+    get:
+      tags: [ Accertamento ]
+      description: AccertamentiByEnte
+      operationId: findAccertamentiByEnte
+      summary: Lista degli accertamenti legati ad un ente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: annoRiferimento
+          in: query
+          description: Filtro per anno di riferimento
+          schema:
+            type: string
+      responses:
+        200:
+          description: Lista accertamenti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Accertamento'
+
+  /ente/{codiceEnte}/accertamento/{codiceAccertamento}:
+    put:
+      tags: [ Accertamento ]
+      description: AccertamentoUpdate
+      operationId: updateAccertamento
+      summary: Modifica di un accertamento esistente
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceAccertamento
+          in: path
+          required: true
+          description: Codice dell'accertamento
+          schema:
+            $ref: '#/components/schemas/CodiceAccertamento'
+      requestBody:
+        $ref: '#/components/requestBodies/ModificaAccertamentoRequest'
+      responses:
+        200:
+          description: Modifica avvenuta correttamente
+    get:
+      tags: [ Accertamento ]
+      description: AccertamentoByCodiceAccertamento
+      operationId: findAccertamentoByCodiceAccertamento
+      summary: Dettaglio di un accertamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceAccertamento
+          in: path
+          required: true
+          description: Codice dell'accertamento
+          schema:
+            $ref: '#/components/schemas/CodiceAccertamento'
+      responses:
+        200:
+          description: Dettaglio accertamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccertamentoDettaglio'
+    delete:
+      tags: [ Accertamento ]
+      description: Elimina un accertamento. L'operazione è possibile solo per accertamenti senza servizi associati.
+      operationId: deleteAccertamento
+      summary: Elimina un accertamento
+      security:
+        - bearerToken: []
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceAccertamento
+          in: path
+          required: true
+          description: Codice dell'accertamento
+          schema:
+            $ref: '#/components/schemas/CodiceAccertamento'
+      responses:
+        204:
+          description: Eliminazione avvenuta con successo
+        404:
+          description: Accertamento non trovato
+        403:
+          description: Accertamento non cancellabile
+
+  /ente/{codiceEnte}/servizio/{codiceServizio}/accertamenti:
+    post:
+      tags: [ Accertamento ]
+      description: AccertamentoAssociazione
+      operationId: associaAccertamentoAServizio
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceServizio
+          in: path
+          required: true
+          description: Codice del servizio
+          schema:
+            $ref: '#/components/schemas/CodiceServizio'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServizioAccertamenti'
+      responses:
+        200:
+          description: Modifica avvenuta correttamente
+
+    get:
+      tags: [ Accertamento ]
+      description: AccertamentoAssociazioneVisualizza
+      operationId: visualizzaAssociazioniAccertamentoAServizio
+      parameters:
+        - name: codiceEnte
+          in: path
+          required: true
+          description: Codice dell'ente
+          schema:
+            type: string
+        - name: codiceServizio
+          in: path
+          required: true
+          description: Codice del servizio
+          schema:
+            $ref: '#/components/schemas/CodiceServizio'
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServizioAccertamenti'
+
+
+components:
+  securitySchemes:
+    bearerToken:
+      type: http
+      scheme: bearer
+  schemas:
+    CodiceEnte:
+      type: string
+      description: codice identificativo dell'ente
+    CodiceServizio:
+      type: string
+      description: Codice identificativo del servizio univoco per ente
+      minLength: 1
+      example: 'SRV01'
+    Ente:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        codice:
+          type: string
+        nome:
+          type: string
+        email:
+          type: string
+          example: test@email.com
+        codiceFiscale:
+          type: string
+        indirizzo:
+          type: string
+        citta:
+          type: string
+    Conto:
+      type: object
+      properties:
+        idConto:
+          type: integer
+          format: int64
+          readOnly: true
+        codiceEnte:
+          $ref: '#/components/schemas/CodiceEnte'
+        descrizione:
+          type: string
+        iban:
+          $ref: '#/components/schemas/IbanIT'
+        postale:
+          type: boolean
+        intestatario:
+          type: string
+        numeroAutorizzazionePoste:
+          type: string
+        dataAutorizzazionePoste:
+          type: string
+          format: date
+          description: Richiesto se `numeroAutorizzazionePoste` è valorizzato
+        datiAggiuntiviADisposizione:
+          type: object
+          additionalProperties: true
+    InserimentoConto:
+      allOf:
+        - $ref: '#/components/schemas/Conto'
+        - type: object
+          required:
+            - descrizione
+            - iban
+            - codiceEnte
+            - postale
+    ModificaConto:
+      allOf:
+        - $ref: '#/components/schemas/Conto'
+        - type: object
+          required:
+            - descrizione
+            - iban
+            - postale
+    Servizio:
+      type: object
+      required:
+        - tassonomia
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        codiceBilancio:
+          type: string
+        descrizione:
+          type: string
+        abilitato:
+          type: boolean
+          description: Indica se il servizio è attivo se non indicato è attivo
+        codiceServizio:
+          $ref: '#/components/schemas/CodiceServizio'
+        codiceEnte:
+          $ref: '#/components/schemas/CodiceEnte'
+        tipoPartitario:
+          type: string
+          enum:
+            - "1"
+            - "2"
+            - "3"
+            - "4"
+          description: |
+            * 1 se partitario con pagamenti attesi
+            * 2 se partitario con pagamenti spontanei
+            * 3 se partitario con pagamenti attesi e spontanei
+            * 4 se partitario con pagamenti attesi da integrazione
+        dataAttivazione:
+          type: string
+          format: date
+        dataSospensione:
+          type: string
+          format: date
+        portal:
+          type: boolean
+        tipoServizio:
+          type: string
+          description: Se valorizzato a "CUSTOM" è possibile inserire un'array di importi
+          enum: [ 'CONCESSIONIPRECARIE', 'CUSTOM', 'EDUCATIVISONDRIO', 'IMPOSTASOGGIORNO', 'MULTEAUTO', 'T' ]
+        datiServizioCustom:
+          type: array
+          description: Necessario solo se `tipoServizio` = "CUSTOM"
+          items:
+            $ref: '#/components/schemas/DatiCustom'
+        idConto:
+          type: integer
+          format: int64
+          description: Id del conto
+        ibanConto:
+          allOf:
+            - $ref: '#/components/schemas/IbanIT'
+          writeOnly: true
+          description: >-
+            IBAN del conto. Se vengono specificati sia `idConto` che `ibanConto`
+            viene usato solo il primo valore
+        idContoPostale:
+          type: integer
+          format: int64
+          description: Id del conto postale
+        ibanContoPostale:
+          allOf:
+            - $ref: '#/components/schemas/IbanIT'
+          writeOnly: true
+          description: >-
+            IBAN del conto postale da associare. Se vengono specificati sia
+            `idContoPostale` che `ibanContoPostale` viene usato solo il primo
+            valore
+        suggerimento:
+          type: string
+        settoreEnte:
+          type: string
+        tassonomia:
+          type: string
+          minLength: 9
+          maxLength: 9
+          pattern: '\d{7}[A-Z]{2}'
+          description: >-
+            Codice  di 9 caratteri costruito secondo le specifiche di Agid
+        datiAggiuntiviADisposizione:
+          type: object
+          additionalProperties: true
+        flagSoggettoTerzo:
+          type: boolean
+          description: >-
+            Se true diventano obbligatori idConto/ibanConto e idFiscaleSoggettoTerzo
+        idFiscaleSoggettoTerzo:
+          type: string
+    InserimentoServizio:
+      allOf:
+        - $ref: '#/components/schemas/Servizio'
+        - type: object
+          required:
+            - codiceServizio
+            - codiceEnte
+            - tassonomia
+    ModificaServizio:
+      allOf:
+        - $ref: '#/components/schemas/Servizio'
+        - type: object
+          required:
+            - tassonomia
+    DatiCustom:
+      type:
+        object
+      properties:
+        nome:
+          type: string
+        descrizione:
+          type: string
+        solaLettura:
+          type: boolean
+      oneOf:
+        - $ref: '#/components/schemas/DatiCustomNumero'
+        - $ref: '#/components/schemas/DatiCustomTesto'
+    DatiCustomNumero:
+      properties:
+        nome:
+          type: string
+        descrizione:
+          type: string
+        solaLettura:
+          type: boolean
+        valoreNumerico:
+          type: number
+      example:
+        numero:
+          value:
+            nome: nomeCampo
+            descrizione: descrizione2
+            solaLettura: false
+            valoreNumerico: -2
+    DatiCustomTesto:
+      properties:
+        nome:
+          type: string
+        descrizione:
+          type: string
+        solaLettura:
+          type: boolean
+        valoreTestuale:
+          type: string
+      example:
+        testo:
+          value:
+            nome: nomeCampo
+            descrizione: descrizione1
+            solaLettura: true
+            valoreTestuale: valore1
+    Creato:
+      properties:
+        code:
+          type: string
+    CreatoConId:
+      properties:
+        id:
+          type: integer
+          format: int64
+    Credenziali:
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    Token:
+      properties:
+        token:
+          type: string
+        expiration:
+          type: string
+          format: date-time
+    Pagamento:
+      type: object
+      required:
+        - idFiscaleDebitore
+        - versamenti
+      properties:
+        iuv:
+          $ref: '#/components/schemas/IUV'
+        numeroAvviso:
+          allOf:
+            - $ref: '#/components/schemas/NumeroAvviso'
+          readOnly: true
+        idDebito:
+          $ref: '#/components/schemas/IdDebito'
+        importo:
+          allOf:
+            - $ref: '#/components/schemas/ImportoNumber'
+          readOnly: true
+        dataScadenza:
+          type: string
+          format: date
+        dataInizioValidita:
+          type: string
+          format: date
+        dataFineValidita:
+          type: string
+          format: date
+        idFiscaleDebitore:
+          type: string
+          example: PPPPLT80R10M082K
+          description: "Per eseguire pagamenti anonimi `idFiscaleDebitore` deve essere valorizzato con il valore: XYZXYZ80A01H501C"
+          x-format: CfPiva
+        anagrafica:
+          description: "specificando questo campo è possibile definire e salvare l'anagrafica proprio come avviene chiamando /ente/{codiceEnte}/anagrafica"
+          writeOnly: true
+          allOf:
+            - $ref: '#/components/schemas/Anagrafica'
+        idRata:
+          type: string
+          example: XYZ_WKQ
+          description: "Identifica i pagamenti costituenti lo stesso pacchetto rate"
+        idxRata:
+          type: integer
+          minimum: 0
+          maximum: 99
+          example: 0
+          description: "Identifica l'ordine dei pagamenti all'interno del pacchetto di rate. 0 = rata unica. Considerato solo in presenza di idRata"
+        versamenti:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/Versamento'
+        datiAggiuntiviADisposizione:
+          $ref: '#/components/schemas/DatiAggiuntivi'
+        dataInsermento:
+          type: string
+          format: date-time
+          readOnly: true
+        dataOperazione:
+          type: string
+          format: date
+          readOnly: true
+        numeroVersamenti:
+          type: integer
+          readOnly: true
+        iur:
+          type: string
+          readOnly: true
+        tipoEsecuzionePagamento:
+          readOnly: true
+          type: string
+          description: |
+            * ON indica un pagamento effettuato tramite modello 1
+            * PO indica un pagamento effettuato tramite modello 3
+            * POS indica un pagamento effettuato tramite POS
+        statoPagamento:
+          readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/StatoPagamento'
+        canaleInserimentoPagamento:
+          readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/CanaleInserimentoPagamento'
+        iban:
+          description: in caso di pagamento concluso (stato CON) viene riportato l'iban su cui è stato accreditato l'importo, si consiglia di usare quello contenuto nei versamenti
+          type: string
+          readOnly: true
+        datiAttualizzazione:
+          description: "Contiene i dati realitivi all'attualizzazione del pagamento"
+          allOf:
+            - $ref: '#/components/schemas/DatiAttualizzazione'
+        datiAttualizzazioneSend:
+          description: "Contiene i dati realitivi all'attualizzazione SEND"
+          allOf:
+            - $ref: '#/components/schemas/DatiAttualizzazioneSend'
+        acaInfo:
+          allOf:
+            - $ref: '#/components/schemas/AcaInfo'
+          readOnly: true
+        datiDebitore:
+          description: dati del debitore come da specifiche pagoPA, se indicati quanto presente in anagrafica viene ignorato. i dati del debitore vengono associati direttamente al pagamento e non viene creato nessun dato in anagrafica. se presenti vengono indicati anche nella risposta.
+          type: object
+          required:
+            - fullName
+            - idType
+          properties:
+            fullName:
+              type: string
+              maxLength: 70
+            streetName:
+              type: string
+              maxLength: 70
+            civicNumber:
+              type: string
+              maxLength: 16
+            postalCode:
+              type: string
+              maxLength: 16
+            city:
+              type: string
+              maxLength: 35
+            stateProvinceRegion:
+              type: string
+              maxLength: 35
+            country:
+              type: string
+              pattern: '[A-Z]{2,2}'
+            email:
+              type: string
+              pattern: '[a-zA-Z0-9_\.\+\-]+@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*'
+            idType:
+              type: string
+              enum: [ 'F', 'G' ]
+    Versamento:
+      required:
+        - importo
+        - causale
+        - servizio
+      properties:
+        importo:
+          $ref: '#/components/schemas/ImportoNumber'
+        causale:
+          type: string
+          maxLength: 255
+        servizio:
+          type: string
+          example: SRV-01
+        vociVersamento:
+          type: string
+        datiBollo:
+          $ref: '#/components/schemas/DatiBollo'
+        datiAggiuntiviADisposizione:
+          $ref: '#/components/schemas/DatiAggiuntivi'
+        idFlussoRendicontazione:
+          type: string
+          readOnly: true
+        identificativoPsp:
+          readOnly: true
+          description: codice identificativo del psp
+          type: string
+        ibanAccredito:
+          type: string
+          readOnly: true
+        accertamenti:
+          description: lista di accertamenti associati al versamento - utilizzabile solamente se attiva la funzionalità di gestione accertamenti - devono esere accertamenti associati al servizio ed attivi. la somma degli importi dei singoli accertamenti deve coincidere con l'importo del versamento. se non vengono indicati accertamenti l'intero importo verrà imputato all'accertamento di default per il servizio.
+          type: array
+          items:
+            $ref: '#/components/schemas/AccertamentoImporto'
+    ModificaPagamento:
+      required:
+        - versamenti
+      properties:
+        dataScadenza:
+          type: string
+          format: date
+        dataInizioValidita:
+          type: string
+          format: date
+        dataFineValidita:
+          type: string
+          format: date
+        versamenti:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/ModificaVersamento'
+        datiAttualizzazione:
+          description: "Contiene i dati realitivi all'attualizzazione del pagamento"
+          allOf:
+            - $ref: '#/components/schemas/DatiAttualizzazione'
+    ModificaVersamento:
+      type: object
+      required:
+        - importo
+        - causale
+      properties:
+        importo:
+          $ref: '#/components/schemas/ImportoNumber'
+        causale:
+          type: string
+          maxLength: 255
+        accertamenti:
+          description: lista di accertamenti associati al versamento - utilizzabile solamente se attiva la funzionalità di gestione accertamenti - devono esere accertamenti associati al servizio ed attivi. la somma degli importi dei singoli accertamenti deve coincidere con l'importo del versamento. se non vengono indicati accertamenti l'intero importo verrà imputato all'accertamento di default per il servizio.
+          type: array
+          items:
+            $ref: '#/components/schemas/AccertamentoImporto'
+
+    ModificaPagamentoAccertamenti:
+      required:
+        - versamenti
+      properties:
+        versamenti:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/ModificaVersamentoAccertamenti'
+    ModificaVersamentoAccertamenti:
+      type: object
+      properties:
+        accertamenti:
+          description: lista di accertamenti associati al versamento - utilizzabile solamente se attiva la funzionalità di gestione accertamenti - devono esere accertamenti associati al servizio ed attivi. la somma degli importi dei singoli accertamenti deve coincidere con l'importo del versamento. se non vengono indicati accertamenti l'intero importo verrà imputato all'accertamento di default per il servizio.
+          type: array
+          items:
+            $ref: '#/components/schemas/AccertamentoImporto'
+
+    InserimentoPagamentoBatch:
+      allOf:
+        - $ref: '#/components/schemas/Pagamento'
+    ModificaPagamentoBatch:
+      allOf:
+        - $ref: '#/components/schemas/ModificaPagamento'
+        - $ref: '#/components/schemas/IdentificativoPagamento'
+    EliminaPagamentoBatch:
+      allOf:
+        - $ref: '#/components/schemas/IdentificativoPagamento'
+    IdentificativoPagamento:
+      type: object
+      required:
+        - identificativoPagamento
+        - tipoIdentificativo
+      properties:
+        identificativoPagamento:
+          type: string
+        tipoIdentificativo:
+          type: string
+          enum: ['IUV', 'ID_DEBITO']
+    RicercaPagamento:
+      additionalProperties: false
+      required:
+        - paginazione
+      properties:
+        paginazione:
+          $ref: '#/components/schemas/RichiestaPaginazione'
+        ordinamento:
+          $ref: '#/components/schemas/Ordinamento'
+        importoDa:
+          $ref: '#/components/schemas/ImportoNumber'
+        importoA:
+          $ref: '#/components/schemas/ImportoNumber'
+        dataInserimentoDa:
+          type: string
+          format: date
+        dataInsermentoA:
+          type: string
+          format: date
+        dataOperazioneDa:
+          type: string
+          format: date
+        dataOperazioneA:
+          type: string
+          format: date
+        dataScadenzaDa:
+          type: string
+          format: date
+        dataScadenzaA:
+          type: string
+          format: date
+        dataRendicontazioneDa:
+          type: string
+          format: date
+        dataRendicontazioneA:
+          type: string
+          format: date
+        servizio:
+          type: string
+        idFiscale:
+          type: string
+        statoPagamento:
+          $ref: '#/components/schemas/StatoPagamento'
+        statoRendicontato:
+          type: boolean
+        canaleInsermentoPagamento:
+          $ref: '#/components/schemas/CanaleInserimentoPagamento'
+        tipoEsecuzionePagamento:
+          $ref: '#/components/schemas/TipoEsecuzionePagamento'
+        iuv:
+          $ref: '#/components/schemas/IUV'
+        idDebito:
+          $ref: '#/components/schemas/IdDebito'
+        idFlussoRendicontazione:
+          type: string
+          minLength: 1
+        numeroAvviso:
+          $ref: '#/components/schemas/NumeroAvviso'
+    RicercaPagamentoRisposta:
+      properties:
+        paginazione:
+          $ref: '#/components/schemas/Paginazione'
+        ordinamento:
+          $ref: '#/components/schemas/Ordinamento'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pagamento'
+    IUV:
+      type: string
+      minLength: 1
+      maxLength: 35
+      example: '10000000000000001'
+    NumeroAvviso:
+      type: string
+      minLength: 18
+      maxLength: 18
+      example: '001100000000000001'
+    IbanIT:
+      type: string
+      pattern: "[A-Z]{2,2}[0-9]{2,2}[A-Z0-9]{1,30}"
+      x-format: Iban
+      maxLength: 27
+      minLength: 27
+    IdDebito:
+      type: string
+      minLength: 1
+      maxLength: 46
+      example: ABC_DEF_GHI
+    ImportoNumber:
+      type: string
+      format: number
+      minimum: 0.01
+      maximum: 999999999.99
+      example: '0.01'
+    DatiBollo:
+      required:
+        - impronta
+        - provinciaResidenza
+      properties:
+        tipoBollo:
+          type: string
+          description: "01 – valore fisso"
+          enum: [ '01' ]
+        impronta:
+          type: string
+          description: "Hash SHA256 del documento informatico rappresentato in base64, 44 caratteri ( es. test= n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg= )"
+          maxLength: 44
+          minLength: 44
+        provinciaResidenza:
+          type: string
+          description: "sigla identificativa della provincia di residenza"
+          pattern: '[A-Z]{2,2}'
+    StatoPagamento:
+      type: string
+      enum: [ 'DAD', 'ATT', 'NCO', 'CON', 'RAT' ]
+      description: |
+        * DAD indica un pagamento in stato "da definire"
+        * ATT indica un pagamento "in attesa esito"
+        * NCO indica un pagamento in stato "non confermato"
+        * CON indica un pagamento in stato "confermato"
+        * RAT indica un pagamento rateale
+    CanaleInserimentoPagamento:
+      type: string
+      description: canale tramite il quale è stato registrato il pagamento su PmPay. Ad esempio "pagoparest" nel caso sia stata usata l'api d'inserito pagamento definita qui
+      example: pagoparest
+    TipoEsecuzionePagamento:
+      type: string
+      enum: [ 'ON', 'PO', 'POS' ]
+      description: |
+        * ON indica un pagamento effettuato tramite modello 1
+        * PO indica un pagamento effettuato tramite modello 3
+        * POS indica un pagamento effettuato tramite POS
+    DatiAggiuntivi:
+      type: object
+      additionalProperties: true
+      maxProperties: 10
+    RichiestaPaginazione:
+      required:
+        - dimensionePagina
+        - paginaCorrente
+      properties:
+        dimensionePagina:
+          type: integer
+          maximum: 1000
+        paginaCorrente:
+          type: integer
+          minimum: 1
+    Paginazione:
+      allOf:
+        - $ref: '#/components/schemas/RichiestaPaginazione'
+        - type: object
+          properties:
+            numeroPagineTotali:
+              type: integer
+              readOnly: true
+            numeroElementiTotali:
+              type: integer
+              readOnly: true
+            numeroElementiPagina:
+              type: integer
+              readOnly: true
+    Ordinamento:
+      type: array
+      items:
+        $ref: '#/components/schemas/CampoOrdinamento'
+      minItems: 1
+      maxItems: 5
+    CampoOrdinamento:
+      required:
+        - campo
+        - ascDesc
+      properties:
+        campo:
+          type: string
+          enum: [ 'importo', 'dataInserimento', 'dataOperazione', 'dataScadenza', 'dataRendicontazione', 'servizio', 'idFiscale', 'statoPagamento', 'statoRendicontato', 'canaleInsermentoPagamento', 'tipoEsecuzionePagamento', 'iuv', 'idDebito', 'dataInizioValidita', 'dataFineValidita', 'iur', 'causale', 'idFlussoRendicontazione', "numeroAvviso" ]
+        ascDesc:
+          type: string
+          enum: [ 'ASC', 'DESC' ]
+    Batch:
+      required:
+        - file
+        - operazione
+      properties:
+        operazione:
+          $ref: '#/components/schemas/OperazioneBatch'
+        file:
+          description: |
+            Contenuto file atteso:
+            * array di `InserimentoPagamentoBatch` in caso di entità="PAGAMENTO" e azione="INSERIMENTO"
+            * array di `ModificaPagamentoBatch` in caso di entità="PAGAMENTO" e azione="MODIFICA"
+            * array di `EliminazionePagamentoBatch` in caso di entità="PAGAMENTO" e azione="ELIMINAZIONE"
+            * array di `ModificaStatoPagamentoBatch` in caso di entità="PAGAMENTO" e azione="VARIAZIONESTATO"
+            
+            I file malformati rispetto alle specifiche json verrano scartati completamente. Quelli con valori non validi verranno invece processati.
+            Nel file di esito (reperibile tramite la chiamata /ente/{codiceEnte}/batch/{idBatch}/esito) verrà specificato il risultato per ogni singolo record processato.
+          type: string
+          format: binary
+    BatchStato:
+      properties:
+        timestampInserimento:
+          type: string
+          format: date-time
+        esito:
+          type: string
+          enum: [ "INSERITO", "ERRORE", "CARICAMENTO_OK", "CARICAMENTO_KO" ]
+        totaleRecord:
+          type: integer
+        totaleErrori:
+          type: integer
+        timestampElaborazione:
+          type: string
+          format: date-time
+        operazione:
+          $ref: '#/components/schemas/OperazioneBatch'
+    OperazioneBatch:
+      required:
+        - idBatch
+        - entita
+        - azione
+      properties:
+        idBatch:
+          type: string
+          description: identificativo dell'esecuzione batch, univoco per ente
+        entita:
+          type: string
+          enum: [ PAGAMENTO ]
+        azione:
+          type: string
+          enum: [ INSERIMENTO, MODIFICA, ELIMINAZIONE, VARIAZIONESTATO ]
+        urlNotifica:
+          type: string
+          format: url
+          description: url sul quale è possibile ricevere la notifica di completamento dell'operazione batch. Consiste in una chiamata POST con body coerente allo schema di `BatchStato`
+    IdFiscale:
+      required:
+        - tipo
+        - codice
+      properties:
+        tipo:
+          type: string
+          enum: [ 'F', 'G' ]
+          description: |
+            * F se persona fisica
+            * G persona giuridica
+        codice:
+          type: string
+          example: PPPPLT80R10M082K
+          maxLength: 35
+          x-format: CfPiva
+      x-format: IdFiscale
+    UrlPagamentoCarrelloRichiesta:
+      allOf:
+        - $ref: '#/components/schemas/UrlPagamentoRichiesta'
+        - type: object
+          properties:
+            iuv:
+              type: array
+              items:
+                type: string
+              minItems: 1
+              maxItems: 5
+    UrlPagamentoRichiesta:
+      required:
+        - urlOk
+        - urlKo
+        - urlCancel
+      properties:
+        urlOk:
+          type: string
+          format: url
+        urlKo:
+          type: string
+          format: url
+        urlS2S:
+          type: string
+          format: url
+        urlCancel:
+          type: string
+          format: url
+        idRichiesta:
+          type: string
+    Anagrafica:
+      required:
+        - idFiscale
+        - codiceEnte
+        - anagrafica
+      properties:
+        codiceEnte:
+          $ref: '#/components/schemas/CodiceEnte'
+        idFiscale:
+          $ref: '#/components/schemas/IdFiscale'
+        anagrafica:
+          type: string
+          maxLength: 70
+        indirizzo:
+          type: string
+          maxLength: 70
+        cap:
+          type: string
+          maxLength: 16
+        localita:
+          type: string
+          maxLength: 35
+        provincia:
+          type: string
+          pattern: '[A-Z]{2,2}'
+        nazione:
+          type: string
+          pattern: '[A-Z]{2,2}'
+        email:
+          type: string
+          pattern: '[a-zA-Z0-9_\.\+\-]+@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*'
+          example: test@email.com
+    GenerazioneIuvResponse:
+      properties:
+        iuv:
+          type: string
+    GenerazioneIuvMultiplaResponse:
+      allOf:
+        - $ref: '#/components/schemas/GenerazioneIuvMultipla'
+        - type: object
+          properties:
+            iuv:
+              type: array
+              items:
+                type: string
+    ErrorResponse:
+      properties:
+        status:
+          type: integer
+          example: 400
+        reason:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: 'Invalid request body'
+        errors:
+          type: array
+          items:
+            type: string
+          example: [ 'a-field invalid value: null' ]
+    InserimentoBatch:
+      required:
+        - idBatch
+        - timestampInserimento
+      properties:
+        idBatch:
+          type: string
+        timestampInserimento:
+          type: string
+          format: date-time
+    UrlPagamentoRisposta:
+      required:
+        - location
+      properties:
+        location:
+          type: string
+          format: url
+    GenerazioneIuv:
+      properties:
+        codiceServizio:
+          $ref: '#/components/schemas/CodiceServizio'
+    GenerazioneIuvMultipla:
+      allOf:
+        - $ref: '#/components/schemas/GenerazioneIuv'
+        - type: object
+          required:
+            - numeroIuvRichiesti
+          properties:
+            numeroIuvRichiesti:
+              type: integer
+              minimum: 1
+              maximum: 10000
+              example: 20
+    Receipt:
+      properties:
+        iuv:
+          $ref: '#/components/schemas/IUV'
+        partitaIva:
+          type: string
+          description: eventuale partita iva dell'ente terzo a cui si riferisce lo IUV
+        tipo:
+          type: string
+          enum:
+            - RT
+            - RECEIPT
+            - RECEIPT_V2
+        receiptBase64:
+          type: string
+        receiptFittiziaBase64:
+          type: string
+          description: valore presente solo nei casi di pagamenti tramite vecchio modello 1
+    ModificaStatoPagamento:
+      required:
+        - pagato
+      properties:
+        pagato:
+          type: boolean
+        dataPagamento:
+          type: string
+          format: date
+    ModificaStatoPagamentoBatch:
+      allOf:
+        - $ref: '#/components/schemas/ModificaStatoPagamento'
+        - $ref: '#/components/schemas/IdentificativoPagamento'
+    DatiAttualizzazione:
+      required:
+        - flagAttualizzaSempre
+      properties:
+        flagAttualizzaSempre:
+          description: flag per forzare attualizzazione ad ogni tentativo di pagamento
+          type: boolean
+        urlAttualizzaSempre:
+          description: url al quale inoltrare la richiesta di attualizzazione
+          type: string
+    DatiAttualizzazioneSend:
+      required:
+        - flagAttualizzaSend
+      properties:
+        flagAttualizzaSend:
+          description: flag per richiedere attualizzazione SEND durante i tentativi di pagamento
+          type: boolean
+    AcaInfo:
+      description: Informazioni relative all'Archivio Centralizzato degli Avvisi (ACA)
+      required:
+        - caricato
+      properties:
+        caricato:
+          description: Indica se il pagamento è stato caricato. Il caricamento potrebbe richiedere alcuni minuti dalla creazione dello stesso.
+          type: boolean
+
+    CodiceAccertamento:
+      type: string
+      description: Codice identificativo dell'accertamento univoco per ente
+      minLength: 1
+      maxLength: 50
+
+    CodiceTariffario:
+      type: string
+      description: Codice identificativo del tariffario univoco per ente e servizio
+      minLength: 1
+      maxLength: 50
+
+    ModificaAccertamento:
+      description: dati modificabili di un accertamento
+      required:
+        - descrizione
+        - anno
+        - enabled
+        - isSpedeNotificaSendDefault
+      properties:
+        descrizione:
+          description: descrizione dell'accertamento
+          type: string
+          minLength: 1
+          maxLength: 255
+        anno:
+          description: anno di riferimento dell'accertamento
+          type: string
+        enabled:
+          type: boolean
+        isSpeseNotificaSendDefault:
+          description: flag che indica se si tratta dell'accertamento di default legato alle spese di notifica send per l'ente, considerato solamente se isSpeseNotificaSend
+          type: boolean
+
+    Accertamento:
+      description: Informazioni relative ad un accertamento
+      required:
+        - codice
+        - isSpeseNotificaSend
+      allOf:
+        - $ref: '#/components/schemas/ModificaAccertamento'
+        - type: object
+          properties:
+            codice:
+              $ref: '#/components/schemas/CodiceAccertamento'
+            isSpeseNotificaSend:
+              description: flag che indica se si tratta di un accertamento relativo a spese di notifica send. Considerato solamente per gli enti abilitati al servizio di aggiornamento per spese di notifica send.
+              type: boolean
+
+    AccertamentoImporto:
+      description: associazione tra accertamento ed importo
+      required:
+        - codiceAccertamento
+        - importo
+      properties:
+        codiceAccertamento:
+          $ref: '#/components/schemas/CodiceAccertamento'
+        importo:
+          description: importo dell'accertamento in centesimi di euro
+          type: integer
+
+    ServizioAccertamenti:
+      required:
+        - accertamentoDefault
+      properties:
+        accertamentoDefault:
+          $ref: '#/components/schemas/CodiceAccertamento'
+        accertamentoSend:
+          $ref: '#/components/schemas/CodiceAccertamento'
+        accertamenti:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccertamentoServizio'
+
+    AccertamentoServizio:
+      description: associazione tra accertamento e servizio
+      required:
+        - codiceAccertamento
+        - enabled
+      properties:
+        codiceAccertamento:
+          $ref: '#/components/schemas/CodiceAccertamento'
+        enabled:
+          type: boolean
+
+    AccertamentoDettaglio:
+      description: dettaglio di un accertamento
+      required:
+        - accertamento
+      properties:
+        accertamento:
+          $ref: '#/components/schemas/Accertamento'
+        servizi:
+          type: array
+          items:
+            type: object
+            properties:
+              codiceServizio:
+                $ref: '#/components/schemas/CodiceServizio'
+              default:
+                type: boolean
+              enabled:
+                type: boolean
+              tariffari:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CodiceTariffario'
+
+
+  requestBodies:
+    InserimentoServizioRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InserimentoServizio'
+    ModificaServizioRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ModificaServizio'
+    InserimentoContoRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InserimentoConto'
+    ModificaContoRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ModificaConto'
+    GenerazioneIuvRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenerazioneIuv'
+    GenerazioneIuvMultiplaRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenerazioneIuvMultipla'
+    ModificaAccertamentoRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ModificaAccertamento'

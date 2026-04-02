@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
+import { ROLES } from '@/lib/auth/roles';
 
 interface SortState {
   field: string;
@@ -14,7 +15,6 @@ interface Filter {
 
 interface FormFilters {
   protocollo: string;
-  codiceFiscale: string;
   modulo: string;
   anno: string;
   cerca: string;
@@ -29,46 +29,57 @@ interface SearchBody {
   columnFilters: Filter[];
 }
 
-async function getIstanzeCounts(operatoreId: number) {
+async function getIstanzeCounts(operatoreId: number, isAdmin: boolean) {
+  // For non-admin: filter istanze to services the operator has visibility on
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const servizioFilter: any = isAdmin
+    ? {}
+    : { servizio: { operatori: { some: { operatoreId } } } };
+
   const [nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale] =
     await Promise.all([
       prisma.istanza.count({
-        where: {
-          conclusa: false,
-          respinta: false,
-          workflows: { every: { operatoreId: null } },
-        },
+        where: { ...servizioFilter, conclusa: false, respinta: false, workflows: { every: { operatoreId: null } } },
       }),
-      prisma.$queryRaw<[{ count: bigint }]>`
-        SELECT COUNT(DISTINCT i.id) as count
-        FROM istanze i
-        INNER JOIN workflows w ON w.istanza_id = i.id
-        WHERE i.conclusa = false AND i.respinta = false
-        AND w.id = (
-          SELECT w2.id FROM workflows w2
-          WHERE w2.istanza_id = i.id
-          ORDER BY w2.data_variazione DESC
-          LIMIT 1
-        )
-        AND w.operatore_id = ${operatoreId}
-      `.then((r) => Number(r[0]?.count || 0)),
-      prisma.$queryRaw<[{ count: bigint }]>`
-        SELECT COUNT(DISTINCT i.id) as count
-        FROM istanze i
-        INNER JOIN workflows w ON w.istanza_id = i.id
-        WHERE i.conclusa = false AND i.respinta = false
-        AND w.id = (
-          SELECT w2.id FROM workflows w2
-          WHERE w2.istanza_id = i.id
-          ORDER BY w2.data_variazione DESC
-          LIMIT 1
-        )
-        AND w.operatore_id IS NOT NULL
-        AND w.operatore_id != ${operatoreId}
-      `.then((r) => Number(r[0]?.count || 0)),
-      prisma.istanza.count({ where: { respinta: true } }),
-      prisma.istanza.count({ where: { conclusa: true } }),
-      prisma.istanza.count(),
+      isAdmin
+        ? prisma.$queryRaw<[{ count: bigint }]>`
+            SELECT COUNT(DISTINCT i.id) as count
+            FROM istanze i
+            INNER JOIN workflows w ON w.istanza_id = i.id
+            WHERE i.conclusa = false AND i.respinta = false
+            AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+            AND w.operatore_id = ${operatoreId}
+          `.then((r) => Number(r[0]?.count || 0))
+        : prisma.$queryRaw<[{ count: bigint }]>`
+            SELECT COUNT(DISTINCT i.id) as count
+            FROM istanze i
+            INNER JOIN workflows w ON w.istanza_id = i.id
+            INNER JOIN operatore_servizi os ON os.servizio_id = i.servizio_id AND os.operatore_id = ${operatoreId}
+            WHERE i.conclusa = false AND i.respinta = false
+            AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+            AND w.operatore_id = ${operatoreId}
+          `.then((r) => Number(r[0]?.count || 0)),
+      isAdmin
+        ? prisma.$queryRaw<[{ count: bigint }]>`
+            SELECT COUNT(DISTINCT i.id) as count
+            FROM istanze i
+            INNER JOIN workflows w ON w.istanza_id = i.id
+            WHERE i.conclusa = false AND i.respinta = false
+            AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+            AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
+          `.then((r) => Number(r[0]?.count || 0))
+        : prisma.$queryRaw<[{ count: bigint }]>`
+            SELECT COUNT(DISTINCT i.id) as count
+            FROM istanze i
+            INNER JOIN workflows w ON w.istanza_id = i.id
+            INNER JOIN operatore_servizi os ON os.servizio_id = i.servizio_id AND os.operatore_id = ${operatoreId}
+            WHERE i.conclusa = false AND i.respinta = false
+            AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+            AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
+          `.then((r) => Number(r[0]?.count || 0)),
+      prisma.istanza.count({ where: { ...servizioFilter, respinta: true } }),
+      prisma.istanza.count({ where: { ...servizioFilter, conclusa: true } }),
+      prisma.istanza.count({ where: servizioFilter }),
     ]);
 
   return { nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale };
@@ -81,6 +92,7 @@ export async function POST(request: NextRequest) {
   }
 
   const operatoreId = parseInt(session.user.id);
+  const isAdmin = (session.user.ruoli ?? []).includes(ROLES.ADMIN);
 
   let body: SearchBody;
   try {
@@ -94,13 +106,18 @@ export async function POST(request: NextRequest) {
     page = 1,
     pageSize = 10,
     sort = { field: 'dataInvio', direction: -1 },
-    formFilters = { protocollo: '', codiceFiscale: '', modulo: '', anno: '', cerca: '' },
+    formFilters = { protocollo: '', modulo: '', anno: '', cerca: '' },
     columnFilters = [],
   } = body;
 
   // Build where clause
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereClause: any = {};
+
+  // Non-admin: restrict to services the operator has visibility on
+  if (!isAdmin) {
+    whereClause.servizio = { operatori: { some: { operatoreId } } };
+  }
 
   if (formFilters.modulo) {
     whereClause.servizioId = parseInt(formFilters.modulo);
@@ -113,11 +130,6 @@ export async function POST(request: NextRequest) {
     ];
   }
 
-  if (formFilters.codiceFiscale) {
-    whereClause.utente = {
-      codiceFiscale: { contains: formFilters.codiceFiscale.toUpperCase(), mode: 'insensitive' },
-    };
-  }
 
   if (formFilters.anno) {
     const year = parseInt(formFilters.anno);
@@ -136,6 +148,7 @@ export async function POST(request: NextRequest) {
       { dati: { contains: formFilters.cerca, mode: 'insensitive' } },
       { utente: { cognome: { contains: formFilters.cerca, mode: 'insensitive' } } },
       { utente: { nome: { contains: formFilters.cerca, mode: 'insensitive' } } },
+      { utente: { codiceFiscale: { contains: formFilters.cerca.toUpperCase(), mode: 'insensitive' } } },
     ];
     if (whereClause.OR) {
       whereClause.AND = [{ OR: whereClause.OR }, { OR: cercaConditions }];
@@ -227,7 +240,6 @@ export async function POST(request: NextRequest) {
         take: 1,
         include: {
           step: { select: { descrizione: true, ordine: true } },
-          status: { select: { stato: true } },
           operatore: { select: { id: true, nome: true, cognome: true } },
         },
       },
@@ -272,7 +284,7 @@ export async function POST(request: NextRequest) {
   const paginatedIstanze = istanze.slice(start, start + safePageSize);
   const totalPages = Math.ceil(total / safePageSize) || 1;
 
-  const counts = await getIstanzeCounts(operatoreId);
+  const counts = await getIstanzeCounts(operatoreId, isAdmin);
 
   return NextResponse.json({
     data: paginatedIstanze,

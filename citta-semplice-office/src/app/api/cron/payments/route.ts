@@ -8,6 +8,10 @@ import { pmPayService } from '@/lib/external/pmpay';
  * Requires CRON_SECRET header for authentication
  */
 export async function GET(request: NextRequest) {
+  if (process.env.ENABLE_CRON_JOBS !== 'true') {
+    return NextResponse.json({ error: 'Cron jobs disabilitati' }, { status: 503 });
+  }
+
   // Verify cron secret
   const cronSecret = request.headers.get('x-cron-secret');
   if (cronSecret !== process.env.CRON_SECRET) {

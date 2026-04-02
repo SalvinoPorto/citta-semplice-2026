@@ -9,15 +9,41 @@ import { join } from 'node:path';
 import { pmPayService } from '@/lib/external/pmpay';
 import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
 
-const STATUS_ELABORAZIONE = 1;
-const STATUS_SUCCESSO = 2;
-const STATUS_RESPINTA = 4;
+// stato: operatoreId=null → In attesa, stato=0 → In lavorazione, stato=1 → Completata
+const STATO_IN_LAVORAZIONE = 0;
+const STATO_COMPLETATA = 1;
+
+function formatDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function getStatoLabel(operatoreId: number | null, stato: number): string {
+  if (operatoreId === null) return 'In attesa';
+  if (stato === 1) return 'Completata';
+  return 'In lavorazione';
+}
+
+function getNumeroDocumento(codiceTributo: string, istanzaId: number): string {
+  const prefix = `${codiceTributo}${process.env.PMPAY_ENTE_ID}${new Date().getFullYear()}`;
+  const l = prefix.length;
+  return prefix + istanzaId.toString().padStart(20 - l, '0');
+}
 
 export interface AdvanceWorkflowParams {
   istanzaId: number;
   note: string;
-  pagamentoImporto?: number;
-  pagamentoCausale?: string;
+}
+
+export interface GeneratePaymentParams {
+  istanzaId: number;
+  workflowId: number;
+  importo?: number;
+  causale?: string;
+  // Dati del debitore (se diverso dal richiedente)
+  cf?: string;
+  nome?: string;
+  cognome?: string;
+  email?: string;
 }
 
 export async function advanceWorkflow(params: AdvanceWorkflowParams) {
@@ -47,7 +73,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
-          include: { step: { include: { pagamentoConfig: true } }, allegati: true },
+          include: { step: { include: { pagamentoConfig: true } }, allegati: true, pagamentoAtteso: true },
         },
       },
     });
@@ -66,54 +92,19 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
     const currentStep = lastWorkflow?.step;
     const nextStep = steps.find((s) => s.ordine === currentStepOrder + 1);
 
-    const now = new Date();
+    const currentPayment = lastWorkflow?.pagamentoAtteso;
+    const paymentStep = currentStep?.pagamento ?? false;
+    const paymentRequired = currentStep?.pagamentoConfig?.obbligatorio ?? false;
+    const paymentConfirmed = currentPayment?.stato === 'CON';
 
-    // --- Gestione pagamento step corrente ---
-    let pagamentoEffettuatoId: number | undefined;
-    if (currentStep?.pagamento && currentStep.pagamentoConfig) {
-      const cfg = currentStep.pagamentoConfig;
-      const importo = cfg.importoVariabile
-        ? (params.pagamentoImporto ?? 0)
-        : (cfg.importo ?? 0);
-      const causale = cfg.causaleVariabile
-        ? (params.pagamentoCausale ?? '')
-        : (cfg.causale ?? '');
-
-      if (importo > 0 && cfg.codiceTributoId) {
-        const tributo = await prisma.tributo.findUnique({
-          where: { id: cfg.codiceTributoId },
-        });
-
-        if (tributo) {
-          const payResult = await pmPayService.createPayment({
-            importo,
-            causale,
-            codiceTributo: tributo.codice,
-            codiceFiscale: istanza.utente.codiceFiscale,
-            nome: istanza.utente.nome,
-            cognome: istanza.utente.cognome,
-            email: istanza.utente.email ?? undefined,
-          });
-
-          if (payResult.success && payResult.iuv) {
-            const pagEff = await prisma.pagamentoEffettuato.create({
-              data: {
-                workflowId: lastWorkflow!.id,
-                iuv: payResult.iuv,
-                importoTotale: importo,
-                stato: 'PENDING',
-                causale,
-                cfUtente: istanza.utente.codiceFiscale,
-                nomeUtente: istanza.utente.nome,
-                cognomeUtente: istanza.utente.cognome,
-                emailUtente: istanza.utente.email,
-              },
-            });
-            pagamentoEffettuatoId = pagEff.id;
-          }
-        }
-      }
+    if (paymentStep && paymentRequired && !paymentConfirmed) {
+      return {
+        success: false,
+        message: 'Pagamento obbligatorio non confermato. Impossibile avanzare.'
+      };
     }
+
+    const now = new Date();
 
     // --- Gestione protocollo step corrente ---
     let protoNumeroStep: string | undefined;
@@ -160,7 +151,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          statusId: STATUS_SUCCESSO,
+          stato: STATO_COMPLETATA,
           note: note || lastWorkflow.note,
           operatoreId,
         },
@@ -173,7 +164,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         data: {
           istanzaId,
           stepId: nextStep.id,
-          statusId: STATUS_ELABORAZIONE,
+          stato: STATO_IN_LAVORAZIONE,
           operatoreId,
           dataVariazione: now,
           note: '',
@@ -201,7 +192,6 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       message: nextStep
         ? `Avanzato allo step: ${nextStep.descrizione}`
         : 'Istanza conclusa con successo',
-      pagamentoEffettuatoId,
       protoNumero: protoNumeroStep,
       protoData: protoDataStep,
     };
@@ -268,7 +258,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          statusId: STATUS_ELABORAZIONE,
+          stato: STATO_IN_LAVORAZIONE,
           note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
           dataVariazione: now,
           operatoreId,
@@ -281,7 +271,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
       data: {
         istanzaId,
         stepId: prevStep.id,
-        statusId: STATUS_ELABORAZIONE,
+        stato: STATO_IN_LAVORAZIONE,
         operatoreId,
         dataVariazione: now,
         note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
@@ -339,7 +329,7 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          statusId: STATUS_RESPINTA,
+          stato: STATO_IN_LAVORAZIONE,
           note: motivo,
           dataVariazione: now,
           operatoreId,
@@ -398,7 +388,7 @@ export async function reopenIstanza(istanzaId: number) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          statusId: STATUS_ELABORAZIONE,
+          stato: STATO_IN_LAVORAZIONE,
           note: '',
           dataVariazione: now,
           operatoreId,
@@ -490,7 +480,7 @@ export async function addNote(istanzaId: number, noteText: string) {
       data: {
         istanzaId,
         stepId: lastWorkflow?.stepId,
-        statusId: lastWorkflow?.statusId ?? STATUS_ELABORAZIONE,
+        stato: lastWorkflow?.stato ?? STATO_IN_LAVORAZIONE,
         operatoreId,
         dataVariazione: now,
         note: noteText,
@@ -568,7 +558,7 @@ export async function takeCharge(istanzaId: number) {
         data: {
           istanzaId,
           stepId: firstStep.id,
-          statusId: STATUS_ELABORAZIONE,
+          stato: STATO_IN_LAVORAZIONE,
           operatoreId,
           dataVariazione: now,
           note: '',
@@ -612,39 +602,22 @@ export async function sendComunicazione(
 
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
-      include: {
-        utente: true,
-        workflows: {
-          orderBy: { id: 'desc' },
-          take: 1,
-        },
-      },
+      include: { utente: true },
     });
 
     if (!istanza) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    const now = new Date();
-    const lastWorkflow = istanza.workflows[0];
-
-    const workflow = await prisma.workflow.create({
+    await prisma.comunicazione.create({
       data: {
         istanzaId,
-        stepId: lastWorkflow?.stepId,
-        statusId: lastWorkflow?.statusId ?? STATUS_ELABORAZIONE,
         operatoreId,
-        dataVariazione: now,
-        note: '[Comunicazione]',
-        comunicazione: {
-          create: {
-            testo,
-            richiedeRisposta,
-            allegatiRichiesti: allegatiRichiesti.length > 0
-              ? JSON.stringify(allegatiRichiesti)
-              : null,
-          },
-        },
+        testo,
+        richiedeRisposta,
+        allegatiRichiesti: allegatiRichiesti.length > 0
+          ? JSON.stringify(allegatiRichiesti)
+          : null,
       },
     });
 
@@ -711,7 +684,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
             workflows: {
               orderBy: { id: 'desc' },
               take: 1,
-              include: { status: true, step: true },
+              include: { step: true },
             },
           },
         },
@@ -730,7 +703,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
       conclusa: i.conclusa,
       respinta: i.respinta,
       step: i.workflows[0]?.step?.descrizione ?? '-',
-      status: i.workflows[0]?.status?.stato ?? '-',
+      status: getStatoLabel(i.workflows[0]?.operatoreId ?? null, i.workflows[0]?.stato ?? 0),
       dataVariazione: i.workflows[0]?.dataVariazione ?? null,
     }));
 
@@ -819,7 +792,7 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          statusId: STATUS_SUCCESSO,
+          stato: STATO_COMPLETATA,
           note: note || lastWorkflow.note,
           dataVariazione: now,
           operatoreId,
@@ -848,5 +821,115 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
   } catch (error) {
     console.error('Error concluding istanza:', error);
     return { success: false, message: 'Errore durante la conclusione' };
+  }
+}
+
+export interface GeneratePaymentParams {
+  istanzaId: number;
+  workflowId: number;
+  importo?: number;
+  causale?: string;
+  // Dati del debitore (se diverso dal richiedente)
+  cf?: string;
+  nome?: string;
+  cognome?: string;
+  email?: string;
+}
+
+export async function generatePayment(params: GeneratePaymentParams) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+
+    const { istanzaId, workflowId, importo, causale, cf, nome, cognome, email } = params;
+
+    const workflow = await prisma.workflow.findUnique({
+      where: { id: workflowId },
+      include: {
+        step: { include: { pagamentoConfig: true } },
+        istanza: { include: { utente: true } },
+      },
+    });
+
+    if (!workflow) {
+      return { success: false, message: 'Workflow non trovato' };
+    }
+
+    if (!workflow.step?.pagamento || !workflow.step.pagamentoConfig) {
+      return { success: false, message: 'Questo step non prevede pagamenti' };
+    }
+
+    const cfg = workflow.step.pagamentoConfig;
+    const paymentImporto = cfg.importoVariabile ? (importo ?? 0) : (cfg.importo ?? 0);
+    const paymentCausale = cfg.causaleVariabile ? (causale ?? '') : (cfg.causale ?? '');
+    const codiceTributo = cfg.codiceTributo ?? '';
+
+    if (paymentImporto <= 0) {
+      return { success: false, message: 'Importo non valido' };
+    }
+
+    if (!codiceTributo) {
+      return { success: false, message: 'Codice tributo non configurato' };
+    }
+
+    // Annulla pagamento esistente se presente
+    const existingPayment = await prisma.pagamentoAtteso.findUnique({
+      where: { workflowId },
+    });
+    if (existingPayment) {
+      await prisma.pagamentoAtteso.delete({
+        where: { workflowId },
+      });
+    }
+
+    // Crea nuovo pagamento
+    const dataInizioValidita = new Date();
+    const dataScadenza = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // +30 giorni
+
+    const payResult = await pmPayService.createPayment({
+      documento: getNumeroDocumento(codiceTributo, istanzaId),
+      dataInizioValidita: formatDate(dataInizioValidita),
+      dataScadenza: formatDate(dataScadenza),
+      importo: paymentImporto,
+      causale: paymentCausale,
+      codiceTributo,
+      codiceFiscale: cf || workflow.istanza.utente.codiceFiscale,
+      nome: nome || workflow.istanza.utente.nome,
+      cognome: cognome || workflow.istanza.utente.cognome,
+      email: email || workflow.istanza.utente.email || undefined,
+    });
+
+    if (!payResult.success || !payResult.iuv) {
+      return { success: false, message: 'Errore nella creazione del pagamento' };
+    }
+
+    const pagAtt = await prisma.pagamentoAtteso.create({
+      data: {
+        workflowId,
+        iuv: payResult.iuv,
+        dataScadenza,
+        dataEmissione: dataInizioValidita,
+        numeroDocumento: payResult.numeroAvviso,
+        importoTotale: paymentImporto,
+        stato: 'ATT',
+        causale: paymentCausale,
+        paganteCodiceFiscale: cf || workflow.istanza.utente.codiceFiscale,
+        pagante: nome || workflow.istanza.utente.nome,
+        paganteEmail: email || workflow.istanza.utente.email,
+      },
+    });
+
+    revalidatePath(`/istanze/${istanzaId}`);
+
+    return {
+      success: true,
+      message: existingPayment ? 'Pagamento annullato e rigenerato' : 'Pagamento generato con successo',
+      pagamentoAttesoId: pagAtt.id,
+    };
+  } catch (error) {
+    console.error('Error generating payment:', error);
+    return { success: false, message: 'Errore durante la generazione del pagamento' };
   }
 }

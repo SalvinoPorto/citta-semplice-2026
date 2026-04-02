@@ -39,21 +39,21 @@ export type RispostaComunicazioneSumAggregateOutputType = {
 export type RispostaComunicazioneMinAggregateOutputType = {
   id: number | null
   testo: string | null
-  dataRisposta: Date | null
+  createdAt: Date | null
   comunicazioneId: number | null
 }
 
 export type RispostaComunicazioneMaxAggregateOutputType = {
   id: number | null
   testo: string | null
-  dataRisposta: Date | null
+  createdAt: Date | null
   comunicazioneId: number | null
 }
 
 export type RispostaComunicazioneCountAggregateOutputType = {
   id: number
   testo: number
-  dataRisposta: number
+  createdAt: number
   comunicazioneId: number
   _all: number
 }
@@ -72,21 +72,21 @@ export type RispostaComunicazioneSumAggregateInputType = {
 export type RispostaComunicazioneMinAggregateInputType = {
   id?: true
   testo?: true
-  dataRisposta?: true
+  createdAt?: true
   comunicazioneId?: true
 }
 
 export type RispostaComunicazioneMaxAggregateInputType = {
   id?: true
   testo?: true
-  dataRisposta?: true
+  createdAt?: true
   comunicazioneId?: true
 }
 
 export type RispostaComunicazioneCountAggregateInputType = {
   id?: true
   testo?: true
-  dataRisposta?: true
+  createdAt?: true
   comunicazioneId?: true
   _all?: true
 }
@@ -180,7 +180,7 @@ export type RispostaComunicazioneGroupByArgs<ExtArgs extends runtime.Types.Exten
 export type RispostaComunicazioneGroupByOutputType = {
   id: number
   testo: string | null
-  dataRisposta: Date
+  createdAt: Date
   comunicazioneId: number
   _count: RispostaComunicazioneCountAggregateOutputType | null
   _avg: RispostaComunicazioneAvgAggregateOutputType | null
@@ -210,7 +210,7 @@ export type RispostaComunicazioneWhereInput = {
   NOT?: Prisma.RispostaComunicazioneWhereInput | Prisma.RispostaComunicazioneWhereInput[]
   id?: Prisma.IntFilter<"RispostaComunicazione"> | number
   testo?: Prisma.StringNullableFilter<"RispostaComunicazione"> | string | null
-  dataRisposta?: Prisma.DateTimeFilter<"RispostaComunicazione"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"RispostaComunicazione"> | Date | string
   comunicazioneId?: Prisma.IntFilter<"RispostaComunicazione"> | number
   comunicazione?: Prisma.XOR<Prisma.ComunicazioneScalarRelationFilter, Prisma.ComunicazioneWhereInput>
   allegati?: Prisma.AllegatoRispostaListRelationFilter
@@ -219,7 +219,7 @@ export type RispostaComunicazioneWhereInput = {
 export type RispostaComunicazioneOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   testo?: Prisma.SortOrderInput | Prisma.SortOrder
-  dataRisposta?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   comunicazioneId?: Prisma.SortOrder
   comunicazione?: Prisma.ComunicazioneOrderByWithRelationInput
   allegati?: Prisma.AllegatoRispostaOrderByRelationAggregateInput
@@ -232,7 +232,7 @@ export type RispostaComunicazioneWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.RispostaComunicazioneWhereInput[]
   NOT?: Prisma.RispostaComunicazioneWhereInput | Prisma.RispostaComunicazioneWhereInput[]
   testo?: Prisma.StringNullableFilter<"RispostaComunicazione"> | string | null
-  dataRisposta?: Prisma.DateTimeFilter<"RispostaComunicazione"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"RispostaComunicazione"> | Date | string
   comunicazione?: Prisma.XOR<Prisma.ComunicazioneScalarRelationFilter, Prisma.ComunicazioneWhereInput>
   allegati?: Prisma.AllegatoRispostaListRelationFilter
 }, "id" | "comunicazioneId">
@@ -240,7 +240,7 @@ export type RispostaComunicazioneWhereUniqueInput = Prisma.AtLeast<{
 export type RispostaComunicazioneOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   testo?: Prisma.SortOrderInput | Prisma.SortOrder
-  dataRisposta?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   comunicazioneId?: Prisma.SortOrder
   _count?: Prisma.RispostaComunicazioneCountOrderByAggregateInput
   _avg?: Prisma.RispostaComunicazioneAvgOrderByAggregateInput
@@ -255,13 +255,13 @@ export type RispostaComunicazioneScalarWhereWithAggregatesInput = {
   NOT?: Prisma.RispostaComunicazioneScalarWhereWithAggregatesInput | Prisma.RispostaComunicazioneScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"RispostaComunicazione"> | number
   testo?: Prisma.StringNullableWithAggregatesFilter<"RispostaComunicazione"> | string | null
-  dataRisposta?: Prisma.DateTimeWithAggregatesFilter<"RispostaComunicazione"> | Date | string
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"RispostaComunicazione"> | Date | string
   comunicazioneId?: Prisma.IntWithAggregatesFilter<"RispostaComunicazione"> | number
 }
 
 export type RispostaComunicazioneCreateInput = {
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   comunicazione: Prisma.ComunicazioneCreateNestedOneWithoutRispostaInput
   allegati?: Prisma.AllegatoRispostaCreateNestedManyWithoutRispostaInput
 }
@@ -269,14 +269,14 @@ export type RispostaComunicazioneCreateInput = {
 export type RispostaComunicazioneUncheckedCreateInput = {
   id?: number
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   comunicazioneId: number
   allegati?: Prisma.AllegatoRispostaUncheckedCreateNestedManyWithoutRispostaInput
 }
 
 export type RispostaComunicazioneUpdateInput = {
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comunicazione?: Prisma.ComunicazioneUpdateOneRequiredWithoutRispostaNestedInput
   allegati?: Prisma.AllegatoRispostaUpdateManyWithoutRispostaNestedInput
 }
@@ -284,7 +284,7 @@ export type RispostaComunicazioneUpdateInput = {
 export type RispostaComunicazioneUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comunicazioneId?: Prisma.IntFieldUpdateOperationsInput | number
   allegati?: Prisma.AllegatoRispostaUncheckedUpdateManyWithoutRispostaNestedInput
 }
@@ -292,19 +292,19 @@ export type RispostaComunicazioneUncheckedUpdateInput = {
 export type RispostaComunicazioneCreateManyInput = {
   id?: number
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   comunicazioneId: number
 }
 
 export type RispostaComunicazioneUpdateManyMutationInput = {
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type RispostaComunicazioneUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comunicazioneId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -316,7 +316,7 @@ export type RispostaComunicazioneNullableScalarRelationFilter = {
 export type RispostaComunicazioneCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   testo?: Prisma.SortOrder
-  dataRisposta?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   comunicazioneId?: Prisma.SortOrder
 }
 
@@ -328,14 +328,14 @@ export type RispostaComunicazioneAvgOrderByAggregateInput = {
 export type RispostaComunicazioneMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   testo?: Prisma.SortOrder
-  dataRisposta?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   comunicazioneId?: Prisma.SortOrder
 }
 
 export type RispostaComunicazioneMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   testo?: Prisma.SortOrder
-  dataRisposta?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   comunicazioneId?: Prisma.SortOrder
 }
 
@@ -397,14 +397,14 @@ export type RispostaComunicazioneUpdateOneRequiredWithoutAllegatiNestedInput = {
 
 export type RispostaComunicazioneCreateWithoutComunicazioneInput = {
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   allegati?: Prisma.AllegatoRispostaCreateNestedManyWithoutRispostaInput
 }
 
 export type RispostaComunicazioneUncheckedCreateWithoutComunicazioneInput = {
   id?: number
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   allegati?: Prisma.AllegatoRispostaUncheckedCreateNestedManyWithoutRispostaInput
 }
 
@@ -426,27 +426,27 @@ export type RispostaComunicazioneUpdateToOneWithWhereWithoutComunicazioneInput =
 
 export type RispostaComunicazioneUpdateWithoutComunicazioneInput = {
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allegati?: Prisma.AllegatoRispostaUpdateManyWithoutRispostaNestedInput
 }
 
 export type RispostaComunicazioneUncheckedUpdateWithoutComunicazioneInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allegati?: Prisma.AllegatoRispostaUncheckedUpdateManyWithoutRispostaNestedInput
 }
 
 export type RispostaComunicazioneCreateWithoutAllegatiInput = {
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   comunicazione: Prisma.ComunicazioneCreateNestedOneWithoutRispostaInput
 }
 
 export type RispostaComunicazioneUncheckedCreateWithoutAllegatiInput = {
   id?: number
   testo?: string | null
-  dataRisposta?: Date | string
+  createdAt?: Date | string
   comunicazioneId: number
 }
 
@@ -468,14 +468,14 @@ export type RispostaComunicazioneUpdateToOneWithWhereWithoutAllegatiInput = {
 
 export type RispostaComunicazioneUpdateWithoutAllegatiInput = {
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comunicazione?: Prisma.ComunicazioneUpdateOneRequiredWithoutRispostaNestedInput
 }
 
 export type RispostaComunicazioneUncheckedUpdateWithoutAllegatiInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   testo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataRisposta?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comunicazioneId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -513,7 +513,7 @@ export type RispostaComunicazioneCountOutputTypeCountAllegatiArgs<ExtArgs extend
 export type RispostaComunicazioneSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   testo?: boolean
-  dataRisposta?: boolean
+  createdAt?: boolean
   comunicazioneId?: boolean
   comunicazione?: boolean | Prisma.ComunicazioneDefaultArgs<ExtArgs>
   allegati?: boolean | Prisma.RispostaComunicazione$allegatiArgs<ExtArgs>
@@ -523,7 +523,7 @@ export type RispostaComunicazioneSelect<ExtArgs extends runtime.Types.Extensions
 export type RispostaComunicazioneSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   testo?: boolean
-  dataRisposta?: boolean
+  createdAt?: boolean
   comunicazioneId?: boolean
   comunicazione?: boolean | Prisma.ComunicazioneDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["rispostaComunicazione"]>
@@ -531,7 +531,7 @@ export type RispostaComunicazioneSelectCreateManyAndReturn<ExtArgs extends runti
 export type RispostaComunicazioneSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   testo?: boolean
-  dataRisposta?: boolean
+  createdAt?: boolean
   comunicazioneId?: boolean
   comunicazione?: boolean | Prisma.ComunicazioneDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["rispostaComunicazione"]>
@@ -539,11 +539,11 @@ export type RispostaComunicazioneSelectUpdateManyAndReturn<ExtArgs extends runti
 export type RispostaComunicazioneSelectScalar = {
   id?: boolean
   testo?: boolean
-  dataRisposta?: boolean
+  createdAt?: boolean
   comunicazioneId?: boolean
 }
 
-export type RispostaComunicazioneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "testo" | "dataRisposta" | "comunicazioneId", ExtArgs["result"]["rispostaComunicazione"]>
+export type RispostaComunicazioneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "testo" | "createdAt" | "comunicazioneId", ExtArgs["result"]["rispostaComunicazione"]>
 export type RispostaComunicazioneInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   comunicazione?: boolean | Prisma.ComunicazioneDefaultArgs<ExtArgs>
   allegati?: boolean | Prisma.RispostaComunicazione$allegatiArgs<ExtArgs>
@@ -565,7 +565,7 @@ export type $RispostaComunicazionePayload<ExtArgs extends runtime.Types.Extensio
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     testo: string | null
-    dataRisposta: Date
+    createdAt: Date
     comunicazioneId: number
   }, ExtArgs["result"]["rispostaComunicazione"]>
   composites: {}
@@ -994,7 +994,7 @@ export interface Prisma__RispostaComunicazioneClient<T, Null = never, ExtArgs ex
 export interface RispostaComunicazioneFieldRefs {
   readonly id: Prisma.FieldRef<"RispostaComunicazione", 'Int'>
   readonly testo: Prisma.FieldRef<"RispostaComunicazione", 'String'>
-  readonly dataRisposta: Prisma.FieldRef<"RispostaComunicazione", 'DateTime'>
+  readonly createdAt: Prisma.FieldRef<"RispostaComunicazione", 'DateTime'>
   readonly comunicazioneId: Prisma.FieldRef<"RispostaComunicazione", 'Int'>
 }
     

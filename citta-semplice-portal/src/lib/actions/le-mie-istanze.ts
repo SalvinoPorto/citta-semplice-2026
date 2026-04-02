@@ -15,6 +15,7 @@ export type IstanzaRow = {
   conclusa: boolean;
   respinta: boolean;
   faseAttuale: string | null;
+  stato: number; // -1 = in attesa, 0 = in lavorazione, 1 = conclusa
 };
 
 export type IstanzePageResult = {
@@ -60,6 +61,7 @@ export async function getIstanzePage(
       conclusa: i.conclusa,
       respinta: i.respinta,
       faseAttuale: i.workflows[0]?.step?.descrizione ?? null,
+      stato: i.workflows[0]?.operatoreId === null ? -1 : (i.workflows[0]?.stato ?? 0),
     })),
     total,
     pages: Math.ceil(total / PAGE_SIZE),

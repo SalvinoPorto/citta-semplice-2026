@@ -399,7 +399,6 @@ export const ModelName = {
   AllegatoRichiesto: 'AllegatoRichiesto',
   Utente: 'Utente',
   Istanza: 'Istanza',
-  Status: 'Status',
   Workflow: 'Workflow',
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
@@ -430,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "operatoreServizio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "status" | "workflow" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "tributo" | "pagamento" | "pagamentoEffettuato" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
+    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "operatoreServizio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "workflow" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "tributo" | "pagamento" | "pagamentoEffettuato" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1541,80 +1540,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.IstanzaCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.IstanzaCountAggregateOutputType> | number
-        }
-      }
-    }
-    Status: {
-      payload: Prisma.$StatusPayload<ExtArgs>
-      fields: Prisma.StatusFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.StatusFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.StatusFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>
-        }
-        findFirst: {
-          args: Prisma.StatusFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.StatusFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>
-        }
-        findMany: {
-          args: Prisma.StatusFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>[]
-        }
-        create: {
-          args: Prisma.StatusCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>
-        }
-        createMany: {
-          args: Prisma.StatusCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.StatusCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>[]
-        }
-        delete: {
-          args: Prisma.StatusDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>
-        }
-        update: {
-          args: Prisma.StatusUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>
-        }
-        deleteMany: {
-          args: Prisma.StatusDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.StatusUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.StatusUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>[]
-        }
-        upsert: {
-          args: Prisma.StatusUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusPayload>
-        }
-        aggregate: {
-          args: Prisma.StatusAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateStatus>
-        }
-        groupBy: {
-          args: Prisma.StatusGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.StatusGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.StatusCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.StatusCountAggregateOutputType> | number
         }
       }
     }
@@ -2814,6 +2739,7 @@ export const EnteScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
   descrizione: 'descrizione',
+  sede: 'sede',
   codice: 'codice',
   indirizzo: 'indirizzo',
   telefono: 'telefono',
@@ -2998,24 +2924,14 @@ export const IstanzaScalarFieldEnum = {
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
 
 
-export const StatusScalarFieldEnum = {
-  id: 'id',
-  stato: 'stato',
-  ordine: 'ordine',
-  icon: 'icon'
-} as const
-
-export type StatusScalarFieldEnum = (typeof StatusScalarFieldEnum)[keyof typeof StatusScalarFieldEnum]
-
-
 export const WorkflowScalarFieldEnum = {
   id: 'id',
   note: 'note',
   dataVariazione: 'dataVariazione',
+  stato: 'stato',
   istanzaId: 'istanzaId',
   stepId: 'stepId',
   notificaId: 'notificaId',
-  statusId: 'statusId',
   operatoreId: 'operatoreId'
 } as const
 
@@ -3027,7 +2943,9 @@ export const ComunicazioneScalarFieldEnum = {
   testo: 'testo',
   richiedeRisposta: 'richiedeRisposta',
   allegatiRichiesti: 'allegatiRichiesti',
-  workflowId: 'workflowId'
+  dataCreazione: 'dataCreazione',
+  istanzaId: 'istanzaId',
+  operatoreId: 'operatoreId'
 } as const
 
 export type ComunicazioneScalarFieldEnum = (typeof ComunicazioneScalarFieldEnum)[keyof typeof ComunicazioneScalarFieldEnum]
@@ -3036,7 +2954,7 @@ export type ComunicazioneScalarFieldEnum = (typeof ComunicazioneScalarFieldEnum)
 export const RispostaComunicazioneScalarFieldEnum = {
   id: 'id',
   testo: 'testo',
-  dataRisposta: 'dataRisposta',
+  createdAt: 'createdAt',
   comunicazioneId: 'comunicazioneId'
 } as const
 
@@ -3126,9 +3044,15 @@ export type CustomerSatisfactionScalarFieldEnum = (typeof CustomerSatisfactionSc
 
 export const RicevutaScalarFieldEnum = {
   id: 'id',
-  intestazione: 'intestazione',
-  corpo: 'corpo',
-  footer: 'footer',
+  richiestaArt18: 'richiestaArt18',
+  unitaOrganizzativaCompetente: 'unitaOrganizzativaCompetente',
+  ufficioCompetente: 'ufficioCompetente',
+  responsabileProcedimento: 'responsabileProcedimento',
+  durataMassimaProcedimento: 'durataMassimaProcedimento',
+  responsabileProvvedimentoFinale: 'responsabileProvvedimentoFinale',
+  personaPotereSostitutivo: 'personaPotereSostitutivo',
+  urlServizioWeb: 'urlServizioWeb',
+  ufficioRicevimento: 'ufficioRicevimento',
   servizioId: 'servizioId'
 } as const
 
@@ -3401,7 +3325,6 @@ export type GlobalOmitConfig = {
   allegatoRichiesto?: Prisma.AllegatoRichiestoOmit
   utente?: Prisma.UtenteOmit
   istanza?: Prisma.IstanzaOmit
-  status?: Prisma.StatusOmit
   workflow?: Prisma.WorkflowOmit
   comunicazione?: Prisma.ComunicazioneOmit
   rispostaComunicazione?: Prisma.RispostaComunicazioneOmit

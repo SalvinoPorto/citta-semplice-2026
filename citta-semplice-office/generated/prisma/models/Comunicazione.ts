@@ -28,12 +28,14 @@ export type AggregateComunicazione = {
 
 export type ComunicazioneAvgAggregateOutputType = {
   id: number | null
-  workflowId: number | null
+  istanzaId: number | null
+  operatoreId: number | null
 }
 
 export type ComunicazioneSumAggregateOutputType = {
   id: number | null
-  workflowId: number | null
+  istanzaId: number | null
+  operatoreId: number | null
 }
 
 export type ComunicazioneMinAggregateOutputType = {
@@ -41,7 +43,9 @@ export type ComunicazioneMinAggregateOutputType = {
   testo: string | null
   richiedeRisposta: boolean | null
   allegatiRichiesti: string | null
-  workflowId: number | null
+  dataCreazione: Date | null
+  istanzaId: number | null
+  operatoreId: number | null
 }
 
 export type ComunicazioneMaxAggregateOutputType = {
@@ -49,7 +53,9 @@ export type ComunicazioneMaxAggregateOutputType = {
   testo: string | null
   richiedeRisposta: boolean | null
   allegatiRichiesti: string | null
-  workflowId: number | null
+  dataCreazione: Date | null
+  istanzaId: number | null
+  operatoreId: number | null
 }
 
 export type ComunicazioneCountAggregateOutputType = {
@@ -57,19 +63,23 @@ export type ComunicazioneCountAggregateOutputType = {
   testo: number
   richiedeRisposta: number
   allegatiRichiesti: number
-  workflowId: number
+  dataCreazione: number
+  istanzaId: number
+  operatoreId: number
   _all: number
 }
 
 
 export type ComunicazioneAvgAggregateInputType = {
   id?: true
-  workflowId?: true
+  istanzaId?: true
+  operatoreId?: true
 }
 
 export type ComunicazioneSumAggregateInputType = {
   id?: true
-  workflowId?: true
+  istanzaId?: true
+  operatoreId?: true
 }
 
 export type ComunicazioneMinAggregateInputType = {
@@ -77,7 +87,9 @@ export type ComunicazioneMinAggregateInputType = {
   testo?: true
   richiedeRisposta?: true
   allegatiRichiesti?: true
-  workflowId?: true
+  dataCreazione?: true
+  istanzaId?: true
+  operatoreId?: true
 }
 
 export type ComunicazioneMaxAggregateInputType = {
@@ -85,7 +97,9 @@ export type ComunicazioneMaxAggregateInputType = {
   testo?: true
   richiedeRisposta?: true
   allegatiRichiesti?: true
-  workflowId?: true
+  dataCreazione?: true
+  istanzaId?: true
+  operatoreId?: true
 }
 
 export type ComunicazioneCountAggregateInputType = {
@@ -93,7 +107,9 @@ export type ComunicazioneCountAggregateInputType = {
   testo?: true
   richiedeRisposta?: true
   allegatiRichiesti?: true
-  workflowId?: true
+  dataCreazione?: true
+  istanzaId?: true
+  operatoreId?: true
   _all?: true
 }
 
@@ -188,7 +204,9 @@ export type ComunicazioneGroupByOutputType = {
   testo: string
   richiedeRisposta: boolean
   allegatiRichiesti: string | null
-  workflowId: number
+  dataCreazione: Date
+  istanzaId: number
+  operatoreId: number | null
   _count: ComunicazioneCountAggregateOutputType | null
   _avg: ComunicazioneAvgAggregateOutputType | null
   _sum: ComunicazioneSumAggregateOutputType | null
@@ -219,8 +237,11 @@ export type ComunicazioneWhereInput = {
   testo?: Prisma.StringFilter<"Comunicazione"> | string
   richiedeRisposta?: Prisma.BoolFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableFilter<"Comunicazione"> | string | null
-  workflowId?: Prisma.IntFilter<"Comunicazione"> | number
-  workflow?: Prisma.XOR<Prisma.WorkflowScalarRelationFilter, Prisma.WorkflowWhereInput>
+  dataCreazione?: Prisma.DateTimeFilter<"Comunicazione"> | Date | string
+  istanzaId?: Prisma.IntFilter<"Comunicazione"> | number
+  operatoreId?: Prisma.IntNullableFilter<"Comunicazione"> | number | null
+  istanza?: Prisma.XOR<Prisma.IstanzaScalarRelationFilter, Prisma.IstanzaWhereInput>
+  operatore?: Prisma.XOR<Prisma.OperatoreNullableScalarRelationFilter, Prisma.OperatoreWhereInput> | null
   risposta?: Prisma.XOR<Prisma.RispostaComunicazioneNullableScalarRelationFilter, Prisma.RispostaComunicazioneWhereInput> | null
 }
 
@@ -229,30 +250,38 @@ export type ComunicazioneOrderByWithRelationInput = {
   testo?: Prisma.SortOrder
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
-  workflow?: Prisma.WorkflowOrderByWithRelationInput
+  dataCreazione?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrderInput | Prisma.SortOrder
+  istanza?: Prisma.IstanzaOrderByWithRelationInput
+  operatore?: Prisma.OperatoreOrderByWithRelationInput
   risposta?: Prisma.RispostaComunicazioneOrderByWithRelationInput
 }
 
 export type ComunicazioneWhereUniqueInput = Prisma.AtLeast<{
   id?: number
-  workflowId?: number
   AND?: Prisma.ComunicazioneWhereInput | Prisma.ComunicazioneWhereInput[]
   OR?: Prisma.ComunicazioneWhereInput[]
   NOT?: Prisma.ComunicazioneWhereInput | Prisma.ComunicazioneWhereInput[]
   testo?: Prisma.StringFilter<"Comunicazione"> | string
   richiedeRisposta?: Prisma.BoolFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableFilter<"Comunicazione"> | string | null
-  workflow?: Prisma.XOR<Prisma.WorkflowScalarRelationFilter, Prisma.WorkflowWhereInput>
+  dataCreazione?: Prisma.DateTimeFilter<"Comunicazione"> | Date | string
+  istanzaId?: Prisma.IntFilter<"Comunicazione"> | number
+  operatoreId?: Prisma.IntNullableFilter<"Comunicazione"> | number | null
+  istanza?: Prisma.XOR<Prisma.IstanzaScalarRelationFilter, Prisma.IstanzaWhereInput>
+  operatore?: Prisma.XOR<Prisma.OperatoreNullableScalarRelationFilter, Prisma.OperatoreWhereInput> | null
   risposta?: Prisma.XOR<Prisma.RispostaComunicazioneNullableScalarRelationFilter, Prisma.RispostaComunicazioneWhereInput> | null
-}, "id" | "workflowId">
+}, "id">
 
 export type ComunicazioneOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   testo?: Prisma.SortOrder
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
+  dataCreazione?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ComunicazioneCountOrderByAggregateInput
   _avg?: Prisma.ComunicazioneAvgOrderByAggregateInput
   _max?: Prisma.ComunicazioneMaxOrderByAggregateInput
@@ -268,14 +297,18 @@ export type ComunicazioneScalarWhereWithAggregatesInput = {
   testo?: Prisma.StringWithAggregatesFilter<"Comunicazione"> | string
   richiedeRisposta?: Prisma.BoolWithAggregatesFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableWithAggregatesFilter<"Comunicazione"> | string | null
-  workflowId?: Prisma.IntWithAggregatesFilter<"Comunicazione"> | number
+  dataCreazione?: Prisma.DateTimeWithAggregatesFilter<"Comunicazione"> | Date | string
+  istanzaId?: Prisma.IntWithAggregatesFilter<"Comunicazione"> | number
+  operatoreId?: Prisma.IntNullableWithAggregatesFilter<"Comunicazione"> | number | null
 }
 
 export type ComunicazioneCreateInput = {
   testo: string
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
-  workflow: Prisma.WorkflowCreateNestedOneWithoutComunicazioneInput
+  dataCreazione?: Date | string
+  istanza: Prisma.IstanzaCreateNestedOneWithoutComunicazioniInput
+  operatore?: Prisma.OperatoreCreateNestedOneWithoutComunicazioniInput
   risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
 }
 
@@ -284,7 +317,9 @@ export type ComunicazioneUncheckedCreateInput = {
   testo: string
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
-  workflowId: number
+  dataCreazione?: Date | string
+  istanzaId: number
+  operatoreId?: number | null
   risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
 }
 
@@ -292,7 +327,9 @@ export type ComunicazioneUpdateInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  workflow?: Prisma.WorkflowUpdateOneRequiredWithoutComunicazioneNestedInput
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanza?: Prisma.IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput
+  operatore?: Prisma.OperatoreUpdateOneWithoutComunicazioniNestedInput
   risposta?: Prisma.RispostaComunicazioneUpdateOneWithoutComunicazioneNestedInput
 }
 
@@ -301,7 +338,9 @@ export type ComunicazioneUncheckedUpdateInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  workflowId?: Prisma.IntFieldUpdateOperationsInput | number
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
+  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   risposta?: Prisma.RispostaComunicazioneUncheckedUpdateOneWithoutComunicazioneNestedInput
 }
 
@@ -310,13 +349,16 @@ export type ComunicazioneCreateManyInput = {
   testo: string
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
-  workflowId: number
+  dataCreazione?: Date | string
+  istanzaId: number
+  operatoreId?: number | null
 }
 
 export type ComunicazioneUpdateManyMutationInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ComunicazioneUncheckedUpdateManyInput = {
@@ -324,7 +366,19 @@ export type ComunicazioneUncheckedUpdateManyInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  workflowId?: Prisma.IntFieldUpdateOperationsInput | number
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
+  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type ComunicazioneListRelationFilter = {
+  every?: Prisma.ComunicazioneWhereInput
+  some?: Prisma.ComunicazioneWhereInput
+  none?: Prisma.ComunicazioneWhereInput
+}
+
+export type ComunicazioneOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type ComunicazioneCountOrderByAggregateInput = {
@@ -332,12 +386,15 @@ export type ComunicazioneCountOrderByAggregateInput = {
   testo?: Prisma.SortOrder
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
+  dataCreazione?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrder
 }
 
 export type ComunicazioneAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrder
 }
 
 export type ComunicazioneMaxOrderByAggregateInput = {
@@ -345,7 +402,9 @@ export type ComunicazioneMaxOrderByAggregateInput = {
   testo?: Prisma.SortOrder
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
+  dataCreazione?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrder
 }
 
 export type ComunicazioneMinOrderByAggregateInput = {
@@ -353,12 +412,15 @@ export type ComunicazioneMinOrderByAggregateInput = {
   testo?: Prisma.SortOrder
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
+  dataCreazione?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrder
 }
 
 export type ComunicazioneSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  workflowId?: Prisma.SortOrder
+  istanzaId?: Prisma.SortOrder
+  operatoreId?: Prisma.SortOrder
 }
 
 export type ComunicazioneScalarRelationFilter = {
@@ -366,9 +428,88 @@ export type ComunicazioneScalarRelationFilter = {
   isNot?: Prisma.ComunicazioneWhereInput
 }
 
-export type ComunicazioneNullableScalarRelationFilter = {
-  is?: Prisma.ComunicazioneWhereInput | null
-  isNot?: Prisma.ComunicazioneWhereInput | null
+export type ComunicazioneCreateNestedManyWithoutOperatoreInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput> | Prisma.ComunicazioneCreateWithoutOperatoreInput[] | Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput | Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput[]
+  createMany?: Prisma.ComunicazioneCreateManyOperatoreInputEnvelope
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+}
+
+export type ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput> | Prisma.ComunicazioneCreateWithoutOperatoreInput[] | Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput | Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput[]
+  createMany?: Prisma.ComunicazioneCreateManyOperatoreInputEnvelope
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+}
+
+export type ComunicazioneUpdateManyWithoutOperatoreNestedInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput> | Prisma.ComunicazioneCreateWithoutOperatoreInput[] | Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput | Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput[]
+  upsert?: Prisma.ComunicazioneUpsertWithWhereUniqueWithoutOperatoreInput | Prisma.ComunicazioneUpsertWithWhereUniqueWithoutOperatoreInput[]
+  createMany?: Prisma.ComunicazioneCreateManyOperatoreInputEnvelope
+  set?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  disconnect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  delete?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  update?: Prisma.ComunicazioneUpdateWithWhereUniqueWithoutOperatoreInput | Prisma.ComunicazioneUpdateWithWhereUniqueWithoutOperatoreInput[]
+  updateMany?: Prisma.ComunicazioneUpdateManyWithWhereWithoutOperatoreInput | Prisma.ComunicazioneUpdateManyWithWhereWithoutOperatoreInput[]
+  deleteMany?: Prisma.ComunicazioneScalarWhereInput | Prisma.ComunicazioneScalarWhereInput[]
+}
+
+export type ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput> | Prisma.ComunicazioneCreateWithoutOperatoreInput[] | Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput | Prisma.ComunicazioneCreateOrConnectWithoutOperatoreInput[]
+  upsert?: Prisma.ComunicazioneUpsertWithWhereUniqueWithoutOperatoreInput | Prisma.ComunicazioneUpsertWithWhereUniqueWithoutOperatoreInput[]
+  createMany?: Prisma.ComunicazioneCreateManyOperatoreInputEnvelope
+  set?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  disconnect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  delete?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  update?: Prisma.ComunicazioneUpdateWithWhereUniqueWithoutOperatoreInput | Prisma.ComunicazioneUpdateWithWhereUniqueWithoutOperatoreInput[]
+  updateMany?: Prisma.ComunicazioneUpdateManyWithWhereWithoutOperatoreInput | Prisma.ComunicazioneUpdateManyWithWhereWithoutOperatoreInput[]
+  deleteMany?: Prisma.ComunicazioneScalarWhereInput | Prisma.ComunicazioneScalarWhereInput[]
+}
+
+export type ComunicazioneCreateNestedManyWithoutIstanzaInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput> | Prisma.ComunicazioneCreateWithoutIstanzaInput[] | Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput | Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput[]
+  createMany?: Prisma.ComunicazioneCreateManyIstanzaInputEnvelope
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+}
+
+export type ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput> | Prisma.ComunicazioneCreateWithoutIstanzaInput[] | Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput | Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput[]
+  createMany?: Prisma.ComunicazioneCreateManyIstanzaInputEnvelope
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+}
+
+export type ComunicazioneUpdateManyWithoutIstanzaNestedInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput> | Prisma.ComunicazioneCreateWithoutIstanzaInput[] | Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput | Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput[]
+  upsert?: Prisma.ComunicazioneUpsertWithWhereUniqueWithoutIstanzaInput | Prisma.ComunicazioneUpsertWithWhereUniqueWithoutIstanzaInput[]
+  createMany?: Prisma.ComunicazioneCreateManyIstanzaInputEnvelope
+  set?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  disconnect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  delete?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  update?: Prisma.ComunicazioneUpdateWithWhereUniqueWithoutIstanzaInput | Prisma.ComunicazioneUpdateWithWhereUniqueWithoutIstanzaInput[]
+  updateMany?: Prisma.ComunicazioneUpdateManyWithWhereWithoutIstanzaInput | Prisma.ComunicazioneUpdateManyWithWhereWithoutIstanzaInput[]
+  deleteMany?: Prisma.ComunicazioneScalarWhereInput | Prisma.ComunicazioneScalarWhereInput[]
+}
+
+export type ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput = {
+  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput> | Prisma.ComunicazioneCreateWithoutIstanzaInput[] | Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput[]
+  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput | Prisma.ComunicazioneCreateOrConnectWithoutIstanzaInput[]
+  upsert?: Prisma.ComunicazioneUpsertWithWhereUniqueWithoutIstanzaInput | Prisma.ComunicazioneUpsertWithWhereUniqueWithoutIstanzaInput[]
+  createMany?: Prisma.ComunicazioneCreateManyIstanzaInputEnvelope
+  set?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  disconnect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  delete?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  connect?: Prisma.ComunicazioneWhereUniqueInput | Prisma.ComunicazioneWhereUniqueInput[]
+  update?: Prisma.ComunicazioneUpdateWithWhereUniqueWithoutIstanzaInput | Prisma.ComunicazioneUpdateWithWhereUniqueWithoutIstanzaInput[]
+  updateMany?: Prisma.ComunicazioneUpdateManyWithWhereWithoutIstanzaInput | Prisma.ComunicazioneUpdateManyWithWhereWithoutIstanzaInput[]
+  deleteMany?: Prisma.ComunicazioneScalarWhereInput | Prisma.ComunicazioneScalarWhereInput[]
 }
 
 export type ComunicazioneCreateNestedOneWithoutRispostaInput = {
@@ -385,43 +526,116 @@ export type ComunicazioneUpdateOneRequiredWithoutRispostaNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ComunicazioneUpdateToOneWithWhereWithoutRispostaInput, Prisma.ComunicazioneUpdateWithoutRispostaInput>, Prisma.ComunicazioneUncheckedUpdateWithoutRispostaInput>
 }
 
-export type ComunicazioneCreateNestedOneWithoutWorkflowInput = {
-  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedCreateWithoutWorkflowInput>
-  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutWorkflowInput
-  connect?: Prisma.ComunicazioneWhereUniqueInput
+export type ComunicazioneCreateWithoutOperatoreInput = {
+  testo: string
+  richiedeRisposta?: boolean
+  allegatiRichiesti?: string | null
+  dataCreazione?: Date | string
+  istanza: Prisma.IstanzaCreateNestedOneWithoutComunicazioniInput
+  risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
 }
 
-export type ComunicazioneUncheckedCreateNestedOneWithoutWorkflowInput = {
-  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedCreateWithoutWorkflowInput>
-  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutWorkflowInput
-  connect?: Prisma.ComunicazioneWhereUniqueInput
+export type ComunicazioneUncheckedCreateWithoutOperatoreInput = {
+  id?: number
+  testo: string
+  richiedeRisposta?: boolean
+  allegatiRichiesti?: string | null
+  dataCreazione?: Date | string
+  istanzaId: number
+  risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
 }
 
-export type ComunicazioneUpdateOneWithoutWorkflowNestedInput = {
-  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedCreateWithoutWorkflowInput>
-  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutWorkflowInput
-  upsert?: Prisma.ComunicazioneUpsertWithoutWorkflowInput
-  disconnect?: Prisma.ComunicazioneWhereInput | boolean
-  delete?: Prisma.ComunicazioneWhereInput | boolean
-  connect?: Prisma.ComunicazioneWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ComunicazioneUpdateToOneWithWhereWithoutWorkflowInput, Prisma.ComunicazioneUpdateWithoutWorkflowInput>, Prisma.ComunicazioneUncheckedUpdateWithoutWorkflowInput>
+export type ComunicazioneCreateOrConnectWithoutOperatoreInput = {
+  where: Prisma.ComunicazioneWhereUniqueInput
+  create: Prisma.XOR<Prisma.ComunicazioneCreateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput>
 }
 
-export type ComunicazioneUncheckedUpdateOneWithoutWorkflowNestedInput = {
-  create?: Prisma.XOR<Prisma.ComunicazioneCreateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedCreateWithoutWorkflowInput>
-  connectOrCreate?: Prisma.ComunicazioneCreateOrConnectWithoutWorkflowInput
-  upsert?: Prisma.ComunicazioneUpsertWithoutWorkflowInput
-  disconnect?: Prisma.ComunicazioneWhereInput | boolean
-  delete?: Prisma.ComunicazioneWhereInput | boolean
-  connect?: Prisma.ComunicazioneWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ComunicazioneUpdateToOneWithWhereWithoutWorkflowInput, Prisma.ComunicazioneUpdateWithoutWorkflowInput>, Prisma.ComunicazioneUncheckedUpdateWithoutWorkflowInput>
+export type ComunicazioneCreateManyOperatoreInputEnvelope = {
+  data: Prisma.ComunicazioneCreateManyOperatoreInput | Prisma.ComunicazioneCreateManyOperatoreInput[]
+  skipDuplicates?: boolean
+}
+
+export type ComunicazioneUpsertWithWhereUniqueWithoutOperatoreInput = {
+  where: Prisma.ComunicazioneWhereUniqueInput
+  update: Prisma.XOR<Prisma.ComunicazioneUpdateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedUpdateWithoutOperatoreInput>
+  create: Prisma.XOR<Prisma.ComunicazioneCreateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedCreateWithoutOperatoreInput>
+}
+
+export type ComunicazioneUpdateWithWhereUniqueWithoutOperatoreInput = {
+  where: Prisma.ComunicazioneWhereUniqueInput
+  data: Prisma.XOR<Prisma.ComunicazioneUpdateWithoutOperatoreInput, Prisma.ComunicazioneUncheckedUpdateWithoutOperatoreInput>
+}
+
+export type ComunicazioneUpdateManyWithWhereWithoutOperatoreInput = {
+  where: Prisma.ComunicazioneScalarWhereInput
+  data: Prisma.XOR<Prisma.ComunicazioneUpdateManyMutationInput, Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreInput>
+}
+
+export type ComunicazioneScalarWhereInput = {
+  AND?: Prisma.ComunicazioneScalarWhereInput | Prisma.ComunicazioneScalarWhereInput[]
+  OR?: Prisma.ComunicazioneScalarWhereInput[]
+  NOT?: Prisma.ComunicazioneScalarWhereInput | Prisma.ComunicazioneScalarWhereInput[]
+  id?: Prisma.IntFilter<"Comunicazione"> | number
+  testo?: Prisma.StringFilter<"Comunicazione"> | string
+  richiedeRisposta?: Prisma.BoolFilter<"Comunicazione"> | boolean
+  allegatiRichiesti?: Prisma.StringNullableFilter<"Comunicazione"> | string | null
+  dataCreazione?: Prisma.DateTimeFilter<"Comunicazione"> | Date | string
+  istanzaId?: Prisma.IntFilter<"Comunicazione"> | number
+  operatoreId?: Prisma.IntNullableFilter<"Comunicazione"> | number | null
+}
+
+export type ComunicazioneCreateWithoutIstanzaInput = {
+  testo: string
+  richiedeRisposta?: boolean
+  allegatiRichiesti?: string | null
+  dataCreazione?: Date | string
+  operatore?: Prisma.OperatoreCreateNestedOneWithoutComunicazioniInput
+  risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
+}
+
+export type ComunicazioneUncheckedCreateWithoutIstanzaInput = {
+  id?: number
+  testo: string
+  richiedeRisposta?: boolean
+  allegatiRichiesti?: string | null
+  dataCreazione?: Date | string
+  operatoreId?: number | null
+  risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
+}
+
+export type ComunicazioneCreateOrConnectWithoutIstanzaInput = {
+  where: Prisma.ComunicazioneWhereUniqueInput
+  create: Prisma.XOR<Prisma.ComunicazioneCreateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput>
+}
+
+export type ComunicazioneCreateManyIstanzaInputEnvelope = {
+  data: Prisma.ComunicazioneCreateManyIstanzaInput | Prisma.ComunicazioneCreateManyIstanzaInput[]
+  skipDuplicates?: boolean
+}
+
+export type ComunicazioneUpsertWithWhereUniqueWithoutIstanzaInput = {
+  where: Prisma.ComunicazioneWhereUniqueInput
+  update: Prisma.XOR<Prisma.ComunicazioneUpdateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedUpdateWithoutIstanzaInput>
+  create: Prisma.XOR<Prisma.ComunicazioneCreateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedCreateWithoutIstanzaInput>
+}
+
+export type ComunicazioneUpdateWithWhereUniqueWithoutIstanzaInput = {
+  where: Prisma.ComunicazioneWhereUniqueInput
+  data: Prisma.XOR<Prisma.ComunicazioneUpdateWithoutIstanzaInput, Prisma.ComunicazioneUncheckedUpdateWithoutIstanzaInput>
+}
+
+export type ComunicazioneUpdateManyWithWhereWithoutIstanzaInput = {
+  where: Prisma.ComunicazioneScalarWhereInput
+  data: Prisma.XOR<Prisma.ComunicazioneUpdateManyMutationInput, Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaInput>
 }
 
 export type ComunicazioneCreateWithoutRispostaInput = {
   testo: string
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
-  workflow: Prisma.WorkflowCreateNestedOneWithoutComunicazioneInput
+  dataCreazione?: Date | string
+  istanza: Prisma.IstanzaCreateNestedOneWithoutComunicazioniInput
+  operatore?: Prisma.OperatoreCreateNestedOneWithoutComunicazioniInput
 }
 
 export type ComunicazioneUncheckedCreateWithoutRispostaInput = {
@@ -429,7 +643,9 @@ export type ComunicazioneUncheckedCreateWithoutRispostaInput = {
   testo: string
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
-  workflowId: number
+  dataCreazione?: Date | string
+  istanzaId: number
+  operatoreId?: number | null
 }
 
 export type ComunicazioneCreateOrConnectWithoutRispostaInput = {
@@ -452,7 +668,9 @@ export type ComunicazioneUpdateWithoutRispostaInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  workflow?: Prisma.WorkflowUpdateOneRequiredWithoutComunicazioneNestedInput
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanza?: Prisma.IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput
+  operatore?: Prisma.OperatoreUpdateOneWithoutComunicazioniNestedInput
 }
 
 export type ComunicazioneUncheckedUpdateWithoutRispostaInput = {
@@ -460,53 +678,83 @@ export type ComunicazioneUncheckedUpdateWithoutRispostaInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  workflowId?: Prisma.IntFieldUpdateOperationsInput | number
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
+  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
-export type ComunicazioneCreateWithoutWorkflowInput = {
-  testo: string
-  richiedeRisposta?: boolean
-  allegatiRichiesti?: string | null
-  risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
-}
-
-export type ComunicazioneUncheckedCreateWithoutWorkflowInput = {
+export type ComunicazioneCreateManyOperatoreInput = {
   id?: number
   testo: string
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
-  risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
+  dataCreazione?: Date | string
+  istanzaId: number
 }
 
-export type ComunicazioneCreateOrConnectWithoutWorkflowInput = {
-  where: Prisma.ComunicazioneWhereUniqueInput
-  create: Prisma.XOR<Prisma.ComunicazioneCreateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedCreateWithoutWorkflowInput>
-}
-
-export type ComunicazioneUpsertWithoutWorkflowInput = {
-  update: Prisma.XOR<Prisma.ComunicazioneUpdateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedUpdateWithoutWorkflowInput>
-  create: Prisma.XOR<Prisma.ComunicazioneCreateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedCreateWithoutWorkflowInput>
-  where?: Prisma.ComunicazioneWhereInput
-}
-
-export type ComunicazioneUpdateToOneWithWhereWithoutWorkflowInput = {
-  where?: Prisma.ComunicazioneWhereInput
-  data: Prisma.XOR<Prisma.ComunicazioneUpdateWithoutWorkflowInput, Prisma.ComunicazioneUncheckedUpdateWithoutWorkflowInput>
-}
-
-export type ComunicazioneUpdateWithoutWorkflowInput = {
+export type ComunicazioneUpdateWithoutOperatoreInput = {
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanza?: Prisma.IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput
   risposta?: Prisma.RispostaComunicazioneUpdateOneWithoutComunicazioneNestedInput
 }
 
-export type ComunicazioneUncheckedUpdateWithoutWorkflowInput = {
+export type ComunicazioneUncheckedUpdateWithoutOperatoreInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   testo?: Prisma.StringFieldUpdateOperationsInput | string
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   risposta?: Prisma.RispostaComunicazioneUncheckedUpdateOneWithoutComunicazioneNestedInput
+}
+
+export type ComunicazioneUncheckedUpdateManyWithoutOperatoreInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  testo?: Prisma.StringFieldUpdateOperationsInput | string
+  richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type ComunicazioneCreateManyIstanzaInput = {
+  id?: number
+  testo: string
+  richiedeRisposta?: boolean
+  allegatiRichiesti?: string | null
+  dataCreazione?: Date | string
+  operatoreId?: number | null
+}
+
+export type ComunicazioneUpdateWithoutIstanzaInput = {
+  testo?: Prisma.StringFieldUpdateOperationsInput | string
+  richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  operatore?: Prisma.OperatoreUpdateOneWithoutComunicazioniNestedInput
+  risposta?: Prisma.RispostaComunicazioneUpdateOneWithoutComunicazioneNestedInput
+}
+
+export type ComunicazioneUncheckedUpdateWithoutIstanzaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  testo?: Prisma.StringFieldUpdateOperationsInput | string
+  richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  risposta?: Prisma.RispostaComunicazioneUncheckedUpdateOneWithoutComunicazioneNestedInput
+}
+
+export type ComunicazioneUncheckedUpdateManyWithoutIstanzaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  testo?: Prisma.StringFieldUpdateOperationsInput | string
+  richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -516,8 +764,11 @@ export type ComunicazioneSelect<ExtArgs extends runtime.Types.Extensions.Interna
   testo?: boolean
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
-  workflowId?: boolean
-  workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+  dataCreazione?: boolean
+  istanzaId?: boolean
+  operatoreId?: boolean
+  istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
+  operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
   risposta?: boolean | Prisma.Comunicazione$rispostaArgs<ExtArgs>
 }, ExtArgs["result"]["comunicazione"]>
 
@@ -526,8 +777,11 @@ export type ComunicazioneSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   testo?: boolean
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
-  workflowId?: boolean
-  workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+  dataCreazione?: boolean
+  istanzaId?: boolean
+  operatoreId?: boolean
+  istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
+  operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
 }, ExtArgs["result"]["comunicazione"]>
 
 export type ComunicazioneSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -535,8 +789,11 @@ export type ComunicazioneSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   testo?: boolean
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
-  workflowId?: boolean
-  workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+  dataCreazione?: boolean
+  istanzaId?: boolean
+  operatoreId?: boolean
+  istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
+  operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
 }, ExtArgs["result"]["comunicazione"]>
 
 export type ComunicazioneSelectScalar = {
@@ -544,25 +801,31 @@ export type ComunicazioneSelectScalar = {
   testo?: boolean
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
-  workflowId?: boolean
+  dataCreazione?: boolean
+  istanzaId?: boolean
+  operatoreId?: boolean
 }
 
-export type ComunicazioneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "testo" | "richiedeRisposta" | "allegatiRichiesti" | "workflowId", ExtArgs["result"]["comunicazione"]>
+export type ComunicazioneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "testo" | "richiedeRisposta" | "allegatiRichiesti" | "dataCreazione" | "istanzaId" | "operatoreId", ExtArgs["result"]["comunicazione"]>
 export type ComunicazioneInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+  istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
+  operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
   risposta?: boolean | Prisma.Comunicazione$rispostaArgs<ExtArgs>
 }
 export type ComunicazioneIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+  istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
+  operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
 }
 export type ComunicazioneIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+  istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
+  operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
 }
 
 export type $ComunicazionePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Comunicazione"
   objects: {
-    workflow: Prisma.$WorkflowPayload<ExtArgs>
+    istanza: Prisma.$IstanzaPayload<ExtArgs>
+    operatore: Prisma.$OperatorePayload<ExtArgs> | null
     risposta: Prisma.$RispostaComunicazionePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -570,7 +833,9 @@ export type $ComunicazionePayload<ExtArgs extends runtime.Types.Extensions.Inter
     testo: string
     richiedeRisposta: boolean
     allegatiRichiesti: string | null
-    workflowId: number
+    dataCreazione: Date
+    istanzaId: number
+    operatoreId: number | null
   }, ExtArgs["result"]["comunicazione"]>
   composites: {}
 }
@@ -965,7 +1230,8 @@ readonly fields: ComunicazioneFieldRefs;
  */
 export interface Prisma__ComunicazioneClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  workflow<T extends Prisma.WorkflowDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkflowDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkflowClient<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  istanza<T extends Prisma.IstanzaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.IstanzaDefaultArgs<ExtArgs>>): Prisma.Prisma__IstanzaClient<runtime.Types.Result.GetResult<Prisma.$IstanzaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  operatore<T extends Prisma.Comunicazione$operatoreArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Comunicazione$operatoreArgs<ExtArgs>>): Prisma.Prisma__OperatoreClient<runtime.Types.Result.GetResult<Prisma.$OperatorePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   risposta<T extends Prisma.Comunicazione$rispostaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Comunicazione$rispostaArgs<ExtArgs>>): Prisma.Prisma__RispostaComunicazioneClient<runtime.Types.Result.GetResult<Prisma.$RispostaComunicazionePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1000,7 +1266,9 @@ export interface ComunicazioneFieldRefs {
   readonly testo: Prisma.FieldRef<"Comunicazione", 'String'>
   readonly richiedeRisposta: Prisma.FieldRef<"Comunicazione", 'Boolean'>
   readonly allegatiRichiesti: Prisma.FieldRef<"Comunicazione", 'String'>
-  readonly workflowId: Prisma.FieldRef<"Comunicazione", 'Int'>
+  readonly dataCreazione: Prisma.FieldRef<"Comunicazione", 'DateTime'>
+  readonly istanzaId: Prisma.FieldRef<"Comunicazione", 'Int'>
+  readonly operatoreId: Prisma.FieldRef<"Comunicazione", 'Int'>
 }
     
 
@@ -1399,6 +1667,25 @@ export type ComunicazioneDeleteManyArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many Comunicaziones to delete.
    */
   limit?: number
+}
+
+/**
+ * Comunicazione.operatore
+ */
+export type Comunicazione$operatoreArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Operatore
+   */
+  select?: Prisma.OperatoreSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Operatore
+   */
+  omit?: Prisma.OperatoreOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OperatoreInclude<ExtArgs> | null
+  where?: Prisma.OperatoreWhereInput
 }
 
 /**

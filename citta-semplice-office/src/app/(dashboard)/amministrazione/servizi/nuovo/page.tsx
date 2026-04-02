@@ -3,7 +3,7 @@ import { ServizioForm } from '../servizio-form';
 import Link from 'next/link';
 
 async function getFormData() {
-  const [aree, uffici, tributi] = await Promise.all([
+  const [aree, uffici] = await Promise.all([
     prisma.area.findMany({
       where: { attiva: true },
       orderBy: { nome: 'asc' },
@@ -14,18 +14,13 @@ async function getFormData() {
       orderBy: { nome: 'asc' },
       select: { id: true, nome: true },
     }),
-    prisma.tributo.findMany({
-      where: { attivo: true },
-      orderBy: { codice: 'asc' },
-      select: { id: true, codice: true, descrizione: true },
-    }),
   ]);
 
-  return { aree, uffici, tributi };
+  return { aree, uffici };
 }
 
 export default async function NuovoServizioPage() {
-  const { aree, uffici, tributi } = await getFormData();
+  const { aree, uffici } = await getFormData();
 
   return (
     <div>
@@ -42,7 +37,6 @@ export default async function NuovoServizioPage() {
       <ServizioForm
         aree={aree}
         uffici={uffici}
-        tributi={tributi}
         isNew
       />
     </div>
