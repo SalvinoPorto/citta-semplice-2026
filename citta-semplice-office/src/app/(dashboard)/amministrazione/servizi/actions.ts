@@ -42,7 +42,8 @@ async function upsertPagamentoForStep(stepId: number, step: ServizioFormData['st
     where: { stepId },
     create: {
       stepId,
-      codiceTributoId: step.pagamentoCodiceTributoId || null,
+      codiceTributo: step.pagamentoCodiceTributo || null,
+      descrizioneTributo: step.pagamentoDescrizioneTributo || null,
       importo: step.pagamentoImportoVariabile ? null : (step.pagamentoImporto ?? null),
       importoVariabile: step.pagamentoImportoVariabile,
       causale: step.pagamentoCausale || null,
@@ -51,7 +52,8 @@ async function upsertPagamentoForStep(stepId: number, step: ServizioFormData['st
       tipologiaPagamento: step.pagamentoTipologia || null,
     },
     update: {
-      codiceTributoId: step.pagamentoCodiceTributoId || null,
+      codiceTributo: step.pagamentoCodiceTributo || null,
+      descrizioneTributo: step.pagamentoDescrizioneTributo || null,
       importo: step.pagamentoImportoVariabile ? null : (step.pagamentoImporto ?? null),
       importoVariabile: step.pagamentoImportoVariabile,
       causale: step.pagamentoCausale || null,
@@ -136,51 +138,111 @@ export async function createServizio(data: ServizioFormData) {
     }
   }
 
-  revalidatePath('/servizi');
+  revalidatePath('/amministrazione/servizi');
   return { success: true, message: 'Servizio creato con successo' };
 }
 
 export async function updateServizio(id: number, data: ServizioFormData) {
   const validated = servizioSchema.parse(data);
 
-  const steps = await prisma.$transaction(async (tx) => {
-    await tx.step.deleteMany({ where: { servizioId: id } });
+  // IDs degli step presenti nel form (quelli già esistenti nel DB)
+  const formStepIds = validated.steps
+    .map((s) => s.id)
+    .filter((sid): sid is number => sid !== undefined);
 
-    await tx.servizio.update({
-      where: { id },
-      data: {
-        ...buildServizioData(validated),
-        steps: {
-          create: validated.steps.map((step, idx) => buildStepData(step, idx)),
-        },
-        ...(validated.ricevutaArt18 && {
-          ricevuta: {
-            upsert: {
-              create: buildRicevutaArt18Data(validated.ricevutaArt18),
-              update: buildRicevutaArt18Data(validated.ricevutaArt18),
-            },
-          },
-        }),
-      },
-    });
-
-    return tx.step.findMany({
-      where: { servizioId: id },
-      orderBy: { ordine: 'asc' },
-    });
+  // Step attualmente nel DB per questo servizio
+  const existingSteps = await prisma.step.findMany({
+    where: { servizioId: id },
+    select: { id: true },
   });
+  const existingStepIds = existingSteps.map((s) => s.id);
 
-  for (let i = 0; i < validated.steps.length; i++) {
-    const step = validated.steps[i];
-    const createdStep = steps.find((s) => s.ordine === i + 1);
-    if (createdStep) {
-      if (step.pagamento) await upsertPagamentoForStep(createdStep.id, step);
-      await createAllegatiRichiestiForStep(createdStep.id, step);
+  // Step rimossi dal form
+  const removedIds = existingStepIds.filter((sid) => !formStepIds.includes(sid));
+
+  // Per gli step rimossi: se referenziati da workflow → soft delete, altrimenti hard delete
+  if (removedIds.length > 0) {
+    const referencedIds = (
+      await prisma.workflow.findMany({
+        where: { stepId: { in: removedIds } },
+        select: { stepId: true },
+        distinct: ['stepId'],
+      })
+    ).map((w) => w.stepId).filter((sid): sid is number => sid !== null);
+
+    const toSoftDelete = removedIds.filter((sid) => referencedIds.includes(sid));
+    const toHardDelete = removedIds.filter((sid) => !referencedIds.includes(sid));
+
+    if (toSoftDelete.length > 0) {
+      await prisma.step.updateMany({
+        where: { id: { in: toSoftDelete } },
+        data: { attivo: false },
+      });
+    }
+    if (toHardDelete.length > 0) {
+      await prisma.step.deleteMany({ where: { id: { in: toHardDelete } } });
     }
   }
 
-  revalidatePath('/servizi');
-  revalidatePath(`/servizi/${id}`);
+  // Aggiorna i dati base del servizio e la ricevuta art18
+  await prisma.servizio.update({
+    where: { id },
+    data: {
+      ...buildServizioData(validated),
+      ...(validated.ricevutaArt18 && {
+        ricevuta: {
+          upsert: {
+            create: buildRicevutaArt18Data(validated.ricevutaArt18),
+            update: buildRicevutaArt18Data(validated.ricevutaArt18),
+          },
+        },
+      }),
+    },
+  });
+
+  // Upsert degli step: aggiorna quelli con id, crea quelli senza
+  const savedSteps: { id: number; ordine: number }[] = [];
+
+  for (let i = 0; i < validated.steps.length; i++) {
+    const step = validated.steps[i];
+    const stepData = buildStepData(step, i);
+
+    if (step.id) {
+      // Step esistente → update
+      await prisma.step.update({
+        where: { id: step.id },
+        data: stepData,
+      });
+      savedSteps.push({ id: step.id, ordine: i + 1 });
+    } else {
+      // Nuovo step → create
+      const created = await prisma.step.create({
+        data: { ...stepData, servizioId: id },
+      });
+      savedSteps.push({ id: created.id, ordine: i + 1 });
+    }
+  }
+
+  // Aggiorna pagamento e allegati richiesti per ogni step
+  for (let i = 0; i < validated.steps.length; i++) {
+    const step = validated.steps[i];
+    const saved = savedSteps.find((s) => s.ordine === i + 1);
+    if (!saved) continue;
+
+    // Pagamento: upsert se attivo, elimina se disattivato
+    if (step.pagamento) {
+      await upsertPagamentoForStep(saved.id, step);
+    } else {
+      await prisma.pagamento.deleteMany({ where: { stepId: saved.id } });
+    }
+
+    // AllegatiRichiesti: ricrea sempre (non hanno FK da workflow)
+    await prisma.allegatoRichiesto.deleteMany({ where: { stepId: saved.id } });
+    await createAllegatiRichiestiForStep(saved.id, step);
+  }
+
+  revalidatePath('/amministrazione/servizi');
+  revalidatePath(`/amministrazione/servizi/${id}`);
   return { success: true, message: 'Servizio aggiornato con successo' };
 }
 
@@ -195,7 +257,7 @@ export async function deleteServizio(id: number) {
 
   await prisma.servizio.delete({ where: { id } });
 
-  revalidatePath('/servizi');
+  revalidatePath('/amministrazione/servizi');
   return { success: true, message: 'Servizio eliminato con successo' };
 }
 
@@ -292,7 +354,8 @@ export async function cloneServizio(id: number) {
       await prisma.pagamento.create({
         data: {
           stepId: clonedStep.id,
-          codiceTributoId: originalStep.pagamentoConfig.codiceTributoId,
+          codiceTributo: originalStep.pagamentoConfig.codiceTributo,
+          descrizioneTributo: originalStep.pagamentoConfig.descrizioneTributo,
           importo: originalStep.pagamentoConfig.importo,
           importoVariabile: originalStep.pagamentoConfig.importoVariabile,
           causale: originalStep.pagamentoConfig.causale,
@@ -316,6 +379,6 @@ export async function cloneServizio(id: number) {
     }
   }
 
-  revalidatePath('/servizi');
-  redirect(`/servizi/${cloned.id}`);
+  revalidatePath('/amministrazione/servizi');
+  redirect(`/amministrazione/servizi/${cloned.id}`);
 }

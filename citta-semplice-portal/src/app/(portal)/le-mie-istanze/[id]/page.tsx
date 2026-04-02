@@ -33,10 +33,12 @@ function parseDati(dati: string | null | undefined): CampoDato[] {
   }
 }
 
-function getStatoBadge(istanza: { conclusa: boolean; respinta: boolean }) {
+function getStatoBadge(istanza: { conclusa: boolean; respinta: boolean; workflows: { operatoreId: number | null }[] }) {
   if (istanza.conclusa) return { label: 'Conclusa', cls: 'bg-success' };
   if (istanza.respinta) return { label: 'Respinta', cls: 'bg-danger' };
-  return { label: 'In lavorazione', cls: 'bg-primary' };
+  const presaInCarico = istanza.workflows.some((wf) => wf.operatoreId !== null);
+  if (presaInCarico) return { label: 'In lavorazione', cls: 'bg-primary' };
+  return { label: 'In attesa', cls: 'bg-secondary' };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -64,13 +66,12 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
       workflows: {
         include: {
           step: true,
-          status: true,
           allegati: true,
           notifica: true,
-          comunicazione: { include: { risposta: { include: { allegati: true } } } },
         },
         orderBy: { dataVariazione: 'asc' },
       },
+      comunicazioni: { include: { risposta: { include: { allegati: true } } } },
     },
   });
 
@@ -89,16 +90,15 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
     wf.allegati.filter((a) => !a.invUtente),
   );
 
-  // Comunicazioni dell'ufficio (una per workflow, ordinate cronologicamente)
-  const comunicazioni = istanza.workflows
-    .filter((wf) => wf.comunicazione !== null)
-    .map((wf) => {
-      const com = wf.comunicazione!;
+  // Comunicazioni dell'ufficio con eventuali risposte del cittadino
+  const comunicazioni = istanza.comunicazioni
+    .filter((com) => com !== null)
+    .map((com) => {
       let allegatiRichiesti: { nome: string; obbligatorio: boolean }[] = [];
       try {
         if (com.allegatiRichiesti) allegatiRichiesti = JSON.parse(com.allegatiRichiesti);
       } catch { /* ignore */ }
-      return { ...com, dataVariazione: wf.dataVariazione, allegatiRichiesti };
+      return { ...com, allegatiRichiesti };
     });
 
   return (
@@ -120,7 +120,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
             {/* Header */}
             <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
               <div>
-                <h1 className="title-xxlarge mb-1">{istanza.servizio.titolo}</h1>
+                <h1 className="title mb-1">{istanza.servizio.titolo}</h1>
                 <p className="text-muted mb-0">
                   Istanza #{istanza.id}
                   {istanza.dataInvio && (
@@ -242,7 +242,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                                   {format(wf.dataVariazione, 'dd/MM/yyyy HH:mm', { locale: it })}
                                 </span>
                                 <span className={`badge ${idx === istanza.workflows.length - 1 ? 'bg-primary' : 'bg-secondary'}`}>
-                                  {wf.status.stato}
+                                  {wf.operatoreId === null ? 'In attesa' : wf.stato === 1 ? 'Completata' : 'In lavorazione'}
                                 </span>
                               </div>
                               <div className="card shadow-sm">
@@ -319,7 +319,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                             <use href={`/bootstrap-italia/dist/svg/sprites.svg#${com.richiedeRisposta ? 'it-warning-circle' : 'it-info-circle'}`} />
                           </svg>
                           <small className="text-muted">
-                            {format(com.dataVariazione, 'dd MMMM yyyy, HH:mm', { locale: it })}
+                            {format(com.dataCreazione, 'dd MMMM yyyy, HH:mm', { locale: it })}
                           </small>
                           {com.richiedeRisposta && (
                             <span className="badge bg-warning text-dark ms-auto">Richiede risposta</span>
@@ -333,7 +333,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                             risposta={com.risposta ? {
                               id: com.risposta.id,
                               testo: com.risposta.testo,
-                              dataRisposta: com.risposta.dataRisposta,
+                              dataRisposta: com.risposta.createdAt,
                               allegati: com.risposta.allegati.map((a: { id: number; nomeFile: string }) => ({ id: a.id, nomeFile: a.nomeFile })),
                             } : null}
                           />

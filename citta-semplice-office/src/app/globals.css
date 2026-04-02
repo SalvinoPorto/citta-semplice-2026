@@ -123,6 +123,11 @@ body {
   margin-bottom: 0.25rem;
 }
 
+.form-select {
+  min-height: 2.5rem;
+  border-bottom: 1px solid #5d7083;
+}
+
 /* Timeline styles for workflow */
 .timeline {
   position: relative;
@@ -213,6 +218,6 @@ body {
   color: #a0a0a0;
 }
 
-.form-check + .form-check {
-    margin-top: 0;
+.form-check+.form-check {
+  margin-top: 0;
 }

@@ -1,4 +1,4 @@
-import PDFDocument from 'pdfkit';
+import puppeteer from 'puppeteer';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -30,9 +30,17 @@ export type DatiIstanzaDoc = {
 };
 
 export type DatiRicevuta = {
-  intestazione: string | null;
-  corpo: string | null;
-  footer: string | null;
+  id: number;
+  servizioId: number;
+  richiestaArt18: boolean;
+  unitaOrganizzativaCompetente: string | null;
+  ufficioCompetente: string | null;
+  responsabileProcedimento: string | null;
+  durataMassimaProcedimento: number | null;
+  responsabileProvvedimentoFinale: string | null;
+  personaPotereSostitutivo: string | null;
+  urlServizioWeb: string | null;
+  ufficioRicevimento: string | null;
 };
 
 export type AllegatoCreato = {
@@ -57,14 +65,6 @@ function formatData(d: Date | null | undefined): string {
   return new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
 }
 
-function sostituisciVariabili(testo: string | null | undefined, vars: Record<string, string>): string {
-  if (!testo) return '';
-  return Object.entries(vars).reduce(
-    (acc, [key, val]) => acc.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), val ?? ''),
-    testo
-  );
-}
-
 async function salvaPdf(buffer: Buffer): Promise<string> {
   const now = new Date();
   const relDir = join(
@@ -79,127 +79,159 @@ async function salvaPdf(buffer: Buffer): Promise<string> {
   return join(relDir, uuid);
 }
 
-// ─── Scrittura modulo su PDFDocument ─────────────────────────────────────────
+// ─── CSS comune ──────────────────────────────────────────────────────────────
 
-function scriviModulo(
-  doc: InstanceType<typeof PDFDocument>,
+const CSS_BASE = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    color: #000;
+    background: #fff;
+    margin: 15mm;
+  }
+  h1 { font-size: 13pt; text-align: center; margin-bottom: 4px; }
+  h2 { font-size: 11pt; text-align: center; font-weight: bold; margin-bottom: 4px; }
+  h3 { font-size: 10pt; text-align: center; font-weight: normal; margin-bottom: 12px; }
+  .divider { border: none; border-top: 1px solid #000; margin: 10px 0; }
+  .meta { font-size: 9pt; margin-bottom: 4px; }
+  .data-fine { font-size: 9pt; text-align: right; margin-top: 16px; }
+
+  /* Campi modulo */
+  .campo { display: flex; align-items: flex-start; }
+  .campo-label { flex: 0 0 160px; color: #555; padding-right: 10px; }
+  .campo-value { flex: 1; font-weight: bold; }
+
+  /* Ricevuta */
+  .ricevuta-title { font-size: 10pt; text-align: center; font-weight: bold; margin-bottom: 16px; }
+  .ricevuta-row { margin-bottom: 10px; line-height: 1.5; }
+  .ricevuta-row strong { font-weight: bold; }
+
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+  }
+`;
+
+// ─── Template modulo ──────────────────────────────────────────────────────────
+
+function buildModuloHtml(
+  nomeEnte: string,
+  sede: string,
   istanza: DatiIstanzaDoc,
   servizio: DatiServizioDoc,
   datiRaw: string | null | undefined,
-): void {
+): string {
   const campi = parseCampi(datiRaw).filter((c) => c.type !== 'paragraph');
 
-  const COL_LABEL = 50;
-  const COL_VALUE = 220;
-  const PAGE_WIDTH = 545;
-
-  doc.fontSize(14).font('Helvetica-Bold').text('Comune di Catania', { align: 'center' });
-  doc.fontSize(12).font('Helvetica-Bold').text(servizio.areaNome, { align: 'center' });
-  doc.fontSize(11).font('Helvetica').text(servizio.titolo, { align: 'center' });
-  doc.moveDown(0.5);
-
-  if (istanza.protoNumero) {
-    doc.fontSize(10).text(`N° Protocollo: ${istanza.protoNumero}`);
-    if (istanza.protoData) doc.text(`Data protocollo: ${formatData(istanza.protoData)}`);
-  }
-
-  if (istanza.municipalita) {
-    doc.fontSize(10).text(`Municipalità: ${istanza.municipalita}`);
-  }
-
-  doc.moveDown();
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.5);
-
-  doc.fontSize(9).font('Helvetica');
-
-  for (const campo of campi) {
-    if (doc.y > 730) doc.addPage();
-
+  const righe = campi.map((campo) => {
     const label = campo.label ?? campo.name;
+    let valore: string;
 
     if (campo.type === 'checkbox' && Array.isArray(campo.values)) {
-      doc.font('Helvetica-Bold').text(label, COL_LABEL, doc.y, { width: PAGE_WIDTH - COL_LABEL });
       const selezionati = campo.values.filter((v) => v.selected).map((v) => v.label);
-      doc.font('Helvetica').text(
-        selezionati.join(', ') || '—',
-        COL_VALUE,
-        doc.y - doc.currentLineHeight(),
-        { width: PAGE_WIDTH - COL_VALUE },
-      );
+      valore = selezionati.join(', ') || '—';
     } else {
-      const y = doc.y;
-      doc.font('Helvetica').fillColor('#555555').text(label, COL_LABEL, y, { width: COL_VALUE - COL_LABEL - 10 });
-      doc.font('Helvetica-Bold').fillColor('#000000').text(campo.value || '—', COL_VALUE, y, { width: PAGE_WIDTH - COL_VALUE });
+      valore = campo.value || '—';
     }
 
-    doc.moveDown(0.3);
-  }
+    return `
+      <div class="campo">
+        <div class="campo-label">${label}</div>
+        <div class="campo-value">${valore}</div>
+      </div>`;
+  }).join('');
 
-  doc.moveDown();
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.5);
-  doc.fontSize(9).font('Helvetica').fillColor('#000000')
-    .text(`Catania, ${formatData(istanza.dataInvio ?? new Date())}`, { align: 'right' });
+  const metaProto = istanza.protoNumero
+    ? `<p class="meta"><strong>N° Protocollo:</strong> ${istanza.protoNumero}</p>
+       ${istanza.protoData ? `<p class="meta"><strong>Data protocollo:</strong> ${formatData(istanza.protoData)}</p>` : ''}`
+    : '';
+
+  const metaMunicipalita = istanza.municipalita
+    ? `<p class="meta"><strong>Municipalità:</strong> ${istanza.municipalita}</p>`
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <style>${CSS_BASE}</style>
+</head>
+<body>
+  <h1>${nomeEnte}</h1>
+  <h2>${servizio.areaNome}</h2>
+  <h3>${servizio.titolo}</h3>
+  ${metaProto}
+  ${metaMunicipalita}
+  <hr class="divider">
+  ${righe}
+  <hr class="divider">
+  <p class="data-fine">${sede}, ${formatData(istanza.dataInvio ?? new Date())}</p>
+</body>
+</html>`;
 }
 
-// ─── Scrittura ricevuta art.18 su PDFDocument ─────────────────────────────────
+// ─── Template ricevuta art.18 ─────────────────────────────────────────────────
 
-function scriviRicevuta(
-  doc: InstanceType<typeof PDFDocument>,
+function buildRicevutaHtml(
+  nomeEnte: string,
   istanza: DatiIstanzaDoc,
   servizio: DatiServizioDoc,
   ricevuta: DatiRicevuta,
-): void {
-  const vars: Record<string, string> = {
-    protoNumero: istanza.protoNumero ?? '',
-    protoData: formatData(istanza.protoData),
-    dataInvio: formatData(istanza.dataInvio),
-    servizioTitolo: servizio.titolo,
-    areaNome: servizio.areaNome,
-    istanzaId: String(istanza.id),
-  };
+): string {
+  const durataRiga = ricevuta.durataMassimaProcedimento && ricevuta.durataMassimaProcedimento > 0
+    ? `<div class="ricevuta-row">La durata massima del procedimento è di ${ricevuta.durataMassimaProcedimento} giorni</div>`
+    : '';
 
-  const intestazione = sostituisciVariabili(ricevuta.intestazione, vars);
-  const corpo = sostituisciVariabili(ricevuta.corpo, vars);
-  const footer = sostituisciVariabili(ricevuta.footer, vars);
+  const ufficioRiga = ricevuta.ufficioCompetente
+    ? `<div class="ricevuta-row">L'ufficio competente è: ${ricevuta.ufficioCompetente}</div>`
+    : '';
 
-  doc.fontSize(14).font('Helvetica-Bold').text('Comune di Catania', { align: 'center' });
-  doc.moveDown(0.5);
-  doc.fontSize(11).font('Helvetica-Bold')
-    .text("Ricevuta ai sensi dell'art. 18 bis L. 241/1990 e L.R. 7/2019", { align: 'center' });
-  doc.moveDown();
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown();
+  return `
+  <div class="page-break">
+    <h1>${nomeEnte}</h1>
+    <p class="ricevuta-title">Ai sensi dell'art. 18 bis L. 241/1990 e L.R. 7/2019</p>
+    <hr class="divider">
+    <div class="ricevuta-row">
+      L'istanza/segnalazione/comunicazione è stata protocollata tramite Protocollo generale del ${nomeEnte}
+      al numero <strong>${istanza.protoNumero ?? '—'}</strong> del ${formatData(istanza.protoData)}.
+    </div>
+    <div class="ricevuta-row">Servizio: <strong>${servizio.titolo}</strong></div>
+    <div class="ricevuta-row">L'unità organizzativa competente è: ${ricevuta.unitaOrganizzativaCompetente ?? '—'}</div>
+    ${ufficioRiga}
+    <div class="ricevuta-row">Il Responsabile del Procedimento è: ${ricevuta.responsabileProcedimento ?? '—'}</div>
+    ${durataRiga}
+    <div class="ricevuta-row">Il Responsabile del Provvedimento Finale è: ${ricevuta.responsabileProvvedimentoFinale ?? '—'}</div>
+    <div class="ricevuta-row">
+      Attraverso il seguente collegamento potrà prendere visione degli atti inerenti la sua pratica:
+      ${ricevuta.urlServizioWeb ?? '—'}
+    </div>
+    <div class="ricevuta-row">
+      La persona e/o l'Unità Organizzativa cui è possibile rivolgersi in caso di inerzia del Responsabile è:
+      ${ricevuta.personaPotereSostitutivo ?? '—'}
+    </div>
+    <div class="ricevuta-row">
+      L'ufficio presso il quale potrà prendere visione degli atti inerenti la sua pratica è:
+      ${ricevuta.ufficioRicevimento ?? '—'}
+    </div>
+  </div>`;
+}
 
-  if (intestazione) {
-    doc.fontSize(10).font('Helvetica-Bold').text(intestazione);
-    doc.moveDown();
+// ─── Motore HTML → PDF ────────────────────────────────────────────────────────
+
+async function htmlToPdf(html: string): Promise<Buffer> {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdf = await page.pdf({ format: 'A4', printBackground: true });
+    return Buffer.from(pdf);
+  } finally {
+    await browser.close();
   }
-
-  if (corpo) {
-    doc.fontSize(10).font('Helvetica').text(corpo, { align: 'justify' });
-    doc.moveDown();
-  } else {
-    doc.fontSize(10).font('Helvetica')
-      .text("L'istanza è stata protocollata con il numero ", { continued: true })
-      .font('Helvetica-Bold').text(istanza.protoNumero ?? '—', { continued: true })
-      .font('Helvetica').text(` del ${formatData(istanza.protoData)}.`);
-    doc.moveDown();
-    doc.text(`Servizio: ${servizio.titolo}`);
-    doc.moveDown();
-  }
-
-  if (footer) {
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-    doc.moveDown(0.5);
-    doc.fontSize(9).font('Helvetica').fillColor('#555555').text(footer, { align: 'center' });
-  }
-
-  doc.moveDown();
-  doc.fontSize(9).fillColor('#000000').font('Helvetica')
-    .text(`Catania, ${formatData(istanza.dataInvio ?? new Date())}`, { align: 'right' });
 }
 
 // ─── API pubblica ─────────────────────────────────────────────────────────────
@@ -209,22 +241,15 @@ function scriviRicevuta(
  * Usato per inviare il documento al sistema di protocollo esterno.
  */
 export async function generaModuloBuffer(
+  nomeEnte: string,
+  sede: string,
   istanza: DatiIstanzaDoc,
   servizio: DatiServizioDoc,
   datiRaw: string | null | undefined,
 ): Promise<ArrayBuffer> {
-  const buf = await new Promise<Buffer>((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const chunks: Buffer[] = [];
-    doc.on('data', (c: Buffer) => chunks.push(c));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
-    scriviModulo(doc, istanza, servizio, datiRaw);
-    doc.end();
-  });
-  // slice() crea sempre un ArrayBuffer (non SharedArrayBuffer)
-  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-  return ab as ArrayBuffer;
+  const html = buildModuloHtml(nomeEnte, sede, istanza, servizio, datiRaw);
+  const buf = await htmlToPdf(html);
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
 }
 
 /**
@@ -233,6 +258,8 @@ export async function generaModuloBuffer(
  * Chiamare DOPO aver ottenuto il numero di protocollo.
  */
 export async function generaDocumentoPdf(
+  nomeEnte: string,
+  sede: string,
   istanza: DatiIstanzaDoc,
   servizio: DatiServizioDoc,
   datiRaw: string | null | undefined,
@@ -240,23 +267,15 @@ export async function generaDocumentoPdf(
 ): Promise<AllegatoCreato> {
   const nomeFile = `modulo_istanza_${istanza.id}.pdf`;
 
-  const buffer = await new Promise<Buffer>((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const chunks: Buffer[] = [];
-    doc.on('data', (c: Buffer) => chunks.push(c));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+  let html = buildModuloHtml(nomeEnte, sede, istanza, servizio, datiRaw);
 
-    scriviModulo(doc, istanza, servizio, datiRaw);
+  if (ricevuta) {
+    const bodyClose = html.lastIndexOf('</body>');
+    const ricevutaHtml = buildRicevutaHtml(nomeEnte, istanza, servizio, ricevuta);
+    html = html.slice(0, bodyClose) + ricevutaHtml + html.slice(bodyClose);
+  }
 
-    if (ricevuta) {
-      doc.addPage();
-      scriviRicevuta(doc, istanza, servizio, ricevuta);
-    }
-
-    doc.end();
-  });
-
+  const buffer = await htmlToPdf(html);
   const nomeHash = await salvaPdf(buffer);
   return { nomeFile, nomeHash };
 }

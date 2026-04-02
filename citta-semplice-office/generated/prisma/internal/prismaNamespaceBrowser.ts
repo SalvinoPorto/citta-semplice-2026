@@ -69,12 +69,10 @@ export const ModelName = {
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
   AllegatoRisposta: 'AllegatoRisposta',
-  Status: 'Status',
   Workflow: 'Workflow',
   Allegato: 'Allegato',
-  Tributo: 'Tributo',
   Pagamento: 'Pagamento',
-  PagamentoEffettuato: 'PagamentoEffettuato',
+  PagamentoAtteso: 'PagamentoAtteso',
   CustomerSatisfaction: 'CustomerSatisfaction',
   Ricevuta: 'Ricevuta',
   ProtocolloEmergenzaCounter: 'ProtocolloEmergenzaCounter',
@@ -147,6 +145,7 @@ export const EnteScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
   descrizione: 'descrizione',
+  sede: 'sede',
   codice: 'codice',
   indirizzo: 'indirizzo',
   telefono: 'telefono',
@@ -336,7 +335,9 @@ export const ComunicazioneScalarFieldEnum = {
   testo: 'testo',
   richiedeRisposta: 'richiedeRisposta',
   allegatiRichiesti: 'allegatiRichiesti',
-  workflowId: 'workflowId'
+  dataCreazione: 'dataCreazione',
+  istanzaId: 'istanzaId',
+  operatoreId: 'operatoreId'
 } as const
 
 export type ComunicazioneScalarFieldEnum = (typeof ComunicazioneScalarFieldEnum)[keyof typeof ComunicazioneScalarFieldEnum]
@@ -345,7 +346,7 @@ export type ComunicazioneScalarFieldEnum = (typeof ComunicazioneScalarFieldEnum)
 export const RispostaComunicazioneScalarFieldEnum = {
   id: 'id',
   testo: 'testo',
-  dataRisposta: 'dataRisposta',
+  createdAt: 'createdAt',
   comunicazioneId: 'comunicazioneId'
 } as const
 
@@ -363,16 +364,6 @@ export const AllegatoRispostaScalarFieldEnum = {
 export type AllegatoRispostaScalarFieldEnum = (typeof AllegatoRispostaScalarFieldEnum)[keyof typeof AllegatoRispostaScalarFieldEnum]
 
 
-export const StatusScalarFieldEnum = {
-  id: 'id',
-  stato: 'stato',
-  ordine: 'ordine',
-  icon: 'icon'
-} as const
-
-export type StatusScalarFieldEnum = (typeof StatusScalarFieldEnum)[keyof typeof StatusScalarFieldEnum]
-
-
 export const WorkflowScalarFieldEnum = {
   id: 'id',
   note: 'note',
@@ -380,7 +371,7 @@ export const WorkflowScalarFieldEnum = {
   istanzaId: 'istanzaId',
   stepId: 'stepId',
   notificaId: 'notificaId',
-  statusId: 'statusId',
+  stato: 'stato',
   operatoreId: 'operatoreId'
 } as const
 
@@ -402,16 +393,6 @@ export const AllegatoScalarFieldEnum = {
 export type AllegatoScalarFieldEnum = (typeof AllegatoScalarFieldEnum)[keyof typeof AllegatoScalarFieldEnum]
 
 
-export const TributoScalarFieldEnum = {
-  id: 'id',
-  codice: 'codice',
-  descrizione: 'descrizione',
-  attivo: 'attivo'
-} as const
-
-export type TributoScalarFieldEnum = (typeof TributoScalarFieldEnum)[keyof typeof TributoScalarFieldEnum]
-
-
 export const PagamentoScalarFieldEnum = {
   id: 'id',
   importo: 'importo',
@@ -420,29 +401,32 @@ export const PagamentoScalarFieldEnum = {
   tipologiaPagamento: 'tipologiaPagamento',
   causale: 'causale',
   causaleVariabile: 'causaleVariabile',
-  stepId: 'stepId',
-  codiceTributoId: 'codiceTributoId'
+  codiceTributo: 'codiceTributo',
+  descrizioneTributo: 'descrizioneTributo',
+  stepId: 'stepId'
 } as const
 
 export type PagamentoScalarFieldEnum = (typeof PagamentoScalarFieldEnum)[keyof typeof PagamentoScalarFieldEnum]
 
 
-export const PagamentoEffettuatoScalarFieldEnum = {
+export const PagamentoAttesoScalarFieldEnum = {
   id: 'id',
   iuv: 'iuv',
+  numeroDocumento: 'numeroDocumento',
   importoTotale: 'importoTotale',
   stato: 'stato',
+  dataEmissione: 'dataEmissione',
+  dataScadenza: 'dataScadenza',
   dataOperazione: 'dataOperazione',
   dataRicevuta: 'dataRicevuta',
-  cfUtente: 'cfUtente',
-  nomeUtente: 'nomeUtente',
-  cognomeUtente: 'cognomeUtente',
-  emailUtente: 'emailUtente',
+  paganteCodiceFiscale: 'paganteCodiceFiscale',
+  pagante: 'pagante',
+  paganteEmail: 'paganteEmail',
   causale: 'causale',
   workflowId: 'workflowId'
 } as const
 
-export type PagamentoEffettuatoScalarFieldEnum = (typeof PagamentoEffettuatoScalarFieldEnum)[keyof typeof PagamentoEffettuatoScalarFieldEnum]
+export type PagamentoAttesoScalarFieldEnum = (typeof PagamentoAttesoScalarFieldEnum)[keyof typeof PagamentoAttesoScalarFieldEnum]
 
 
 export const CustomerSatisfactionScalarFieldEnum = {

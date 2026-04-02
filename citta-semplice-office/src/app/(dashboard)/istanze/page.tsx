@@ -1,10 +1,14 @@
 import prisma from '@/lib/db/prisma';
 import { requireAuth } from '@/lib/auth/session';
+import { ROLES } from '@/lib/auth/roles';
 import { IstanzeClient } from './istanze-client';
 
-async function getServizi() {
+async function getServizi(operatoreId: number, isAdmin: boolean) {
   return prisma.servizio.findMany({
-    where: { attivo: true },
+    where: {
+      attivo: true,
+      ...(!isAdmin && { operatori: { some: { operatoreId } } }),
+    },
     orderBy: { titolo: 'asc' },
     select: { id: true, titolo: true, campiInEvidenza: true },
   });
@@ -13,7 +17,8 @@ async function getServizi() {
 export default async function IstanzePage() {
   const user = await requireAuth();
   const operatoreId = parseInt(user.id);
-  const servizi = await getServizi();
+  const isAdmin = (user.ruoli ?? []).includes(ROLES.ADMIN);
+  const servizi = await getServizi(operatoreId, isAdmin);
 
   return (
     <>

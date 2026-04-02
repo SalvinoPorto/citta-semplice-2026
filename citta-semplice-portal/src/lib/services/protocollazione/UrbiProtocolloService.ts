@@ -33,7 +33,8 @@ function getConfig() {
 // Types
 // ---------------------------------------------------------------------------
 export interface ProtocolloInput {
-  istanzaId: number;
+  /** Può essere null quando il protocollo viene ottenuto prima della creazione dell'istanza */
+  istanzaId: number | null;
   servizioTitolo: string;
   tipoProtocollo: string;       // 'E' = Entrata, 'U' = Uscita
   unitaOrganizzativa: string;
@@ -49,6 +50,8 @@ export interface ProtocolloResult {
   numero: string;
   data: Date;
   fallback: boolean;
+  /** ID del record ProtocolloEmergenza creato, presente solo quando fallback=true */
+  emergenzaId?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,7 +123,7 @@ function parseDataUrbi(dateStr: string): Date | null {
  * Registra ogni emissione nella tabella protocollo_emergenza.
  */
 export async function generaProtocolloEmergenza(
-  istanzaId: number,
+  istanzaId: number | null,
   tipo: 'INGRESSO' | 'USCITA',
   prefix?: string,
 ): Promise<ProtocolloResult> {
@@ -141,12 +144,12 @@ export async function generaProtocolloEmergenza(
   const numero = `${pfx}${anno}_${String(progressivo).padStart(4, '0')}`;
 
   // Registra nella tabella di log
-  await prisma.protocolloEmergenza.create({
+  const record = await prisma.protocolloEmergenza.create({
     data: { anno, progressivo, tipo, istanzaId },
   });
 
-  console.warn(`[Protocollo] Emergenza ${tipo} istanza ${istanzaId}: ${numero}`);
-  return { numero, data: new Date(), fallback: true };
+  console.warn(`[Protocollo] Emergenza ${tipo} istanza ${istanzaId ?? '(non ancora creata)'}: ${numero}`);
+  return { numero, data: new Date(), fallback: true, emergenzaId: record.id };
 }
 
 // ---------------------------------------------------------------------------
@@ -292,6 +295,6 @@ export async function protocolla(input: ProtocolloInput): Promise<ProtocolloResu
   return { numero, data, fallback: false };
 }
 
-async function fallback(config: ReturnType<typeof getConfig>, istanzaId: number): Promise<ProtocolloResult> {
+async function fallback(config: ReturnType<typeof getConfig>, istanzaId: number | null): Promise<ProtocolloResult> {
   return generaProtocolloEmergenza(istanzaId, 'INGRESSO', config.fallbackPrefix);
 }

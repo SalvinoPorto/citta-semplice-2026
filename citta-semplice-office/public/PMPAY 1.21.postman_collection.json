@@ -1,0 +1,730 @@
+{
+  "info": {
+    "_postman_id": "9892973e-53f7-4973-8bdd-9ff750e11e79",
+    "name": "PMPAY 1.21",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "8771576"
+  },
+  "item": [
+    {
+      "name": "GetBollettinoPagamento",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "60b49048eabe4a4e896156acef41af3c",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento/21000000000001016/bollettino",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento",
+            "21000000000001016",
+            "bollettino"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ricevuta pagamento in PDF",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "60b49048eabe4a4e896156acef41af3c",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento/21000000000001016/bollettino",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento",
+            "21000000000001016",
+            "bollettino"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetUrlPagamento",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "9c5af06718db4758a1236580e3d22b57",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"urlOk\":\"https://www.comune.catania.it\",\"urlKo\":\"https://www.comune.catania.it\",\"urlCancel\":\"https://www.comune.catania.it/citta-semplice\",\"idRichiesta\":\"1732816454\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento/22000000000036135/urlpagamento",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento",
+            "22000000000036135",
+            "urlpagamento"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Lista Servizi",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "9c5af06718db4758a1236580e3d22b57",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"urlOk\":\"https://www.comune.catania.it\",\"urlKo\":\"https://www.comune.catania.it\",\"urlCancel\":\"https://www.comune.catania.it/citta-semplice\",\"idRichiesta\":\"1732816454\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento/22000000000036135/urlpagamento",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento",
+            "22000000000036135",
+            "urlpagamento"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Autenticazione",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"CataniaJuser\",\r\n  \"pa_ssword\": \"jbhs@24298\",\r\n  \"password\": \"8ugy@762w\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/autenticazione",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "autenticazione"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Pagamento",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "d757ef978a8f4cf58b7caaa019537c9d",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"idDebito\": \"DIRISCOCAT2500249507\",\r\n  \"dataScadenza\": \"2025-06-06\",\r\n  \"dataInizioValidita\": \"2025-05-06\",\r\n  \"idFiscaleDebitore\": \"SMMMLG87S14Z614G\",\r\n  \"anagrafica\": {\r\n    \"codiceEnte\": \"CAT01\",\r\n    \"idFiscale\": {\r\n      \"tipo\": \"F\",\r\n      \"codice\": \"SMMMLG87S14Z614G\"\r\n    },\r\n    \"anagrafica\": \"SAMMARTINO EMANUEL GIOAN\"\r\n  },\r\n  \"versamenti\": [\r\n    {\r\n      \"importo\": \"100.00\",\r\n      \"causale\": \"Diritti Istruttoria\",\r\n      \"servizio\": \"DIRIS\"  \r\n    }\r\n  ]\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AnagraficaUpdate",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "19232408dec348c3977503b78d6293de",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"codiceEnte\": \"CAT01\",\r\n  \"idFiscale\": {\r\n      \"tipo\": \"F\",\r\n      \"codice\": \"GLNVLR86T46C351E\"\r\n        },\r\n    \"anagrafica\": \"GULINO VALERIA\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/anagrafica/TRACML48B63C351D",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "anagrafica",
+            "TRACML48B63C351D"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Pagamento a rate",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "8ad5b5cd8f184d0d87a78794222aa790",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"idDebito\": \"PCOCCOCAT20252406470224\",\r\n  \"dataScadenza\": \"2025-05-28\",\r\n  \"dataInizioValidita\": \"2025-03-28\",\r\n  \"idFiscaleDebitore\": \"DSTGTN81C09C351C\",\r\n  \"anagrafica\": {\r\n    \"codiceEnte\": \"CAT01\",\r\n    \"idFiscale\": {\r\n      \"tipo\": \"F\",\r\n      \"codice\": \"DSTGTN81C09C351C\"\r\n    },\r\n    \"anagrafica\": \"DISTEFANO AGATINO\"\r\n  },\r\n  \"idRata\": \"240647\",\r\n  \"idxRata\": 2,\r\n  \"versamenti\": [\r\n    {\r\n      \"importo\": \"181.52\",\r\n      \"causale\": \"CELLA COLOMBAIA AL VIALE CAPPUCCINI CAMPATA 2° FILA 2° N. 46\",\r\n      \"servizio\": \"PCOC\",\r\n      \"vociVersamento\":\"RATA 2/24\"    \r\n    }\r\n  ],\r\n  \"datiAggiuntiviADisposizione\":{\r\n    \"props1\":\"uno\",\r\n    \"props2\":\"due\"\r\n  }\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetReceiptPayment",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "b3c19a22a000418a9194cbae526e9655",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/receipt/DTMPCOCAT24000227535?idDebito=true",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "receipt",
+            "DTMPCOCAT24000227535"
+          ],
+          "query": [
+            {
+              "key": "idDebito",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetDettaglioPagamento",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "0dee982931074d648fb41215825c7dfd",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/pagamento/22000000000907911?idDebito=false",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "pagamento",
+            "22000000000907911"
+          ],
+          "query": [
+            {
+              "key": "idDebito",
+              "value": "false"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test S2S",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "idrichiesta",
+              "value": "pippo",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001016",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001521",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001622",
+              "type": "text"
+            },
+            {
+              "key": "rt",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "esito",
+              "value": "OK",
+              "type": "text"
+            },
+            {
+              "key": "timestamp",
+              "value": "1532711770795",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "150",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "250",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "350",
+              "type": "text"
+            },
+            {
+              "key": "divisa",
+              "value": "EUR",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "localhost:8090/api/receipt",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "receipt"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Produzione_ip_privato",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "idrichiesta",
+              "value": "pippo",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001016",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001521",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001622",
+              "type": "text"
+            },
+            {
+              "key": "rt",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "esito",
+              "value": "OK",
+              "type": "text"
+            },
+            {
+              "key": "timestamp",
+              "value": "1532711770795",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "150",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "250",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "350",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://192.168.20.209:8090/iol-pmpay/api/receipt",
+          "protocol": "http",
+          "host": [
+            "192",
+            "168",
+            "20",
+            "209"
+          ],
+          "port": "8090",
+          "path": [
+            "iol-pmpay",
+            "api",
+            "receipt"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Produzione_url_pubblico",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "idrichiesta",
+              "value": "pippo",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001016",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001521",
+              "type": "text"
+            },
+            {
+              "key": "rifprat",
+              "value": "21000000000001622",
+              "type": "text"
+            },
+            {
+              "key": "rt",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "esito",
+              "value": "OK",
+              "type": "text"
+            },
+            {
+              "key": "timestamp",
+              "value": "1532711770795",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "150",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "250",
+              "type": "text"
+            },
+            {
+              "key": "importo",
+              "value": "350",
+              "type": "text"
+            },
+            {
+              "key": "divisa",
+              "value": "EUR",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://service.comune.catania.it/iol-pmpay/api/receipt",
+          "protocol": "https",
+          "host": [
+            "service",
+            "comune",
+            "catania",
+            "it"
+          ],
+          "path": [
+            "iol-pmpay",
+            "api",
+            "receipt"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "InserimentoMultipartBatch",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "f9643a7b99d34f2b97b30aa97c003e27",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "idBatch",
+              "value": "COCAT0001",
+              "type": "text",
+              "uuid": "c79297fe-0966-4223-a881-8a2a09717f7e"
+            },
+            {
+              "key": "entita",
+              "value": "pagamento",
+              "type": "text",
+              "uuid": "a9b8fb1b-2006-4982-9bab-bf6f9fca05ff"
+            },
+            {
+              "key": "azione",
+              "value": "inserimento",
+              "type": "text",
+              "uuid": "31590e16-b856-4344-ad95-bdf28fcfc2db"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "uuid": "ef75f71b-8c41-4b9d-a239-853d75051472",
+              "src": "/C:/Users/salvino/Documents/PagoPA/We-com/distefano_rate.json"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{UrlAddress}}/ente/CAT01/multipartBatch",
+          "host": [
+            "{{UrlAddress}}"
+          ],
+          "path": [
+            "ente",
+            "CAT01",
+            "multipartBatch"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "UrlAddress",
+      "value": "https://secure.pmpay.it/pagoparest",
+      "disabled": true
+    },
+    {
+      "key": "user",
+      "value": "CataniaJuser",
+      "disabled": true
+    },
+    {
+      "key": "password",
+      "value": "jbhs@24298",
+      "disabled": true
+    },
+    {
+      "key": "UrlAddress",
+      "value": "https://service.pmpay.it/pagoparest"
+    },
+    {
+      "key": "user",
+      "value": "CataniaJuser"
+    },
+    {
+      "key": "password",
+      "value": "8ugy@762w"
+    },
+    {
+      "key": "Token",
+      "value": ""
+    },
+    {
+      "key": "IUV",
+      "value": ""
+    },
+    {
+      "key": "codiceEnte",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

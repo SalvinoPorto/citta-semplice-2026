@@ -11,7 +11,7 @@ export const allegatoRichiestoSchema = z.object({
 export const stepSchema = z.object({
   id: z.number().optional(),
   descrizione: z.string().min(1, 'La descrizione è obbligatoria'),
-  ordine: z.number().int().min(1),
+  ordine: z.number().int().min(0),
   attivo: z.boolean().default(true),
 
   // Allegati
@@ -29,7 +29,8 @@ export const stepSchema = z.object({
 
   // Pagamento
   pagamento: z.boolean().default(false),
-  pagamentoCodiceTributoId: z.number().int().nullable().optional(),
+  pagamentoCodiceTributo: z.string().optional(),
+  pagamentoDescrizioneTributo: z.string().optional(),
   pagamentoImporto: z.number().nullable().optional(),
   pagamentoImportoVariabile: z.boolean().default(false),
   pagamentoCausale: z.string().optional(),

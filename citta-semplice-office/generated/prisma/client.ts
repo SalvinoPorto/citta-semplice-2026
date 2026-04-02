@@ -132,11 +132,6 @@ export type RispostaComunicazione = Prisma.RispostaComunicazioneModel
  */
 export type AllegatoRisposta = Prisma.AllegatoRispostaModel
 /**
- * Model Status
- * 
- */
-export type Status = Prisma.StatusModel
-/**
  * Model Workflow
  * 
  */
@@ -147,20 +142,25 @@ export type Workflow = Prisma.WorkflowModel
  */
 export type Allegato = Prisma.AllegatoModel
 /**
- * Model Tributo
- * 
- */
-export type Tributo = Prisma.TributoModel
-/**
  * Model Pagamento
+ * // Legacy model — kept for existing data; new records use codiceTributo string directly on Pagamento
+ * model TributoLegacy {
+ *   id              Int       @id @default(autoincrement())
+ *   codice          String    @unique
+ *   descrizione     String?
+ *   attivo          Boolean   @default(true)
  * 
+ *   pagamenti       Pagamento[]
+ * 
+ *   @@map("tributi")
+ * }
  */
 export type Pagamento = Prisma.PagamentoModel
 /**
- * Model PagamentoEffettuato
+ * Model PagamentoAtteso
  * 
  */
-export type PagamentoEffettuato = Prisma.PagamentoEffettuatoModel
+export type PagamentoAtteso = Prisma.PagamentoAttesoModel
 /**
  * Model CustomerSatisfaction
  * 

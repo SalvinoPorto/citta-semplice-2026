@@ -8,6 +8,10 @@ import prisma from '@/lib/db/prisma';
  * Requires CRON_SECRET header for authentication
  */
 export async function GET(request: NextRequest) {
+  if (process.env.ENABLE_CRON_JOBS !== 'true') {
+    return NextResponse.json({ error: 'Cron jobs disabilitati' }, { status: 503 });
+  }
+
   // Verify cron secret
   const cronSecret = request.headers.get('x-cron-secret');
   if (cronSecret !== process.env.CRON_SECRET) {
@@ -71,9 +75,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Count payments for yesterday
-    const pagamenti = await prisma.pagamentoEffettuato.aggregate({
+    const pagamenti = await prisma.pagamentoAtteso.aggregate({
       where: {
-        stato: 'PAID',
+        stato: 'CON',
         dataRicevuta: {
           gte: yesterday,
           lt: today,

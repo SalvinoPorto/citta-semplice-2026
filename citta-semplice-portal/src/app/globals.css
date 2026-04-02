@@ -63,6 +63,19 @@ body {
   border-right: 1px solid #e5e5e5;
 }
 
+@media (min-width: 576px) {
+    h1.title {
+        font-size: 2rem;
+        line-height: 3.5rem;
+    }
+}
+
+h1.title {
+    letter-spacing: -1px;
+    font-size: 2rem;
+    line-height: 3rem;
+}
+
 .it-hero-text-wrapper h1 {
   font-size: 2rem;
   font-weight: 400;

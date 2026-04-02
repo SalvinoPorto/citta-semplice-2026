@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const results = await prisma.pagamentoEffettuato.findMany({
+    const results = await prisma.pagamentoAtteso.findMany({
       where,
       include: {
         workflow: {
@@ -104,14 +104,14 @@ export async function GET(request: NextRequest) {
         pagamento.importoTotale.toFixed(2),
         escapeCSV(pagamento.stato),
         pagamento.dataOperazione
-          ? new Date(pagamento.dataOperazione).toLocaleDateString('it-IT')
+          ? pagamento.dataOperazione.toLocaleDateString('it-IT')
           : '',
-        pagamento.dataRicevuta
-          ? new Date(pagamento.dataRicevuta).toLocaleDateString('it-IT')
+        pagamento.dataEmissione
+          ? pagamento.dataEmissione.toLocaleDateString('it-IT')
           : '',
-        escapeCSV(utente?.codiceFiscale || pagamento.cfUtente),
-        escapeCSV(utente?.cognome || pagamento.cognomeUtente),
-        escapeCSV(utente?.nome || pagamento.nomeUtente),
+        escapeCSV(utente?.codiceFiscale || pagamento.paganteCodiceFiscale),
+        escapeCSV(utente?.cognome || pagamento.pagante),
+        escapeCSV(utente?.nome || ''),
         escapeCSV(pagamento.causale),
         escapeCSV(servizio?.titolo),
         pagamento.workflow?.istanza?.id || '',

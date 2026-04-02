@@ -32,8 +32,9 @@ interface Istanza {
     campiInEvidenza: string | null;
   };
   workflows: {
-    step: { descrizione: string; ordine: number } | null;
-    status: { stato: string } | null;
+    step: { descrizione: string; ordine: number };
+    stato: number;
+    operatoreId: number | null;
     operatore: { id: number; nome: string; cognome: string } | null;
   }[];
 }
@@ -55,7 +56,6 @@ interface Counts {
 
 interface FormFilters {
   protocollo: string;
-  codiceFiscale: string;
   modulo: string;
   anno: string;
   cerca: string;
@@ -63,7 +63,6 @@ interface FormFilters {
 
 const DEFAULT_FORM_FILTERS: FormFilters = {
   protocollo: '',
-  codiceFiscale: '',
   modulo: '',
   anno: '',
   cerca: '',
@@ -144,14 +143,23 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
     setFilterResetKey((k) => k + 1);
   };
 
-  const getStatusBadge = (istanza: Istanza) => {
+
+  const getFaseBadge = (istanza: Istanza) => {
     if (istanza.conclusa) return <Badge variant="success">Conclusa</Badge>;
     if (istanza.respinta) return <Badge variant="danger">Respinta</Badge>;
     const lastWorkflow = istanza.workflows[0];
-    if (lastWorkflow?.step) {
-      return <Badge variant="warning">{lastWorkflow.step.descrizione}</Badge>;
+    return <Badge variant="primary">{lastWorkflow?.step.descrizione}</Badge>;
+  }
+
+  const getStatusBadge = (istanza: Istanza) => {
+    const lastWorkflow = istanza.workflows[0];
+    if (lastWorkflow?.operatoreId === null) {
+      return <Badge variant="secondary">In Attesa</Badge>;
     }
-    return <Badge variant="secondary">In Attesa</Badge>;
+    if (lastWorkflow?.stato === 1) {
+      return <Badge variant="success">Completata</Badge>;
+    }
+    return <Badge variant="primary">In Lavorazione</Badge>;
   };
 
   const formatEvidenza = (evidenza: string | null) => {
@@ -181,7 +189,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
               className={`nav-link ${tab === t.id ? 'active' : ''}`}
               onClick={() => setTab(t.id)}
             >
-              {t.label}{' '}
+              <span className="me-2">{t.label}</span>
               <Badge variant={tab === t.id ? (t.variant as 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info') : 'secondary'}>
                 {t.count}
               </Badge>
@@ -195,40 +203,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
         <CardBody>
           <form onSubmit={handleSearch}>
             <div className="row g-3">
-              <div className="col-md-3">
-                <Input
-                  type="text"
-                  label="Numero Protocollo"
-                  value={draftFilters.protocollo}
-                  onChange={(e) => setDraftFilters({ ...draftFilters, protocollo: e.target.value })}
-                  placeholder="2024/00001"
-                />
-              </div>
-              <div className="col-md-3">
-                <Input
-                  type="text"
-                  label="Codice Fiscale"
-                  value={draftFilters.codiceFiscale}
-                  onChange={(e) => setDraftFilters({ ...draftFilters, codiceFiscale: e.target.value.toUpperCase() })}
-                  placeholder="RSSMRA80A01..."
-                  maxLength={16}
-                />
-              </div>
-              <div className="col-md-3">
-                <Select
-                  label="Servizio"
-                  value={draftFilters.modulo}
-                  onChange={(e) => setDraftFilters({ ...draftFilters, modulo: e.target.value })}
-                >
-                  <option value="">Tutti i servizi</option>
-                  {servizi.map((servizio) => (
-                    <option key={servizio.id} value={servizio.id}>
-                      {servizio.titolo}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="col-md-1">
+              <div className="col-md-2">
                 <Select
                   label="Anno"
                   value={draftFilters.anno}
@@ -242,13 +217,38 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                   ))}
                 </Select>
               </div>
-              <div className="col-md-2">
+              <div className="col-md-3">
                 <Input
                   type="text"
-                  label="Cerca"
+                  label="Numero Protocollo"
+                  value={draftFilters.protocollo}
+                  onChange={(e) => setDraftFilters({ ...draftFilters, protocollo: e.target.value })}
+                  placeholder="00001"
+                />
+              </div>
+            </div>
+            <div className="row g-3">
+              <div className="col-md-6">
+                <Select
+                  label="Servizio"
+                  value={draftFilters.modulo}
+                  onChange={(e) => setDraftFilters({ ...draftFilters, modulo: e.target.value })}
+                >
+                  <option value="">Tutti i servizi</option>
+                  {servizi.map((servizio) => (
+                    <option key={servizio.id} value={servizio.id}>
+                      {servizio.titolo}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="col-md-6">
+                <Input
+                  type="text"
+                  label="Cerca per valori chiave"
                   value={draftFilters.cerca}
                   onChange={(e) => setDraftFilters({ ...draftFilters, cerca: e.target.value })}
-                  placeholder="Nome, cognome, dati..."
+                  placeholder="Nome, Cognome, dati..."
                 />
               </div>
             </div>
@@ -292,10 +292,11 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                     initialDirection={sort.direction}
                   >
                     <THead field="protoNumero" width="12%">Protocollo</THead>
-                    <THead field="dataInvio" width="9%">Data Invio</THead>
+                    <THead field="dataInvio" width="10%">Data Invio</THead>
                     <THead field="cognome" width="18%">Utente</THead>
-                    <THead field="servizio" width="12%">Servizio</THead>
+                    <THead field="servizio" width="20%">Servizio</THead>
                     <THead field="datiInEvidenza" width="15%">Dati in Evidenza</THead>
+                    <THead field="" width="10%">Fase</THead>
                     <THead field="" width="10%">Stato</THead>
                     <THead field="" width="5%">&nbsp;</THead>
                   </THeadGroup>
@@ -305,6 +306,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                     <TFilterHead field="cognome" placeholder="Cerca utente" />
                     <TFilterHead field="servizio" placeholder="Cerca servizio" />
                     <TFilterHead field="datiInEvidenza" placeholder="Cerca per dato" />
+                    <TFilterHead />
                     <TFilterHead />
                     <TFilterHead />
                   </TFilterHeadGroup>
@@ -330,6 +332,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                             dangerouslySetInnerHTML={{ __html: formatEvidenza(istanza.datiInEvidenza) }}
                           />
                         </td>
+                        <td>{getFaseBadge(istanza)}</td>
                         <td>{getStatusBadge(istanza)}</td>
                         <td>
                           <Link href={`/istanze/${istanza.id}`} className="btn btn-sm btn-outline-primary">

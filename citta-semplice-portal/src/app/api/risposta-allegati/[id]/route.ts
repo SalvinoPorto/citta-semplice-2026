@@ -27,9 +27,7 @@ export async function GET(
       risposta: {
         include: {
           comunicazione: {
-            include: {
-              workflow: { include: { istanza: true } },
-            },
+            include: { istanza: true },
           },
         },
       },
@@ -44,7 +42,7 @@ export async function GET(
   const utente = await prisma.utente.findUnique({
     where: { id: Number(session.user.id) },
   });
-  const istanza = allegato.risposta.comunicazione.workflow.istanza;
+  const istanza = allegato.risposta.comunicazione.istanza;
   if (!utente || istanza.utenteId !== utente.id) {
     return new NextResponse('Accesso negato', { status: 403 });
   }

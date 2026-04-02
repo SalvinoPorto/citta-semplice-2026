@@ -283,7 +283,7 @@ export type IstanzaGroupByOutputType = {
   respinta: boolean
   inBozza: boolean
   activeStep: number | null
-  protoNumero: string | null
+  protoNumero: string
   protoData: Date | null
   protoFinaleNumero: string | null
   protoFinaleData: Date | null
@@ -327,7 +327,7 @@ export type IstanzaWhereInput = {
   respinta?: Prisma.BoolFilter<"Istanza"> | boolean
   inBozza?: Prisma.BoolFilter<"Istanza"> | boolean
   activeStep?: Prisma.IntNullableFilter<"Istanza"> | number | null
-  protoNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
+  protoNumero?: Prisma.StringFilter<"Istanza"> | string
   protoData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
@@ -339,6 +339,7 @@ export type IstanzaWhereInput = {
   utente?: Prisma.XOR<Prisma.UtenteScalarRelationFilter, Prisma.UtenteWhereInput>
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
   workflows?: Prisma.WorkflowListRelationFilter
+  comunicazioni?: Prisma.ComunicazioneListRelationFilter
 }
 
 export type IstanzaOrderByWithRelationInput = {
@@ -351,7 +352,7 @@ export type IstanzaOrderByWithRelationInput = {
   respinta?: Prisma.SortOrder
   inBozza?: Prisma.SortOrder
   activeStep?: Prisma.SortOrderInput | Prisma.SortOrder
-  protoNumero?: Prisma.SortOrderInput | Prisma.SortOrder
+  protoNumero?: Prisma.SortOrder
   protoData?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleNumero?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleData?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -363,6 +364,7 @@ export type IstanzaOrderByWithRelationInput = {
   utente?: Prisma.UtenteOrderByWithRelationInput
   servizio?: Prisma.ServizioOrderByWithRelationInput
   workflows?: Prisma.WorkflowOrderByRelationAggregateInput
+  comunicazioni?: Prisma.ComunicazioneOrderByRelationAggregateInput
 }
 
 export type IstanzaWhereUniqueInput = Prisma.AtLeast<{
@@ -378,7 +380,7 @@ export type IstanzaWhereUniqueInput = Prisma.AtLeast<{
   respinta?: Prisma.BoolFilter<"Istanza"> | boolean
   inBozza?: Prisma.BoolFilter<"Istanza"> | boolean
   activeStep?: Prisma.IntNullableFilter<"Istanza"> | number | null
-  protoNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
+  protoNumero?: Prisma.StringFilter<"Istanza"> | string
   protoData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
@@ -390,6 +392,7 @@ export type IstanzaWhereUniqueInput = Prisma.AtLeast<{
   utente?: Prisma.XOR<Prisma.UtenteScalarRelationFilter, Prisma.UtenteWhereInput>
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
   workflows?: Prisma.WorkflowListRelationFilter
+  comunicazioni?: Prisma.ComunicazioneListRelationFilter
 }, "id">
 
 export type IstanzaOrderByWithAggregationInput = {
@@ -402,7 +405,7 @@ export type IstanzaOrderByWithAggregationInput = {
   respinta?: Prisma.SortOrder
   inBozza?: Prisma.SortOrder
   activeStep?: Prisma.SortOrderInput | Prisma.SortOrder
-  protoNumero?: Prisma.SortOrderInput | Prisma.SortOrder
+  protoNumero?: Prisma.SortOrder
   protoData?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleNumero?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleData?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -431,7 +434,7 @@ export type IstanzaScalarWhereWithAggregatesInput = {
   respinta?: Prisma.BoolWithAggregatesFilter<"Istanza"> | boolean
   inBozza?: Prisma.BoolWithAggregatesFilter<"Istanza"> | boolean
   activeStep?: Prisma.IntNullableWithAggregatesFilter<"Istanza"> | number | null
-  protoNumero?: Prisma.StringNullableWithAggregatesFilter<"Istanza"> | string | null
+  protoNumero?: Prisma.StringWithAggregatesFilter<"Istanza"> | string
   protoData?: Prisma.DateTimeNullableWithAggregatesFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableWithAggregatesFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableWithAggregatesFilter<"Istanza"> | Date | string | null
@@ -451,7 +454,7 @@ export type IstanzaCreateInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -461,6 +464,7 @@ export type IstanzaCreateInput = {
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateInput = {
@@ -473,7 +477,7 @@ export type IstanzaUncheckedCreateInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -483,6 +487,7 @@ export type IstanzaUncheckedCreateInput = {
   servizioId: number
   lastStepId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUpdateInput = {
@@ -494,7 +499,7 @@ export type IstanzaUpdateInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -504,6 +509,7 @@ export type IstanzaUpdateInput = {
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateInput = {
@@ -516,7 +522,7 @@ export type IstanzaUncheckedUpdateInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -526,6 +532,7 @@ export type IstanzaUncheckedUpdateInput = {
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaCreateManyInput = {
@@ -538,7 +545,7 @@ export type IstanzaCreateManyInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -558,7 +565,7 @@ export type IstanzaUpdateManyMutationInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -577,7 +584,7 @@ export type IstanzaUncheckedUpdateManyInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -780,6 +787,20 @@ export type IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.IstanzaUpdateToOneWithWhereWithoutWorkflowsInput, Prisma.IstanzaUpdateWithoutWorkflowsInput>, Prisma.IstanzaUncheckedUpdateWithoutWorkflowsInput>
 }
 
+export type IstanzaCreateNestedOneWithoutComunicazioniInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutComunicazioniInput, Prisma.IstanzaUncheckedCreateWithoutComunicazioniInput>
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutComunicazioniInput
+  connect?: Prisma.IstanzaWhereUniqueInput
+}
+
+export type IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutComunicazioniInput, Prisma.IstanzaUncheckedCreateWithoutComunicazioniInput>
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutComunicazioniInput
+  upsert?: Prisma.IstanzaUpsertWithoutComunicazioniInput
+  connect?: Prisma.IstanzaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IstanzaUpdateToOneWithWhereWithoutComunicazioniInput, Prisma.IstanzaUpdateWithoutComunicazioniInput>, Prisma.IstanzaUncheckedUpdateWithoutComunicazioniInput>
+}
+
 export type IstanzaCreateWithoutServizioInput = {
   dati?: string | null
   datiInEvidenza?: string | null
@@ -789,7 +810,7 @@ export type IstanzaCreateWithoutServizioInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -798,6 +819,7 @@ export type IstanzaCreateWithoutServizioInput = {
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutServizioInput = {
@@ -810,7 +832,7 @@ export type IstanzaUncheckedCreateWithoutServizioInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -819,6 +841,7 @@ export type IstanzaUncheckedCreateWithoutServizioInput = {
   utenteId: number
   lastStepId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutServizioInput = {
@@ -860,7 +883,7 @@ export type IstanzaScalarWhereInput = {
   respinta?: Prisma.BoolFilter<"Istanza"> | boolean
   inBozza?: Prisma.BoolFilter<"Istanza"> | boolean
   activeStep?: Prisma.IntNullableFilter<"Istanza"> | number | null
-  protoNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
+  protoNumero?: Prisma.StringFilter<"Istanza"> | string
   protoData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
@@ -880,7 +903,7 @@ export type IstanzaCreateWithoutUtenteInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -889,6 +912,7 @@ export type IstanzaCreateWithoutUtenteInput = {
   lastStepId?: number | null
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutUtenteInput = {
@@ -901,7 +925,7 @@ export type IstanzaUncheckedCreateWithoutUtenteInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -910,6 +934,7 @@ export type IstanzaUncheckedCreateWithoutUtenteInput = {
   servizioId: number
   lastStepId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutUtenteInput = {
@@ -947,7 +972,7 @@ export type IstanzaCreateWithoutWorkflowsInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -956,6 +981,7 @@ export type IstanzaCreateWithoutWorkflowsInput = {
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutWorkflowsInput = {
@@ -968,7 +994,7 @@ export type IstanzaUncheckedCreateWithoutWorkflowsInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -977,6 +1003,7 @@ export type IstanzaUncheckedCreateWithoutWorkflowsInput = {
   utenteId: number
   servizioId: number
   lastStepId?: number | null
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutWorkflowsInput = {
@@ -1004,7 +1031,7 @@ export type IstanzaUpdateWithoutWorkflowsInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1013,6 +1040,7 @@ export type IstanzaUpdateWithoutWorkflowsInput = {
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutWorkflowsInput = {
@@ -1025,7 +1053,7 @@ export type IstanzaUncheckedUpdateWithoutWorkflowsInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1034,6 +1062,109 @@ export type IstanzaUncheckedUpdateWithoutWorkflowsInput = {
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaCreateWithoutComunicazioniInput = {
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio?: Date | string | null
+  createdAt?: Date | string
+  lastStepId?: number | null
+  utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
+  servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaUncheckedCreateWithoutComunicazioniInput = {
+  id?: number
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio?: Date | string | null
+  createdAt?: Date | string
+  utenteId: number
+  servizioId: number
+  lastStepId?: number | null
+  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaCreateOrConnectWithoutComunicazioniInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutComunicazioniInput, Prisma.IstanzaUncheckedCreateWithoutComunicazioniInput>
+}
+
+export type IstanzaUpsertWithoutComunicazioniInput = {
+  update: Prisma.XOR<Prisma.IstanzaUpdateWithoutComunicazioniInput, Prisma.IstanzaUncheckedUpdateWithoutComunicazioniInput>
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutComunicazioniInput, Prisma.IstanzaUncheckedCreateWithoutComunicazioniInput>
+  where?: Prisma.IstanzaWhereInput
+}
+
+export type IstanzaUpdateToOneWithWhereWithoutComunicazioniInput = {
+  where?: Prisma.IstanzaWhereInput
+  data: Prisma.XOR<Prisma.IstanzaUpdateWithoutComunicazioniInput, Prisma.IstanzaUncheckedUpdateWithoutComunicazioniInput>
+}
+
+export type IstanzaUpdateWithoutComunicazioniInput = {
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
+  servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaUncheckedUpdateWithoutComunicazioniInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  utenteId?: Prisma.IntFieldUpdateOperationsInput | number
+  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaCreateManyServizioInput = {
@@ -1046,7 +1177,7 @@ export type IstanzaCreateManyServizioInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -1065,7 +1196,7 @@ export type IstanzaUpdateWithoutServizioInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1074,6 +1205,7 @@ export type IstanzaUpdateWithoutServizioInput = {
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutServizioInput = {
@@ -1086,7 +1218,7 @@ export type IstanzaUncheckedUpdateWithoutServizioInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1095,6 +1227,7 @@ export type IstanzaUncheckedUpdateWithoutServizioInput = {
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateManyWithoutServizioInput = {
@@ -1107,7 +1240,7 @@ export type IstanzaUncheckedUpdateManyWithoutServizioInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1127,7 +1260,7 @@ export type IstanzaCreateManyUtenteInput = {
   respinta?: boolean
   inBozza?: boolean
   activeStep?: number | null
-  protoNumero?: string | null
+  protoNumero: string
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
@@ -1146,7 +1279,7 @@ export type IstanzaUpdateWithoutUtenteInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1155,6 +1288,7 @@ export type IstanzaUpdateWithoutUtenteInput = {
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutUtenteInput = {
@@ -1167,7 +1301,7 @@ export type IstanzaUncheckedUpdateWithoutUtenteInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1176,6 +1310,7 @@ export type IstanzaUncheckedUpdateWithoutUtenteInput = {
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
@@ -1188,7 +1323,7 @@ export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
   respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  protoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1205,10 +1340,12 @@ export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
 
 export type IstanzaCountOutputType = {
   workflows: number
+  comunicazioni: number
 }
 
 export type IstanzaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workflows?: boolean | IstanzaCountOutputTypeCountWorkflowsArgs
+  comunicazioni?: boolean | IstanzaCountOutputTypeCountComunicazioniArgs
 }
 
 /**
@@ -1226,6 +1363,13 @@ export type IstanzaCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
  */
 export type IstanzaCountOutputTypeCountWorkflowsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.WorkflowWhereInput
+}
+
+/**
+ * IstanzaCountOutputType without action
+ */
+export type IstanzaCountOutputTypeCountComunicazioniArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ComunicazioneWhereInput
 }
 
 
@@ -1251,6 +1395,7 @@ export type IstanzaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   workflows?: boolean | Prisma.Istanza$workflowsArgs<ExtArgs>
+  comunicazioni?: boolean | Prisma.Istanza$comunicazioniArgs<ExtArgs>
   _count?: boolean | Prisma.IstanzaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["istanza"]>
 
@@ -1326,6 +1471,7 @@ export type IstanzaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   workflows?: boolean | Prisma.Istanza$workflowsArgs<ExtArgs>
+  comunicazioni?: boolean | Prisma.Istanza$comunicazioniArgs<ExtArgs>
   _count?: boolean | Prisma.IstanzaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type IstanzaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1343,6 +1489,7 @@ export type $IstanzaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     utente: Prisma.$UtentePayload<ExtArgs>
     servizio: Prisma.$ServizioPayload<ExtArgs>
     workflows: Prisma.$WorkflowPayload<ExtArgs>[]
+    comunicazioni: Prisma.$ComunicazionePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1354,7 +1501,7 @@ export type $IstanzaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     respinta: boolean
     inBozza: boolean
     activeStep: number | null
-    protoNumero: string | null
+    protoNumero: string
     protoData: Date | null
     protoFinaleNumero: string | null
     protoFinaleData: Date | null
@@ -1760,6 +1907,7 @@ export interface Prisma__IstanzaClient<T, Null = never, ExtArgs extends runtime.
   utente<T extends Prisma.UtenteDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UtenteDefaultArgs<ExtArgs>>): Prisma.Prisma__UtenteClient<runtime.Types.Result.GetResult<Prisma.$UtentePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   servizio<T extends Prisma.ServizioDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServizioDefaultArgs<ExtArgs>>): Prisma.Prisma__ServizioClient<runtime.Types.Result.GetResult<Prisma.$ServizioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   workflows<T extends Prisma.Istanza$workflowsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$workflowsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  comunicazioni<T extends Prisma.Istanza$comunicazioniArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$comunicazioniArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ComunicazionePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2229,6 +2377,30 @@ export type Istanza$workflowsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.WorkflowScalarFieldEnum | Prisma.WorkflowScalarFieldEnum[]
+}
+
+/**
+ * Istanza.comunicazioni
+ */
+export type Istanza$comunicazioniArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Comunicazione
+   */
+  select?: Prisma.ComunicazioneSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Comunicazione
+   */
+  omit?: Prisma.ComunicazioneOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ComunicazioneInclude<ExtArgs> | null
+  where?: Prisma.ComunicazioneWhereInput
+  orderBy?: Prisma.ComunicazioneOrderByWithRelationInput | Prisma.ComunicazioneOrderByWithRelationInput[]
+  cursor?: Prisma.ComunicazioneWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ComunicazioneScalarFieldEnum | Prisma.ComunicazioneScalarFieldEnum[]
 }
 
 /**

@@ -1,18 +1,17 @@
 'use client';
 
-interface AllegatoComunicazione {
-  nome: string;
-  obbligatorio: boolean;
-}
-
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
+import { generatePayment } from './actions';
+import { PagamentoAtteso } from '@/types/pagamento-atteso';
 interface Workflow {
   id: number;
   note: string | null;
   dataVariazione: Date;
-  status: {
-    stato: string;
-    icon: string | null;
-  };
+  stato: number;
+  operatoreId: number | null;
   step: {
     id: number;
     descrizione: string;
@@ -25,38 +24,36 @@ interface Workflow {
     nome: string;
     cognome: string;
   } | null;
-  comunicazione: {
-    id: number;
-    testo: string;
-    richiedeRisposta: boolean;
-    allegatiRichiesti: string | null;
-    risposta: {
-      id: number;
-      testo: string | null;
-      dataRisposta: Date;
-      allegati: { id: number; nomeFile: string }[];
-    } | null;
-  } | null;
+  pagamentoAtteso: PagamentoAtteso | null;
 }
 
 interface Step {
   id: number;
   descrizione: string;
   ordine: number;
+  pagamento: boolean;
+  pagamentoConfig: {
+    importo: number | null;
+    importoVariabile: boolean;
+    causale: string | null;
+    causaleVariabile: boolean;
+    obbligatorio: boolean;
+    codiceTributo: string | null;
+    descrizioneTributo: string | null;
+  } | null;
 }
 
 interface WorkflowTimelineProps {
   workflows: Workflow[];
   steps: Step[];
-}
-
-type EntryType = 'communication' | 'retrocession' | 'event';
-
-function getEntryType(wf: Workflow): EntryType {
-  if (wf.comunicazione) return 'communication';
-  if (wf.note?.startsWith('[Comunicazione]')) return 'communication';
-  if (wf.note?.startsWith('[Retrocessione')) return 'retrocession';
-  return 'event';
+  urlPayment: string;
+  istanzaId: number;
+  utente: {
+    codiceFiscale: string;
+    nome: string;
+    cognome: string;
+    email: string | null;
+  };
 }
 
 function formatDateTime(date: Date) {
@@ -69,31 +66,114 @@ function formatDateTime(date: Date) {
   });
 }
 
-export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
-  const getStatusClass = (status: string) => {
-    const lowerStatus = status.toLowerCase();
-    if (lowerStatus.includes('success') || lowerStatus.includes('conclus')) {
-      return 'completed';
+const STATO_PAGAMENTO_LABEL: Record<string, string> = {
+  ATT: 'In attesa di pagamento',
+  CON: 'Pagato',
+  NCO: 'Non confermato',
+  DAD: 'Da definire',
+  RAT: 'Rateale',
+};
+
+const STATO_PAGAMENTO_BADGE: Record<string, string> = {
+  ATT: 'bg-warning text-dark',
+  CON: 'bg-success',
+  NCO: 'bg-secondary',
+  DAD: 'bg-secondary',
+  RAT: 'bg-info',
+};
+
+export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, utente }: WorkflowTimelineProps) {
+  const router = useRouter();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const [selectedStep, setSelectedStep] = useState<Step | null>(null);
+
+  // Payment generation state
+  const [pagamentoImporto, setPagamentoImporto] = useState('');
+  const [pagamentoCausale, setPagamentoCausale] = useState('');
+  const [pagamentoCf, setPagamentoCf] = useState(utente.codiceFiscale);
+  const [pagamentoNome, setPagamentoNome] = useState(utente.nome);
+  const [pagamentoCognome, setPagamentoCognome] = useState(utente.cognome);
+  const [pagamentoEmail, setPagamentoEmail] = useState(utente.email ?? '');
+
+  const [loading, setLoading] = useState(false);
+
+  const handleGeneratePayment = async () => {
+    if (!selectedStep?.pagamentoConfig) return;
+
+    const config = selectedStep.pagamentoConfig;
+    const importo = config.importoVariabile ? (pagamentoImporto ? parseFloat(pagamentoImporto) : 0) : (config.importo ?? 0);
+    const causale = config.causaleVariabile ? pagamentoCausale : (config.causale ?? '');
+
+    if (config.importoVariabile && importo <= 0) {
+      toast.error('Inserire un importo valido');
+      return;
     }
-    if (lowerStatus.includes('respin') || lowerStatus.includes('rifiut')) {
-      return 'rejected';
+    if (config.causaleVariabile && !causale.trim()) {
+      toast.error('Inserire la causale');
+      return;
     }
-    if (lowerStatus.includes('elabor') || lowerStatus.includes('attesa')) {
-      return 'pending';
+    if (!pagamentoCf.trim()) {
+      toast.error('Inserire il codice fiscale del debitore');
+      return;
     }
-    return '';
+
+    setLoading(true);
+    try {
+      const result = await generatePayment({
+        istanzaId,
+        workflowId: selectedWorkflowId!,
+        importo: config.importoVariabile ? importo : undefined,
+        causale: config.causaleVariabile ? causale : undefined,
+        cf: pagamentoCf || undefined,
+        nome: pagamentoNome || undefined,
+        cognome: pagamentoCognome || undefined,
+        email: pagamentoEmail || undefined,
+      });
+
+      if (result.success) {
+        toast.success(result.message || 'Pagamento generato con successo');
+        setShowPaymentModal(false);
+        setPagamentoImporto('');
+        setPagamentoCausale('');
+        setSelectedWorkflowId(null);
+        setSelectedStep(null);
+        router.refresh();
+      } else {
+        toast.error(result.message || 'Errore nella generazione del pagamento');
+      }
+    } catch {
+      toast.error('Si è verificato un errore');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openPaymentModal = (workflowId: number, step: Step) => {
+    setSelectedWorkflowId(workflowId);
+    setSelectedStep(step);
+    setPagamentoCf(utente.codiceFiscale);
+    setPagamentoNome(utente.nome);
+    setPagamentoCognome(utente.cognome);
+    setPagamentoEmail(utente.email ?? '');
+    setPagamentoImporto('');
+    setPagamentoCausale('');
+    setShowPaymentModal(true);
+  };
+  const getStatusClass = (operatoreId: number | null, stato: number): string => {
+    if (operatoreId === null) return 'pending';
+    if (stato === 1) return 'completed';
+    return 'pending';
   };
 
   if (workflows.length === 0) {
     return <p className="text-muted">Nessun workflow disponibile</p>;
   }
 
-  // Sort oldest-first for display
   const sorted = [...workflows].sort(
     (a, b) => new Date(a.dataVariazione).getTime() - new Date(b.dataVariazione).getTime()
   );
 
-  // Group events by step ordine
   const eventsByOrdine = new Map<number, Workflow[]>();
   for (const wf of sorted) {
     const key = wf.step?.ordine ?? 0;
@@ -101,128 +181,129 @@ export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
     eventsByOrdine.get(key)!.push(wf);
   }
 
-  // Determine step visual status from its latest event
   function stepStatus(ordine: number) {
     const events = eventsByOrdine.get(ordine);
     if (!events || events.length === 0) return '';
-    return getStatusClass(events[events.length - 1].status.stato);
+    const last = events[events.length - 1];
+    return getStatusClass(last.operatoreId, last.stato);
+  }
+
+  function getActiveWorkflowForStep(ordine: number) {
+    return eventsByOrdine.get(ordine)?.find(wf => wf.operatoreId !== null && wf.stato === 0) ?? null;
+  }
+
+  function statoLabel(wf: Workflow) {
+    if (wf.operatoreId === null) return 'In attesa';
+    if (wf.stato === 1) return 'Completata';
+    return 'In lavorazione';
   }
 
   return (
-    <div className="timeline">
-      {steps.map((step) => {
+    <>
+      <div className="timeline">
+        {steps.map((step) => {
         const status = stepStatus(step.ordine);
         const events = eventsByOrdine.get(step.ordine) ?? [];
         const reached = events.length > 0;
+        const last = events[events.length - 1];
+        // Pagamento: preso dall'ultimo evento che ne ha uno
+        const pagamento = events.find(wf => wf.pagamentoAtteso)?.pagamentoAtteso ?? null;
 
         return (
           <div key={step.id} className={`timeline-item ${status} ${!reached ? 'opacity-50' : ''}`}>
             {/* Step header */}
             <div className="d-flex justify-content-between align-items-start mb-1">
               <strong>{step.ordine}. {step.descrizione}</strong>
-              {reached && events[events.length - 1] && (
+              {reached && last && (
                 <small className="text-muted">
-                  {new Date(events[events.length - 1].dataVariazione).toLocaleDateString('it-IT')}
+                  {new Date(last.dataVariazione).toLocaleDateString('it-IT')}
                 </small>
               )}
             </div>
-            {reached && (
+
+            {reached && last && (
               <div className="mb-1">
-                <span className={`badge ${
-                  status === 'completed' ? 'bg-success' :
-                  status === 'rejected'  ? 'bg-danger' :
-                  status === 'pending'   ? 'bg-warning text-dark' : 'bg-secondary'
-                }`}>
-                  {events[events.length - 1].status.stato}
+                <span className={`badge ${status === 'completed' ? 'bg-success' :
+                  status === 'rejected' ? 'bg-danger' :
+                    'bg-warning text-dark'
+                  }`}>
+                  {statoLabel(last)}
                 </span>
               </div>
             )}
 
-            {/* Events under this step */}
-            {events.map((wf) => {
-              const type = getEntryType(wf);
-
-              if (type === 'communication') {
-                const com = wf.comunicazione;
-                const legacyText = com ? null : (wf.note ?? '').replace(/^\[Comunicazione\]\s*/, '');
-                const allegatiRichiesti: AllegatoComunicazione[] = com?.allegatiRichiesti
-                  ? JSON.parse(com.allegatiRichiesti)
-                  : [];
-                const risposta = com?.risposta ?? null;
-                const attesaRisposta = com?.richiedeRisposta && !risposta;
-                return (
-                  <div key={wf.id} className="mt-2 small">
-                    {/* Comunicazione */}
-                    <div className={`p-2 rounded border ${attesaRisposta ? 'border-warning' : 'border-info'}`}
-                         style={{ backgroundColor: attesaRisposta ? 'rgba(255,193,7,0.07)' : 'rgba(13,202,240,0.07)' }}>
-                      <div className="d-flex gap-1 flex-wrap mb-1">
-                        <span className="badge bg-info text-dark">Comunicazione</span>
-                        {com?.richiedeRisposta && (
-                          risposta
-                            ? <span className="badge bg-success">Risposta ricevuta</span>
-                            : <span className="badge bg-warning text-dark">In attesa di risposta</span>
-                        )}
-                        {allegatiRichiesti.length > 0 && (
-                          <span className="badge bg-secondary">
-                            {allegatiRichiesti.length} allegato{allegatiRichiesti.length > 1 ? 'i richiesti' : ' richiesto'}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mb-1">{com ? com.testo : legacyText}</p>
-                      {allegatiRichiesti.length > 0 && (
-                        <ul className="mb-1 ps-3">
-                          {allegatiRichiesti.map((a, i) => (
-                            <li key={i}>
-                              {a.nome}
-                              {a.obbligatorio && (
-                                <span className="badge bg-danger ms-1" style={{ fontSize: '0.65em' }}>
-                                  Obbligatorio
-                                </span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <div className="text-muted mt-1">
-                        {formatDateTime(wf.dataVariazione)}
-                        {wf.operatore && <span className="ms-1">— {wf.operatore.cognome} {wf.operatore.nome}</span>}
-                      </div>
-                    </div>
-
-                    {/* Risposta del cittadino */}
-                    {risposta && (
-                      <div className="mt-1 p-2 rounded border border-success"
-                           style={{ backgroundColor: 'rgba(25,135,84,0.06)' }}>
-                        <div className="d-flex gap-1 flex-wrap mb-1">
-                          <span className="badge bg-success">Risposta cittadino</span>
-                          <span className="text-muted" style={{ fontSize: '0.8em' }}>
-                            {formatDateTime(risposta.dataRisposta)}
-                          </span>
-                        </div>
-                        {risposta.testo && <p className="mb-1">{risposta.testo}</p>}
-                        {risposta.allegati.length > 0 && (
-                          <ul className="list-unstyled mb-0">
-                            {risposta.allegati.map((a) => (
-                              <li key={a.id}>
-                                <a
-                                  href={`/api/risposta-allegati/${a.id}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="small"
-                                >
-                                  📎 {a.nomeFile}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
+            {/* Pagamento info */}
+            {pagamento && (
+              <div className="mt-2 p-2 border border-primary rounded small">
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <span className="fw-semibold">Pagamento PagoPA</span>
+                  <span className={`badge ${STATO_PAGAMENTO_BADGE[pagamento.stato ?? ''] ?? 'bg-secondary'}`}>
+                    {STATO_PAGAMENTO_LABEL[pagamento.stato ?? ''] ?? pagamento.stato ?? '—'}
+                  </span>
+                </div>
+                {pagamento.iuv && (
+                  <div><span className="text-muted">IUV:</span> {pagamento.iuv}</div>
+                )}
+                {pagamento.numeroDocumento && (
+                  <div><span className="text-muted">N° Documento:</span> {pagamento.numeroDocumento}</div>
+                )}
+                <div>
+                  <span className="text-muted">Importo:</span>{' '}
+                  <strong>€ {pagamento.importoTotale.toFixed(2)}</strong>
+                </div>
+                {pagamento.causale && (
+                  <div><span className="text-muted">Causale:</span> {pagamento.causale}</div>
+                )}
+                {(pagamento.pagante) && (
+                  <div>
+                    <span className="text-muted">Debitore:</span>{' '}
+                    {pagamento.pagante}
+                    {pagamento.paganteCodiceFiscale ? ` (${pagamento.paganteCodiceFiscale})` : ''}
                   </div>
-                );
-              }
+                )}
+                <div className="d-flex gap-2 mt-1 flex-wrap">
+                  {pagamento.iuv && (
+                    <a
+                      href={`/api/pagamenti/bollettino/${pagamento.iuv}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm btn-outline-primary py-0"
+                    >
+                      Scarica bollettino
+                    </a>
+                  )}
+                  {pagamento.iuv && pagamento.stato !== 'CON' && (
+                    <a
+                      href={`${urlPayment}/${pagamento.iuv}/urlpagamento`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm btn-primary py-0"
+                    >
+                      Paga online
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
-              if (type === 'retrocession') {
+            {/* Generate Payment Button */}
+            {!pagamento && reached && last && last.operatoreId !== null && last.stato === 0 && step.pagamento && (
+              <div className="mt-2">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => openPaymentModal(last.id, step)}
+                >
+                  Genera pagamento atteso
+                </Button>
+              </div>
+            )}
+
+            {/* Events (notes and retrocessions) */}
+            {events.map((wf) => {
+              const isRetrocession = wf.note?.startsWith('[Retrocessione');
+
+              if (isRetrocession) {
                 const text = (wf.note ?? '').replace(/^\[Retrocessione[^\]]*\]\s*/, '');
                 return (
                   <div key={wf.id} className="mt-1 small text-warning">
@@ -232,7 +313,6 @@ export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
                 );
               }
 
-              // Regular note — skip if empty
               if (!wf.note) return null;
 
               return (
@@ -250,5 +330,125 @@ export function WorkflowTimeline({ workflows, steps }: WorkflowTimelineProps) {
         );
       })}
     </div>
+
+    {/* Payment Generation Modal */}
+    <Modal
+      isOpen={showPaymentModal}
+      onClose={() => setShowPaymentModal(false)}
+      size="md"
+    >
+      <ModalHeader onClose={() => setShowPaymentModal(false)}>
+        Genera Pagamento Atteso
+        {selectedStep && (
+          <small className="d-block text-muted fw-normal">
+            Step: {selectedStep.descrizione}
+          </small>
+        )}
+      </ModalHeader>
+      <ModalBody>
+        {selectedStep?.pagamentoConfig && (
+          <div className="p-3 border border-primary rounded">
+            <h6 className="mb-2 text-primary">Pagamento PagoPA</h6>
+
+            {/* Tributo */}
+            {selectedStep.pagamentoConfig.codiceTributo && (
+              <p className="small mb-2">
+                <strong>Tributo:</strong> {selectedStep.pagamentoConfig.codiceTributo}
+                {selectedStep.pagamentoConfig.descrizioneTributo ? ` — ${selectedStep.pagamentoConfig.descrizioneTributo}` : ''}
+              </p>
+            )}
+
+            {/* Importo */}
+            {selectedStep.pagamentoConfig.importoVariabile ? (
+              <div className="mb-2">
+                <Input
+                  type="number"
+                  label="Importo (€) *"
+                  step="0.01"
+                  min={0}
+                  value={pagamentoImporto}
+                  onChange={(e) => setPagamentoImporto(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            ) : (
+              <p className="small mb-2">
+                <strong>Importo:</strong> € {selectedStep.pagamentoConfig.importo?.toFixed(2) ?? '—'}
+              </p>
+            )}
+
+            {/* Causale */}
+            {selectedStep.pagamentoConfig.causaleVariabile ? (
+              <div className="mb-2">
+                <Input
+                  type="text"
+                  label="Causale *"
+                  value={pagamentoCausale}
+                  onChange={(e) => setPagamentoCausale(e.target.value)}
+                  placeholder="Inserisci la causale..."
+                  maxLength={50}
+                />
+              </div>
+            ) : (
+              <p className="small mb-2">
+                <strong>Causale:</strong> {selectedStep.pagamentoConfig.causale ?? '—'}
+              </p>
+            )}
+
+            {/* Dati debitore */}
+            <div className="mt-3 pt-3 border-top">
+              <p className="small fw-semibold mb-2">Dati debitore</p>
+              <div className="row g-2">
+                <div className="col-12">
+                  <Input
+                    type="text"
+                    label="Codice Fiscale *"
+                    value={pagamentoCf}
+                    onChange={(e) => setPagamentoCf(e.target.value)}
+                  />
+                </div>
+                <div className="col-12">
+                  <Input
+                    type="text"
+                    label="Nominativo/Ragione sociale"
+                    value={pagamentoNome}
+                    onChange={(e) => setPagamentoNome(e.target.value)}
+                  />
+                </div>
+                <div className="col-12">
+                  <Input
+                    type="email"
+                    label="Email"
+                    value={pagamentoEmail}
+                    onChange={(e) => setPagamentoEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <p className="small text-muted mt-2 mb-0">
+              Verrà generato un bollettino PagoPA e inserito nella timeline.
+            </p>
+          </div>
+        )}
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="secondary"
+          onClick={() => setShowPaymentModal(false)}
+          disabled={loading}
+        >
+          Annulla
+        </Button>
+        <Button
+          variant="success"
+          onClick={handleGeneratePayment}
+          loading={loading}
+        >
+          Genera Pagamento
+        </Button>
+      </ModalFooter>
+    </Modal>
+  </>
   );
 }

@@ -17,7 +17,7 @@ async function getServizio(id: number) {
 }
 
 async function getFormData() {
-  const [aree, uffici, tributi] = await Promise.all([
+  const [aree, uffici] = await Promise.all([
     prisma.area.findMany({
       where: { attiva: true },
       orderBy: { nome: 'asc' },
@@ -28,14 +28,9 @@ async function getFormData() {
       orderBy: { nome: 'asc' },
       select: { id: true, nome: true },
     }),
-    prisma.tributo.findMany({
-      where: { attivo: true },
-      orderBy: { codice: 'asc' },
-      select: { id: true, codice: true, descrizione: true },
-    }),
   ]);
 
-  return { aree, uffici, tributi };
+  return { aree, uffici };
 }
 
 interface PageProps {
@@ -50,7 +45,7 @@ export default async function ModificaServizioPage({ params }: PageProps) {
     notFound();
   }
 
-  const [servizio, { aree, uffici, tributi }] = await Promise.all([
+  const [servizio, { aree, uffici }] = await Promise.all([
     getServizio(servizioId),
     getFormData(),
   ]);
@@ -97,10 +92,6 @@ export default async function ModificaServizioPage({ params }: PageProps) {
           msgExtraServizio: servizio.msgExtraServizio || '',
           campiInEvidenza: servizio.campiInEvidenza || '',
           campiDaEsportare: servizio.campiDaEsportare || '',
-          // prevedeDocumentoFinale: servizio.prevedeDocumentoFinale,
-          // templateDocumentoFinale: servizio.templateDocumentoFinale || '',
-          // nomeDocumentoFinale: servizio.nomeDocumentoFinale || '',
-          //moduloTipo: (servizio.moduloTipo as 'HTML' | 'PDF') || 'HTML',
           attributi: servizio.attributi || '',
           postFormValidation: servizio.postFormValidation,
           postFormValidationAPI: servizio.postFormValidationAPI || '',
@@ -119,7 +110,8 @@ export default async function ModificaServizioPage({ params }: PageProps) {
             tipoProtocollo: (step.tipoProtocollo as 'E' | 'U' | undefined) || undefined,
             unitaOrganizzativa: step.unitaOrganizzativa || '',
             numerazioneInterna: step.numerazioneInterna,
-            pagamentoCodiceTributoId: step.pagamentoConfig?.codiceTributoId ?? null,
+            pagamentoCodiceTributo: step.pagamentoConfig?.codiceTributo || '',
+            pagamentoDescrizioneTributo: step.pagamentoConfig?.descrizioneTributo || '',
             pagamentoImporto: step.pagamentoConfig?.importo ?? null,
             pagamentoImportoVariabile: step.pagamentoConfig?.importoVariabile ?? false,
             pagamentoCausale: step.pagamentoConfig?.causale || '',
@@ -148,7 +140,6 @@ export default async function ModificaServizioPage({ params }: PageProps) {
         }}
         aree={aree}
         uffici={uffici}
-        tributi={tributi}
       />
     </div>
   );

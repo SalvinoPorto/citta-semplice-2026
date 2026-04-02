@@ -38,7 +38,7 @@ export default async function ServiziPage() {
         />
       </div>
 
-      <div className="container">
+      {/* <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
             <div className="cmp-hero">
@@ -56,7 +56,7 @@ export default async function ServiziPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="bg-grey-card">
         <div className="container">

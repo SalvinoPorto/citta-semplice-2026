@@ -50,8 +50,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const [total, results] = await Promise.all([
-      prisma.pagamentoEffettuato.count({ where }),
-      prisma.pagamentoEffettuato.findMany({
+      prisma.pagamentoAtteso.count({ where }),
+      prisma.pagamentoAtteso.findMany({
         where,
         include: {
           workflow: {
@@ -88,12 +88,12 @@ export async function GET(request: NextRequest) {
         dataOperazione: pagamento.dataOperazione
           ? new Date(pagamento.dataOperazione).toLocaleDateString('it-IT')
           : '-',
-        utente: utente ? `${utente.cognome} ${utente.nome}` : pagamento.cognomeUtente || '-',
-        codiceFiscale: utente?.codiceFiscale || pagamento.cfUtente || '-',
+        utente: utente ? `${utente.cognome} ${utente.nome}` : pagamento.pagante || '-',
+        codiceFiscale: utente?.codiceFiscale || pagamento.paganteCodiceFiscale || '-',
         modulo: servizio?.titolo || '-',
         istanzaId: pagamento.workflow?.istanza?.id,
         data: pagamento.dataOperazione
-          ? new Date(pagamento.dataOperazione).toLocaleDateString('it-IT')
+          ? pagamento.dataOperazione.toLocaleDateString('it-IT')
           : '-',
       };
     });

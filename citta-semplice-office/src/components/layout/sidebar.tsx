@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
   // Sezione Organizzazione (Admin)
   { href: '/enti', label: 'Enti', icon: 'it-pa', permission: PERMISSIONS.ENTI_VIEW, section: 'organizzazione' },
   { href: '/aree', label: 'Aree', icon: 'it-folder', permission: PERMISSIONS.AREE_VIEW, section: 'organizzazione' },
-  { href: '/servizi', label: 'Servizi', icon: 'it-settings', permission: PERMISSIONS.SERVIZI_VIEW, section: 'organizzazione' },
+  { href: '/amministrazione/servizi', label: 'Servizi', icon: 'it-settings', permission: PERMISSIONS.SERVIZI_VIEW, section: 'organizzazione' },
   { href: '/uffici', label: 'Uffici', icon: 'it-map-marker-circle', permission: PERMISSIONS.UFFICI_VIEW, section: 'organizzazione' },
 
   // Sezione Utenti (Admin)
