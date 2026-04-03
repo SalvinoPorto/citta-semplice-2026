@@ -10,5 +10,8 @@
       "/Users/salvino/Projects/citta-semplice-2026/citta-semplice-portal/prisma",
       "/Users/salvino/Projects/citta-semplice-2026/citta-semplice-portal/src/lib/services/protocollazione"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
   }
 }
