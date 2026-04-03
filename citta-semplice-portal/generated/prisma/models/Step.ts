@@ -48,8 +48,6 @@ export type StepMinAggregateOutputType = {
   allegatiOp: boolean | null
   allegatiRequired: boolean | null
   allegatiOpRequired: boolean | null
-  allegatiRichiesti: string | null
-  allegatiOpRichiesti: string | null
   protocollo: boolean | null
   tipoProtocollo: string | null
   unitaOrganizzativa: string | null
@@ -69,8 +67,6 @@ export type StepMaxAggregateOutputType = {
   allegatiOp: boolean | null
   allegatiRequired: boolean | null
   allegatiOpRequired: boolean | null
-  allegatiRichiesti: string | null
-  allegatiOpRichiesti: string | null
   protocollo: boolean | null
   tipoProtocollo: string | null
   unitaOrganizzativa: string | null
@@ -90,8 +86,6 @@ export type StepCountAggregateOutputType = {
   allegatiOp: number
   allegatiRequired: number
   allegatiOpRequired: number
-  allegatiRichiesti: number
-  allegatiOpRichiesti: number
   protocollo: number
   tipoProtocollo: number
   unitaOrganizzativa: number
@@ -125,8 +119,6 @@ export type StepMinAggregateInputType = {
   allegatiOp?: true
   allegatiRequired?: true
   allegatiOpRequired?: true
-  allegatiRichiesti?: true
-  allegatiOpRichiesti?: true
   protocollo?: true
   tipoProtocollo?: true
   unitaOrganizzativa?: true
@@ -146,8 +138,6 @@ export type StepMaxAggregateInputType = {
   allegatiOp?: true
   allegatiRequired?: true
   allegatiOpRequired?: true
-  allegatiRichiesti?: true
-  allegatiOpRichiesti?: true
   protocollo?: true
   tipoProtocollo?: true
   unitaOrganizzativa?: true
@@ -167,8 +157,6 @@ export type StepCountAggregateInputType = {
   allegatiOp?: true
   allegatiRequired?: true
   allegatiOpRequired?: true
-  allegatiRichiesti?: true
-  allegatiOpRichiesti?: true
   protocollo?: true
   tipoProtocollo?: true
   unitaOrganizzativa?: true
@@ -275,8 +263,6 @@ export type StepGroupByOutputType = {
   allegatiOp: boolean
   allegatiRequired: boolean
   allegatiOpRequired: boolean
-  allegatiRichiesti: string | null
-  allegatiOpRichiesti: string | null
   protocollo: boolean
   tipoProtocollo: string | null
   unitaOrganizzativa: string | null
@@ -319,8 +305,6 @@ export type StepWhereInput = {
   allegatiOp?: Prisma.BoolFilter<"Step"> | boolean
   allegatiRequired?: Prisma.BoolFilter<"Step"> | boolean
   allegatiOpRequired?: Prisma.BoolFilter<"Step"> | boolean
-  allegatiRichiesti?: Prisma.StringNullableFilter<"Step"> | string | null
-  allegatiOpRichiesti?: Prisma.StringNullableFilter<"Step"> | string | null
   protocollo?: Prisma.BoolFilter<"Step"> | boolean
   tipoProtocollo?: Prisma.StringNullableFilter<"Step"> | string | null
   unitaOrganizzativa?: Prisma.StringNullableFilter<"Step"> | string | null
@@ -344,8 +328,6 @@ export type StepOrderByWithRelationInput = {
   allegatiOp?: Prisma.SortOrder
   allegatiRequired?: Prisma.SortOrder
   allegatiOpRequired?: Prisma.SortOrder
-  allegatiRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
-  allegatiOpRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
   protocollo?: Prisma.SortOrder
   tipoProtocollo?: Prisma.SortOrderInput | Prisma.SortOrder
   unitaOrganizzativa?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -372,8 +354,6 @@ export type StepWhereUniqueInput = Prisma.AtLeast<{
   allegatiOp?: Prisma.BoolFilter<"Step"> | boolean
   allegatiRequired?: Prisma.BoolFilter<"Step"> | boolean
   allegatiOpRequired?: Prisma.BoolFilter<"Step"> | boolean
-  allegatiRichiesti?: Prisma.StringNullableFilter<"Step"> | string | null
-  allegatiOpRichiesti?: Prisma.StringNullableFilter<"Step"> | string | null
   protocollo?: Prisma.BoolFilter<"Step"> | boolean
   tipoProtocollo?: Prisma.StringNullableFilter<"Step"> | string | null
   unitaOrganizzativa?: Prisma.StringNullableFilter<"Step"> | string | null
@@ -397,8 +377,6 @@ export type StepOrderByWithAggregationInput = {
   allegatiOp?: Prisma.SortOrder
   allegatiRequired?: Prisma.SortOrder
   allegatiOpRequired?: Prisma.SortOrder
-  allegatiRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
-  allegatiOpRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
   protocollo?: Prisma.SortOrder
   tipoProtocollo?: Prisma.SortOrderInput | Prisma.SortOrder
   unitaOrganizzativa?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -426,8 +404,6 @@ export type StepScalarWhereWithAggregatesInput = {
   allegatiOp?: Prisma.BoolWithAggregatesFilter<"Step"> | boolean
   allegatiRequired?: Prisma.BoolWithAggregatesFilter<"Step"> | boolean
   allegatiOpRequired?: Prisma.BoolWithAggregatesFilter<"Step"> | boolean
-  allegatiRichiesti?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
-  allegatiOpRichiesti?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
   protocollo?: Prisma.BoolWithAggregatesFilter<"Step"> | boolean
   tipoProtocollo?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
   unitaOrganizzativa?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
@@ -446,8 +422,6 @@ export type StepCreateInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -470,8 +444,6 @@ export type StepUncheckedCreateInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -493,8 +465,6 @@ export type StepUpdateInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -517,8 +487,6 @@ export type StepUncheckedUpdateInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -541,8 +509,6 @@ export type StepCreateManyInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -561,8 +527,6 @@ export type StepUpdateManyMutationInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -581,8 +545,6 @@ export type StepUncheckedUpdateManyInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -612,8 +574,6 @@ export type StepCountOrderByAggregateInput = {
   allegatiOp?: Prisma.SortOrder
   allegatiRequired?: Prisma.SortOrder
   allegatiOpRequired?: Prisma.SortOrder
-  allegatiRichiesti?: Prisma.SortOrder
-  allegatiOpRichiesti?: Prisma.SortOrder
   protocollo?: Prisma.SortOrder
   tipoProtocollo?: Prisma.SortOrder
   unitaOrganizzativa?: Prisma.SortOrder
@@ -639,8 +599,6 @@ export type StepMaxOrderByAggregateInput = {
   allegatiOp?: Prisma.SortOrder
   allegatiRequired?: Prisma.SortOrder
   allegatiOpRequired?: Prisma.SortOrder
-  allegatiRichiesti?: Prisma.SortOrder
-  allegatiOpRichiesti?: Prisma.SortOrder
   protocollo?: Prisma.SortOrder
   tipoProtocollo?: Prisma.SortOrder
   unitaOrganizzativa?: Prisma.SortOrder
@@ -660,8 +618,6 @@ export type StepMinOrderByAggregateInput = {
   allegatiOp?: Prisma.SortOrder
   allegatiRequired?: Prisma.SortOrder
   allegatiOpRequired?: Prisma.SortOrder
-  allegatiRichiesti?: Prisma.SortOrder
-  allegatiOpRichiesti?: Prisma.SortOrder
   protocollo?: Prisma.SortOrder
   tipoProtocollo?: Prisma.SortOrder
   unitaOrganizzativa?: Prisma.SortOrder
@@ -784,8 +740,6 @@ export type StepCreateWithoutServizioInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -807,8 +761,6 @@ export type StepUncheckedCreateWithoutServizioInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -859,8 +811,6 @@ export type StepScalarWhereInput = {
   allegatiOp?: Prisma.BoolFilter<"Step"> | boolean
   allegatiRequired?: Prisma.BoolFilter<"Step"> | boolean
   allegatiOpRequired?: Prisma.BoolFilter<"Step"> | boolean
-  allegatiRichiesti?: Prisma.StringNullableFilter<"Step"> | string | null
-  allegatiOpRichiesti?: Prisma.StringNullableFilter<"Step"> | string | null
   protocollo?: Prisma.BoolFilter<"Step"> | boolean
   tipoProtocollo?: Prisma.StringNullableFilter<"Step"> | string | null
   unitaOrganizzativa?: Prisma.StringNullableFilter<"Step"> | string | null
@@ -879,8 +829,6 @@ export type StepCreateWithoutAllegatiRichiestiListInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -902,8 +850,6 @@ export type StepUncheckedCreateWithoutAllegatiRichiestiListInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -940,8 +886,6 @@ export type StepUpdateWithoutAllegatiRichiestiListInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -963,8 +907,6 @@ export type StepUncheckedUpdateWithoutAllegatiRichiestiListInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -985,8 +927,6 @@ export type StepCreateWithoutWorkflowsInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -1008,8 +948,6 @@ export type StepUncheckedCreateWithoutWorkflowsInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -1046,8 +984,6 @@ export type StepUpdateWithoutWorkflowsInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1069,8 +1005,6 @@ export type StepUncheckedUpdateWithoutWorkflowsInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1091,8 +1025,6 @@ export type StepCreateWithoutPagamentoConfigInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -1114,8 +1046,6 @@ export type StepUncheckedCreateWithoutPagamentoConfigInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -1152,8 +1082,6 @@ export type StepUpdateWithoutPagamentoConfigInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1175,8 +1103,6 @@ export type StepUncheckedUpdateWithoutPagamentoConfigInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1198,8 +1124,6 @@ export type StepCreateManyServizioInput = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: string | null
-  allegatiOpRichiesti?: string | null
   protocollo?: boolean
   tipoProtocollo?: string | null
   unitaOrganizzativa?: string | null
@@ -1217,8 +1141,6 @@ export type StepUpdateWithoutServizioInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1240,8 +1162,6 @@ export type StepUncheckedUpdateWithoutServizioInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1263,8 +1183,6 @@ export type StepUncheckedUpdateManyWithoutServizioInput = {
   allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  allegatiOpRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tipoProtocollo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1323,8 +1241,6 @@ export type StepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: boolean
-  allegatiOpRichiesti?: boolean
   protocollo?: boolean
   tipoProtocollo?: boolean
   unitaOrganizzativa?: boolean
@@ -1349,8 +1265,6 @@ export type StepSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: boolean
-  allegatiOpRichiesti?: boolean
   protocollo?: boolean
   tipoProtocollo?: boolean
   unitaOrganizzativa?: boolean
@@ -1371,8 +1285,6 @@ export type StepSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: boolean
-  allegatiOpRichiesti?: boolean
   protocollo?: boolean
   tipoProtocollo?: boolean
   unitaOrganizzativa?: boolean
@@ -1393,8 +1305,6 @@ export type StepSelectScalar = {
   allegatiOp?: boolean
   allegatiRequired?: boolean
   allegatiOpRequired?: boolean
-  allegatiRichiesti?: boolean
-  allegatiOpRichiesti?: boolean
   protocollo?: boolean
   tipoProtocollo?: boolean
   unitaOrganizzativa?: boolean
@@ -1404,7 +1314,7 @@ export type StepSelectScalar = {
   servizioId?: boolean
 }
 
-export type StepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "descrizione" | "ordine" | "attivo" | "pagamento" | "allegati" | "allegatiOp" | "allegatiRequired" | "allegatiOpRequired" | "allegatiRichiesti" | "allegatiOpRichiesti" | "protocollo" | "tipoProtocollo" | "unitaOrganizzativa" | "numerazioneInterna" | "assegnabileASpecificoUfficio" | "settaAttributo" | "servizioId", ExtArgs["result"]["step"]>
+export type StepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "descrizione" | "ordine" | "attivo" | "pagamento" | "allegati" | "allegatiOp" | "allegatiRequired" | "allegatiOpRequired" | "protocollo" | "tipoProtocollo" | "unitaOrganizzativa" | "numerazioneInterna" | "assegnabileASpecificoUfficio" | "settaAttributo" | "servizioId", ExtArgs["result"]["step"]>
 export type StepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   workflows?: boolean | Prisma.Step$workflowsArgs<ExtArgs>
@@ -1437,8 +1347,10 @@ export type $StepPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     allegatiOp: boolean
     allegatiRequired: boolean
     allegatiOpRequired: boolean
-    allegatiRichiesti: string | null
-    allegatiOpRichiesti: string | null
+    /**
+     * allegatiRichiesti           String?   @map("allegati_richiesti")
+     *   allegatiOpRichiesti         String?   @map("allegati_op_richiesti")
+     */
     protocollo: boolean
     tipoProtocollo: string | null
     unitaOrganizzativa: string | null
@@ -1882,8 +1794,6 @@ export interface StepFieldRefs {
   readonly allegatiOp: Prisma.FieldRef<"Step", 'Boolean'>
   readonly allegatiRequired: Prisma.FieldRef<"Step", 'Boolean'>
   readonly allegatiOpRequired: Prisma.FieldRef<"Step", 'Boolean'>
-  readonly allegatiRichiesti: Prisma.FieldRef<"Step", 'String'>
-  readonly allegatiOpRichiesti: Prisma.FieldRef<"Step", 'String'>
   readonly protocollo: Prisma.FieldRef<"Step", 'Boolean'>
   readonly tipoProtocollo: Prisma.FieldRef<"Step", 'String'>
   readonly unitaOrganizzativa: Prisma.FieldRef<"Step", 'String'>

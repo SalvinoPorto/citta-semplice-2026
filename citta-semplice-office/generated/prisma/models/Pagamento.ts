@@ -14,17 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Pagamento
- * // Legacy model — kept for existing data; new records use codiceTributo string directly on Pagamento
- * model TributoLegacy {
- *   id              Int       @id @default(autoincrement())
- *   codice          String    @unique
- *   descrizione     String?
- *   attivo          Boolean   @default(true)
  * 
- *   pagamenti       Pagamento[]
- * 
- *   @@map("tributi")
- * }
  */
 export type PagamentoModel = runtime.Types.Result.DefaultSelection<Prisma.$PagamentoPayload>
 

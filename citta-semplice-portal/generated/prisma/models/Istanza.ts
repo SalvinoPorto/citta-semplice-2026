@@ -287,7 +287,7 @@ export type IstanzaGroupByOutputType = {
   protoData: Date | null
   protoFinaleNumero: string | null
   protoFinaleData: Date | null
-  dataInvio: Date | null
+  dataInvio: Date
   createdAt: Date
   utenteId: number
   servizioId: number
@@ -331,7 +331,7 @@ export type IstanzaWhereInput = {
   protoData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
-  dataInvio?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
+  dataInvio?: Prisma.DateTimeFilter<"Istanza"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Istanza"> | Date | string
   utenteId?: Prisma.IntFilter<"Istanza"> | number
   servizioId?: Prisma.IntFilter<"Istanza"> | number
@@ -356,7 +356,7 @@ export type IstanzaOrderByWithRelationInput = {
   protoData?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleNumero?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleData?: Prisma.SortOrderInput | Prisma.SortOrder
-  dataInvio?: Prisma.SortOrderInput | Prisma.SortOrder
+  dataInvio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
@@ -384,7 +384,7 @@ export type IstanzaWhereUniqueInput = Prisma.AtLeast<{
   protoData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
-  dataInvio?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
+  dataInvio?: Prisma.DateTimeFilter<"Istanza"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Istanza"> | Date | string
   utenteId?: Prisma.IntFilter<"Istanza"> | number
   servizioId?: Prisma.IntFilter<"Istanza"> | number
@@ -409,7 +409,7 @@ export type IstanzaOrderByWithAggregationInput = {
   protoData?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleNumero?: Prisma.SortOrderInput | Prisma.SortOrder
   protoFinaleData?: Prisma.SortOrderInput | Prisma.SortOrder
-  dataInvio?: Prisma.SortOrderInput | Prisma.SortOrder
+  dataInvio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
@@ -438,7 +438,7 @@ export type IstanzaScalarWhereWithAggregatesInput = {
   protoData?: Prisma.DateTimeNullableWithAggregatesFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableWithAggregatesFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableWithAggregatesFilter<"Istanza"> | Date | string | null
-  dataInvio?: Prisma.DateTimeNullableWithAggregatesFilter<"Istanza"> | Date | string | null
+  dataInvio?: Prisma.DateTimeWithAggregatesFilter<"Istanza"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Istanza"> | Date | string
   utenteId?: Prisma.IntWithAggregatesFilter<"Istanza"> | number
   servizioId?: Prisma.IntWithAggregatesFilter<"Istanza"> | number
@@ -458,7 +458,7 @@ export type IstanzaCreateInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
@@ -481,7 +481,7 @@ export type IstanzaUncheckedCreateInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   utenteId: number
   servizioId: number
@@ -503,7 +503,7 @@ export type IstanzaUpdateInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
@@ -526,7 +526,7 @@ export type IstanzaUncheckedUpdateInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -549,7 +549,7 @@ export type IstanzaCreateManyInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   utenteId: number
   servizioId: number
@@ -569,7 +569,7 @@ export type IstanzaUpdateManyMutationInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -588,7 +588,7 @@ export type IstanzaUncheckedUpdateManyInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -814,7 +814,7 @@ export type IstanzaCreateWithoutServizioInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
@@ -836,7 +836,7 @@ export type IstanzaUncheckedCreateWithoutServizioInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   utenteId: number
   lastStepId?: number | null
@@ -887,7 +887,7 @@ export type IstanzaScalarWhereInput = {
   protoData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
   protoFinaleNumero?: Prisma.StringNullableFilter<"Istanza"> | string | null
   protoFinaleData?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
-  dataInvio?: Prisma.DateTimeNullableFilter<"Istanza"> | Date | string | null
+  dataInvio?: Prisma.DateTimeFilter<"Istanza"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Istanza"> | Date | string
   utenteId?: Prisma.IntFilter<"Istanza"> | number
   servizioId?: Prisma.IntFilter<"Istanza"> | number
@@ -907,7 +907,7 @@ export type IstanzaCreateWithoutUtenteInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   lastStepId?: number | null
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
@@ -929,7 +929,7 @@ export type IstanzaUncheckedCreateWithoutUtenteInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   servizioId: number
   lastStepId?: number | null
@@ -976,7 +976,7 @@ export type IstanzaCreateWithoutWorkflowsInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
@@ -998,7 +998,7 @@ export type IstanzaUncheckedCreateWithoutWorkflowsInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   utenteId: number
   servizioId: number
@@ -1035,7 +1035,7 @@ export type IstanzaUpdateWithoutWorkflowsInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
@@ -1057,7 +1057,7 @@ export type IstanzaUncheckedUpdateWithoutWorkflowsInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1078,7 +1078,7 @@ export type IstanzaCreateWithoutComunicazioniInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
@@ -1100,7 +1100,7 @@ export type IstanzaUncheckedCreateWithoutComunicazioniInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   utenteId: number
   servizioId: number
@@ -1137,7 +1137,7 @@ export type IstanzaUpdateWithoutComunicazioniInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
@@ -1159,7 +1159,7 @@ export type IstanzaUncheckedUpdateWithoutComunicazioniInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1181,7 +1181,7 @@ export type IstanzaCreateManyServizioInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   utenteId: number
   lastStepId?: number | null
@@ -1200,7 +1200,7 @@ export type IstanzaUpdateWithoutServizioInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
@@ -1222,7 +1222,7 @@ export type IstanzaUncheckedUpdateWithoutServizioInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1244,7 +1244,7 @@ export type IstanzaUncheckedUpdateManyWithoutServizioInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1264,7 +1264,7 @@ export type IstanzaCreateManyUtenteInput = {
   protoData?: Date | string | null
   protoFinaleNumero?: string | null
   protoFinaleData?: Date | string | null
-  dataInvio?: Date | string | null
+  dataInvio: Date | string
   createdAt?: Date | string
   servizioId: number
   lastStepId?: number | null
@@ -1283,7 +1283,7 @@ export type IstanzaUpdateWithoutUtenteInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
@@ -1305,7 +1305,7 @@ export type IstanzaUncheckedUpdateWithoutUtenteInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1327,7 +1327,7 @@ export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
   protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dataInvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1505,7 +1505,7 @@ export type $IstanzaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     protoData: Date | null
     protoFinaleNumero: string | null
     protoFinaleData: Date | null
-    dataInvio: Date | null
+    dataInvio: Date
     createdAt: Date
     utenteId: number
     servizioId: number

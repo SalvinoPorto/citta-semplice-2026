@@ -399,10 +399,10 @@ export const ModelName = {
   AllegatoRichiesto: 'AllegatoRichiesto',
   Utente: 'Utente',
   Istanza: 'Istanza',
+  Workflow: 'Workflow',
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
   AllegatoRisposta: 'AllegatoRisposta',
-  Workflow: 'Workflow',
   Allegato: 'Allegato',
   Pagamento: 'Pagamento',
   PagamentoAtteso: 'PagamentoAtteso',
@@ -428,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "operatoreServizio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "workflow" | "allegato" | "pagamento" | "pagamentoAtteso" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
+    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "operatoreServizio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "workflow" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "pagamento" | "pagamentoAtteso" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1542,6 +1542,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Workflow: {
+      payload: Prisma.$WorkflowPayload<ExtArgs>
+      fields: Prisma.WorkflowFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WorkflowFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WorkflowFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
+        }
+        findFirst: {
+          args: Prisma.WorkflowFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WorkflowFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
+        }
+        findMany: {
+          args: Prisma.WorkflowFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
+        }
+        create: {
+          args: Prisma.WorkflowCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
+        }
+        createMany: {
+          args: Prisma.WorkflowCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WorkflowCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
+        }
+        delete: {
+          args: Prisma.WorkflowDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
+        }
+        update: {
+          args: Prisma.WorkflowUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
+        }
+        deleteMany: {
+          args: Prisma.WorkflowDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WorkflowUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WorkflowUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
+        }
+        upsert: {
+          args: Prisma.WorkflowUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
+        }
+        aggregate: {
+          args: Prisma.WorkflowAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkflow>
+        }
+        groupBy: {
+          args: Prisma.WorkflowGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkflowGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WorkflowCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkflowCountAggregateOutputType> | number
+        }
+      }
+    }
     Comunicazione: {
       payload: Prisma.$ComunicazionePayload<ExtArgs>
       fields: Prisma.ComunicazioneFieldRefs
@@ -1761,80 +1835,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AllegatoRispostaCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AllegatoRispostaCountAggregateOutputType> | number
-        }
-      }
-    }
-    Workflow: {
-      payload: Prisma.$WorkflowPayload<ExtArgs>
-      fields: Prisma.WorkflowFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.WorkflowFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.WorkflowFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
-        }
-        findFirst: {
-          args: Prisma.WorkflowFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.WorkflowFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
-        }
-        findMany: {
-          args: Prisma.WorkflowFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
-        }
-        create: {
-          args: Prisma.WorkflowCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
-        }
-        createMany: {
-          args: Prisma.WorkflowCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.WorkflowCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
-        }
-        delete: {
-          args: Prisma.WorkflowDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
-        }
-        update: {
-          args: Prisma.WorkflowUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
-        }
-        deleteMany: {
-          args: Prisma.WorkflowDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.WorkflowUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.WorkflowUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
-        }
-        upsert: {
-          args: Prisma.WorkflowUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowPayload>
-        }
-        aggregate: {
-          args: Prisma.WorkflowAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkflow>
-        }
-        groupBy: {
-          args: Prisma.WorkflowGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WorkflowGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.WorkflowCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WorkflowCountAggregateOutputType> | number
         }
       }
     }
@@ -2769,8 +2769,6 @@ export const StepScalarFieldEnum = {
   allegatiOp: 'allegatiOp',
   allegatiRequired: 'allegatiRequired',
   allegatiOpRequired: 'allegatiOpRequired',
-  allegatiRichiesti: 'allegatiRichiesti',
-  allegatiOpRichiesti: 'allegatiOpRichiesti',
   protocollo: 'protocollo',
   tipoProtocollo: 'tipoProtocollo',
   unitaOrganizzativa: 'unitaOrganizzativa',
@@ -2849,6 +2847,20 @@ export const IstanzaScalarFieldEnum = {
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
 
 
+export const WorkflowScalarFieldEnum = {
+  id: 'id',
+  note: 'note',
+  dataVariazione: 'dataVariazione',
+  istanzaId: 'istanzaId',
+  stepId: 'stepId',
+  notificaId: 'notificaId',
+  stato: 'stato',
+  operatoreId: 'operatoreId'
+} as const
+
+export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
+
+
 export const ComunicazioneScalarFieldEnum = {
   id: 'id',
   testo: 'testo',
@@ -2881,20 +2893,6 @@ export const AllegatoRispostaScalarFieldEnum = {
 } as const
 
 export type AllegatoRispostaScalarFieldEnum = (typeof AllegatoRispostaScalarFieldEnum)[keyof typeof AllegatoRispostaScalarFieldEnum]
-
-
-export const WorkflowScalarFieldEnum = {
-  id: 'id',
-  note: 'note',
-  dataVariazione: 'dataVariazione',
-  istanzaId: 'istanzaId',
-  stepId: 'stepId',
-  notificaId: 'notificaId',
-  stato: 'stato',
-  operatoreId: 'operatoreId'
-} as const
-
-export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
 
 
 export const AllegatoScalarFieldEnum = {
@@ -3243,10 +3241,10 @@ export type GlobalOmitConfig = {
   allegatoRichiesto?: Prisma.AllegatoRichiestoOmit
   utente?: Prisma.UtenteOmit
   istanza?: Prisma.IstanzaOmit
+  workflow?: Prisma.WorkflowOmit
   comunicazione?: Prisma.ComunicazioneOmit
   rispostaComunicazione?: Prisma.RispostaComunicazioneOmit
   allegatoRisposta?: Prisma.AllegatoRispostaOmit
-  workflow?: Prisma.WorkflowOmit
   allegato?: Prisma.AllegatoOmit
   pagamento?: Prisma.PagamentoOmit
   pagamentoAtteso?: Prisma.PagamentoAttesoOmit

@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
 
 // ============================================
@@ -14,19 +13,18 @@ datasource db {
 
 model Operatore {
   id                Int       @id @default(autoincrement())
-  email             String    
-  password          String
-  nome              String
-  cognome           String
-  userName          String   @unique @map("user_name")
-  telefono          String?
+  email             String    @db.VarChar(100)
+  password          String    @db.VarChar(64)
+  nome              String    @db.VarChar(100)
+  cognome           String    @db.VarChar(100)
+  userName          String    @db.VarChar(64) @unique @map("user_name")
+  telefono          String?   @db.VarChar(255)
   attivo            Boolean   @default(true)
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
   // Relations
   ruoli             OperatoreRuolo[]
-  // enti              OperatoreEnte[]
   servizi           OperatoreServizio[]
   workflows         Workflow[]
   comunicazioni     Comunicazione[]
@@ -60,7 +58,7 @@ model OperatoreRuolo {
 model RuoloUser {
   id          Int       @id @default(autoincrement())
   nome        String    @unique
-  descrizione String?
+  descrizione String?   @db.VarChar(100)
 
   servizi      ServizioRuoloUser[]
 
@@ -88,24 +86,11 @@ model Ente {
   @@map("enti")
 }
 
-/*
-model OperatoreEnte {
-  operatoreId Int       @map("operatore_id")
-  enteId      Int       @map("ente_id")
-
-  operatore   Operatore @relation(fields: [operatoreId], references: [id], onDelete: Cascade)
-  ente        Ente      @relation(fields: [enteId], references: [id], onDelete: Cascade)
-
-  @@id([operatoreId, enteId])
-  @@map("operatore_enti")
-}
-*/
-
 model Area {
   id          Int       @id @default(autoincrement())
-  nome        String
-  descrizione String?
-  icona       String?
+  nome        String    @db.VarChar(255)
+  descrizione String?   @db.VarChar(512)
+  icona       String?   @db.VarChar(255)
   ordine      Int       @default(0)
   attiva      Boolean   @default(true)
   slug        String    @db.VarChar(255) @default("\/") @unique
@@ -120,7 +105,7 @@ model Servizio {
   id          Int       @id @default(autoincrement())
   titolo      String    @db.VarChar(255)
   sottoTitolo String?   @db.VarChar(255) @map("sotto_titolo")
-  descrizione String?
+  descrizione String?   @db.VarChar(1024)
   comeFare    String?   @map("come_fare")
   cosaServe   String?   @map("cosa_serve")
   altreInfo   String?   @map("altre_info")
@@ -133,8 +118,6 @@ model Servizio {
   areaId      Int       @map("area_id")
   area        Area      @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  // Modulo (form dati richiedente, incorporato nel servizio)
-  //moduloNomeFile          String?   @db.VarChar(255) @map("modulo_nome_file")
   attributi                 String?   @db.Text @map("attributi") // JSON form schema
   moduloCorpo               String?   @db.Text @map("modulo_corpo")
   postFormValidation        Boolean   @default(false) @map("post_form_validation")
@@ -181,94 +164,17 @@ model Servizio {
 
 model Ufficio {
   id          Int       @id @default(autoincrement())
-  nome        String
-  descrizione String?
-  email       String?
-  telefono    String?
-  indirizzo   String?
+  nome        String    @db.VarChar(255)
+  descrizione String?   @db.VarChar(255)
+  email       String?   @db.VarChar(255)
+  telefono    String?   @db.VarChar(255)
+  indirizzo   String?   @db.VarChar(255)
   attivo      Boolean   @default(true)
   
   servizi     Servizio[]
 
   @@map("uffici")
 }
-
-// ============================================
-// MODULES (MODULI) - Form Templates
-// (Modello rimosso: i campi sono stati incorporati in Servizio)
-// ============================================
-
-/*
-model Modulo {
-  id                    Int       @id @default(autoincrement())
-  name                  String
-  slug                  String    @unique
-  description           String?
-  tipo                  String    @default("HTML") // HTML, PDF
-  nomeFile              String?   @map("nome_file")
-  attributes            String?   @db.Text // JSON form schema
-  attributesResponse    String?   @map("attributes_response") @db.Text
-  corpo                 String?   @db.Text // HTML body
-  attivo                Boolean   @default(true)
-  
-  // Evidence fields
-  campiInEvidenza       String?   @map("campi_in_evidenza")
-  campiDaEsportare      String?   @map("campi_da_esportare")
-
-
-  // Unique submission rules
-  unicoInvio            Boolean   @default(false) @map("unico_invio")
-  unicoInvioPerUtente   Boolean   @default(false) @map("unico_invio_per_utente")
-  campiUnicoInvio       String?   @map("campi_unico_invio")
-
-  // Limits
-  numeroMaxIstanze      Int?      @map("numero_max_istanze")
-  avvisoSoglia          String?   @map("avviso_soglia")
-  msgExtraModulo        String?   @map("msg_extra_modulo")
-
-  // External WS Integration
-  wsEsterno                              Boolean   @default(false) @map("ws_esterno")
-  fornitoreWSEsterno                     String?   @map("fornitore_ws_esterno")
-  hostWsEsterno                          String?   @map("host_ws_esterno")
-  invioDatiWsEsterno                     Boolean   @default(false) @map("invio_dati_ws_esterno")
-  invioAllegatiWsEsterno                 Boolean   @default(false) @map("invio_allegati_ws_esterno")
-  verificaDatiWsEsterno                  Boolean   @default(false) @map("verifica_dati_ws_esterno")
-  verificaDatiBloccanteWsEsterno         Boolean   @default(false) @map("verifica_dati_bloccante_ws_esterno")
-  aggiornaStatoWsEsterno                 Boolean   @default(false) @map("aggiorna_stato_ws_esterno")
-  pathInvioWsEsterno                     String?   @map("path_invio_ws_esterno")
-  pathVerificaWsEsterno                  String?   @map("path_verifica_ws_esterno")
-  pathAggiornaStatoWsEsterno             String?   @map("path_aggiorna_stato_ws_esterno")
-  pathInvioAllegatiWsEsterno             String?   @map("path_invio_allegati_ws_esterno")
-  numeroIstanzeInvioMassivo              Int       @default(0) @map("numero_istanze_invio_massivo")
-  acquisizionePosizioneDebitoriaWsEsterno Boolean  @default(false) @map("acquisizione_posizione_debitoria_ws_esterno")
-  pathAcquisizionePosizioneDebitoriaWsEsterno String? @map("path_acquisizione_posizione_debitoria_ws_esterno")
-
-  // Viario (street directory)
-  viario                Boolean   @default(false)
-  labelViario           String?   @map("label_viario")
-  pathViarioWsEsterno   String?   @map("path_viario_ws_esterno")
-  pathMunicipalitaWsEsterno String? @map("path_municipalita_ws_esterno")
-
-  // Final document
-  prevedeDocumentoFinale    Boolean   @default(false) @map("prevede_documento_finale")
-  templateDocumentoFinale   String?   @map("template_documento_finale") @db.Text
-  nomeDocumentoFinale       String?   @map("nome_documento_finale")
-
-  // Post-form validation
-  postFormValidation        Boolean   @default(false) @map("post_form_validation")
-  postFormValidationAPI     String?   @map("post_form_validation_api")
-  postFormValidationFields  String?   @map("post_form_validation_fields")
-
-  createdAt             DateTime  @default(now()) @map("created_at")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
-  // Relations
-  //servizioId            Int       @map("servizio_id")
-  //servizio              Servizio  @relation(fields: [servizioId], references: [id])
-
-  @@map("moduli")
-}
-*/
-
 
 model OperatoreServizio {
   operatoreId Int       @map("operatore_id")
@@ -308,13 +214,14 @@ model Step {
   allegatiOp                  Boolean   @default(false) @map("allegati_op")
   allegatiRequired            Boolean   @default(false) @map("allegati_required")
   allegatiOpRequired          Boolean   @default(false) @map("allegati_op_required")
+  /*
   allegatiRichiesti           String?   @map("allegati_richiesti")
   allegatiOpRichiesti         String?   @map("allegati_op_richiesti")
-
+  */
   // Protocol
   protocollo                  Boolean   @default(false)
-  tipoProtocollo              String?   @map("tipo_protocollo") // 'E' = Entrata, 'U' = Uscita
-  unitaOrganizzativa          String?   @map("unita_organizzativa")
+  tipoProtocollo              String?   @db.VarChar(1) @map("tipo_protocollo") // 'E' = Entrata, 'U' = Uscita
+  unitaOrganizzativa          String?   @db.VarChar(512) @map("unita_organizzativa")
   numerazioneInterna          Boolean   @default(false) @map("numerazione_interna")
 
   // Assignment
@@ -345,10 +252,10 @@ model Notifica {
 
 model AllegatoRichiesto {
   id                  Int       @id @default(autoincrement())
-  nomeAllegatoRichiesto String  @map("nome_allegato_richiesto")
+  nomeAllegatoRichiesto String  @db.VarChar(512) @map("nome_allegato_richiesto")
   obbligatorio        Boolean   @default(false)
   interno             Boolean   @default(false)
-  soggetto            String?   // OP = Operatore, UT = Utente
+  soggetto            String?   @db.VarChar(2) // OP = Operatore, UT = Utente
 
   stepId              Int?      @map("step_id")
   step                Step?     @relation(fields: [stepId], references: [id], onDelete: Cascade)
@@ -393,7 +300,7 @@ model Istanza {
   dati                String?   @db.Text // JSON form data
   datiInEvidenza      String?   @map("dati_in_evidenza")
   datiResponso        String?   @map("dati_responso") @db.Text
-  municipalita        String?
+  municipalita        String?   @db.VarChar(60)
 
   // Status
   conclusa            Boolean   @default(false)
@@ -424,9 +331,6 @@ model Istanza {
 
   lastStepId          Int?      @map("last_step_id")
 
-  // attributoId         Int?      @map("attributo_id")
-  // attributo           Attributo? @relation(fields: [attributoId], references: [id])
-
   workflows           Workflow[]
   comunicazioni       Comunicazione[]
 
@@ -435,6 +339,37 @@ model Istanza {
   @@index([dataInvio])
   @@index([protoNumero])
   @@map("istanze")
+}
+
+// ============================================
+// WORKFLOW
+// ============================================
+
+model Workflow {
+  id              Int       @id @default(autoincrement())
+  note            String?   @db.Text
+  dataVariazione  DateTime  @map("data_variazione")
+
+  // Relations
+  istanzaId       Int       @map("istanza_id")
+  istanza         Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
+
+  stepId          Int       @map("step_id")
+  step            Step?     @relation(fields: [stepId], references: [id])
+
+  notificaId      Int?      @map("notifica_id")
+  notifica        Notifica? @relation(fields: [notificaId], references: [id])
+
+  stato           Int       @default(0)
+  operatoreId     Int?      @map("operatore_id")
+  operatore       Operatore? @relation(fields: [operatoreId], references: [id])
+
+  allegati            Allegato[]
+  pagamentoAtteso PagamentoAtteso?
+  
+  @@index([istanzaId])
+  @@index([dataVariazione])
+  @@map("workflows")
 }
 
 model Comunicazione {
@@ -471,9 +406,9 @@ model RispostaComunicazione {
 
 model AllegatoRisposta {
   id          Int       @id @default(autoincrement())
-  nomeFile    String    @map("nome_file")
-  nomeHash    String    @map("nome_hash")
-  mimeType    String?   @map("mime_type")
+  nomeFile    String    @db.VarChar(512) @map("nome_file")
+  nomeHash    String    @db.VarChar(512) @map("nome_hash")
+  mimeType    String?   @db.VarChar(50) @map("mime_type")
 
   rispostaId  Int       @map("risposta_id")
   risposta    RispostaComunicazione @relation(fields: [rispostaId], references: [id], onDelete: Cascade)
@@ -482,46 +417,15 @@ model AllegatoRisposta {
 }
 
 // ============================================
-// WORKFLOW
-// ============================================
-
-model Workflow {
-  id              Int       @id @default(autoincrement())
-  note            String?   @db.Text
-  dataVariazione  DateTime  @map("data_variazione")
-
-  // Relations
-  istanzaId       Int       @map("istanza_id")
-  istanza         Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
-
-  stepId          Int       @map("step_id")
-  step            Step?     @relation(fields: [stepId], references: [id])
-
-  notificaId      Int?      @map("notifica_id")
-  notifica        Notifica? @relation(fields: [notificaId], references: [id])
-
-  stato           Int       @default(0)
-  operatoreId     Int?      @map("operatore_id")
-  operatore       Operatore? @relation(fields: [operatoreId], references: [id])
-
-  allegati            Allegato[]
-  pagamentoAtteso PagamentoAtteso?
-  
-  @@index([istanzaId])
-  @@index([dataVariazione])
-  @@map("workflows")
-}
-
-// ============================================
 // ATTACHMENTS
 // ============================================
 
 model Allegato {
   id                  Int       @id @default(autoincrement())
-  nomeFile            String    @map("nome_file")
-  nomeHash            String    @map("nome_hash")
-  nomeFileRichiesto   String?   @map("nome_file_richiesto")
-  mimeType            String?   @map("mime_type")
+  nomeFile            String    @db.VarChar(512) @map("nome_file")
+  nomeHash            String    @db.VarChar(512) @map("nome_hash")
+  nomeFileRichiesto   String?   @db.VarChar(512) @map("nome_file_richiesto")
+  mimeType            String?   @db.VarChar(50) @map("mime_type")
   invUtente           Boolean   @default(false) @map("inv_utente")
   visto               Boolean   @default(false)
   dataInserimento     DateTime? @map("data_inserimento")
@@ -532,22 +436,6 @@ model Allegato {
   @@map("allegati")
 }
 
-// ============================================
-// PAYMENTS
-// ============================================
-/*
-// Legacy model — kept for existing data; new records use codiceTributo string directly on Pagamento
-model TributoLegacy {
-  id              Int       @id @default(autoincrement())
-  codice          String    @unique
-  descrizione     String?
-  attivo          Boolean   @default(true)
-
-  pagamenti       Pagamento[]
-
-  @@map("tributi")
-}
-*/
 model Pagamento {
   id                  Int       @id @default(autoincrement())
   importo             Float?
@@ -558,8 +446,8 @@ model Pagamento {
   causaleVariabile    Boolean   @default(false) @map("causale_variabile")
 
   // codice del servizio/tributo configurato in PmPay
-  codiceTributo       String?   @map("codice_tributo")
-  descrizioneTributo  String?   @map("descrizione_tributo")
+  codiceTributo       String?   @db.VarChar(30) @map("codice_tributo")
+  descrizioneTributo  String?   @db.VarChar(512) @map("descrizione_tributo")
 
   stepId              Int       @unique @map("step_id")
   step                Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
@@ -569,8 +457,8 @@ model Pagamento {
 
 model PagamentoAtteso {
   id                      Int       @id @default(autoincrement())
-  iuv                     String?
-  numeroDocumento         String?   @map("numero_documento")
+  iuv                     String?   @db.VarChar(100)
+  numeroDocumento         String?   @db.VarChar(30) @map("numero_documento")
   importoTotale           Float     @map("importo_totale")
   stato                   String?   @db.VarChar(3)
   dataEmissione           DateTime? @map("data_emissione")
@@ -578,81 +466,17 @@ model PagamentoAtteso {
   dataOperazione          DateTime? @map("data_operazione")
   dataRicevuta            DateTime? @map("data_ricevuta")
 
-  // Payment user info (can differ from istanza user if third-party payer)
-  paganteCodiceFiscale    String?   @map("pagante_codice_fiscale")
-  pagante                 String?   
-  paganteEmail            String?   @map("pagante_email")
-  causale                 String?
+  // Payment user info (può differire dall'utente istanza se pagatore terzo)
+  paganteCodiceFiscale    String?   @db.VarChar(16) @map("pagante_codice_fiscale")
+  pagante                 String?   @db.VarChar(50) 
+  paganteEmail            String?   @db.VarChar(50) @map("pagante_email")
+  causale                 String?   @db.VarChar(100) 
 
   workflowId          Int       @unique @map("workflow_id")
   workflow            Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@map("pagamenti_attesi")
 }
-
-// ============================================
-// ATTRIBUTES
-// ============================================
-/*
-model AttributoType {
-  id              Int       @id @default(autoincrement())
-  tipoAttributo   String    @map("tipo_attributo")
-
-  attributi       Attributo[]
-  moduli          Modulo[]
-
-  @@map("attributo_types")
-}
-
-model Attributo {
-  id              Int       @id @default(autoincrement())
-  valore          String
-
-  attributoTypeId Int       @map("attributo_type_id")
-  attributoType   AttributoType @relation(fields: [attributoTypeId], references: [id], onDelete: Cascade)
-
-  istanze         Istanza[]
-
-  @@map("attributi")
-}
-*/
-/*
-// ============================================
-// FORMULAS & VALIDATION
-// ============================================
-
-model Formula {
-  id          Int       @id @default(autoincrement())
-  formula     String    @db.Text
-
-  moduloId    Int       @map("modulo_id")
-  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
-
-  @@map("formule")
-}
-
-model ValidationFieldsPdf {
-  id          Int       @id @default(autoincrement())
-  field       String
-  regExp      String    @map("reg_exp")
-
-  moduloId    Int       @map("modulo_id")
-  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
-
-  @@map("validation_fields_pdf")
-}
-
-model DocumentoFinaleAttributo {
-  id          Int       @id @default(autoincrement())
-  label       String
-  placeholder String
-
-  moduloId    Int       @map("modulo_id")
-  modulo      Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
-
-  @@map("documento_finale_attributi")
-}
-*/
 
 // ============================================
 // CUSTOMER SATISFACTION
@@ -673,11 +497,11 @@ model CustomerSatisfaction {
 
 // ============================================
 // RECEIPT (Ricevuta)
+// Art. 18 bis L 241/1990 e L.R. 7/2019
 // ============================================
 
 model Ricevuta {
   id                              Int       @id @default(autoincrement())
-  // Art. 18 bis L 241/1990 e L.R. 7/2019
   richiestaArt18                  Boolean   @default(false) @map("richiesta_art18")
   unitaOrganizzativaCompetente    String?   @db.Text @map("unita_organizzativa_competente")
   ufficioCompetente               String?   @db.Text @map("ufficio_competente")
@@ -693,46 +517,6 @@ model Ricevuta {
 
   @@map("ricevute")
 }
-
-// ============================================
-// IMPORTED DATA
-// ============================================
-/*
-model ImportedDataType {
-  id              Int       @id @default(autoincrement())
-  tipo            String
-
-  fieldRels       FieldImportedDataRel[]
-  importedData    ImportedData[]
-
-  @@map("imported_data_types")
-}
-
-model FieldImportedDataRel {
-  id                  Int       @id @default(autoincrement())
-  field               String
-
-  moduloId            Int       @unique @map("modulo_id")
-  modulo              Modulo    @relation(fields: [moduloId], references: [id], onDelete: Cascade)
-
-  importedDataTypeId  Int       @map("imported_data_type_id")
-  importedDataType    ImportedDataType @relation(fields: [importedDataTypeId], references: [id], onDelete: Cascade)
-
-  @@map("field_imported_data_rel")
-}
-
-model ImportedData {
-  id                  Int       @id @default(autoincrement())
-  chiave              String
-  valore              String?   @db.Text
-
-  importedDataTypeId  Int       @map("imported_data_type_id")
-  importedDataType    ImportedDataType @relation(fields: [importedDataTypeId], references: [id], onDelete: Cascade)
-
-  @@index([chiave])
-  @@map("imported_data")
-}
-*/
 
 // ============================================
 // EMERGENCY PROTOCOL
@@ -757,21 +541,6 @@ model ProtocolloEmergenza {
   @@map("protocollo_emergenza")
 }
 
-// ============================================
-// LOGS & AUDITING
-// ============================================
-/*
-model LogModificheModuli {
-  id            Int       @id @default(autoincrement())
-  operatore     String
-  dataModifica  DateTime  @map("data_modifica")
-
-  moduloId      Int?      @map("modulo_id")
-  modulo        Modulo?   @relation(fields: [moduloId], references: [id], onDelete: SetNull)
-
-  @@map("log_modifiche_moduli")
-}
-*/
 // ============================================
 // STATISTICS
 // ============================================
@@ -809,19 +578,19 @@ model EmailConfig {
   provider            String    @default("smtp")
 
   // SMTP Configuration
-  smtpHost            String?   @map("smtp_host")
+  smtpHost            String?   @db.VarChar(100) @map("smtp_host")
   smtpPort            Int?      @map("smtp_port")
   smtpSecure          Boolean   @default(false) @map("smtp_secure") // true = SSL/TLS
-  smtpUser            String?   @map("smtp_user")
-  smtpPassword        String?   @map("smtp_password")
-  smtpFromEmail       String?   @map("smtp_from_email")
-  smtpFromName        String?   @map("smtp_from_name")
+  smtpUser            String?   @db.VarChar(50) @map("smtp_user")
+  smtpPassword        String?   @db.VarChar(64) @map("smtp_password")
+  smtpFromEmail       String?   @db.VarChar(100) @map("smtp_from_email")
+  smtpFromName        String?   @db.VarChar(100) @map("smtp_from_name")
 
   // Office 365 / Microsoft Graph API Configuration
-  o365TenantId        String?   @map("o365_tenant_id")
-  o365ClientId        String?   @map("o365_client_id")
-  o365ClientSecret    String?   @map("o365_client_secret")
-  o365SenderEmail     String?   @map("o365_sender_email")
+  o365TenantId        String?   @db.VarChar(64) @map("o365_tenant_id")
+  o365ClientId        String?   @db.VarChar(64) @map("o365_client_id")
+  o365ClientSecret    String?   @db.VarChar(64) @map("o365_client_secret")
+  o365SenderEmail     String?   @db.VarChar(100) @map("o365_sender_email")
 
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
