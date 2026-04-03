@@ -93,6 +93,11 @@ export type Utente = Prisma.UtenteModel
  */
 export type Istanza = Prisma.IstanzaModel
 /**
+ * Model Workflow
+ * 
+ */
+export type Workflow = Prisma.WorkflowModel
+/**
  * Model Comunicazione
  * 
  */
@@ -108,28 +113,13 @@ export type RispostaComunicazione = Prisma.RispostaComunicazioneModel
  */
 export type AllegatoRisposta = Prisma.AllegatoRispostaModel
 /**
- * Model Workflow
- * 
- */
-export type Workflow = Prisma.WorkflowModel
-/**
  * Model Allegato
  * 
  */
 export type Allegato = Prisma.AllegatoModel
 /**
  * Model Pagamento
- * // Legacy model — kept for existing data; new records use codiceTributo string directly on Pagamento
- * model TributoLegacy {
- *   id              Int       @id @default(autoincrement())
- *   codice          String    @unique
- *   descrizione     String?
- *   attivo          Boolean   @default(true)
  * 
- *   pagamenti       Pagamento[]
- * 
- *   @@map("tributi")
- * }
  */
 export type Pagamento = Prisma.PagamentoModel
 /**

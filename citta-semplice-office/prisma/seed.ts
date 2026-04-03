@@ -1,27 +1,14 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../generated/prisma/client';
+
 import { hash } from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+})
 
 async function main() {
   console.log('Seeding database...');
-
-  // Create Status
-  const statuses = [
-    { ordine: 1, stato: 'ELABORAZIONE', icon: 'yellow-circle.png' },
-    { ordine: 2, stato: 'SUCCESSO', icon: 'green-circle.png' },
-    { ordine: 3, stato: 'ATTESA', icon: 'blue-circle.png' },
-    { ordine: 4, stato: 'RESPINTA', icon: 'red-circle.png' },
-  ];
-
-  for (const status of statuses) {
-    await prisma.status.upsert({
-      where: { ordine: status.ordine },
-      update: {},
-      create: status,
-    });
-  }
-  console.log('Created statuses');
 
   // Create Ruoli
   const ruoli = [
@@ -201,6 +188,7 @@ async function main() {
     data: {
       utenteId: utente.id,
       servizioId: servizio.id,
+      protoNumero: '2026/000001',
       dataInvio: new Date('2026-01-15'),
       dati: JSON.stringify({
         tipoCertificato: 'Nascita',
@@ -213,18 +201,6 @@ async function main() {
     },
   });
   console.log('Created istanza', istanza.id);
-
-  // Create Tributo
-  await prisma.tributo.upsert({
-    where: { codice: '0001' },
-    update: {},
-    create: {
-      codice: '0001',
-      descrizione: 'Diritti di segreteria',
-      attivo: true,
-    },
-  });
-  console.log('Created tributo');
 
   console.log('Seeding completed!');
   console.log('');

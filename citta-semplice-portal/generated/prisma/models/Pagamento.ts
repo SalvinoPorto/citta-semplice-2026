@@ -30,14 +30,12 @@ export type PagamentoAvgAggregateOutputType = {
   id: number | null
   importo: number | null
   stepId: number | null
-  codiceTributoId: number | null
 }
 
 export type PagamentoSumAggregateOutputType = {
   id: number | null
   importo: number | null
   stepId: number | null
-  codiceTributoId: number | null
 }
 
 export type PagamentoMinAggregateOutputType = {
@@ -48,8 +46,9 @@ export type PagamentoMinAggregateOutputType = {
   tipologiaPagamento: string | null
   causale: string | null
   causaleVariabile: boolean | null
+  codiceTributo: string | null
+  descrizioneTributo: string | null
   stepId: number | null
-  codiceTributoId: number | null
 }
 
 export type PagamentoMaxAggregateOutputType = {
@@ -60,8 +59,9 @@ export type PagamentoMaxAggregateOutputType = {
   tipologiaPagamento: string | null
   causale: string | null
   causaleVariabile: boolean | null
+  codiceTributo: string | null
+  descrizioneTributo: string | null
   stepId: number | null
-  codiceTributoId: number | null
 }
 
 export type PagamentoCountAggregateOutputType = {
@@ -72,8 +72,9 @@ export type PagamentoCountAggregateOutputType = {
   tipologiaPagamento: number
   causale: number
   causaleVariabile: number
+  codiceTributo: number
+  descrizioneTributo: number
   stepId: number
-  codiceTributoId: number
   _all: number
 }
 
@@ -82,14 +83,12 @@ export type PagamentoAvgAggregateInputType = {
   id?: true
   importo?: true
   stepId?: true
-  codiceTributoId?: true
 }
 
 export type PagamentoSumAggregateInputType = {
   id?: true
   importo?: true
   stepId?: true
-  codiceTributoId?: true
 }
 
 export type PagamentoMinAggregateInputType = {
@@ -100,8 +99,9 @@ export type PagamentoMinAggregateInputType = {
   tipologiaPagamento?: true
   causale?: true
   causaleVariabile?: true
+  codiceTributo?: true
+  descrizioneTributo?: true
   stepId?: true
-  codiceTributoId?: true
 }
 
 export type PagamentoMaxAggregateInputType = {
@@ -112,8 +112,9 @@ export type PagamentoMaxAggregateInputType = {
   tipologiaPagamento?: true
   causale?: true
   causaleVariabile?: true
+  codiceTributo?: true
+  descrizioneTributo?: true
   stepId?: true
-  codiceTributoId?: true
 }
 
 export type PagamentoCountAggregateInputType = {
@@ -124,8 +125,9 @@ export type PagamentoCountAggregateInputType = {
   tipologiaPagamento?: true
   causale?: true
   causaleVariabile?: true
+  codiceTributo?: true
+  descrizioneTributo?: true
   stepId?: true
-  codiceTributoId?: true
   _all?: true
 }
 
@@ -223,8 +225,9 @@ export type PagamentoGroupByOutputType = {
   tipologiaPagamento: string | null
   causale: string | null
   causaleVariabile: boolean
+  codiceTributo: string | null
+  descrizioneTributo: string | null
   stepId: number
-  codiceTributoId: number | null
   _count: PagamentoCountAggregateOutputType | null
   _avg: PagamentoAvgAggregateOutputType | null
   _sum: PagamentoSumAggregateOutputType | null
@@ -258,10 +261,10 @@ export type PagamentoWhereInput = {
   tipologiaPagamento?: Prisma.StringNullableFilter<"Pagamento"> | string | null
   causale?: Prisma.StringNullableFilter<"Pagamento"> | string | null
   causaleVariabile?: Prisma.BoolFilter<"Pagamento"> | boolean
+  codiceTributo?: Prisma.StringNullableFilter<"Pagamento"> | string | null
+  descrizioneTributo?: Prisma.StringNullableFilter<"Pagamento"> | string | null
   stepId?: Prisma.IntFilter<"Pagamento"> | number
-  codiceTributoId?: Prisma.IntNullableFilter<"Pagamento"> | number | null
   step?: Prisma.XOR<Prisma.StepScalarRelationFilter, Prisma.StepWhereInput>
-  codiceTributo?: Prisma.XOR<Prisma.TributoNullableScalarRelationFilter, Prisma.TributoWhereInput> | null
 }
 
 export type PagamentoOrderByWithRelationInput = {
@@ -272,10 +275,10 @@ export type PagamentoOrderByWithRelationInput = {
   tipologiaPagamento?: Prisma.SortOrderInput | Prisma.SortOrder
   causale?: Prisma.SortOrderInput | Prisma.SortOrder
   causaleVariabile?: Prisma.SortOrder
+  codiceTributo?: Prisma.SortOrderInput | Prisma.SortOrder
+  descrizioneTributo?: Prisma.SortOrderInput | Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrderInput | Prisma.SortOrder
   step?: Prisma.StepOrderByWithRelationInput
-  codiceTributo?: Prisma.TributoOrderByWithRelationInput
 }
 
 export type PagamentoWhereUniqueInput = Prisma.AtLeast<{
@@ -290,9 +293,9 @@ export type PagamentoWhereUniqueInput = Prisma.AtLeast<{
   tipologiaPagamento?: Prisma.StringNullableFilter<"Pagamento"> | string | null
   causale?: Prisma.StringNullableFilter<"Pagamento"> | string | null
   causaleVariabile?: Prisma.BoolFilter<"Pagamento"> | boolean
-  codiceTributoId?: Prisma.IntNullableFilter<"Pagamento"> | number | null
+  codiceTributo?: Prisma.StringNullableFilter<"Pagamento"> | string | null
+  descrizioneTributo?: Prisma.StringNullableFilter<"Pagamento"> | string | null
   step?: Prisma.XOR<Prisma.StepScalarRelationFilter, Prisma.StepWhereInput>
-  codiceTributo?: Prisma.XOR<Prisma.TributoNullableScalarRelationFilter, Prisma.TributoWhereInput> | null
 }, "id" | "stepId">
 
 export type PagamentoOrderByWithAggregationInput = {
@@ -303,8 +306,9 @@ export type PagamentoOrderByWithAggregationInput = {
   tipologiaPagamento?: Prisma.SortOrderInput | Prisma.SortOrder
   causale?: Prisma.SortOrderInput | Prisma.SortOrder
   causaleVariabile?: Prisma.SortOrder
+  codiceTributo?: Prisma.SortOrderInput | Prisma.SortOrder
+  descrizioneTributo?: Prisma.SortOrderInput | Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PagamentoCountOrderByAggregateInput
   _avg?: Prisma.PagamentoAvgOrderByAggregateInput
   _max?: Prisma.PagamentoMaxOrderByAggregateInput
@@ -323,8 +327,9 @@ export type PagamentoScalarWhereWithAggregatesInput = {
   tipologiaPagamento?: Prisma.StringNullableWithAggregatesFilter<"Pagamento"> | string | null
   causale?: Prisma.StringNullableWithAggregatesFilter<"Pagamento"> | string | null
   causaleVariabile?: Prisma.BoolWithAggregatesFilter<"Pagamento"> | boolean
+  codiceTributo?: Prisma.StringNullableWithAggregatesFilter<"Pagamento"> | string | null
+  descrizioneTributo?: Prisma.StringNullableWithAggregatesFilter<"Pagamento"> | string | null
   stepId?: Prisma.IntWithAggregatesFilter<"Pagamento"> | number
-  codiceTributoId?: Prisma.IntNullableWithAggregatesFilter<"Pagamento"> | number | null
 }
 
 export type PagamentoCreateInput = {
@@ -334,8 +339,9 @@ export type PagamentoCreateInput = {
   tipologiaPagamento?: string | null
   causale?: string | null
   causaleVariabile?: boolean
+  codiceTributo?: string | null
+  descrizioneTributo?: string | null
   step: Prisma.StepCreateNestedOneWithoutPagamentoConfigInput
-  codiceTributo?: Prisma.TributoCreateNestedOneWithoutPagamentiInput
 }
 
 export type PagamentoUncheckedCreateInput = {
@@ -346,8 +352,9 @@ export type PagamentoUncheckedCreateInput = {
   tipologiaPagamento?: string | null
   causale?: string | null
   causaleVariabile?: boolean
+  codiceTributo?: string | null
+  descrizioneTributo?: string | null
   stepId: number
-  codiceTributoId?: number | null
 }
 
 export type PagamentoUpdateInput = {
@@ -357,8 +364,9 @@ export type PagamentoUpdateInput = {
   tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  codiceTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizioneTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.StepUpdateOneRequiredWithoutPagamentoConfigNestedInput
-  codiceTributo?: Prisma.TributoUpdateOneWithoutPagamentiNestedInput
 }
 
 export type PagamentoUncheckedUpdateInput = {
@@ -369,8 +377,9 @@ export type PagamentoUncheckedUpdateInput = {
   tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  codiceTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizioneTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  codiceTributoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type PagamentoCreateManyInput = {
@@ -381,8 +390,9 @@ export type PagamentoCreateManyInput = {
   tipologiaPagamento?: string | null
   causale?: string | null
   causaleVariabile?: boolean
+  codiceTributo?: string | null
+  descrizioneTributo?: string | null
   stepId: number
-  codiceTributoId?: number | null
 }
 
 export type PagamentoUpdateManyMutationInput = {
@@ -392,6 +402,8 @@ export type PagamentoUpdateManyMutationInput = {
   tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  codiceTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizioneTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PagamentoUncheckedUpdateManyInput = {
@@ -402,23 +414,14 @@ export type PagamentoUncheckedUpdateManyInput = {
   tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  codiceTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizioneTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  codiceTributoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type PagamentoNullableScalarRelationFilter = {
   is?: Prisma.PagamentoWhereInput | null
   isNot?: Prisma.PagamentoWhereInput | null
-}
-
-export type PagamentoListRelationFilter = {
-  every?: Prisma.PagamentoWhereInput
-  some?: Prisma.PagamentoWhereInput
-  none?: Prisma.PagamentoWhereInput
-}
-
-export type PagamentoOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
 }
 
 export type PagamentoCountOrderByAggregateInput = {
@@ -429,15 +432,15 @@ export type PagamentoCountOrderByAggregateInput = {
   tipologiaPagamento?: Prisma.SortOrder
   causale?: Prisma.SortOrder
   causaleVariabile?: Prisma.SortOrder
+  codiceTributo?: Prisma.SortOrder
+  descrizioneTributo?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrder
 }
 
 export type PagamentoAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   importo?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrder
 }
 
 export type PagamentoMaxOrderByAggregateInput = {
@@ -448,8 +451,9 @@ export type PagamentoMaxOrderByAggregateInput = {
   tipologiaPagamento?: Prisma.SortOrder
   causale?: Prisma.SortOrder
   causaleVariabile?: Prisma.SortOrder
+  codiceTributo?: Prisma.SortOrder
+  descrizioneTributo?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrder
 }
 
 export type PagamentoMinOrderByAggregateInput = {
@@ -460,15 +464,15 @@ export type PagamentoMinOrderByAggregateInput = {
   tipologiaPagamento?: Prisma.SortOrder
   causale?: Prisma.SortOrder
   causaleVariabile?: Prisma.SortOrder
+  codiceTributo?: Prisma.SortOrder
+  descrizioneTributo?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrder
 }
 
 export type PagamentoSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   importo?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  codiceTributoId?: Prisma.SortOrder
 }
 
 export type PagamentoCreateNestedOneWithoutStepInput = {
@@ -503,48 +507,6 @@ export type PagamentoUncheckedUpdateOneWithoutStepNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PagamentoUpdateToOneWithWhereWithoutStepInput, Prisma.PagamentoUpdateWithoutStepInput>, Prisma.PagamentoUncheckedUpdateWithoutStepInput>
 }
 
-export type PagamentoCreateNestedManyWithoutCodiceTributoInput = {
-  create?: Prisma.XOR<Prisma.PagamentoCreateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput> | Prisma.PagamentoCreateWithoutCodiceTributoInput[] | Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput[]
-  connectOrCreate?: Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput | Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput[]
-  createMany?: Prisma.PagamentoCreateManyCodiceTributoInputEnvelope
-  connect?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-}
-
-export type PagamentoUncheckedCreateNestedManyWithoutCodiceTributoInput = {
-  create?: Prisma.XOR<Prisma.PagamentoCreateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput> | Prisma.PagamentoCreateWithoutCodiceTributoInput[] | Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput[]
-  connectOrCreate?: Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput | Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput[]
-  createMany?: Prisma.PagamentoCreateManyCodiceTributoInputEnvelope
-  connect?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-}
-
-export type PagamentoUpdateManyWithoutCodiceTributoNestedInput = {
-  create?: Prisma.XOR<Prisma.PagamentoCreateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput> | Prisma.PagamentoCreateWithoutCodiceTributoInput[] | Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput[]
-  connectOrCreate?: Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput | Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput[]
-  upsert?: Prisma.PagamentoUpsertWithWhereUniqueWithoutCodiceTributoInput | Prisma.PagamentoUpsertWithWhereUniqueWithoutCodiceTributoInput[]
-  createMany?: Prisma.PagamentoCreateManyCodiceTributoInputEnvelope
-  set?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  disconnect?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  delete?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  connect?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  update?: Prisma.PagamentoUpdateWithWhereUniqueWithoutCodiceTributoInput | Prisma.PagamentoUpdateWithWhereUniqueWithoutCodiceTributoInput[]
-  updateMany?: Prisma.PagamentoUpdateManyWithWhereWithoutCodiceTributoInput | Prisma.PagamentoUpdateManyWithWhereWithoutCodiceTributoInput[]
-  deleteMany?: Prisma.PagamentoScalarWhereInput | Prisma.PagamentoScalarWhereInput[]
-}
-
-export type PagamentoUncheckedUpdateManyWithoutCodiceTributoNestedInput = {
-  create?: Prisma.XOR<Prisma.PagamentoCreateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput> | Prisma.PagamentoCreateWithoutCodiceTributoInput[] | Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput[]
-  connectOrCreate?: Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput | Prisma.PagamentoCreateOrConnectWithoutCodiceTributoInput[]
-  upsert?: Prisma.PagamentoUpsertWithWhereUniqueWithoutCodiceTributoInput | Prisma.PagamentoUpsertWithWhereUniqueWithoutCodiceTributoInput[]
-  createMany?: Prisma.PagamentoCreateManyCodiceTributoInputEnvelope
-  set?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  disconnect?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  delete?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  connect?: Prisma.PagamentoWhereUniqueInput | Prisma.PagamentoWhereUniqueInput[]
-  update?: Prisma.PagamentoUpdateWithWhereUniqueWithoutCodiceTributoInput | Prisma.PagamentoUpdateWithWhereUniqueWithoutCodiceTributoInput[]
-  updateMany?: Prisma.PagamentoUpdateManyWithWhereWithoutCodiceTributoInput | Prisma.PagamentoUpdateManyWithWhereWithoutCodiceTributoInput[]
-  deleteMany?: Prisma.PagamentoScalarWhereInput | Prisma.PagamentoScalarWhereInput[]
-}
-
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -560,7 +522,8 @@ export type PagamentoCreateWithoutStepInput = {
   tipologiaPagamento?: string | null
   causale?: string | null
   causaleVariabile?: boolean
-  codiceTributo?: Prisma.TributoCreateNestedOneWithoutPagamentiInput
+  codiceTributo?: string | null
+  descrizioneTributo?: string | null
 }
 
 export type PagamentoUncheckedCreateWithoutStepInput = {
@@ -571,7 +534,8 @@ export type PagamentoUncheckedCreateWithoutStepInput = {
   tipologiaPagamento?: string | null
   causale?: string | null
   causaleVariabile?: boolean
-  codiceTributoId?: number | null
+  codiceTributo?: string | null
+  descrizioneTributo?: string | null
 }
 
 export type PagamentoCreateOrConnectWithoutStepInput = {
@@ -597,7 +561,8 @@ export type PagamentoUpdateWithoutStepInput = {
   tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  codiceTributo?: Prisma.TributoUpdateOneWithoutPagamentiNestedInput
+  codiceTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizioneTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PagamentoUncheckedUpdateWithoutStepInput = {
@@ -608,112 +573,8 @@ export type PagamentoUncheckedUpdateWithoutStepInput = {
   tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  codiceTributoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-}
-
-export type PagamentoCreateWithoutCodiceTributoInput = {
-  importo?: number | null
-  importoVariabile?: boolean
-  obbligatorio?: boolean
-  tipologiaPagamento?: string | null
-  causale?: string | null
-  causaleVariabile?: boolean
-  step: Prisma.StepCreateNestedOneWithoutPagamentoConfigInput
-}
-
-export type PagamentoUncheckedCreateWithoutCodiceTributoInput = {
-  id?: number
-  importo?: number | null
-  importoVariabile?: boolean
-  obbligatorio?: boolean
-  tipologiaPagamento?: string | null
-  causale?: string | null
-  causaleVariabile?: boolean
-  stepId: number
-}
-
-export type PagamentoCreateOrConnectWithoutCodiceTributoInput = {
-  where: Prisma.PagamentoWhereUniqueInput
-  create: Prisma.XOR<Prisma.PagamentoCreateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput>
-}
-
-export type PagamentoCreateManyCodiceTributoInputEnvelope = {
-  data: Prisma.PagamentoCreateManyCodiceTributoInput | Prisma.PagamentoCreateManyCodiceTributoInput[]
-  skipDuplicates?: boolean
-}
-
-export type PagamentoUpsertWithWhereUniqueWithoutCodiceTributoInput = {
-  where: Prisma.PagamentoWhereUniqueInput
-  update: Prisma.XOR<Prisma.PagamentoUpdateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedUpdateWithoutCodiceTributoInput>
-  create: Prisma.XOR<Prisma.PagamentoCreateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedCreateWithoutCodiceTributoInput>
-}
-
-export type PagamentoUpdateWithWhereUniqueWithoutCodiceTributoInput = {
-  where: Prisma.PagamentoWhereUniqueInput
-  data: Prisma.XOR<Prisma.PagamentoUpdateWithoutCodiceTributoInput, Prisma.PagamentoUncheckedUpdateWithoutCodiceTributoInput>
-}
-
-export type PagamentoUpdateManyWithWhereWithoutCodiceTributoInput = {
-  where: Prisma.PagamentoScalarWhereInput
-  data: Prisma.XOR<Prisma.PagamentoUpdateManyMutationInput, Prisma.PagamentoUncheckedUpdateManyWithoutCodiceTributoInput>
-}
-
-export type PagamentoScalarWhereInput = {
-  AND?: Prisma.PagamentoScalarWhereInput | Prisma.PagamentoScalarWhereInput[]
-  OR?: Prisma.PagamentoScalarWhereInput[]
-  NOT?: Prisma.PagamentoScalarWhereInput | Prisma.PagamentoScalarWhereInput[]
-  id?: Prisma.IntFilter<"Pagamento"> | number
-  importo?: Prisma.FloatNullableFilter<"Pagamento"> | number | null
-  importoVariabile?: Prisma.BoolFilter<"Pagamento"> | boolean
-  obbligatorio?: Prisma.BoolFilter<"Pagamento"> | boolean
-  tipologiaPagamento?: Prisma.StringNullableFilter<"Pagamento"> | string | null
-  causale?: Prisma.StringNullableFilter<"Pagamento"> | string | null
-  causaleVariabile?: Prisma.BoolFilter<"Pagamento"> | boolean
-  stepId?: Prisma.IntFilter<"Pagamento"> | number
-  codiceTributoId?: Prisma.IntNullableFilter<"Pagamento"> | number | null
-}
-
-export type PagamentoCreateManyCodiceTributoInput = {
-  id?: number
-  importo?: number | null
-  importoVariabile?: boolean
-  obbligatorio?: boolean
-  tipologiaPagamento?: string | null
-  causale?: string | null
-  causaleVariabile?: boolean
-  stepId: number
-}
-
-export type PagamentoUpdateWithoutCodiceTributoInput = {
-  importo?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  importoVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  step?: Prisma.StepUpdateOneRequiredWithoutPagamentoConfigNestedInput
-}
-
-export type PagamentoUncheckedUpdateWithoutCodiceTributoInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  importo?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  importoVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  stepId?: Prisma.IntFieldUpdateOperationsInput | number
-}
-
-export type PagamentoUncheckedUpdateManyWithoutCodiceTributoInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  importo?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  importoVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tipologiaPagamento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  causale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  causaleVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  stepId?: Prisma.IntFieldUpdateOperationsInput | number
+  codiceTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizioneTributo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -726,10 +587,10 @@ export type PagamentoSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   tipologiaPagamento?: boolean
   causale?: boolean
   causaleVariabile?: boolean
+  codiceTributo?: boolean
+  descrizioneTributo?: boolean
   stepId?: boolean
-  codiceTributoId?: boolean
   step?: boolean | Prisma.StepDefaultArgs<ExtArgs>
-  codiceTributo?: boolean | Prisma.Pagamento$codiceTributoArgs<ExtArgs>
 }, ExtArgs["result"]["pagamento"]>
 
 export type PagamentoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -740,10 +601,10 @@ export type PagamentoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tipologiaPagamento?: boolean
   causale?: boolean
   causaleVariabile?: boolean
+  codiceTributo?: boolean
+  descrizioneTributo?: boolean
   stepId?: boolean
-  codiceTributoId?: boolean
   step?: boolean | Prisma.StepDefaultArgs<ExtArgs>
-  codiceTributo?: boolean | Prisma.Pagamento$codiceTributoArgs<ExtArgs>
 }, ExtArgs["result"]["pagamento"]>
 
 export type PagamentoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -754,10 +615,10 @@ export type PagamentoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tipologiaPagamento?: boolean
   causale?: boolean
   causaleVariabile?: boolean
+  codiceTributo?: boolean
+  descrizioneTributo?: boolean
   stepId?: boolean
-  codiceTributoId?: boolean
   step?: boolean | Prisma.StepDefaultArgs<ExtArgs>
-  codiceTributo?: boolean | Prisma.Pagamento$codiceTributoArgs<ExtArgs>
 }, ExtArgs["result"]["pagamento"]>
 
 export type PagamentoSelectScalar = {
@@ -768,29 +629,26 @@ export type PagamentoSelectScalar = {
   tipologiaPagamento?: boolean
   causale?: boolean
   causaleVariabile?: boolean
+  codiceTributo?: boolean
+  descrizioneTributo?: boolean
   stepId?: boolean
-  codiceTributoId?: boolean
 }
 
-export type PagamentoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "importo" | "importoVariabile" | "obbligatorio" | "tipologiaPagamento" | "causale" | "causaleVariabile" | "stepId" | "codiceTributoId", ExtArgs["result"]["pagamento"]>
+export type PagamentoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "importo" | "importoVariabile" | "obbligatorio" | "tipologiaPagamento" | "causale" | "causaleVariabile" | "codiceTributo" | "descrizioneTributo" | "stepId", ExtArgs["result"]["pagamento"]>
 export type PagamentoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   step?: boolean | Prisma.StepDefaultArgs<ExtArgs>
-  codiceTributo?: boolean | Prisma.Pagamento$codiceTributoArgs<ExtArgs>
 }
 export type PagamentoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   step?: boolean | Prisma.StepDefaultArgs<ExtArgs>
-  codiceTributo?: boolean | Prisma.Pagamento$codiceTributoArgs<ExtArgs>
 }
 export type PagamentoIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   step?: boolean | Prisma.StepDefaultArgs<ExtArgs>
-  codiceTributo?: boolean | Prisma.Pagamento$codiceTributoArgs<ExtArgs>
 }
 
 export type $PagamentoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Pagamento"
   objects: {
     step: Prisma.$StepPayload<ExtArgs>
-    codiceTributo: Prisma.$TributoPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -800,8 +658,9 @@ export type $PagamentoPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     tipologiaPagamento: string | null
     causale: string | null
     causaleVariabile: boolean
+    codiceTributo: string | null
+    descrizioneTributo: string | null
     stepId: number
-    codiceTributoId: number | null
   }, ExtArgs["result"]["pagamento"]>
   composites: {}
 }
@@ -1197,7 +1056,6 @@ readonly fields: PagamentoFieldRefs;
 export interface Prisma__PagamentoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   step<T extends Prisma.StepDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StepDefaultArgs<ExtArgs>>): Prisma.Prisma__StepClient<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  codiceTributo<T extends Prisma.Pagamento$codiceTributoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Pagamento$codiceTributoArgs<ExtArgs>>): Prisma.Prisma__TributoClient<runtime.Types.Result.GetResult<Prisma.$TributoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1234,8 +1092,9 @@ export interface PagamentoFieldRefs {
   readonly tipologiaPagamento: Prisma.FieldRef<"Pagamento", 'String'>
   readonly causale: Prisma.FieldRef<"Pagamento", 'String'>
   readonly causaleVariabile: Prisma.FieldRef<"Pagamento", 'Boolean'>
+  readonly codiceTributo: Prisma.FieldRef<"Pagamento", 'String'>
+  readonly descrizioneTributo: Prisma.FieldRef<"Pagamento", 'String'>
   readonly stepId: Prisma.FieldRef<"Pagamento", 'Int'>
-  readonly codiceTributoId: Prisma.FieldRef<"Pagamento", 'Int'>
 }
     
 
@@ -1634,25 +1493,6 @@ export type PagamentoDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many Pagamentos to delete.
    */
   limit?: number
-}
-
-/**
- * Pagamento.codiceTributo
- */
-export type Pagamento$codiceTributoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Tributo
-   */
-  select?: Prisma.TributoSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Tributo
-   */
-  omit?: Prisma.TributoOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TributoInclude<ExtArgs> | null
-  where?: Prisma.TributoWhereInput
 }
 
 /**

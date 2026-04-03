@@ -66,10 +66,10 @@ export const ModelName = {
   AllegatoRichiesto: 'AllegatoRichiesto',
   Utente: 'Utente',
   Istanza: 'Istanza',
+  Workflow: 'Workflow',
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
   AllegatoRisposta: 'AllegatoRisposta',
-  Workflow: 'Workflow',
   Allegato: 'Allegato',
   Pagamento: 'Pagamento',
   PagamentoAtteso: 'PagamentoAtteso',
@@ -250,8 +250,6 @@ export const StepScalarFieldEnum = {
   allegatiOp: 'allegatiOp',
   allegatiRequired: 'allegatiRequired',
   allegatiOpRequired: 'allegatiOpRequired',
-  allegatiRichiesti: 'allegatiRichiesti',
-  allegatiOpRichiesti: 'allegatiOpRichiesti',
   protocollo: 'protocollo',
   tipoProtocollo: 'tipoProtocollo',
   unitaOrganizzativa: 'unitaOrganizzativa',
@@ -330,6 +328,20 @@ export const IstanzaScalarFieldEnum = {
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
 
 
+export const WorkflowScalarFieldEnum = {
+  id: 'id',
+  note: 'note',
+  dataVariazione: 'dataVariazione',
+  istanzaId: 'istanzaId',
+  stepId: 'stepId',
+  notificaId: 'notificaId',
+  stato: 'stato',
+  operatoreId: 'operatoreId'
+} as const
+
+export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
+
+
 export const ComunicazioneScalarFieldEnum = {
   id: 'id',
   testo: 'testo',
@@ -362,20 +374,6 @@ export const AllegatoRispostaScalarFieldEnum = {
 } as const
 
 export type AllegatoRispostaScalarFieldEnum = (typeof AllegatoRispostaScalarFieldEnum)[keyof typeof AllegatoRispostaScalarFieldEnum]
-
-
-export const WorkflowScalarFieldEnum = {
-  id: 'id',
-  note: 'note',
-  dataVariazione: 'dataVariazione',
-  istanzaId: 'istanzaId',
-  stepId: 'stepId',
-  notificaId: 'notificaId',
-  stato: 'stato',
-  operatoreId: 'operatoreId'
-} as const
-
-export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
 
 
 export const AllegatoScalarFieldEnum = {

@@ -231,6 +231,7 @@ export async function salvaBozza(formData: FormData) {
       data: {
         dati: datiRaw ? String(datiRaw) : null,
         protoNumero: 'Bozza non protocollata',
+        dataInvio: new Date(),
         inBozza: true,
         activeStep,
         utenteId: utente.id,

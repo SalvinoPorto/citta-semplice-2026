@@ -142,20 +142,15 @@ export type AllegatoRisposta = Prisma.AllegatoRispostaModel
  */
 export type Allegato = Prisma.AllegatoModel
 /**
- * Model Tributo
- * 
- */
-export type Tributo = Prisma.TributoModel
-/**
  * Model Pagamento
  * 
  */
 export type Pagamento = Prisma.PagamentoModel
 /**
- * Model PagamentoEffettuato
+ * Model PagamentoAtteso
  * 
  */
-export type PagamentoEffettuato = Prisma.PagamentoEffettuatoModel
+export type PagamentoAtteso = Prisma.PagamentoAttesoModel
 /**
  * Model CustomerSatisfaction
  * 

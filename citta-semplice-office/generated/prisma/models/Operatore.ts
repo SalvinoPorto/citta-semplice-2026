@@ -546,22 +546,6 @@ export type OperatoreUpdateOneRequiredWithoutServiziNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutServiziInput, Prisma.OperatoreUpdateWithoutServiziInput>, Prisma.OperatoreUncheckedUpdateWithoutServiziInput>
 }
 
-export type OperatoreCreateNestedOneWithoutComunicazioniInput = {
-  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
-  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutComunicazioniInput
-  connect?: Prisma.OperatoreWhereUniqueInput
-}
-
-export type OperatoreUpdateOneWithoutComunicazioniNestedInput = {
-  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
-  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutComunicazioniInput
-  upsert?: Prisma.OperatoreUpsertWithoutComunicazioniInput
-  disconnect?: Prisma.OperatoreWhereInput | boolean
-  delete?: Prisma.OperatoreWhereInput | boolean
-  connect?: Prisma.OperatoreWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutComunicazioniInput, Prisma.OperatoreUpdateWithoutComunicazioniInput>, Prisma.OperatoreUncheckedUpdateWithoutComunicazioniInput>
-}
-
 export type OperatoreCreateNestedOneWithoutWorkflowsInput = {
   create?: Prisma.XOR<Prisma.OperatoreCreateWithoutWorkflowsInput, Prisma.OperatoreUncheckedCreateWithoutWorkflowsInput>
   connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutWorkflowsInput
@@ -576,6 +560,22 @@ export type OperatoreUpdateOneWithoutWorkflowsNestedInput = {
   delete?: Prisma.OperatoreWhereInput | boolean
   connect?: Prisma.OperatoreWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutWorkflowsInput, Prisma.OperatoreUpdateWithoutWorkflowsInput>, Prisma.OperatoreUncheckedUpdateWithoutWorkflowsInput>
+}
+
+export type OperatoreCreateNestedOneWithoutComunicazioniInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutComunicazioniInput
+  connect?: Prisma.OperatoreWhereUniqueInput
+}
+
+export type OperatoreUpdateOneWithoutComunicazioniNestedInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutComunicazioniInput
+  upsert?: Prisma.OperatoreUpsertWithoutComunicazioniInput
+  disconnect?: Prisma.OperatoreWhereInput | boolean
+  delete?: Prisma.OperatoreWhereInput | boolean
+  connect?: Prisma.OperatoreWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutComunicazioniInput, Prisma.OperatoreUpdateWithoutComunicazioniInput>, Prisma.OperatoreUncheckedUpdateWithoutComunicazioniInput>
 }
 
 export type OperatoreCreateWithoutRuoliInput = {
@@ -734,84 +734,6 @@ export type OperatoreUncheckedUpdateWithoutServiziInput = {
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
 }
 
-export type OperatoreCreateWithoutComunicazioniInput = {
-  email: string
-  password: string
-  nome: string
-  cognome: string
-  userName: string
-  telefono?: string | null
-  attivo?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
-  workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
-}
-
-export type OperatoreUncheckedCreateWithoutComunicazioniInput = {
-  id?: number
-  email: string
-  password: string
-  nome: string
-  cognome: string
-  userName: string
-  telefono?: string | null
-  attivo?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
-  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
-}
-
-export type OperatoreCreateOrConnectWithoutComunicazioniInput = {
-  where: Prisma.OperatoreWhereUniqueInput
-  create: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
-}
-
-export type OperatoreUpsertWithoutComunicazioniInput = {
-  update: Prisma.XOR<Prisma.OperatoreUpdateWithoutComunicazioniInput, Prisma.OperatoreUncheckedUpdateWithoutComunicazioniInput>
-  create: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
-  where?: Prisma.OperatoreWhereInput
-}
-
-export type OperatoreUpdateToOneWithWhereWithoutComunicazioniInput = {
-  where?: Prisma.OperatoreWhereInput
-  data: Prisma.XOR<Prisma.OperatoreUpdateWithoutComunicazioniInput, Prisma.OperatoreUncheckedUpdateWithoutComunicazioniInput>
-}
-
-export type OperatoreUpdateWithoutComunicazioniInput = {
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  cognome?: Prisma.StringFieldUpdateOperationsInput | string
-  userName?: Prisma.StringFieldUpdateOperationsInput | string
-  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
-  workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
-}
-
-export type OperatoreUncheckedUpdateWithoutComunicazioniInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  cognome?: Prisma.StringFieldUpdateOperationsInput | string
-  userName?: Prisma.StringFieldUpdateOperationsInput | string
-  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
-  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
-}
-
 export type OperatoreCreateWithoutWorkflowsInput = {
   email: string
   password: string
@@ -888,6 +810,84 @@ export type OperatoreUncheckedUpdateWithoutWorkflowsInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
   servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
+}
+
+export type OperatoreCreateWithoutComunicazioniInput = {
+  email: string
+  password: string
+  nome: string
+  cognome: string
+  userName: string
+  telefono?: string | null
+  attivo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
+  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
+  workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
+}
+
+export type OperatoreUncheckedCreateWithoutComunicazioniInput = {
+  id?: number
+  email: string
+  password: string
+  nome: string
+  cognome: string
+  userName: string
+  telefono?: string | null
+  attivo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
+  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
+  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
+}
+
+export type OperatoreCreateOrConnectWithoutComunicazioniInput = {
+  where: Prisma.OperatoreWhereUniqueInput
+  create: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
+}
+
+export type OperatoreUpsertWithoutComunicazioniInput = {
+  update: Prisma.XOR<Prisma.OperatoreUpdateWithoutComunicazioniInput, Prisma.OperatoreUncheckedUpdateWithoutComunicazioniInput>
+  create: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
+  where?: Prisma.OperatoreWhereInput
+}
+
+export type OperatoreUpdateToOneWithWhereWithoutComunicazioniInput = {
+  where?: Prisma.OperatoreWhereInput
+  data: Prisma.XOR<Prisma.OperatoreUpdateWithoutComunicazioniInput, Prisma.OperatoreUncheckedUpdateWithoutComunicazioniInput>
+}
+
+export type OperatoreUpdateWithoutComunicazioniInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
+  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
+}
+
+export type OperatoreUncheckedUpdateWithoutComunicazioniInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
+  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
 }
 
 
