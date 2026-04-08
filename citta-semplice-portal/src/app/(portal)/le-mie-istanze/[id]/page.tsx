@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { RispostaComunicazioneForm } from '@/components/istanza/RispostaComunicazioneForm';
+import { PagaOnlineButton } from './PagaOnlineButton';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 
@@ -68,6 +69,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
           step: true,
           allegati: true,
           notifica: true,
+          pagamentoAtteso: true,
         },
         orderBy: { dataVariazione: 'asc' },
       },
@@ -89,6 +91,14 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
   const allegatiUfficio = istanza.workflows.flatMap((wf) =>
     wf.allegati.filter((a) => !a.invUtente),
   );
+
+  // Pagamento: cerca un workflow con pagamentoAtteso
+  const pagamentoAtteso = istanza.workflows
+    .map((wf) => wf.pagamentoAtteso)
+    .find((p) => p !== null) ?? null;
+
+  const pagamentoDaEseguire = pagamentoAtteso?.stato === 'ATT' ? pagamentoAtteso : null;
+  const pagamentoConfermato = pagamentoAtteso?.stato === 'CON' ? pagamentoAtteso : null;
 
   // Comunicazioni dell'ufficio con eventuali risposte del cittadino
   const comunicazioni = istanza.comunicazioni
@@ -143,6 +153,69 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                     <> del {format(istanza.protoData, 'dd/MM/yyyy', { locale: it })}</>
                   )}
                 </span>
+              </div>
+            )}
+
+            {/* ─── SEZIONE PAGAMENTO ─── */}
+            {(pagamentoDaEseguire || pagamentoConfermato) && (
+              <div className={`alert d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4 ${pagamentoConfermato ? 'alert-success' : 'alert-warning'}`}>
+                {/* <svg className="icon icon-sm flex-shrink-0" aria-hidden="true">
+                  <use href={`/bootstrap-italia/dist/svg/sprites.svg#${pagamentoConfermato ? 'it-check-circle' : 'it-warning-circle'}`} />
+                </svg> */}
+                <div className="flex-grow-1">
+                  {pagamentoDaEseguire && (
+                    <>
+                      <strong>Pagamento richiesto</strong>
+                      <p className="mb-0 small">
+                        Importo: <strong>{pagamentoDaEseguire.importoTotale.toFixed(2)} €</strong>
+                        {pagamentoDaEseguire.causale && <> &mdash; {pagamentoDaEseguire.causale}</>}
+                        {pagamentoDaEseguire.dataScadenza && (
+                          <> &mdash; scadenza {new Date(pagamentoDaEseguire.dataScadenza).toLocaleDateString('it-IT')}</>
+                        )}
+                      </p>
+                    </>
+                  )}
+                  {pagamentoConfermato && (
+                    <>
+                      <strong>Pagamento confermato</strong>
+                      <p className="mb-0 small">
+                        Importo: <strong>{pagamentoConfermato.importoTotale.toFixed(2)} €</strong>
+                        {pagamentoConfermato.causale && <> &mdash; {pagamentoConfermato.causale}</>}
+                      </p>
+                    </>
+                  )}
+                </div>
+                <div className="d-flex flex-wrap gap-2">
+                  {pagamentoDaEseguire && (
+                    <>
+                      <a
+                        href={`/api/pagamenti/bollettino/${pagamentoDaEseguire.iuv}`}
+                        className="btn btn-sm btn-outline-warning"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <svg className="icon icon-sm me-1" aria-hidden="true">
+                          <use href="/bootstrap-italia/dist/svg/sprites.svg#it-download" />
+                        </svg>
+                        Scarica bollettino
+                      </a>
+                      <PagaOnlineButton iuv={pagamentoDaEseguire.iuv!} />
+                    </>
+                  )}
+                  {pagamentoConfermato && (
+                    <a
+                      href={`/api/pagamenti/ricevuta/${pagamentoConfermato.iuv}`}
+                      className="btn btn-sm btn-outline-success"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <svg className="icon icon-sm me-1" aria-hidden="true">
+                        <use href="/bootstrap-italia/dist/svg/sprites.svg#it-download" />
+                      </svg>
+                      Scarica ricevuta
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 
