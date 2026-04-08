@@ -386,7 +386,7 @@ export function IstanzaActions({
                 Avanza Step
               </Button>
             )}
-            {stepOrdine > 1 && (
+            {stepOrdine > 1 && !paymentConfirmed && (
               <Button
                 variant="outline-warning"
                 onClick={() => setShowRegressModal(true)}

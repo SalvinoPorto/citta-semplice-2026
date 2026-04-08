@@ -66,14 +66,14 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             steps: {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
-              include: { pagamentoConfig: true },
+              include: { pagamentoConfig: true, allegatiRichiestiList: true },
             },
           },
         },
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
-          include: { step: { include: { pagamentoConfig: true } }, allegati: true, pagamentoAtteso: true },
+          include: { step: { include: { pagamentoConfig: true, allegatiRichiestiList: true } }, allegati: true, pagamentoAtteso: true },
         },
       },
     });
@@ -101,6 +101,20 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       return {
         success: false,
         message: 'Pagamento obbligatorio non confermato. Impossibile avanzare.'
+      };
+    }
+
+    // Controllo allegati obbligatori per operatore
+    const requiredAttachments = currentStep?.allegatiRichiestiList?.filter(a => a.obbligatorio && a.soggetto === 'operatore') || [];
+    const providedAttachments = lastWorkflow?.allegati || [];
+    const missingAttachments = requiredAttachments.filter(req =>
+      !providedAttachments.some(att => att.nomeFileRichiesto === req.nomeAllegatoRichiesto)
+    );
+
+    if (missingAttachments.length > 0) {
+      return {
+        success: false,
+        message: `Allegati obbligatori mancanti: ${missingAttachments.map(a => a.nomeAllegatoRichiesto).join(', ')}. Impossibile avanzare.`
       };
     }
 
@@ -731,7 +745,7 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
-          include: { step: true, allegati: true },
+          include: { step: { include: { allegatiRichiestiList: true } }, allegati: true },
         },
       },
     });
@@ -751,6 +765,20 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     const now = new Date();
     const lastWorkflow = istanza.workflows[0];
     const lastStep = lastWorkflow?.step;
+
+    // Controllo allegati obbligatori per operatore
+    const requiredAttachments = lastStep?.allegatiRichiestiList?.filter(a => a.obbligatorio && a.soggetto === 'OP') || [];
+    const providedAttachments = lastWorkflow?.allegati || [];
+    const missingAttachments = requiredAttachments.filter(req =>
+      !providedAttachments.some(att => att.nomeFileRichiesto === req.nomeAllegatoRichiesto)
+    );
+
+    if (missingAttachments.length > 0) {
+      return {
+        success: false,
+        message: `Allegati obbligatori mancanti: ${missingAttachments.map(a => a.nomeAllegatoRichiesto).join(', ')}. Impossibile concludere.`
+      };
+    }
 
     // --- Protocollo finale (sempre Uscita) ---
     let protoFinaleNumero: string | undefined;
