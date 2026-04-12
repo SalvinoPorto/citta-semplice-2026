@@ -38,14 +38,14 @@ export function EnteForm({ ente, isNew }: EnteFormProps) {
     resolver: zodResolver(enteSchema),
     defaultValues: ente || {
       nome: '',
+      attivo: true,
       descrizione: '',
       codiceFiscale: '',
       indirizzo: '',
       telefono: '',
       email: '',
       pec: '',
-      logo: '',
-      attivo: true,
+      logo: ''
     },
   });
 

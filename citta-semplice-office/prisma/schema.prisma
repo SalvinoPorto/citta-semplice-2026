@@ -103,9 +103,9 @@ model Area {
 
 model Servizio {
   id          Int       @id @default(autoincrement())
-  titolo      String    @db.VarChar(255)
-  sottoTitolo String?   @db.VarChar(255) @map("sotto_titolo")
-  descrizione String?   @db.VarChar(1024)
+  titolo      String    @db.Text
+  sottoTitolo String?   @db.Text @map("sotto_titolo")
+  descrizione String?   @db.Text
   comeFare    String?   @map("come_fare")
   cosaServe   String?   @map("cosa_serve")
   altreInfo   String?   @map("altre_info")
@@ -184,7 +184,7 @@ model OperatoreServizio {
   servizio    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
   @@id([operatoreId, servizioId])
-  @@map("operatore_servizi")
+  @@map("operatori_servizi")
 }
 
 model ServizioRuoloUser {

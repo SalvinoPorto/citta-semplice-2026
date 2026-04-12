@@ -30,7 +30,6 @@ interface SearchBody {
 }
 
 async function getIstanzeCounts(operatoreId: number, isAdmin: boolean) {
-  // For non-admin: filter istanze to services the operator has visibility on
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const servizioFilter: any = isAdmin
     ? {}
@@ -110,11 +109,9 @@ export async function POST(request: NextRequest) {
     columnFilters = [],
   } = body;
 
-  // Build where clause
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereClause: any = {};
 
-  // Non-admin: restrict to services the operator has visibility on
   if (!isAdmin) {
     whereClause.servizio = { operatori: { some: { operatoreId } } };
   }
@@ -129,7 +126,6 @@ export async function POST(request: NextRequest) {
       { protoFinaleNumero: { contains: formFilters.protocollo, mode: 'insensitive' } },
     ];
   }
-
 
   if (formFilters.anno) {
     const year = parseInt(formFilters.anno);
@@ -158,13 +154,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Column filter: protoNumero
   const protoColFilter = columnFilters.find((f) => f.key === 'protoNumero');
   if (protoColFilter?.value) {
     whereClause.protoNumero = { contains: protoColFilter.value, mode: 'insensitive' };
   }
 
-  // Column filter: cognome (search nome, cognome, CF)
   const cognomeFilter = columnFilters.find((f) => f.key === 'cognome');
   if (cognomeFilter?.value) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,7 +170,6 @@ export async function POST(request: NextRequest) {
     whereClause.utente = { ...(whereClause.utente || {}), OR: utenteOr };
   }
 
-  // Column filter: datiInEvidenza
   const datiFilter = columnFilters.find((f) => f.key === 'datiInEvidenza');
   if (datiFilter?.value) {
     whereClause.datiInEvidenza = { contains: datiFilter.value, mode: 'insensitive' };
@@ -203,6 +196,69 @@ export async function POST(request: NextRequest) {
     // 'tutte': no additional filter
   }
 
+  // Filters that require raw SQL (latest workflow join) are resolved as ID sets
+  // and intersected into the where clause at DB level
+  const idConstraints: number[][] = [];
+
+  if (tab === 'mie') {
+    const rows = await prisma.$queryRaw<{ id: number }[]>`
+      SELECT DISTINCT i.id FROM istanze i
+      INNER JOIN workflows w ON w.istanza_id = i.id
+      WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+      AND w.operatore_id = ${operatoreId}
+    `;
+    idConstraints.push(rows.map((r) => Number(r.id)));
+  } else if (tab === 'altri') {
+    const rows = isAdmin
+      ? await prisma.$queryRaw<{ id: number }[]>`
+          SELECT DISTINCT i.id FROM istanze i
+          INNER JOIN workflows w ON w.istanza_id = i.id
+          WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+          AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
+        `
+      : await prisma.$queryRaw<{ id: number }[]>`
+          SELECT DISTINCT i.id FROM istanze i
+          INNER JOIN workflows w ON w.istanza_id = i.id
+          INNER JOIN operatore_servizi os ON os.servizio_id = i.servizio_id AND os.operatore_id = ${operatoreId}
+          WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+          AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
+        `;
+    idConstraints.push(rows.map((r) => Number(r.id)));
+  }
+
+  const operatoreFilter = columnFilters.find((f) => f.key === 'operatore');
+  if (operatoreFilter?.value) {
+    const term = `%${operatoreFilter.value}%`;
+    const rows = await prisma.$queryRaw<{ id: number }[]>`
+      SELECT DISTINCT i.id FROM istanze i
+      INNER JOIN workflows w ON w.istanza_id = i.id
+      INNER JOIN operatori o ON o.id = w.operatore_id
+      WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+      AND (o.cognome ILIKE ${term} OR o.nome ILIKE ${term})
+    `;
+    idConstraints.push(rows.map((r) => Number(r.id)));
+  }
+
+  const dataColFilter = columnFilters.find((f) => f.key === 'dataInvio');
+  if (dataColFilter?.value) {
+    const term = `%${dataColFilter.value}%`;
+    const rows = await prisma.$queryRaw<{ id: number }[]>`
+      SELECT id FROM istanze
+      WHERE TO_CHAR(data_invio, 'DD/MM/YYYY') LIKE ${term}
+    `;
+    idConstraints.push(rows.map((r) => Number(r.id)));
+  }
+
+  // Intersect all ID constraint sets into a single id filter
+  if (idConstraints.length > 0) {
+    let ids = idConstraints[0];
+    for (let i = 1; i < idConstraints.length; i++) {
+      const set = new Set(idConstraints[i]);
+      ids = ids.filter((id) => set.has(id));
+    }
+    whereClause.id = { in: ids };
+  }
+
   // Sort order
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let orderBy: any = { dataInvio: 'desc' };
@@ -226,68 +282,40 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  let istanze = await prisma.istanza.findMany({
-    where: whereClause,
-    include: {
-      utente: {
-        select: { nome: true, cognome: true, codiceFiscale: true, email: true },
-      },
-      servizio: {
-        select: { titolo: true, campiInEvidenza: true },
-      },
-      workflows: {
-        orderBy: { dataVariazione: 'desc' },
-        take: 1,
-        include: {
-          step: { select: { descrizione: true, ordine: true } },
-          operatore: { select: { id: true, nome: true, cognome: true } },
-        },
-      },
-    },
-    orderBy,
-  });
-
-  // In-memory filtering for mie/altri tabs
-  if (tab === 'mie') {
-    istanze = istanze.filter((i) => i.workflows[0]?.operatore?.id === operatoreId);
-  } else if (tab === 'altri') {
-    istanze = istanze.filter((i) => {
-      const op = i.workflows[0]?.operatore;
-      return op?.id && op.id !== operatoreId;
-    });
-  }
-
-  // In-memory filter: operatore column
-  const operatoreFilter = columnFilters.find((f) => f.key === 'operatore');
-  if (operatoreFilter?.value) {
-    const term = operatoreFilter.value.toLowerCase();
-    istanze = istanze.filter((i) => {
-      const op = i.workflows[0]?.operatore;
-      if (!op) return false;
-      return op.cognome.toLowerCase().includes(term) || op.nome.toLowerCase().includes(term);
-    });
-  }
-
-  // In-memory filter: dataInvio column (text search on formatted date)
-  const dataColFilter = columnFilters.find((f) => f.key === 'dataInvio');
-  if (dataColFilter?.value) {
-    const term = dataColFilter.value.toLowerCase();
-    istanze = istanze.filter((i) =>
-      new Date(i.dataInvio).toLocaleDateString('it-IT').toLowerCase().includes(term)
-    );
-  }
-
-  const total = istanze.length;
   const safePageSize = Math.max(1, pageSize);
   const safePage = Math.max(1, page);
-  const start = (safePage - 1) * safePageSize;
-  const paginatedIstanze = istanze.slice(start, start + safePageSize);
+
+  const [total, istanze, counts] = await Promise.all([
+    prisma.istanza.count({ where: whereClause }),
+    prisma.istanza.findMany({
+      where: whereClause,
+      include: {
+        utente: {
+          select: { nome: true, cognome: true, codiceFiscale: true, email: true },
+        },
+        servizio: {
+          select: { titolo: true, campiInEvidenza: true },
+        },
+        workflows: {
+          orderBy: { dataVariazione: 'desc' },
+          take: 1,
+          include: {
+            step: { select: { descrizione: true, ordine: true } },
+            operatore: { select: { id: true, nome: true, cognome: true } },
+          },
+        },
+      },
+      orderBy,
+      skip: (safePage - 1) * safePageSize,
+      take: safePageSize,
+    }),
+    getIstanzeCounts(operatoreId, isAdmin),
+  ]);
+
   const totalPages = Math.ceil(total / safePageSize) || 1;
 
-  const counts = await getIstanzeCounts(operatoreId, isAdmin);
-
   return NextResponse.json({
-    data: paginatedIstanze,
+    data: istanze,
     total,
     page: safePage,
     totalPages,

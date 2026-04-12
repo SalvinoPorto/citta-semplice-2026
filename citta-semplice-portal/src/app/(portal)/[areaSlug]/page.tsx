@@ -19,7 +19,10 @@ async function getArea(slug: string) {
     },
     include: {
       servizi: {
-        where: { attivo: true },
+        where: {
+          attivo: true,
+          OR: [{ dataFine: null }, { dataFine: { gte: new Date() } }],
+        },
         include: { ufficio: true },
         orderBy: { ordine: 'asc' },
       },

@@ -162,7 +162,7 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
               <CardBody>
                 <h6 className="mb-3">Proprietà</h6>
                 {selectedField ? (
-                  <FieldEditor field={selectedField} onUpdate={handleFieldUpdate} />
+                  <FieldEditor field={selectedField} allFields={fields} onUpdate={handleFieldUpdate} />
                 ) : (
                   <p className="text-muted small">
                     Seleziona un campo per modificarne le proprietà

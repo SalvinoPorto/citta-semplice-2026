@@ -4,7 +4,9 @@
       "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -type f -name \"*.tsx\" -o -name \"*.ts\")",
       "Bash(ls -la \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\")",
       "Bash(find \"e:/workspaces/citta-semplice-2026/citta-semplice-office/src/app/\\(dashboard\\)/servizi\" -name \"page.tsx\" -type f)",
-      "Read(//Users/salvino/Projects/citta-semplice-2026/**)"
+      "Read(//Users/salvino/Projects/citta-semplice-2026/**)",
+      "Bash(/Users/salvino/.local/bin/claude --help)",
+      "Bash(echo \"Exit code: $?\")"
     ],
     "additionalDirectories": [
       "/Users/salvino/Projects/citta-semplice-2026/citta-semplice-portal/prisma",

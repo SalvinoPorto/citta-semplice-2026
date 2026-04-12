@@ -20,6 +20,14 @@ interface FieldValidation {
   patternMessage?: string;
 }
 
+type ConditionOperator = 'equals' | 'not_equals' | 'not_empty' | 'empty';
+
+interface FieldCondition {
+  fieldName: string;
+  operator: ConditionOperator;
+  value?: string;
+}
+
 interface FormField {
   id: string;
   name: string;
@@ -50,6 +58,7 @@ interface FormField {
   multiple?: boolean;
   options?: FieldOption[];
   validation?: FieldValidation;
+  condition?: FieldCondition;
 }
 
 interface Servizio {
@@ -79,42 +88,63 @@ function parseCampi(attributi: string | null | undefined): FormField[] {
   }
 }
 
+function evaluateCondition(condition: FieldCondition, values: Record<string, unknown>): boolean {
+  const raw = values[condition.fieldName];
+  const val = raw === true ? 'true' : raw === false ? 'false' : String(raw ?? '');
+  switch (condition.operator) {
+    case 'equals':     return val === (condition.value ?? '');
+    case 'not_equals': return val !== (condition.value ?? '');
+    case 'not_empty':  return val !== '' && val !== 'undefined';
+    case 'empty':      return val === '' || val === 'undefined';
+  }
+}
+
+function isFieldVisible(campo: FormField, values: Record<string, unknown>): boolean {
+  if (!campo.condition || !campo.condition.fieldName) return true;
+  return evaluateCondition(campo.condition, values);
+}
+
+// Conditional required fields are made optional in the base schema;
+// their required check is handled separately in validate() via setError.
 function buildSchema(campi: FormField[]) {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   for (const campo of campi) {
     if (['heading', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
 
-    const required = campo.validation?.required ?? false;
+    const required = (campo.validation?.required ?? false) && !campo.condition;
 
-    // Checkbox
+    // Checkbox — il preprocess converte stringhe ("true"/"false"/"") in boolean
+    // per gestire valori ripristinati da bozza serializzata con String()
     if (campo.type === 'checkbox') {
+      const coerce = z.preprocess(
+        (v) => (v === 'true' || v === true ? true : v === 'false' || v === '' || v === false ? false : v),
+        z.boolean(),
+      );
       shape[campo.name] = required
-        ? z.boolean().refine((v) => v === true, { message: 'Campo obbligatorio' })
-        : z.boolean().optional();
+        ? coerce.refine((v) => v === true, 'Campo obbligatorio')
+        : coerce.optional();
       continue;
     }
 
     // File
     if (campo.type === 'file') {
       shape[campo.name] = required
-        ? z.any().refine((v) => v && v.length > 0, { message: 'Campo obbligatorio' })
+        ? z.any().refine((v) => v && v.length > 0, 'Campo obbligatorio')
         : z.any().optional();
       continue;
     }
 
-    // Number: coerce to number and apply min/max
+    // Number
     if (campo.type === 'number') {
-      let n = z.coerce.number({ invalid_type_error: 'Inserisci un numero valido' });
+      let n = z.coerce.number();
       if (campo.validation?.min !== undefined) n = n.min(campo.validation.min, `Valore minimo: ${campo.validation.min}`);
       if (campo.validation?.max !== undefined) n = n.max(campo.validation.max, `Valore massimo: ${campo.validation.max}`);
-      shape[campo.name] = required
-        ? n
-        : z.union([z.literal(''), n]).optional();
+      shape[campo.name] = required ? n : z.union([z.literal(''), n]).optional();
       continue;
     }
 
-    // String fields (text, email, tel, date, time, datetime, textarea, select, radio)
+    // String fields
     if (required) {
       let s = z.string().min(1, 'Campo obbligatorio');
       if (campo.validation?.minLength) s = s.min(campo.validation.minLength, `Minimo ${campo.validation.minLength} caratteri`);
@@ -122,19 +152,14 @@ function buildSchema(campi: FormField[]) {
       if (campo.validation?.pattern) s = s.regex(new RegExp(campo.validation.pattern), campo.validation.patternMessage ?? 'Formato non valido');
       shape[campo.name] = s;
     } else {
-      // Optional: skip constraints on empty/undefined value
-      shape[campo.name] = z.string().optional().superRefine((val, ctx) => {
-        if (!val) return;
-        if (campo.validation?.minLength && val.length < campo.validation.minLength) {
-          ctx.addIssue({ code: z.ZodIssueCode.too_small, minimum: campo.validation.minLength!, type: 'string', inclusive: true, message: `Minimo ${campo.validation.minLength} caratteri` });
-        }
-        if (campo.validation?.maxLength && val.length > campo.validation.maxLength) {
-          ctx.addIssue({ code: z.ZodIssueCode.too_big, maximum: campo.validation.maxLength!, type: 'string', inclusive: true, message: `Massimo ${campo.validation.maxLength} caratteri` });
-        }
-        if (campo.validation?.pattern && !new RegExp(campo.validation.pattern).test(val)) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: campo.validation.patternMessage ?? 'Formato non valido' });
-        }
-      });
+      const minLen = campo.validation?.minLength;
+      const maxLen = campo.validation?.maxLength;
+      const pat = campo.validation?.pattern;
+      const patMsg = campo.validation?.patternMessage ?? 'Formato non valido';
+      shape[campo.name] = z.string().optional()
+        .refine((v) => !v || !minLen || v.length >= minLen, `Minimo ${minLen} caratteri`)
+        .refine((v) => !v || !maxLen || v.length <= maxLen, `Massimo ${maxLen} caratteri`)
+        .refine((v) => !v || !pat || new RegExp(pat).test(v), patMsg);
     }
   }
 
@@ -160,6 +185,8 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
     register,
     watch,
     trigger,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -168,10 +195,38 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   });
 
   useImperativeHandle(ref, () => ({
-    validate: () => trigger(),
+    validate: async () => {
+      const baseResult = await trigger();
+      const currentValues = watch() as Record<string, unknown>;
+
+      // Validate required conditional fields based on current visibility
+      let conditionalValid = true;
+      for (const campo of campi) {
+        if (!campo.condition || !campo.validation?.required) continue;
+        if (['heading', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
+
+        if (isFieldVisible(campo, currentValues)) {
+          const val = currentValues[campo.name];
+          const isEmpty = val === undefined || val === null || val === '' ||
+            (campo.type === 'checkbox' && val !== true) ||
+            (campo.type === 'file' && (!val || (val as FileList).length === 0));
+          if (isEmpty) {
+            setError(campo.name as string, { message: 'Campo obbligatorio' });
+            conditionalValid = false;
+          } else {
+            clearErrors(campo.name as string);
+          }
+        } else {
+          clearErrors(campo.name as string);
+        }
+      }
+
+      return baseResult && conditionalValid;
+    },
   }));
 
   const values = watch();
+
   useEffect(() => {
     onChangeDati(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -330,7 +385,9 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
           </div>
         );
 
-      default:
+      default: {
+        const isText = campo.type === 'text';
+        const { onChange: rhfOnChange, ...restReg } = register(campo.name);
         return (
           <div className="mb-3">
             <label className="form-label" htmlFor={campo.id}>
@@ -342,7 +399,11 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
               className={`form-control${errorMsg ? ' is-invalid' : ''}`}
               id={campo.id}
               placeholder={campo.placeholder}
-              {...register(campo.name)}
+              style={isText ? { textTransform: 'uppercase' } : undefined}
+              onChange={isText
+                ? (e) => { e.target.value = e.target.value.toUpperCase(); rhfOnChange(e); }
+                : rhfOnChange}
+              {...restReg}
             />
             {campo.helpText && <small className="text-muted">{campo.helpText}</small>}
             {campo.validation?.pattern && campo.validation?.patternMessage && (
@@ -351,15 +412,18 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
             {errorMsg && <div className="invalid-feedback">{errorMsg}</div>}
           </div>
         );
+      }
     }
   };
 
-  // Raggruppa i campi in righe in base alla larghezza
+  // Filtra i campi visibili e raggruppa in righe per larghezza
+  const campiVisibili = campi.filter((campo) => isFieldVisible(campo, values as Record<string, unknown>));
+
   const rows: FormField[][] = [];
   let currentRow: FormField[] = [];
   let currentWidth = 0;
 
-  campi.forEach((campo) => {
+  campiVisibili.forEach((campo) => {
     const fieldWidth = campo.width === 'half' ? 6 : campo.width === 'third' ? 4 : 12;
 
     if (['heading', 'paragraph', 'divider'].includes(campo.type)) {

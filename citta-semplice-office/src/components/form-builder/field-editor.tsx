@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { FormField, FieldOption } from './types';
+import { FormField, FieldOption, FieldCondition, ConditionOperator } from './types';
 import { Input, Select, Textarea } from '@/components/ui';
 
 interface FieldEditorProps {
   field: FormField;
+  allFields: FormField[];
   onUpdate: (field: FormField) => void;
 }
 
-export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
+export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
   const [optionsText, setOptionsText] = useState(
     field.options?.map((o) => `${o.value}|${o.label}`).join('\n') || ''
   );
@@ -316,50 +317,45 @@ export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    handleValidationChange('pattern', '^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$');
-                    handleValidationChange('patternMessage', 'Codice fiscale non valido');
-                  }}
+                  onClick={() =>
+                    onUpdate({ ...field, validation: { ...field.validation, pattern: '^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$', patternMessage: 'Codice fiscale non valido' } })
+                  }
                 >
                   C.F.
                 </button>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    handleValidationChange('pattern', '^[0-9]{5}$');
-                    handleValidationChange('patternMessage', 'CAP non valido');
-                  }}
+                  onClick={() =>
+                    onUpdate({ ...field, validation: { ...field.validation, pattern: '^[0-9]{5}$', patternMessage: 'CAP non valido' } })
+                  }
                 >
                   CAP
                 </button>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    handleValidationChange('pattern', '^[0-9]{11}$');
-                    handleValidationChange('patternMessage', 'Partita IVA non valida');
-                  }}
+                  onClick={() =>
+                    onUpdate({ ...field, validation: { ...field.validation, pattern: '^[0-9]{11}$', patternMessage: 'Partita IVA non valida' } })
+                  }
                 >
                   P.IVA
                 </button>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    handleValidationChange('pattern', '^IT[0-9]{2}[A-Z][0-9]{22}$');
-                    handleValidationChange('patternMessage', 'IBAN non valido');
-                  }}
+                  onClick={() =>
+                    onUpdate({ ...field, validation: { ...field.validation, pattern: '^IT[0-9]{2}[A-Z][0-9]{22}$', patternMessage: 'IBAN non valido' } })
+                  }
                 >
                   IBAN
                 </button>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    handleValidationChange('pattern', undefined);
-                    handleValidationChange('patternMessage', undefined);
-                  }}
+                  onClick={() =>
+                    onUpdate({ ...field, validation: { ...field.validation, pattern: undefined, patternMessage: undefined } })
+                  }
                 >
                   Rimuovi
                 </button>
@@ -368,6 +364,112 @@ export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
           )}
         </>
       )}
+
+      {/* Conditional Visibility */}
+      {(() => {
+        const candidateFields = allFields.filter(
+          (f) =>
+            f.id !== field.id &&
+            !['heading', 'paragraph', 'divider', 'hidden'].includes(f.type)
+        );
+        const hasCondition = !!field.condition;
+        const operator = field.condition?.operator ?? 'equals';
+        const needsValue = operator === 'equals' || operator === 'not_equals';
+
+        const setCondition = (patch: Partial<NonNullable<FormField['condition']>>) =>
+          onUpdate({
+            ...field,
+            condition: {
+              fieldName: field.condition?.fieldName ?? '',
+              operator: field.condition?.operator ?? 'equals',
+              value: field.condition?.value,
+              ...patch,
+            },
+          });
+
+        return (
+          <>
+            <hr />
+            <h6 className="mb-3">Visibilità Condizionale</h6>
+            <div className="form-check mb-3">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="enableCondition"
+                checked={hasCondition}
+                onChange={(e) =>
+                  onUpdate({
+                    ...field,
+                    condition: e.target.checked
+                      ? { fieldName: '', operator: 'equals', value: '' }
+                      : undefined,
+                  })
+                }
+              />
+              <label className="form-check-label" htmlFor="enableCondition">
+                Mostra solo se...
+              </label>
+            </div>
+
+            {hasCondition && (
+              <>
+                {candidateFields.length === 0 ? (
+                  <small className="text-muted">
+                    Aggiungi altri campi al form per usare le condizioni.
+                  </small>
+                ) : (
+                  <>
+                    <div className="mb-2">
+                      <label className="form-label small">Campo</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={field.condition?.fieldName ?? ''}
+                        onChange={(e) => setCondition({ fieldName: e.target.value })}
+                      >
+                        <option value="">-- Seleziona campo --</option>
+                        {candidateFields.map((f) => (
+                          <option key={f.id} value={f.name}>
+                            {f.label || f.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-2">
+                      <label className="form-label small">Condizione</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={operator}
+                        onChange={(e) =>
+                          setCondition({ operator: e.target.value as ConditionOperator })
+                        }
+                      >
+                        <option value="equals">è uguale a</option>
+                        <option value="not_equals">è diverso da</option>
+                        <option value="not_empty">non è vuoto</option>
+                        <option value="empty">è vuoto</option>
+                      </select>
+                    </div>
+
+                    {needsValue && (
+                      <div className="mb-2">
+                        <label className="form-label small">Valore</label>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          value={field.condition?.value ?? ''}
+                          onChange={(e) => setCondition({ value: e.target.value })}
+                          placeholder="Valore atteso..."
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </>
+        );
+      })()}
 
       <style jsx>{`
         .field-editor {

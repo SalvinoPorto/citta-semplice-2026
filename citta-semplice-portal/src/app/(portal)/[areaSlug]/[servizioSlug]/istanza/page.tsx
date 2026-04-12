@@ -21,6 +21,7 @@ async function getServizio(areaSlug: string, servizioSlug: string) {
   });
   if (!area) return null;
 
+  const now = new Date();
   return prisma.servizio.findFirst({
     where: {
       OR: [
@@ -29,6 +30,7 @@ async function getServizio(areaSlug: string, servizioSlug: string) {
       ],
       areaId: area.id,
       attivo: true,
+      AND: [{ OR: [{ dataFine: null }, { dataFine: { gte: now } }] }],
     },
     include: {
       area: true,
@@ -65,12 +67,9 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
   const servizio = await getServizio(areaSlug, servizioSlug);
   if (!servizio) notFound();
 
-  // Controlla disponibilità
+  // Controlla disponibilità: se non ancora aperto, rimanda alla scheda servizio
   const ora = new Date();
-  if (
-    (servizio.dataInizio && servizio.dataInizio > ora) ||
-    (servizio.dataFine && servizio.dataFine < ora)
-  ) {
+  if (servizio.dataInizio && servizio.dataInizio > ora) {
     redirect(`/${areaSlug}/${servizioSlug}`);
   }
 
@@ -87,7 +86,22 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
       if (bozza) {
         let datiModulo: Record<string, unknown> = {};
         try {
-          datiModulo = bozza.dati ? JSON.parse(bozza.dati) : {};
+          const parsed = bozza.dati ? JSON.parse(bozza.dati) : {};
+          if (Array.isArray(parsed)) {
+            // I dati sono salvati come [{name, label, value}] da buildDatiConLabel;
+            // vanno convertiti in {name: value} per i defaultValues del form.
+            datiModulo = Object.fromEntries(
+              (parsed as Array<{ name: string; value: unknown }>)
+                .filter((e) => e.name)
+                .map((e) => {
+                  const v = e.value;
+                  const coerced = v === 'true' ? true : v === 'false' ? false : (v ?? '');
+                  return [e.name, coerced];
+                })
+            );
+          } else if (parsed && typeof parsed === 'object') {
+            datiModulo = parsed as Record<string, unknown>;
+          }
         } catch {
           datiModulo = {};
         }

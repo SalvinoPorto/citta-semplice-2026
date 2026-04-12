@@ -3,39 +3,39 @@ import { z } from 'zod';
 export const allegatoRichiestoSchema = z.object({
   id: z.number().optional(),
   nomeAllegatoRichiesto: z.string().min(1, 'Il nome è obbligatorio'),
-  obbligatorio: z.boolean().default(false),
-  interno: z.boolean().default(false),
-  soggetto: z.enum(['UT', 'OP']).default('UT'),
+  obbligatorio: z.boolean(),
+  interno: z.boolean(),
+  soggetto: z.enum(['UT', 'OP']),
 });
 
 export const stepSchema = z.object({
   id: z.number().optional(),
   descrizione: z.string().min(1, 'La descrizione è obbligatoria'),
   ordine: z.number().int().min(0),
-  attivo: z.boolean().default(true),
+  attivo: z.boolean(),
 
   // Allegati
-  allegati: z.boolean().default(false),
-  allegatiOp: z.boolean().default(false),
-  allegatiRequired: z.boolean().default(false),
-  allegatiOpRequired: z.boolean().default(false),
-  allegatiRichiestiList: z.array(allegatoRichiestoSchema).default([]),
+  allegati: z.boolean(),
+  allegatiOp: z.boolean(),
+  allegatiRequired: z.boolean(),
+  allegatiOpRequired: z.boolean(),
+  allegatiRichiestiList: z.array(allegatoRichiestoSchema),
 
   // Protocollo
-  protocollo: z.boolean().default(false),
+  protocollo: z.boolean(),
   tipoProtocollo: z.enum(['E', 'U']).optional(), // E = Entrata, U = Uscita
   unitaOrganizzativa: z.string().optional(),
-  numerazioneInterna: z.boolean().default(false),
+  numerazioneInterna: z.boolean(),
 
   // Pagamento
-  pagamento: z.boolean().default(false),
+  pagamento: z.boolean(),
   pagamentoCodiceTributo: z.string().optional(),
   pagamentoDescrizioneTributo: z.string().optional(),
   pagamentoImporto: z.number().nullable().optional(),
-  pagamentoImportoVariabile: z.boolean().default(false),
+  pagamentoImportoVariabile: z.boolean(),
   pagamentoCausale: z.string().optional(),
-  pagamentoCausaleVariabile: z.boolean().default(false),
-  pagamentoObbligatorio: z.boolean().default(false),
+  pagamentoCausaleVariabile: z.boolean(),
+  pagamentoObbligatorio: z.boolean(),
   pagamentoTipologia: z.string().optional(),
 });
 
@@ -50,8 +50,8 @@ export const servizioSchema = z.object({
   contatti: z.string().optional(),
   slug: z.string().optional(),
   icona: z.string().optional(),
-  ordine: z.number().int().min(0).default(0),
-  attivo: z.boolean().default(true),
+  ordine: z.number().int().min(0),
+  attivo: z.boolean(),
   areaId: z.number().int().min(1, "Seleziona un'area"),
 
   // Configurazione istanze
@@ -60,8 +60,8 @@ export const servizioSchema = z.object({
   dataFine: z.string().optional(),
 
   // Regole di invio
-  unicoInvio: z.boolean().default(false),
-  unicoInvioPerUtente: z.boolean().default(false),
+  unicoInvio: z.boolean(),
+  unicoInvioPerUtente: z.boolean(),
   campiUnicoInvio: z.string().optional(),
   numeroMaxIstanze: z.number().int().min(0).nullable().optional(),
   msgSopraSoglia: z.string().optional(),
@@ -78,13 +78,13 @@ export const servizioSchema = z.object({
 
   // Modulo (form dati richiedente)
   attributi: z.string().optional(),
-  postFormValidation: z.boolean().default(false),
+  postFormValidation: z.boolean(),
   postFormValidationAPI: z.string().optional(),
   postFormValidationFields: z.string().optional(),
 
   // Art. 18 bis L 241/1990
   ricevutaArt18: z.object({
-    richiestaArt18: z.boolean().default(false),
+    richiestaArt18: z.boolean(),
     unitaOrganizzativaCompetente: z.string().optional(),
     ufficioCompetente: z.string().optional(),
     responsabileProcedimento: z.string().optional(),
@@ -96,7 +96,7 @@ export const servizioSchema = z.object({
   }).optional(),
 
   // Workflow
-  steps: z.array(stepSchema).default([]),
+  steps: z.array(stepSchema),
 });
 
 export type StepFormData = z.infer<typeof stepSchema>;

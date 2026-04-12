@@ -6,10 +6,20 @@ export const enteSchema = z.object({
   codiceFiscale: z.string().optional(),
   indirizzo: z.string().optional(),
   telefono: z.string().optional(),
-  email: z.string().email('Email non valida').optional().or(z.literal('')),
-  pec: z.string().email('PEC non valida').optional().or(z.literal('')),
+  email: z.email({ message: 'Email non valida' }).optional().or(z.literal('')),
+  pec: z.email({ message: 'PEC non valida' }).optional().or(z.literal('')),
   logo: z.string().optional(),
-  attivo: z.boolean().default(true),
+  attivo: z.boolean(),
 });
 
-export type EnteFormData = z.infer<typeof enteSchema>;
+export type EnteFormData = {
+  nome: string;
+  descrizione?: string;
+  codiceFiscale?: string;
+  indirizzo?: string;
+  telefono?: string;
+  email?: string;
+  pec?: string;
+  logo?: string;
+  attivo: boolean;
+};
