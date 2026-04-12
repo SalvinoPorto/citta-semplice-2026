@@ -6,18 +6,20 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search') ?? '';
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '10', 10), 200);
 
+  const now = new Date();
   const where = {
     attivo: true,
     area: { attiva: true, privata: false },
-    ...(search.trim()
-      ? {
-          OR: [
+    AND: [
+      { OR: [{ dataFine: null }, { dataFine: { gte: now } }] },
+      ...(search.trim()
+        ? [{ OR: [
             { titolo: { contains: search, mode: 'insensitive' as const } },
             { descrizione: { contains: search, mode: 'insensitive' as const } },
             { sottoTitolo: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {}),
+          ] }]
+        : []),
+    ],
   };
 
   const [servizi, total] = await Promise.all([

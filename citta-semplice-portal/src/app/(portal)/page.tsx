@@ -6,8 +6,14 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ServiziSearch } from '@/components/servizi/ServiziSearch';
 
 async function getServiziInEvidenza() {
+  const now = new Date();
   return prisma.servizio.findMany({
-    where: { attivo: true, evidenza: true, area: { attiva: true, privata: false } },
+    where: {
+      attivo: true,
+      evidenza: true,
+      area: { attiva: true, privata: false },
+      OR: [{ dataFine: null }, { dataFine: { gte: now } }],
+    },
     select: {
       id: true,
       titolo: true,
@@ -29,7 +35,10 @@ async function getAree() {
       slug: true,
       icona: true,
       servizi: {
-        where: { attivo: true },
+        where: {
+          attivo: true,
+          OR: [{ dataFine: null }, { dataFine: { gte: new Date() } }],
+        },
         select: { id: true, titolo: true, slug: true },
         orderBy: { ordine: 'asc' },
         take: 3,

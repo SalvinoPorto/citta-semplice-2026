@@ -1,12 +1,37 @@
 'use client';
 
-import { FormField } from './types';
+import { useState } from 'react';
+import { FormField, FieldCondition } from './types';
 
 interface FormPreviewProps {
   fields: FormField[];
 }
 
+function evaluateCondition(condition: FieldCondition, values: Record<string, string>): boolean {
+  const val = values[condition.fieldName] ?? '';
+  switch (condition.operator) {
+    case 'equals':
+      return val === (condition.value ?? '');
+    case 'not_equals':
+      return val !== (condition.value ?? '');
+    case 'not_empty':
+      return val !== '';
+    case 'empty':
+      return val === '';
+  }
+}
+
 export function FormPreview({ fields }: FormPreviewProps) {
+  const [values, setValues] = useState<Record<string, string>>({});
+
+  const setValue = (name: string, value: string) =>
+    setValues((prev) => ({ ...prev, [name]: value }));
+
+  const isVisible = (field: FormField): boolean => {
+    if (!field.condition || !field.condition.fieldName) return true;
+    return evaluateCondition(field.condition, values);
+  };
+
   const getWidthClass = (width?: string) => {
     switch (width) {
       case 'half':
@@ -45,6 +70,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
                 className="form-check-input"
                 name={field.name}
                 id={field.id}
+                checked={values[field.name] === 'true'}
+                onChange={(e) => setValue(field.name, e.target.checked ? 'true' : 'false')}
                 required={field.validation?.required}
               />
               <label className="form-check-label" htmlFor={field.id}>
@@ -71,6 +98,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
                   name={field.name}
                   id={`${field.id}_${i}`}
                   value={opt.value}
+                  checked={values[field.name] === opt.value}
+                  onChange={() => setValue(field.name, opt.value)}
                   required={field.validation?.required}
                 />
                 <label className="form-check-label" htmlFor={`${field.id}_${i}`}>
@@ -93,6 +122,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
               className="form-select"
               name={field.name}
               id={field.id}
+              value={values[field.name] ?? ''}
+              onChange={(e) => setValue(field.name, e.target.value)}
               required={field.validation?.required}
               multiple={field.multiple}
             >
@@ -119,6 +150,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
               id={field.id}
               placeholder={field.placeholder}
               rows={field.rows || 4}
+              value={values[field.name] ?? ''}
+              onChange={(e) => setValue(field.name, e.target.value)}
               required={field.validation?.required}
               minLength={field.validation?.minLength}
               maxLength={field.validation?.maxLength}
@@ -168,7 +201,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
               name={field.name}
               id={field.id}
               placeholder={field.placeholder}
-              defaultValue={field.defaultValue}
+              value={values[field.name] ?? field.defaultValue ?? ''}
+              onChange={(e) => setValue(field.name, e.target.value)}
               required={field.validation?.required}
               minLength={field.validation?.minLength}
               maxLength={field.validation?.maxLength}
@@ -188,16 +222,17 @@ export function FormPreview({ fields }: FormPreviewProps) {
     }
   };
 
-  // Group fields by rows based on width
+  // Group visible fields by rows based on width
+  const visibleFields = fields.filter(isVisible);
+
   const rows: FormField[][] = [];
   let currentRow: FormField[] = [];
   let currentWidth = 0;
 
-  fields.forEach((field) => {
+  visibleFields.forEach((field) => {
     const fieldWidth =
       field.width === 'half' ? 6 : field.width === 'third' ? 4 : 12;
 
-    // Layout fields always get their own row
     if (['heading', 'paragraph', 'divider'].includes(field.type)) {
       if (currentRow.length > 0) {
         rows.push(currentRow);
@@ -224,7 +259,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
 
   return (
     <div className="form-preview p-4 bg-white border rounded">
-      <form onSubmit={(e) => e.preventDefault()}>
+      <div>
         {rows.map((row, rowIndex) => (
           <div key={rowIndex} className="row">
             {row.map((field) => (
@@ -237,15 +272,15 @@ export function FormPreview({ fields }: FormPreviewProps) {
 
         {fields.length > 0 && (
           <div className="mt-4 pt-3 border-top">
-            <button type="submit" className="btn btn-primary">
+            <button type="button" className="btn btn-primary" disabled>
               Invia
             </button>
-            <button type="reset" className="btn btn-secondary ms-2">
+            <button type="button" className="btn btn-secondary ms-2" disabled>
               Annulla
             </button>
           </div>
         )}
-      </form>
+      </div>
     </div>
   );
 }

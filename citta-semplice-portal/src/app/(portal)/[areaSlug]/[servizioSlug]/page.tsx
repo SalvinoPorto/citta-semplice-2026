@@ -20,11 +20,13 @@ async function getServizio(areaSlug: string, servizioSlug: string) {
   });
   if (!area) return null;
 
+  const now = new Date();
   return prisma.servizio.findFirst({
     where: {
       slug: servizioSlug,
       areaId: area.id,
       attivo: true,
+      OR: [{ dataFine: null }, { dataFine: { gte: now } }],
     },
     include: { area: true, ufficio: true },
   });
@@ -47,9 +49,7 @@ export default async function ServizioPage({ params }: Props) {
   if (!servizio) notFound();
 
   const ora = new Date();
-  const aperto =
-    (!servizio.dataInizio || servizio.dataInizio <= ora) &&
-    (!servizio.dataFine || servizio.dataFine >= ora);
+  const aperto = !servizio.dataInizio || servizio.dataInizio <= ora;
 
   return (
     <>

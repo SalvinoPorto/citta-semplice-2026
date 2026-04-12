@@ -15,7 +15,10 @@ async function getAree() {
     where: { attiva: true, privata: false },
     include: {
       servizi: {
-        where: { attivo: true },
+        where: {
+          attivo: true,
+          OR: [{ dataFine: null }, { dataFine: { gte: new Date() } }],
+        },
         orderBy: { ordine: 'asc' },
       },
     },

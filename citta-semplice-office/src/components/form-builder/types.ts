@@ -31,6 +31,14 @@ export interface FieldValidation {
   patternMessage?: string;
 }
 
+export type ConditionOperator = 'equals' | 'not_equals' | 'not_empty' | 'empty';
+
+export interface FieldCondition {
+  fieldName: string;
+  operator: ConditionOperator;
+  value?: string;
+}
+
 export interface FormField {
   id: string;
   type: FieldType;
@@ -46,6 +54,7 @@ export interface FormField {
   accept?: string; // per file input
   multiple?: boolean; // per file e select
   rows?: number; // per textarea
+  condition?: FieldCondition;
 }
 
 export interface FormSchema {

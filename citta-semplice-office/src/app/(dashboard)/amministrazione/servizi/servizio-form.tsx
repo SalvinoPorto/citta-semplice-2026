@@ -352,9 +352,9 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     [setValue]
   );
 
-  const formFields: { name: string; label: string }[] = initialFormSchema?.fields
+  const formFields: { name: string; label: string }[] = (initialFormSchema?.fields ?? [])
     .filter((f) => f.name && !['heading', 'paragraph', 'divider'].includes(f.type))
-    .map((f) => ({ name: f.name, label: f.label || f.name })) ?? [];
+    .map((f) => ({ name: f.name, label: f.label || f.name }));
 
   const { fields, remove, move, insert } = useFieldArray({
     control,

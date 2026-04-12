@@ -1,0 +1,96 @@
+{
+    "fields": [
+        {
+            "id": "field_1775901649460_ayvvuus94",
+            "type": "heading",
+            "name": "titolo",
+            "label": "Sezione di titolo",
+            "validation": {}
+        },
+        {
+            "id": "field_1775901762548_67f1gq4j9",
+            "type": "textarea",
+            "name": "area_testo",
+            "label": "Area di Testo",
+            "validation": {
+                "maxLength": 2000
+            },
+            "rows": 4
+        },
+        {
+            "id": "field_1775901718250_97fnqlo88",
+            "type": "number",
+            "name": "numero",
+            "label": "Numero",
+            "validation": {}
+        },
+        {
+            "id": "field_1775901703230_4smuci9w6",
+            "type": "email",
+            "name": "email",
+            "label": "Email",
+            "validation": {},
+            "placeholder": "esempio@email.it"
+        },
+        {
+            "id": "field_1775406179476_z7xj6foab",
+            "type": "text",
+            "name": "cognome",
+            "label": "Cognome",
+            "validation": {
+                "required": true,
+                "maxLength": 100,
+                "minLength": 1
+            },
+            "placeholder": "Inserisci testo..."
+        },
+        {
+            "id": "field_1775901680335_8nk6c69iw",
+            "type": "paragraph",
+            "name": "paragraph",
+            "label": "Testo informativo da mostrare all'utente.",
+            "validation": {}
+        },
+        {
+            "id": "field_1775901595152_d7wijcy8u",
+            "type": "radio",
+            "name": "scelta_radio",
+            "label": "Seleziona un'opzione",
+            "validation": {
+                "required": true
+            },
+            "options": [
+                {
+                    "value": "opzione1",
+                    "label": "Opzione 1"
+                },
+                {
+                    "value": "opzione2",
+                    "label": "Opzione 2"
+                }
+            ]
+        },
+        {
+            "id": "field_1775901605694_mcmzmxje9",
+            "type": "select",
+            "name": "select",
+            "label": "Seleziona",
+            "validation": {},
+            "options": [
+                {
+                    "value": "",
+                    "label": "-- Seleziona --"
+                },
+                {
+                    "value": "opzione1",
+                    "label": "Opzione 1"
+                },
+                {
+                    "value": "opzione2",
+                    "label": "Opzione 2"
+                }
+            ]
+        }
+    ],
+    "version": "1.0"
+}

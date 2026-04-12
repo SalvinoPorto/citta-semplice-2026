@@ -242,11 +242,14 @@ export function FormCanvas({
                 </div>
               </div>
               <div className="field-preview">{renderFieldPreview(field)}</div>
-              {field.name && (
-                <div className="field-name-badge">
-                  <code>{field.name}</code>
-                </div>
-              )}
+              <div className="field-footer">
+                {field.name && <code>{field.name}</code>}
+                {field.condition?.fieldName && (
+                  <span className="condition-badge" title={`Visibile se "${field.condition.fieldName}" ${field.condition.operator}${field.condition.value ? ` "${field.condition.value}"` : ''}`}>
+                    ◈ condizione
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Drop zone after each field */}
@@ -339,14 +342,24 @@ export function FormCanvas({
         .field-preview {
           font-size: 14px;
         }
-        .field-name-badge {
+        .field-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           margin-top: 8px;
           padding-top: 8px;
           border-top: 1px dashed #eee;
         }
-        .field-name-badge code {
+        .field-footer code {
           font-size: 11px;
           color: #6c757d;
+        }
+        .condition-badge {
+          font-size: 10px;
+          color: #0d6efd;
+          background: #e7f1ff;
+          padding: 1px 6px;
+          border-radius: 10px;
         }
         .empty-canvas {
           display: flex;
