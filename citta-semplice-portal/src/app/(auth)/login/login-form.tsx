@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const schema = z.object({
   codiceFiscale: z.string().min(16, 'Inserisci il codice fiscale').max(16),
@@ -17,12 +17,43 @@ type FormData = z.infer<typeof schema>;
 export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') ?? '/le-mie-istanze';
+  const ssoToken = searchParams.get('ssoToken');
+  const errorParam = searchParams.get('error');
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
+  // Auto-complete SSO login when redirected back from the CIG callback
+  useEffect(() => {
+    if (!ssoToken) return;
+    setSsoLoading(true);
+    signIn('cig-sso', { ssoToken, redirect: false }).then((result) => {
+      if (result?.error) {
+        setSsoLoading(false);
+        setError('Autenticazione SPID/CIE non riuscita. Riprova.');
+      } else {
+        window.location.href = callbackUrl;
+      }
+    });
+  }, [ssoToken, callbackUrl]);
+
+  // Map server-side error codes to human-readable messages
+  useEffect(() => {
+    if (!errorParam) return;
+    const messages: Record<string, string> = {
+      sso_init: 'Impossibile avviare il servizio di autenticazione. Riprova più tardi.',
+      sso_invalid: 'Risposta non valida dal servizio di autenticazione.',
+      sso_auth: 'Autenticazione non riuscita. Riprova.',
+      sso_user: 'Impossibile leggere i dati utente dal servizio di autenticazione.',
+      sso_db: 'Errore interno. Riprova più tardi.',
+    };
+    setError(messages[errorParam] ?? 'Si è verificato un errore durante il login.');
+  }, [errorParam]);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -40,6 +71,20 @@ export function LoginForm() {
     }
   };
 
+  // While completing the SSO handoff show a spinner over the whole form
+  if (ssoLoading) {
+    return (
+      <div className="card shadow-sm">
+        <div className="card-body p-4 text-center">
+          <div className="spinner-border text-primary mb-3" role="status">
+            <span className="visually-hidden">Accesso in corso…</span>
+          </div>
+          <p className="text-muted">Completamento accesso SPID / CIE…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card shadow-sm">
       <div className="card-body p-4">
@@ -50,6 +95,24 @@ export function LoginForm() {
             {error}
           </div>
         )}
+
+        {/* ── SPID / CIE (primary) ── */}
+        <a
+          href={`/api/auth/sso/logon?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          className="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+        >
+          <span className="fw-bold">SPID</span>
+          <span className="text-white-50">/</span>
+          <span className="fw-bold">CIE</span>
+          <span className="small fw-normal ms-1">— Accedi con identità digitale</span>
+        </a>
+
+        <hr className="my-3" />
+
+        {/* ── Credenziali (secondary / backoffice) ── */}
+        <p className="small text-muted text-center mb-3">
+          Oppure accedi con credenziali locali
+        </p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="form-group mb-3">
@@ -86,29 +149,23 @@ export function LoginForm() {
 
           <button
             type="submit"
-            className="btn btn-primary w-100"
+            className="btn btn-outline-secondary w-100"
             disabled={loading}
           >
             {loading ? (
               <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-                Accesso in corso...
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                />
+                Accesso in corso…
               </>
             ) : (
               'Accedi'
             )}
           </button>
         </form>
-
-        <hr className="my-4" />
-
-        <div className="text-center">
-          <p className="small text-muted mb-2">Oppure accedi con identità digitale</p>
-          <button type="button" className="btn btn-outline-secondary w-100" disabled>
-            <span className="fw-bold">SPID</span> / <span className="fw-bold">CIE</span>
-            <span className="ms-1 small">(prossimamente)</span>
-          </button>
-        </div>
       </div>
     </div>
   );
