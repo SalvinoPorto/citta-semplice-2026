@@ -135,17 +135,17 @@ function convertAttributes(raw) {
     if (item.type === 'radio') {
       field.options = item.values?.map(v => ({ value: v.value, label: v.label })) || [];
     } else
-    if (item.type === 'autocomplete') {
-      field.type = 'select';
-      field.options = item.values?.map(v => ({ value: v.value, label: v.label })) || [];
-    } else
-      if (item.name === 'codice_fiscale') {
-        field.type="text";
-        field.validation = {
-                "patternMessage": "Codice fiscale non valido",
-                "pattern": "^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$"
-            };
-          }
+      if (item.type === 'autocomplete') {
+        field.type = 'select';
+        field.options = item.values?.map(v => ({ value: v.value, label: v.label })) || [];
+      } else
+        if (item.name === 'codice_fiscale') {
+          field.type = "text";
+          field.validation = {
+            "patternMessage": "Codice fiscale non valido",
+            "pattern": "^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$"
+          };
+        }
 
     if (item.type !== 'paragraph') {
       if (item.required) field.validation.required = true;
@@ -748,7 +748,7 @@ async function migrateSteps(src, dst) {
     LEFT JOIN moduli m ON m.id=s.id_modulo
     LEFT JOIN servizi se ON se.id=m.id_servizio
 	  WHERE se.id_area in (SELECT id FROM aree WHERE id_ente=1)
-    AND s.attivo = true
+    --AND s.attivo = true
     ORDER BY s.id
   `);
   console.log(`Step trovati: ${rows.length}`);
@@ -893,7 +893,7 @@ async function migrateIstanze(src, dst) {
       i.dati_in_evidenza
     FROM istanze i
     LEFT JOIN moduli m ON m.id = i.id_modulo
-    ORDER BY i.id --LIMIT 100
+    ORDER BY i.id 
   `);
 
   console.log(`Istanze trovate: ${rows.length}`);
@@ -966,6 +966,123 @@ async function migrateIstanze(src, dst) {
   );
 }
 
+// ── migrazione workflow ─────────────────────────────────────────────────────────
+
+async function migrateWorkflow(src, dst) {
+  console.log('\n── Migrazione workflow ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT 
+    id, 
+    note, 
+    data_variazione, 
+    id_istanza as istanza_id, 
+    id_step as step_id, 
+    id_notifica as notifica_id, 
+    id_operatore as operatore_id 
+    FROM workflow
+    ORDER BY id
+  `);
+  console.log(`Workflow trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun workflow da migrare.');
+    return;
+  }
+
+  // Colonne derivate dalla query (già rinominate con alias)
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+
+  const sql = `
+    INSERT INTO workflows (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  let ok = 0, errors = 0;
+
+  for (const row of rows) {
+    try {
+      await dst.query(sql, columns.map(col => row[col]));
+      ok++;
+      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} workflow migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su workflow ${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  // aggiorno il numero di sequenza dei workflow per evitare conflitti con nuovi workflow creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('workflows_id_seq', GREATEST((SELECT MAX(id) FROM workflows), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza workflows: ${err.message}`);
+  }
+
+  console.log(`Workflows: ${ok} inseriti/esistenti, ${errors} errori`);
+}
+
+
+// ── migrazione allegati ─────────────────────────────────────────────────────────
+
+async function migrateAllegati(src, dst) {
+  console.log('\n── Migrazione allegati ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT 
+    id, 
+    nome_file, 
+    nome_hash, 
+    nome_file_richiesto, 
+    mime_type, inv_utente, 
+    visto, data_inserimento, 
+    id_workflow as workflow_id
+    FROM allegati
+    ORDER BY id
+  `);
+  console.log(`Allegati trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun allegato da migrare.');
+    return;
+  }
+
+  // Colonne derivate dalla query (già rinominate con alias)
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+
+  const sql = `
+    INSERT INTO allegati (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  let ok = 0, errors = 0;
+
+  for (const row of rows) {
+    try {
+      await dst.query(sql, columns.map(col => row[col]));
+      ok++;
+      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} allegati migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su allegato ${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  // aggiorno il numero di sequenza degli allegati per evitare conflitti con nuovi allegati creati dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('allegati_id_seq', GREATEST((SELECT MAX(id) FROM allegati), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza allegati: ${err.message}`);
+  }
+
+  console.log(`Allegati: ${ok} inseriti/esistenti, ${errors} errori`);
+}
+
 // ── main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -979,42 +1096,47 @@ async function main() {
   await dst.connect();
 
   try {
-    /*
-        //  1. Migra enti (nessuna dipendenza)
-        await migrateEnti(src, dst);
-    
-        //  2. Migra uffici (nessuna dipendenza)
-        await migrateUffici(src, dst);
-    
-        //  3. Migra ruoli (nessuna dipendenza)
-        await migrateRuoli(src, dst);
-    
-        //  4. Migra aree (dipende da enti)
-        await migrateAree(src, dst);
-    
-        //  5. Migra servizi (dipende da aree, uffici; converte attributi nel nuovo formato)
-        await migrateServizi(src, dst);
-    
-        //  6. Migra steps (dipende da servizi)
-        await migrateSteps(src, dst);
-    
-        //  6b. Migra allegati_richiesti (dipende da steps)
-        await migrateAllegatiRichiesti(src, dst);
-    
-        //  7. Migra operatori (nessuna dipendenza)
-        await migrateOperatori(src, dst);
-    
-        //  8. Migra operatori_ruoli (dipende da operatori, ruoli)
-        await migrateOperatoriRuoli(src, dst);
-    
-        //  9. Migra operatori_servizi da old.operatori_moduli (dipende da operatori, servizi)
-        await migrateOperatoriServizi(src, dst);
-    */
+
+    //  1. Migra enti (nessuna dipendenza)
+    await migrateEnti(src, dst);
+
+    //  2. Migra uffici (nessuna dipendenza)
+    await migrateUffici(src, dst);
+
+    //  3. Migra ruoli (nessuna dipendenza)
+    await migrateRuoli(src, dst);
+
+    //  4. Migra aree (dipende da enti)
+    await migrateAree(src, dst);
+
+    //  5. Migra servizi (dipende da aree, uffici; converte attributi nel nuovo formato)
+    await migrateServizi(src, dst);
+
+    //  6. Migra steps (dipende da servizi)
+    await migrateSteps(src, dst);
+
+    //  6b. Migra allegati_richiesti (dipende da steps)
+    await migrateAllegatiRichiesti(src, dst);
+
+    //  7. Migra operatori (nessuna dipendenza)
+    await migrateOperatori(src, dst);
+
+    //  8. Migra operatori_ruoli (dipende da operatori, ruoli)
+    await migrateOperatoriRuoli(src, dst);
+
+    //  9. Migra operatori_servizi da old.operatori_moduli (dipende da operatori, servizi)
+    await migrateOperatoriServizi(src, dst);
+
     // 10. Migra utenti (nessuna dipendenza)
-    // await migrateUtenti(src, dst);
+    await migrateUtenti(src, dst);
 
     // 11. Migra istanze (dipende da utenti, servizi, steps; risolve CF→id)
     await migrateIstanze(src, dst);
+
+    // 12. Migra workflow (dipende da istanze, steps, operatori)
+    await migrateWorkflow(src, dst);
+    // 13. Migra allegati (dipende da istanze, steps)
+    await migrateAllegati(src, dst);
 
     console.log('\n✓ Migrazione completata.');
   } finally {
