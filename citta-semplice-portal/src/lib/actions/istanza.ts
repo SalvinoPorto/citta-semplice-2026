@@ -227,6 +227,20 @@ export async function salvaBozza(formData: FormData) {
       return { success: true, bozzaId: bozzaEsistente.id };
     }
 
+    // Limite 10 bozze: se l'utente ha già 10 bozze, elimina la più vecchia
+    const contaBozze = await prisma.istanza.count({
+      where: { utenteId: utente.id, inBozza: true },
+    });
+    if (contaBozze >= 10) {
+      const piuVecchia = await prisma.istanza.findFirst({
+        where: { utenteId: utente.id, inBozza: true },
+        orderBy: { dataInvio: 'asc' },
+      });
+      if (piuVecchia) {
+        await prisma.istanza.delete({ where: { id: piuVecchia.id } });
+      }
+    }
+
     const nuovaBozza = await prisma.istanza.create({
       data: {
         dati: datiRaw ? String(datiRaw) : null,
@@ -242,6 +256,31 @@ export async function salvaBozza(formData: FormData) {
   } catch (error) {
     console.error('Errore salvataggio bozza:', error);
     return { error: 'Errore durante il salvataggio della bozza. Riprova.' };
+  }
+}
+
+export async function eliminaBozza(bozzaId: number) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: 'Non autenticato' };
+  }
+
+  const utente = await prisma.utente.findUnique({
+    where: { id: Number(session.user.id) },
+  });
+  if (!utente) return { error: 'Utente non trovato' };
+
+  const bozza = await prisma.istanza.findFirst({
+    where: { id: bozzaId, utenteId: utente.id, inBozza: true },
+  });
+  if (!bozza) return { error: 'Bozza non trovata' };
+
+  try {
+    await prisma.istanza.delete({ where: { id: bozzaId } });
+    return { success: true };
+  } catch (error) {
+    console.error('Errore eliminazione bozza:', error);
+    return { error: 'Errore durante la cancellazione della bozza.' };
   }
 }
 

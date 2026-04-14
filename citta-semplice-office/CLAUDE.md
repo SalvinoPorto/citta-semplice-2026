@@ -1,25 +1,144 @@
-Facciamo ordine:
-- i servizi rivolti al cittadino sono raggruppati per aree.
-- ogni servizio ha un solo modulo per l'inserimento dei dati del richiedente
-- il servizio, dalla richiesta da parte del cittadino fino all'erogazione da parte dell'ente segue un iter o timeline stabilito alla creazione del servizio.
-- l'iter è formato da fasi o passi. il primo passo di ogni iter è sempre l'invio o la presentazione dell'istanza di fruizione del servizio offerto, l'ultimo passo è sempre la conclusione o chiusura dell'iter. 
-- ogni passo ha uno stato, quando si attiva quel passo sarà in stato "In Attesa", quando si conclude per passare al successivo sarà in stato "Terminato"
-- ogni passo può prevedere una o più delle seguenti cose:
-  - il rilascio di un numero di protocollo e per questo vengono chiamate delle api ad applicativo esterno.
-    deve essere prevista la possibilità di selezionare se il protocollo è in usscita o in entrata e la possibilità di selezionare l'unità organizzativa all'interno dell'areaorganizzzativa omogenea.
-      - stabiliremo in seguito se questa lista va popolata da un database locale all'pplicazione o da apposita chiamata api all'applicativo di protocollo
-  - la richiesta di documenti che il richiedente o l'operatore deve allegare e quindi la possibilità di upload di file;
-  questi documenti devono essere visibili e consultabili in qualunque momento del processo, anche dopo la conclusione dell'iter.
-  - la richiesta di un pagamento tramite PagoPA e per questo vengo chiamate delle api ad applicativo esterno; in fase di creazione di questa tipologia di step deve esse data la possibilità al gestore di selezionare il codice del tributo da prelevare da apposita chiamata api al sistema di pagamento, decidere se la quota è fissa e quindi indicarla in apposito campo, la causale anche questa fissa o variabile. se la quota non è fissa verrà chiesto all'operatore che avanza l'iter di inserire la cifra in apposito campo.lo stesso per la causale il codice tributo, la cifra, la causale e i dati del richiedente servianno come parametri per la chiamata api al sistema di pagamento per generare il bollettino di pagamento che deve essere inserito nella timeline per essere visibile all'operatore e al richiedente
-  - la possibilità per l'operatore di allegare documenti rivolti al richiedente; qundo si attiva questa modalità, durante l'avanzamento del processo verrà data la possibilità all'operatore di fare l'upload di documenti per renderli disponibili al richiedente 
-- inoltre deve essere possibile durante la durata del processo scandito dalla timeline, inserire comunicazioni rivolte al richiedente. 
-la timeline con i vari passi ed eventuali richieste, così come le comunicazioni saranno visibili al richiedente nella propria area personale dell'applicazione web a lui dedicata che faremo in un secondo tempo.
+# citta-semplice-office
 
-A questo punto i punti da risolvere sono:
-- unire il componente modulo e servizio in una unica entità: il servizo è distinto dal modulo che deve essere compilato. Se in fase di erogazione dei servizi si rende necessario modificare il modulo, il servizio viene disattivato, clonato, modificato in uno nuovo e reso operativo al posto del precedente. Attributi importanti sono quindi il flag attivo/disattivo e le date di inizio e fine validità del servizio.
-- trovare un modo coerente per fare avanzare la timeline da parte dell'operatore e di inserire comunicazioni/avvisi per l'utente
-- dare la possibilità all'operatore di retrocedere di un passo nel caso si debbano soddisfare condizioni, in modo da creare piccoli loop.
-- se per qualche ragione insanabile la richiesta del servizio non può essere soddisfatta, dare la possibilità all'operatore di respingere l'istanza chiudendo l'iter forzatamente. il respingimento deve prevedere un campo da compilare a cura dell'operatore con il motivo del rifiuto, prevedere eventualmente anche degli allegati ( provvedimento di respingimento per es.)
-- l'invio da parte del richiedente fa scattare l'inizio del primo step previsto per quel servizio che quindi sarà in stato "In Attesa"
+Backoffice Next.js per la gestione dei servizi comunali. Gli operatori dell'ente lavorano le istanze presentate dai cittadini tramite il portale `citta-semplice-portal`.
 
-Nella cartella /home/salvino/Scaricati/citta-semplice-main/urbismart/liburbismart si trova una libreria Java per interfacciarsi con l'applicativo di protocollo e nella cartella /home/salvino/Scaricati/citta-semplice-main/PMPay/libpmpay una libreria Java per interfacciarsi con l'applicativo dei pagamenti PagoPA: analizzalim trducili in typescript e adattali a questa applicazione
+## Stack
+
+- **Next.js 16** (App Router), **React 19**, **TypeScript**
+- **Prisma 7** su **PostgreSQL**
+- **NextAuth v5-beta** per l'autenticazione degli operatori
+- **Bootstrap Italia** per la UI
+- **TipTap** per gli editor rich text
+- **Zod** + **React Hook Form** per form e validazioni
+
+---
+
+## Architettura del dominio
+
+### Servizi
+
+Ogni servizio appartiene a un'**Area** e può essere assegnato a un **Ufficio**. Ha:
+- Flag `attivo` e date `dataInizio` / `dataFine` di validità
+- Un modulo (form builder JSON) per la raccolta dati del richiedente
+- Un **iter** (sequenza di `Step`) che definisce il processo dall'invio alla conclusione
+- Se un servizio in produzione deve essere modificato: si disattiva, si clona, si modifica il clone e si attiva al suo posto
+
+### Steps
+
+Ogni step può prevedere una o più di queste funzionalità (flag booleani):
+- **`protocollo`** — registra un protocollo tramite Urbismart (entrata `E`, uscita `U`, interno `P`); l'unità organizzativa è selezionabile
+- **`pagamento`** — genera un bollettino PagoPA tramite PmPay; importo e causale possono essere fissi o variabili (inseriti dall'operatore al momento dell'avanzamento)
+- **`allegati`** — richiede upload di documenti (da operatore o cittadino); i documenti restano visibili per tutta la durata del processo e oltre
+- **`documentiOperatore`** — l'operatore carica documenti destinati al cittadino
+
+### Istanze
+
+Lo stato di un'istanza è determinato da tre campi booleani:
+- `inBozza: true` — bozza salvata dal cittadino, **invisibile agli operatori**
+- `respinta: true` — iter chiuso forzatamente con motivazione
+- `conclusa: true` — iter completato normalmente
+- nessuno dei tre → in lavorazione
+
+L'iter viene tracciato nella tabella `Workflow` (uno per step attivato). Il workflow corrente è quello con `dataVariazione` più recente.
+
+### Comunicazioni
+
+Durante tutto l'iter è possibile inviare `Comunicazione` al cittadino (con eventuale richiesta di risposta e allegati). Visibili nella timeline sia all'operatore che al cittadino.
+
+---
+
+## Struttura route principali
+
+```
+app/
+├── (auth)/login                          # Login operatori
+└── (dashboard)/
+    ├── page.tsx                          # Dashboard con statistiche
+    ├── istanze/
+    │   ├── page.tsx + istanze-client.tsx # Lista istanze con filtri persistiti in URL
+    │   └── [id]/page.tsx                 # Dettaglio e gestione istanza
+    ├── amministrazione/
+    │   ├── aree/                         # CRUD aree
+    │   ├── servizi/                      # CRUD servizi + step builder
+    │   ├── operatori/                    # CRUD operatori
+    │   ├── uffici/                       # CRUD uffici
+    │   ├── enti/                         # CRUD ente
+    │   ├── ruoli/                        # CRUD ruoli
+    │   ├── utenti/                       # Vista utenti registrati
+    │   └── email/                        # Configurazione SMTP/Office365
+    ├── ricerche/                         # Ricerca istanze, pagamenti, utenti
+    ├── statistiche/                      # Statistiche e grafici
+    └── profilo/                          # Profilo operatore
+```
+
+---
+
+## API Route principali
+
+| Route | Descrizione |
+|-------|-------------|
+| `POST /api/istanze/paged` | Lista istanze paginata (tab, filtri, sort) |
+| `GET /api/search/istanze` | Ricerca istanze (usata anche dall'export) |
+| `GET /api/export/istanze` | Export CSV |
+| `GET /api/search/pagamenti` | Ricerca pagamenti |
+| `GET /api/export/pagamenti` | Export CSV pagamenti |
+| `GET /api/pagamenti/info` | Info pagamento da PmPay |
+| `GET /api/pagamenti/bollettino` | Download PDF bollettino |
+| `GET /api/pmpay/servizi` | Sync tributi da PmPay |
+| `GET /api/urbi/uffici` | Sync uffici da Urbismart |
+| `POST /api/upload` | Upload allegati |
+| `GET /api/download/[id]` | Download allegato |
+| `GET /api/cron/payments` | Cron: aggiorna stato pagamenti |
+| `GET /api/cron/statistics` | Cron: aggiorna statistiche giornaliere |
+
+---
+
+## Integrazioni esterne
+
+### Urbismart (Protocollo)
+- File: `src/lib/external/urbismart.ts`, `src/lib/services/protocollazione/UrbiProtocolloService.ts`
+- Registra documenti in entrata (`E`), uscita (`U`) o interni (`P`)
+- Fallback: `ProtocolloEmergenza` — counter progressivo per anno quando Urbismart non è disponibile
+
+### PmPay (PagoPA)
+- File: `src/lib/external/pmpay.ts`
+- Genera bollettini di pagamento, recupera URL e PDF
+- I tributi disponibili si sincronizzano tramite `/api/pmpay/servizi`
+
+### Email
+- File: `src/lib/services/email.ts`
+- Supporta SMTP e Microsoft Graph (Office365)
+- Configurazione salvata nel modello `EmailConfig`
+
+---
+
+## Pattern e convenzioni
+
+### Filtri istanze persistiti in URL
+I filtri della lista istanze (`tab`, `page`, sort, filtri form) vengono serializzati nei query params dell'URL. Quando l'operatore apre un'istanza e torna indietro (`router.back()`), trova la lista nello stesso stato.
+
+Parametri URL usati: `tab`, `page`, `sf` (sort field), `sd` (sort direction), `protocollo`, `modulo`, `anno`, `cerca`.
+
+### Bozze non visibili agli operatori
+Tutte le query lato office filtrano `inBozza: false`. Le bozze sono visibili solo al cittadino nel portale.
+
+### Stato istanza (derivato)
+```
+inBozza=true              → Bozza (solo portale)
+respinta=true             → Respinta
+conclusa=true             → Conclusa
+altrimenti                → In Lavorazione / In Attesa
+```
+
+### Autenticazione
+NextAuth v5-beta con sessione JWT. I ruoli sono in `session.user.ruoli[]`. Usare `requireAuth()` (redirect automatico) o `getCurrentUser()` (nullable) da `src/lib/auth/session.ts`.
+
+### Upload allegati
+Tutti i file vengono salvati su filesystem locale con nome hashato. Il modello `Allegato` tiene nome originale e hash. Download tramite `/api/download/[id]`.
+
+---
+
+## Lavori in corso / decisioni aperte
+
+- La lista delle unità organizzative per il protocollo è da definire: database locale vs. chiamata API a Urbismart
+- Il portale cittadino (`citta-semplice-portal`) è in sviluppo parallelo; la timeline e le comunicazioni saranno visibili al cittadino nella sua area personale

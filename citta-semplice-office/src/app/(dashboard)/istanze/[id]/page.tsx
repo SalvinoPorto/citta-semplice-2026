@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { BackButton } from './back-button';
 import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
 import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
@@ -126,9 +126,7 @@ export default async function IstanzaDetailPage({
       <div className="page-header d-flex justify-content-between align-items-start">
         <div>
           <div className="d-flex align-items-center gap-2 mb-2">
-            <Link href="/istanze" className="btn btn-link p-0">
-              ← Torna alle istanze
-            </Link>
+            <BackButton />
           </div>
           <h1 className="d-flex align-items-center gap-3">
             Istanza #{istanza.id}

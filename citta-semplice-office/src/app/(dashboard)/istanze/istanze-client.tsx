@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Card, CardBody, Badge, Button, Input, Select } from '@/components/ui';
@@ -79,16 +80,30 @@ const DEFAULT_COUNTS: Counts = {
 
 interface IstanzeClientProps {
   servizi: Servizio[];
-  operatoreId: number;
 }
 
-export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
-  const [tab, setTab] = useState('nuove');
-  const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<Order>({ field: 'dataInvio', direction: -1 });
+export function IstanzeClient({ servizi }: IstanzeClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialTab = searchParams.get('tab') || 'nuove';
+  const initialSort: Order = {
+    field: searchParams.get('sf') || 'dataInvio',
+    direction: parseInt(searchParams.get('sd') || '-1'),
+  };
+  const initialFormFilters: FormFilters = {
+    protocollo: searchParams.get('protocollo') || '',
+    modulo: searchParams.get('modulo') || '',
+    anno: searchParams.get('anno') || '',
+    cerca: searchParams.get('cerca') || '',
+  };
+
+  const [tab, setTab] = useState(initialTab);
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
+  const [sort, setSort] = useState<Order>(initialSort);
   const [columnFilters, setColumnFilters] = useState<Filter[]>([]);
-  const [formFilters, setFormFilters] = useState<FormFilters>(DEFAULT_FORM_FILTERS);
-  const [draftFilters, setDraftFilters] = useState<FormFilters>(DEFAULT_FORM_FILTERS);
+  const [formFilters, setFormFilters] = useState<FormFilters>(initialFormFilters);
+  const [draftFilters, setDraftFilters] = useState<FormFilters>(initialFormFilters);
 
   const [istanze, setIstanze] = useState<Istanza[]>([]);
   const [total, setTotal] = useState(0);
@@ -96,7 +111,30 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
   const [loading, setLoading] = useState(false);
   const [filterResetKey, setFilterResetKey] = useState(0);
 
-  const prevFiltersRef = useRef<string>('');
+  // Inizializzato con lo stato iniziale così al primo mount non resetta la pagina a 1
+  const prevFiltersRef = useRef<string>(
+    JSON.stringify([]) + JSON.stringify(initialFormFilters) + initialSort.field + initialSort.direction + initialTab
+  );
+  const isMounted = useRef(false);
+
+  // Sync active filters to URL so they survive navigation to detail and back
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    const params = new URLSearchParams();
+    if (tab !== 'nuove') params.set('tab', tab);
+    if (page !== 1) params.set('page', String(page));
+    if (sort.field !== 'dataInvio') params.set('sf', sort.field);
+    if (sort.direction !== -1) params.set('sd', String(sort.direction));
+    if (formFilters.protocollo) params.set('protocollo', formFilters.protocollo);
+    if (formFilters.modulo) params.set('modulo', formFilters.modulo);
+    if (formFilters.anno) params.set('anno', formFilters.anno);
+    if (formFilters.cerca) params.set('cerca', formFilters.cerca);
+    const qs = params.toString();
+    router.replace(qs ? `/istanze?${qs}` : '/istanze', { scroll: false });
+  }, [tab, page, sort, formFilters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const filtersKey =
@@ -223,7 +261,7 @@ export function IstanzeClient({ servizi, operatoreId }: IstanzeClientProps) {
                   label="Numero Protocollo"
                   value={draftFilters.protocollo}
                   onChange={(e) => setDraftFilters({ ...draftFilters, protocollo: e.target.value })}
-                  placeholder="00001"
+                  placeholder="es. 00001"
                 />
               </div>
             </div>

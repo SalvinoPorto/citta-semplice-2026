@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '50');
 
   // Build where clause
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { inBozza: false };
 
   if (codiceFiscale) {
     where.utente = {

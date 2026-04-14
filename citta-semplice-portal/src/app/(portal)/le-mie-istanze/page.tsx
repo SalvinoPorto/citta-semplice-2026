@@ -9,6 +9,7 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { IstanzeTable } from './IstanzeTable';
+import { BozzaDeleteButton } from './BozzaDeleteButton';
 
 export const metadata: Metadata = {
   title: 'Le mie istanze - Città Semplice',
@@ -104,6 +105,7 @@ export default async function LeMieIstanzePage() {
                               </svg>
                               Riprendi
                             </Link>
+                            <BozzaDeleteButton bozzaId={bozza.id} />
                           </td>
                         </tr>
                       );
