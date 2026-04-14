@@ -38,14 +38,14 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean) {
   const [nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale] =
     await Promise.all([
       prisma.istanza.count({
-        where: { ...servizioFilter, conclusa: false, respinta: false, workflows: { every: { operatoreId: null } } },
+        where: { ...servizioFilter, inBozza: false, conclusa: false, respinta: false, workflows: { every: { operatoreId: null } } },
       }),
       isAdmin
         ? prisma.$queryRaw<[{ count: bigint }]>`
             SELECT COUNT(DISTINCT i.id) as count
             FROM istanze i
             INNER JOIN workflows w ON w.istanza_id = i.id
-            WHERE i.conclusa = false AND i.respinta = false
+            WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
             AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
             AND w.operatore_id = ${operatoreId}
           `.then((r) => Number(r[0]?.count || 0))
@@ -54,7 +54,7 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean) {
             FROM istanze i
             INNER JOIN workflows w ON w.istanza_id = i.id
             INNER JOIN operatore_servizi os ON os.servizio_id = i.servizio_id AND os.operatore_id = ${operatoreId}
-            WHERE i.conclusa = false AND i.respinta = false
+            WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
             AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
             AND w.operatore_id = ${operatoreId}
           `.then((r) => Number(r[0]?.count || 0)),
@@ -63,7 +63,7 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean) {
             SELECT COUNT(DISTINCT i.id) as count
             FROM istanze i
             INNER JOIN workflows w ON w.istanza_id = i.id
-            WHERE i.conclusa = false AND i.respinta = false
+            WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
             AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
             AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
           `.then((r) => Number(r[0]?.count || 0))
@@ -72,13 +72,13 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean) {
             FROM istanze i
             INNER JOIN workflows w ON w.istanza_id = i.id
             INNER JOIN operatore_servizi os ON os.servizio_id = i.servizio_id AND os.operatore_id = ${operatoreId}
-            WHERE i.conclusa = false AND i.respinta = false
+            WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
             AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
             AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
           `.then((r) => Number(r[0]?.count || 0)),
-      prisma.istanza.count({ where: { ...servizioFilter, respinta: true } }),
-      prisma.istanza.count({ where: { ...servizioFilter, conclusa: true } }),
-      prisma.istanza.count({ where: servizioFilter }),
+      prisma.istanza.count({ where: { ...servizioFilter, inBozza: false, respinta: true } }),
+      prisma.istanza.count({ where: { ...servizioFilter, inBozza: false, conclusa: true } }),
+      prisma.istanza.count({ where: { ...servizioFilter, inBozza: false } }),
     ]);
 
   return { nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale };
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   } = body;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const whereClause: any = {};
+  const whereClause: any = { inBozza: false };
 
   if (!isAdmin) {
     whereClause.servizio = { operatori: { some: { operatoreId } } };

@@ -8,7 +8,9 @@
       "Read(//Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/**)",
       "Read(//Users/salvino/Projects/citta-semplice-2026/**)",
       "Bash(grep -n \"status\\\\|statusId\" /Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/istanze/[id]/page.tsx)",
-      "Bash(grep -n \"wf\\\\.status\\\\|workflow\\\\.status\\\\|\\\\.status\\\\.\" /Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/istanze/[id]/page.tsx)"
+      "Bash(grep -n \"wf\\\\.status\\\\|workflow\\\\.status\\\\|\\\\.status\\\\.\" /Users/salvino/Projects/citta-semplice-2026/citta-semplice-office/src/app/\\\\\\(dashboard\\\\\\)/istanze/[id]/page.tsx)",
+      "Read(//Users/salvino/Projects/visure-anagrafiche/CIGClient/**)",
+      "Read(//Users/salvino/Projects/visure-anagrafiche/visure-anagrafiche/**)"
     ]
   }
 }

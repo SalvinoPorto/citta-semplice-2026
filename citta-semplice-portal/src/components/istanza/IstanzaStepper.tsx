@@ -71,6 +71,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
 
   const moduloRef = useRef<ModuloStepHandle>(null);
   const allegatiRef = useRef<AllegatiStepHandle>(null);
+  const steppersRef = useRef<HTMLDivElement>(null);
 
   // Gli allegati del primo step destinati al cittadino (non interni, non operatore)
   const allegatiRichiesti: AllegatoRichiesto[] = servizio.steps[0]?.allegatiRichiestiList ?? [];
@@ -78,6 +79,15 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
   const canGoForward = () => {
     if (activeStep === 0) return privacyAccettata;
     return true;
+  };
+
+  const scrollToStepper = () => {
+    const el = steppersRef.current;
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleForward = async () => {
@@ -91,10 +101,12 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       if (!valid) return;
     }
     setActiveStep((s) => Math.min(s + 1, STEPS.length - 1));
+    scrollToStepper();
   };
 
   const handleBack = () => {
     setActiveStep((s) => Math.max(s - 1, 0));
+    scrollToStepper();
   };
 
   const handleSaveDraft = async () => {
@@ -155,7 +167,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
   };
 
   return (
-    <div className="it-steppers-container">
+    <div className="it-steppers-container" ref={steppersRef}>
       {/* Progress bar steps */}
       <div className="steppers mb-4">
         <ul className="steppers-header">

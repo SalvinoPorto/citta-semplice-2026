@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import prisma from '@/lib/db/prisma';
 import { requireAuth } from '@/lib/auth/session';
 import { ROLES } from '@/lib/auth/roles';
@@ -7,6 +8,7 @@ async function getServizi(operatoreId: number, isAdmin: boolean) {
   return prisma.servizio.findMany({
     where: {
       attivo: true,
+      OR: [{ dataFine: null }, { dataFine: { gte: new Date() } }],
       ...(!isAdmin && { operatori: { some: { operatoreId } } }),
     },
     orderBy: { titolo: 'asc' },
@@ -26,7 +28,9 @@ export default async function IstanzePage() {
         <h1>Istanze</h1>
         <p>Gestione delle istanze degli utenti</p>
       </div>
-      <IstanzeClient servizi={servizi} operatoreId={operatoreId} />
+      <Suspense>
+        <IstanzeClient servizi={servizi} />
+      </Suspense>
     </>
   );
 }

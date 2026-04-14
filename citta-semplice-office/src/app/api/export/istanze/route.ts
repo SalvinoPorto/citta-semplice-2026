@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const stato = searchParams.get('stato');
 
   // Build where clause
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { inBozza: false };
 
   if (codiceFiscale) {
     where.utente = {

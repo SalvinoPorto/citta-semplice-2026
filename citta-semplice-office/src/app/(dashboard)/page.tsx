@@ -12,15 +12,15 @@ async function getDashboardStats() {
     serviziAttivi,
     operatoriAttivi,
   ] = await Promise.all([
-    prisma.istanza.count(),
+    prisma.istanza.count({ where: { inBozza: false } }),
     prisma.istanza.count({
-      where: { conclusa: false, respinta: false },
+      where: { inBozza: false, conclusa: false, respinta: false },
     }),
     prisma.istanza.count({
-      where: { conclusa: true },
+      where: { inBozza: false, conclusa: true },
     }),
     prisma.istanza.count({
-      where: { respinta: true },
+      where: { inBozza: false, respinta: true },
     }),
     prisma.servizio.count({
       where: { attivo: true },
@@ -44,6 +44,7 @@ async function getRecentIstanze() {
   return prisma.istanza.findMany({
     take: 10,
     orderBy: { dataInvio: 'desc' },
+    where: { inBozza: false },
     include: {
       utente: {
         select: { nome: true, cognome: true, codiceFiscale: true },
