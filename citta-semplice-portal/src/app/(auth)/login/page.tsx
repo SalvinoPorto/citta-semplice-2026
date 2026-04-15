@@ -1,40 +1,63 @@
+import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { LoginForm } from './login-form';
+import { SsoHandoff } from './sso-handoff';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Accedi - Città Semplice',
 };
 
-export default function LoginPage() {
-  return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-8 col-lg-5">
-            <div className="text-center mb-4">
-              <h1 className="h3 mb-2">Città Semplice</h1>
-              <p className="text-muted">Portale dei Servizi Online - Comune di Catania</p>
-            </div>
+interface Props {
+  searchParams: Promise<{ callbackUrl?: string; ssoToken?: string; error?: string }>;
+}
 
-            <Suspense
-              fallback={
-                <div className="card p-4 text-center">
-                  <div className="spinner-border text-primary mx-auto" role="status">
-                    <span className="visually-hidden">Caricamento...</span>
-                  </div>
+export default async function LoginPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const callbackUrl = params.callbackUrl ?? '/le-mie-istanze';
+
+  // SSO callback: complete next-auth session creation client-side
+  if (params.ssoToken) {
+    return (
+      <Suspense>
+        <SsoHandoff ssoToken={params.ssoToken} callbackUrl={callbackUrl} />
+      </Suspense>
+    );
+  }
+
+  // SSO error: show a message with a retry link
+  if (params.error) {
+    const messages: Record<string, string> = {
+      sso_init: 'Impossibile avviare il servizio di autenticazione. Riprova più tardi.',
+      sso_invalid: 'Risposta non valida dal servizio di autenticazione.',
+      sso_auth: 'Autenticazione non riuscita. Riprova.',
+      sso_user: 'Impossibile leggere i dati utente dal servizio di autenticazione.',
+      sso_db: 'Errore interno. Riprova più tardi.',
+    };
+    const message = messages[params.error] ?? 'Si è verificato un errore durante il login.';
+
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-md-8 col-lg-5">
+              <div className="card shadow-sm">
+                <div className="card-body p-4 text-center">
+                  <p className="text-danger mb-4">{message}</p>
+                  <a
+                    href={`/api/auth/sso/logon?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                    className="btn btn-primary"
+                  >
+                    Riprova con SPID / CIE
+                  </a>
                 </div>
-              }
-            >
-              <LoginForm />
-            </Suspense>
-
-            <p className="text-center mt-4 text-muted small">
-              Comune di Catania - Istanze Online
-            </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Default: redirect directly to SSO
+  redirect(`/api/auth/sso/logon?callbackUrl=${encodeURIComponent(callbackUrl)}`);
 }

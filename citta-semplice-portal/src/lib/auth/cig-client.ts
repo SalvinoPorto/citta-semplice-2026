@@ -363,7 +363,7 @@ export function buildAuthRequestXml(
     `<URLLogo>${urlLogo}</URLLogo>`,
     '</ServiziStyle>',
     '<MetodoAutenticazione>',
-    '<UP>0</UP>',
+    '<UP>1</UP>',
     '<CIE>1</CIE>',
     '<INFOCAMERE>0</INFOCAMERE>',
     '<CRSCNS>1</CRSCNS>',
