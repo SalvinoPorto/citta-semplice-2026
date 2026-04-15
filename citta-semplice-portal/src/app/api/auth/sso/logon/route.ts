@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   // Store the callbackUrl in a short-lived httpOnly cookie so the callback
   // route can redirect the user to the right destination after login.
-  const redirectUrl = `${SSO_URL}AutRequest.do?buffer=${encodeURIComponent(client.netBuffer)}`;
+  const redirectUrl = `${SSO_URL}AutRequest.do?buffer=${encodeURIComponent(client.netBuffer)}&up=1`;
 
   const response = NextResponse.redirect(redirectUrl);
   response.cookies.set('cig_sso_callback', callbackUrl, {
