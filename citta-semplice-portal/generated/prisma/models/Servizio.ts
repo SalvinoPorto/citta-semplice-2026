@@ -456,6 +456,7 @@ export type ServizioWhereInput = {
   customerSatisfaction?: Prisma.XOR<Prisma.CustomerSatisfactionNullableScalarRelationFilter, Prisma.CustomerSatisfactionWhereInput> | null
   ricevuta?: Prisma.XOR<Prisma.RicevutaNullableScalarRelationFilter, Prisma.RicevutaWhereInput> | null
   ruoli?: Prisma.ServizioRuoloUserListRelationFilter
+  fasi?: Prisma.FaseListRelationFilter
 }
 
 export type ServizioOrderByWithRelationInput = {
@@ -499,6 +500,7 @@ export type ServizioOrderByWithRelationInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionOrderByWithRelationInput
   ricevuta?: Prisma.RicevutaOrderByWithRelationInput
   ruoli?: Prisma.ServizioRuoloUserOrderByRelationAggregateInput
+  fasi?: Prisma.FaseOrderByRelationAggregateInput
 }
 
 export type ServizioWhereUniqueInput = Prisma.AtLeast<{
@@ -545,6 +547,7 @@ export type ServizioWhereUniqueInput = Prisma.AtLeast<{
   customerSatisfaction?: Prisma.XOR<Prisma.CustomerSatisfactionNullableScalarRelationFilter, Prisma.CustomerSatisfactionWhereInput> | null
   ricevuta?: Prisma.XOR<Prisma.RicevutaNullableScalarRelationFilter, Prisma.RicevutaWhereInput> | null
   ruoli?: Prisma.ServizioRuoloUserListRelationFilter
+  fasi?: Prisma.FaseListRelationFilter
 }, "id" | "slug">
 
 export type ServizioOrderByWithAggregationInput = {
@@ -663,6 +666,7 @@ export type ServizioCreateInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateInput = {
@@ -704,6 +708,7 @@ export type ServizioUncheckedCreateInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUpdateInput = {
@@ -744,6 +749,7 @@ export type ServizioUpdateInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateInput = {
@@ -785,6 +791,7 @@ export type ServizioUncheckedUpdateInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioCreateManyInput = {
@@ -1177,6 +1184,20 @@ export type ServizioUpdateOneRequiredWithoutIstanzeNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ServizioUpdateToOneWithWhereWithoutIstanzeInput, Prisma.ServizioUpdateWithoutIstanzeInput>, Prisma.ServizioUncheckedUpdateWithoutIstanzeInput>
 }
 
+export type ServizioCreateNestedOneWithoutFasiInput = {
+  create?: Prisma.XOR<Prisma.ServizioCreateWithoutFasiInput, Prisma.ServizioUncheckedCreateWithoutFasiInput>
+  connectOrCreate?: Prisma.ServizioCreateOrConnectWithoutFasiInput
+  connect?: Prisma.ServizioWhereUniqueInput
+}
+
+export type ServizioUpdateOneRequiredWithoutFasiNestedInput = {
+  create?: Prisma.XOR<Prisma.ServizioCreateWithoutFasiInput, Prisma.ServizioUncheckedCreateWithoutFasiInput>
+  connectOrCreate?: Prisma.ServizioCreateOrConnectWithoutFasiInput
+  upsert?: Prisma.ServizioUpsertWithoutFasiInput
+  connect?: Prisma.ServizioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ServizioUpdateToOneWithWhereWithoutFasiInput, Prisma.ServizioUpdateWithoutFasiInput>, Prisma.ServizioUncheckedUpdateWithoutFasiInput>
+}
+
 export type ServizioCreateNestedOneWithoutCustomerSatisfactionInput = {
   create?: Prisma.XOR<Prisma.ServizioCreateWithoutCustomerSatisfactionInput, Prisma.ServizioUncheckedCreateWithoutCustomerSatisfactionInput>
   connectOrCreate?: Prisma.ServizioCreateOrConnectWithoutCustomerSatisfactionInput
@@ -1242,6 +1263,7 @@ export type ServizioCreateWithoutAreaInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutAreaInput = {
@@ -1282,6 +1304,7 @@ export type ServizioUncheckedCreateWithoutAreaInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutAreaInput = {
@@ -1385,6 +1408,7 @@ export type ServizioCreateWithoutUfficioInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutUfficioInput = {
@@ -1425,6 +1449,7 @@ export type ServizioUncheckedCreateWithoutUfficioInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutUfficioInput = {
@@ -1490,6 +1515,7 @@ export type ServizioCreateWithoutOperatoriInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutOperatoriInput = {
@@ -1530,6 +1556,7 @@ export type ServizioUncheckedCreateWithoutOperatoriInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutOperatoriInput = {
@@ -1585,6 +1612,7 @@ export type ServizioUpdateWithoutOperatoriInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutOperatoriInput = {
@@ -1625,6 +1653,7 @@ export type ServizioUncheckedUpdateWithoutOperatoriInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioCreateWithoutRuoliInput = {
@@ -1664,6 +1693,7 @@ export type ServizioCreateWithoutRuoliInput = {
   istanze?: Prisma.IstanzaCreateNestedManyWithoutServizioInput
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutRuoliInput = {
@@ -1704,6 +1734,7 @@ export type ServizioUncheckedCreateWithoutRuoliInput = {
   istanze?: Prisma.IstanzaUncheckedCreateNestedManyWithoutServizioInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutRuoliInput = {
@@ -1759,6 +1790,7 @@ export type ServizioUpdateWithoutRuoliInput = {
   istanze?: Prisma.IstanzaUpdateManyWithoutServizioNestedInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutRuoliInput = {
@@ -1799,6 +1831,7 @@ export type ServizioUncheckedUpdateWithoutRuoliInput = {
   istanze?: Prisma.IstanzaUncheckedUpdateManyWithoutServizioNestedInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioCreateWithoutStepsInput = {
@@ -1838,6 +1871,7 @@ export type ServizioCreateWithoutStepsInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutStepsInput = {
@@ -1878,6 +1912,7 @@ export type ServizioUncheckedCreateWithoutStepsInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutStepsInput = {
@@ -1933,6 +1968,7 @@ export type ServizioUpdateWithoutStepsInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutStepsInput = {
@@ -1973,6 +2009,7 @@ export type ServizioUncheckedUpdateWithoutStepsInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioCreateWithoutIstanzeInput = {
@@ -2012,6 +2049,7 @@ export type ServizioCreateWithoutIstanzeInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutIstanzeInput = {
@@ -2052,6 +2090,7 @@ export type ServizioUncheckedCreateWithoutIstanzeInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutIstanzeInput = {
@@ -2107,6 +2146,7 @@ export type ServizioUpdateWithoutIstanzeInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutIstanzeInput = {
@@ -2144,6 +2184,185 @@ export type ServizioUncheckedUpdateWithoutIstanzeInput = {
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operatori?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutServizioNestedInput
   steps?: Prisma.StepUncheckedUpdateManyWithoutServizioNestedInput
+  customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
+  ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
+  ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
+}
+
+export type ServizioCreateWithoutFasiInput = {
+  titolo: string
+  sottoTitolo?: string | null
+  descrizione?: string | null
+  comeFare?: string | null
+  cosaServe?: string | null
+  altreInfo?: string | null
+  contatti?: string | null
+  slug?: string
+  icona?: string | null
+  ordine?: number
+  attivo?: boolean
+  attributi?: string | null
+  moduloCorpo?: string | null
+  postFormValidation?: boolean
+  postFormValidationAPI?: string | null
+  postFormValidationFields?: string | null
+  dataInizio?: Date | string | null
+  dataFine?: Date | string | null
+  unicoInvio?: boolean
+  unicoInvioPerUtente?: boolean
+  campiUnicoInvio?: string | null
+  numeroMaxIstanze?: number | null
+  msgSopraSoglia?: string | null
+  msgExtraServizio?: string | null
+  campiInEvidenza?: string | null
+  campiDaEsportare?: string | null
+  evidenza?: boolean
+  createdAt?: Date | string | null
+  updatedAt?: Date | string | null
+  area: Prisma.AreaCreateNestedOneWithoutServiziInput
+  ufficio?: Prisma.UfficioCreateNestedOneWithoutServiziInput
+  operatori?: Prisma.OperatoreServizioCreateNestedManyWithoutServizioInput
+  steps?: Prisma.StepCreateNestedManyWithoutServizioInput
+  istanze?: Prisma.IstanzaCreateNestedManyWithoutServizioInput
+  customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
+  ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
+  ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+}
+
+export type ServizioUncheckedCreateWithoutFasiInput = {
+  id?: number
+  titolo: string
+  sottoTitolo?: string | null
+  descrizione?: string | null
+  comeFare?: string | null
+  cosaServe?: string | null
+  altreInfo?: string | null
+  contatti?: string | null
+  slug?: string
+  icona?: string | null
+  ordine?: number
+  attivo?: boolean
+  areaId: number
+  attributi?: string | null
+  moduloCorpo?: string | null
+  postFormValidation?: boolean
+  postFormValidationAPI?: string | null
+  postFormValidationFields?: string | null
+  ufficioId?: number | null
+  dataInizio?: Date | string | null
+  dataFine?: Date | string | null
+  unicoInvio?: boolean
+  unicoInvioPerUtente?: boolean
+  campiUnicoInvio?: string | null
+  numeroMaxIstanze?: number | null
+  msgSopraSoglia?: string | null
+  msgExtraServizio?: string | null
+  campiInEvidenza?: string | null
+  campiDaEsportare?: string | null
+  evidenza?: boolean
+  createdAt?: Date | string | null
+  updatedAt?: Date | string | null
+  operatori?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutServizioInput
+  steps?: Prisma.StepUncheckedCreateNestedManyWithoutServizioInput
+  istanze?: Prisma.IstanzaUncheckedCreateNestedManyWithoutServizioInput
+  customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
+  ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
+  ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+}
+
+export type ServizioCreateOrConnectWithoutFasiInput = {
+  where: Prisma.ServizioWhereUniqueInput
+  create: Prisma.XOR<Prisma.ServizioCreateWithoutFasiInput, Prisma.ServizioUncheckedCreateWithoutFasiInput>
+}
+
+export type ServizioUpsertWithoutFasiInput = {
+  update: Prisma.XOR<Prisma.ServizioUpdateWithoutFasiInput, Prisma.ServizioUncheckedUpdateWithoutFasiInput>
+  create: Prisma.XOR<Prisma.ServizioCreateWithoutFasiInput, Prisma.ServizioUncheckedCreateWithoutFasiInput>
+  where?: Prisma.ServizioWhereInput
+}
+
+export type ServizioUpdateToOneWithWhereWithoutFasiInput = {
+  where?: Prisma.ServizioWhereInput
+  data: Prisma.XOR<Prisma.ServizioUpdateWithoutFasiInput, Prisma.ServizioUncheckedUpdateWithoutFasiInput>
+}
+
+export type ServizioUpdateWithoutFasiInput = {
+  titolo?: Prisma.StringFieldUpdateOperationsInput | string
+  sottoTitolo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comeFare?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cosaServe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  altreInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contatti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  icona?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ordine?: Prisma.IntFieldUpdateOperationsInput | number
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attributi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  moduloCorpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postFormValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postFormValidationAPI?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postFormValidationFields?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dataInizio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataFine?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  unicoInvio?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unicoInvioPerUtente?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  campiUnicoInvio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  numeroMaxIstanze?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  msgSopraSoglia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  msgExtraServizio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campiDaEsportare?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  evidenza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  area?: Prisma.AreaUpdateOneRequiredWithoutServiziNestedInput
+  ufficio?: Prisma.UfficioUpdateOneWithoutServiziNestedInput
+  operatori?: Prisma.OperatoreServizioUpdateManyWithoutServizioNestedInput
+  steps?: Prisma.StepUpdateManyWithoutServizioNestedInput
+  istanze?: Prisma.IstanzaUpdateManyWithoutServizioNestedInput
+  customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
+  ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
+  ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+}
+
+export type ServizioUncheckedUpdateWithoutFasiInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  titolo?: Prisma.StringFieldUpdateOperationsInput | string
+  sottoTitolo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comeFare?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cosaServe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  altreInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contatti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  icona?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ordine?: Prisma.IntFieldUpdateOperationsInput | number
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  areaId?: Prisma.IntFieldUpdateOperationsInput | number
+  attributi?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  moduloCorpo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postFormValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postFormValidationAPI?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postFormValidationFields?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dataInizio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataFine?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  unicoInvio?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unicoInvioPerUtente?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  campiUnicoInvio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  numeroMaxIstanze?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  msgSopraSoglia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  msgExtraServizio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campiDaEsportare?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  evidenza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  operatori?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutServizioNestedInput
+  steps?: Prisma.StepUncheckedUpdateManyWithoutServizioNestedInput
+  istanze?: Prisma.IstanzaUncheckedUpdateManyWithoutServizioNestedInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
@@ -2186,6 +2405,7 @@ export type ServizioCreateWithoutCustomerSatisfactionInput = {
   istanze?: Prisma.IstanzaCreateNestedManyWithoutServizioInput
   ricevuta?: Prisma.RicevutaCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutCustomerSatisfactionInput = {
@@ -2226,6 +2446,7 @@ export type ServizioUncheckedCreateWithoutCustomerSatisfactionInput = {
   istanze?: Prisma.IstanzaUncheckedCreateNestedManyWithoutServizioInput
   ricevuta?: Prisma.RicevutaUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutCustomerSatisfactionInput = {
@@ -2281,6 +2502,7 @@ export type ServizioUpdateWithoutCustomerSatisfactionInput = {
   istanze?: Prisma.IstanzaUpdateManyWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutCustomerSatisfactionInput = {
@@ -2321,6 +2543,7 @@ export type ServizioUncheckedUpdateWithoutCustomerSatisfactionInput = {
   istanze?: Prisma.IstanzaUncheckedUpdateManyWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioCreateWithoutRicevutaInput = {
@@ -2360,6 +2583,7 @@ export type ServizioCreateWithoutRicevutaInput = {
   istanze?: Prisma.IstanzaCreateNestedManyWithoutServizioInput
   customerSatisfaction?: Prisma.CustomerSatisfactionCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioUncheckedCreateWithoutRicevutaInput = {
@@ -2400,6 +2624,7 @@ export type ServizioUncheckedCreateWithoutRicevutaInput = {
   istanze?: Prisma.IstanzaUncheckedCreateNestedManyWithoutServizioInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedCreateNestedOneWithoutServizioInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedCreateNestedManyWithoutServizioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutServizioInput
 }
 
 export type ServizioCreateOrConnectWithoutRicevutaInput = {
@@ -2455,6 +2680,7 @@ export type ServizioUpdateWithoutRicevutaInput = {
   istanze?: Prisma.IstanzaUpdateManyWithoutServizioNestedInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutRicevutaInput = {
@@ -2495,6 +2721,7 @@ export type ServizioUncheckedUpdateWithoutRicevutaInput = {
   istanze?: Prisma.IstanzaUncheckedUpdateManyWithoutServizioNestedInput
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioCreateManyAreaInput = {
@@ -2568,6 +2795,7 @@ export type ServizioUpdateWithoutAreaInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutAreaInput = {
@@ -2608,6 +2836,7 @@ export type ServizioUncheckedUpdateWithoutAreaInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateManyWithoutAreaInput = {
@@ -2715,6 +2944,7 @@ export type ServizioUpdateWithoutUfficioInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateWithoutUfficioInput = {
@@ -2755,6 +2985,7 @@ export type ServizioUncheckedUpdateWithoutUfficioInput = {
   customerSatisfaction?: Prisma.CustomerSatisfactionUncheckedUpdateOneWithoutServizioNestedInput
   ricevuta?: Prisma.RicevutaUncheckedUpdateOneWithoutServizioNestedInput
   ruoli?: Prisma.ServizioRuoloUserUncheckedUpdateManyWithoutServizioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutServizioNestedInput
 }
 
 export type ServizioUncheckedUpdateManyWithoutUfficioInput = {
@@ -2801,6 +3032,7 @@ export type ServizioCountOutputType = {
   steps: number
   istanze: number
   ruoli: number
+  fasi: number
 }
 
 export type ServizioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2808,6 +3040,7 @@ export type ServizioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   steps?: boolean | ServizioCountOutputTypeCountStepsArgs
   istanze?: boolean | ServizioCountOutputTypeCountIstanzeArgs
   ruoli?: boolean | ServizioCountOutputTypeCountRuoliArgs
+  fasi?: boolean | ServizioCountOutputTypeCountFasiArgs
 }
 
 /**
@@ -2846,6 +3079,13 @@ export type ServizioCountOutputTypeCountIstanzeArgs<ExtArgs extends runtime.Type
  */
 export type ServizioCountOutputTypeCountRuoliArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ServizioRuoloUserWhereInput
+}
+
+/**
+ * ServizioCountOutputType without action
+ */
+export type ServizioCountOutputTypeCountFasiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaseWhereInput
 }
 
 
@@ -2890,6 +3130,7 @@ export type ServizioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   customerSatisfaction?: boolean | Prisma.Servizio$customerSatisfactionArgs<ExtArgs>
   ricevuta?: boolean | Prisma.Servizio$ricevutaArgs<ExtArgs>
   ruoli?: boolean | Prisma.Servizio$ruoliArgs<ExtArgs>
+  fasi?: boolean | Prisma.Servizio$fasiArgs<ExtArgs>
   _count?: boolean | Prisma.ServizioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["servizio"]>
 
@@ -3012,6 +3253,7 @@ export type ServizioInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   customerSatisfaction?: boolean | Prisma.Servizio$customerSatisfactionArgs<ExtArgs>
   ricevuta?: boolean | Prisma.Servizio$ricevutaArgs<ExtArgs>
   ruoli?: boolean | Prisma.Servizio$ruoliArgs<ExtArgs>
+  fasi?: boolean | Prisma.Servizio$fasiArgs<ExtArgs>
   _count?: boolean | Prisma.ServizioCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ServizioIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3034,6 +3276,7 @@ export type $ServizioPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     customerSatisfaction: Prisma.$CustomerSatisfactionPayload<ExtArgs> | null
     ricevuta: Prisma.$RicevutaPayload<ExtArgs> | null
     ruoli: Prisma.$ServizioRuoloUserPayload<ExtArgs>[]
+    fasi: Prisma.$FasePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -3470,6 +3713,7 @@ export interface Prisma__ServizioClient<T, Null = never, ExtArgs extends runtime
   customerSatisfaction<T extends Prisma.Servizio$customerSatisfactionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Servizio$customerSatisfactionArgs<ExtArgs>>): Prisma.Prisma__CustomerSatisfactionClient<runtime.Types.Result.GetResult<Prisma.$CustomerSatisfactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ricevuta<T extends Prisma.Servizio$ricevutaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Servizio$ricevutaArgs<ExtArgs>>): Prisma.Prisma__RicevutaClient<runtime.Types.Result.GetResult<Prisma.$RicevutaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ruoli<T extends Prisma.Servizio$ruoliArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Servizio$ruoliArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServizioRuoloUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  fasi<T extends Prisma.Servizio$fasiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Servizio$fasiArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4082,6 +4326,30 @@ export type Servizio$ruoliArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.ServizioRuoloUserScalarFieldEnum | Prisma.ServizioRuoloUserScalarFieldEnum[]
+}
+
+/**
+ * Servizio.fasi
+ */
+export type Servizio$fasiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Fase
+   */
+  select?: Prisma.FaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Fase
+   */
+  omit?: Prisma.FaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaseInclude<ExtArgs> | null
+  where?: Prisma.FaseWhereInput
+  orderBy?: Prisma.FaseOrderByWithRelationInput | Prisma.FaseOrderByWithRelationInput[]
+  cursor?: Prisma.FaseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaseScalarFieldEnum | Prisma.FaseScalarFieldEnum[]
 }
 
 /**

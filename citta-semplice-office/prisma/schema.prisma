@@ -28,6 +28,7 @@ model Operatore {
   servizi           OperatoreServizio[]
   workflows         Workflow[]
   comunicazioni     Comunicazione[]
+  workflowFasiCompletati  WorkflowFase[]
 
   @@index([userName])
   @@map("operatori")
@@ -158,6 +159,7 @@ model Servizio {
   customerSatisfaction  CustomerSatisfaction?
   ricevuta              Ricevuta?
   ruoli                 ServizioRuoloUser[]
+  fasi                  Fase[]
 
   @@map("servizi")
 }
@@ -170,8 +172,10 @@ model Ufficio {
   telefono    String?   @db.VarChar(255)
   indirizzo   String?   @db.VarChar(255)
   attivo      Boolean   @default(true)
-  
-  servizi     Servizio[]
+
+  servizi              Servizio[]
+  fasi                 Fase[]
+  istanzeUfficioCorrente Istanza[] @relation("UfficioCorrente")
 
   @@map("uffici")
 }
@@ -230,6 +234,9 @@ model Step {
 
   servizioId                  Int       @map("servizio_id")
   servizio                    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
+
+  faseId                      Int?      @map("fase_id")
+  fase                        Fase?     @relation(fields: [faseId], references: [id], onDelete: SetNull)
 
   workflows                   Workflow[]
   allegatiRichiestiList       AllegatoRichiesto[]
@@ -331,8 +338,15 @@ model Istanza {
 
   lastStepId          Int?      @map("last_step_id")
 
+  faseCorrenteId      Int?      @map("fase_corrente_id")
+  faseCorrente        Fase?     @relation("FaseCorrente", fields: [faseCorrenteId], references: [id], onDelete: SetNull)
+
+  ufficioCorrenteId   Int?      @map("ufficio_corrente_id")
+  ufficioCorrente     Ufficio?  @relation("UfficioCorrente", fields: [ufficioCorrenteId], references: [id], onDelete: SetNull)
+
   workflows           Workflow[]
   comunicazioni       Comunicazione[]
+  workflowFasi        WorkflowFase[]
 
   @@index([utenteId])
   @@index([servizioId])
@@ -366,10 +380,49 @@ model Workflow {
 
   allegati            Allegato[]
   pagamentoAtteso PagamentoAtteso?
-  
+
   @@index([istanzaId])
   @@index([dataVariazione])
   @@map("workflows")
+}
+
+model Fase {
+  id          Int      @id @default(autoincrement())
+  nome        String   @db.VarChar(255)
+  ordine      Int
+
+  servizioId  Int      @map("servizio_id")
+  servizio    Servizio @relation(fields: [servizioId], references: [id], onDelete: Cascade)
+
+  ufficioId        Int?     @map("ufficio_id")
+  ufficio          Ufficio? @relation(fields: [ufficioId], references: [id], onDelete: SetNull)
+
+  ufficioVariabile Boolean  @default(false) @map("ufficio_variabile")
+
+  steps                Step[]
+  workflowFasi         WorkflowFase[]
+  istanzeFaseCorrente  Istanza[]      @relation("FaseCorrente")
+
+  @@map("fasi")
+}
+
+model WorkflowFase {
+  id                       Int       @id @default(autoincrement())
+  dataInizio               DateTime  @map("data_inizio")
+  dataCompletamento        DateTime? @map("data_completamento")
+  direzione                String    @default("AVANZAMENTO") @db.VarChar(20)
+
+  istanzaId                Int       @map("istanza_id")
+  istanza                  Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
+
+  faseId                   Int       @map("fase_id")
+  fase                     Fase      @relation(fields: [faseId], references: [id])
+
+  operatoreCompletamentoId Int?      @map("operatore_completamento_id")
+  operatoreCompletamento   Operatore? @relation(fields: [operatoreCompletamentoId], references: [id])
+
+  @@index([istanzaId])
+  @@map("workflow_fasi")
 }
 
 model Comunicazione {

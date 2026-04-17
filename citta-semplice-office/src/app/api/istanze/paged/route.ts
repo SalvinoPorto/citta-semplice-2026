@@ -18,6 +18,7 @@ interface FormFilters {
   modulo: string;
   anno: string;
   cerca: string;
+  ufficioId?: string;
 }
 
 interface SearchBody {
@@ -134,6 +135,23 @@ export async function POST(request: NextRequest) {
         gte: new Date(`${year}-01-01`),
         lt: new Date(`${year + 1}-01-01`),
       };
+    }
+  }
+
+  if (formFilters.ufficioId) {
+    const uid = parseInt(formFilters.ufficioId, 10);
+    // Copre sia fase con ufficio fisso che ufficio variabile scelto dall'operatore
+    const ufficioConditions = [
+      { faseCorrente: { ufficioId: uid } },
+      { ufficioCorrenteId: uid },
+    ];
+    if (whereClause.AND) {
+      whereClause.AND = [...whereClause.AND, { OR: ufficioConditions }];
+    } else if (whereClause.OR) {
+      whereClause.AND = [{ OR: whereClause.OR }, { OR: ufficioConditions }];
+      delete whereClause.OR;
+    } else {
+      whereClause.OR = ufficioConditions;
     }
   }
 
@@ -304,6 +322,10 @@ export async function POST(request: NextRequest) {
             operatore: { select: { id: true, nome: true, cognome: true } },
           },
         },
+        faseCorrente: {
+          include: { ufficio: true },
+        },
+        ufficioCorrente: true,
       },
       orderBy,
       skip: (safePage - 1) * safePageSize,

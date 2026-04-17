@@ -433,3 +433,14 @@ ul.footer-list {
     color: #fff
   }
 }
+
+.form-select {
+  background: url("/assets/icons/arrow-down.svg") no-repeat right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+  border-bottom: 1px solid #5d7083;
+}
+
+.form-check [type="checkbox"] + label, .form-check [type="radio"] + label {
+  font-size: 1rem;
+}

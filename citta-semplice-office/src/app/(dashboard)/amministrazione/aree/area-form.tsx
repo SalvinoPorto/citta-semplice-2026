@@ -14,6 +14,7 @@ interface AreaData {
   icona: string;
   ordine: number;
   attiva: boolean;
+  slug: string;
 }
 
 interface AreaFormProps {
@@ -32,6 +33,7 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
     icona: area?.icona || '',
     ordine: area?.ordine ?? 0,
     attiva: area?.attiva ?? true,
+    slug: area?.slug || '',
   });
 
   const updateField = (field: keyof AreaFormData, value: any) => {
@@ -92,9 +94,19 @@ export function AreaForm({ area, isNew }: AreaFormProps) {
               <div className="mb-3">
                 <Input
                   type="text"
-                  label="Nome *"
+                  label="Nome"
                   value={formData.nome}
                   onChange={(e) => updateField('nome', e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <Input
+                  type="text"
+                  label="Slug"
+                  value={formData.slug}
+                  onChange={(e) => updateField('slug', e.target.value)}
                   required
                 />
               </div>

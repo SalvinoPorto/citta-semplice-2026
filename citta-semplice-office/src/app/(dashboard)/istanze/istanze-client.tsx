@@ -38,6 +38,13 @@ interface Istanza {
     operatoreId: number | null;
     operatore: { id: number; nome: string; cognome: string } | null;
   }[];
+  faseCorrente: {
+    id: number;
+    nome: string;
+    ufficioVariabile: boolean;
+    ufficio: { id: number; nome: string } | null;
+  } | null;
+  ufficioCorrente: { id: number; nome: string } | null;
 }
 
 interface Servizio {
@@ -60,6 +67,7 @@ interface FormFilters {
   modulo: string;
   anno: string;
   cerca: string;
+  ufficioId: string;
 }
 
 const DEFAULT_FORM_FILTERS: FormFilters = {
@@ -67,6 +75,7 @@ const DEFAULT_FORM_FILTERS: FormFilters = {
   modulo: '',
   anno: '',
   cerca: '',
+  ufficioId: '',
 };
 
 const DEFAULT_COUNTS: Counts = {
@@ -80,9 +89,10 @@ const DEFAULT_COUNTS: Counts = {
 
 interface IstanzeClientProps {
   servizi: Servizio[];
+  uffici: Array<{ id: number; nome: string }>;
 }
 
-export function IstanzeClient({ servizi }: IstanzeClientProps) {
+export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -96,6 +106,7 @@ export function IstanzeClient({ servizi }: IstanzeClientProps) {
     modulo: searchParams.get('modulo') || '',
     anno: searchParams.get('anno') || '',
     cerca: searchParams.get('cerca') || '',
+    ufficioId: searchParams.get('ufficioId') || '',
   };
 
   const [tab, setTab] = useState(initialTab);
@@ -132,6 +143,7 @@ export function IstanzeClient({ servizi }: IstanzeClientProps) {
     if (formFilters.modulo) params.set('modulo', formFilters.modulo);
     if (formFilters.anno) params.set('anno', formFilters.anno);
     if (formFilters.cerca) params.set('cerca', formFilters.cerca);
+    if (formFilters.ufficioId) params.set('ufficioId', formFilters.ufficioId);
     const qs = params.toString();
     router.replace(qs ? `/istanze?${qs}` : '/istanze', { scroll: false });
   }, [tab, page, sort, formFilters]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -266,7 +278,7 @@ export function IstanzeClient({ servizi }: IstanzeClientProps) {
               </div>
             </div>
             <div className="row g-3">
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <Select
                   label="Servizio"
                   value={draftFilters.modulo}
@@ -280,7 +292,21 @@ export function IstanzeClient({ servizi }: IstanzeClientProps) {
                   ))}
                 </Select>
               </div>
-              <div className="col-md-6">
+              <div className="col-md-4">
+                <Select
+                  label="Ufficio corrente"
+                  value={draftFilters.ufficioId}
+                  onChange={(e) => setDraftFilters({ ...draftFilters, ufficioId: e.target.value })}
+                >
+                  <option value="">Tutti gli uffici</option>
+                  {uffici.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.nome}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="col-md-4">
                 <Input
                   type="text"
                   label="Cerca per valori chiave"
@@ -334,7 +360,7 @@ export function IstanzeClient({ servizi }: IstanzeClientProps) {
                     <THead field="cognome" width="18%">Utente</THead>
                     <THead field="servizio" width="20%">Servizio</THead>
                     <THead field="datiInEvidenza" width="15%">Dati in Evidenza</THead>
-                    <THead field="" width="10%">Fase</THead>
+                    <THead field="" width="13%">Fase / Ufficio</THead>
                     <THead field="" width="10%">Stato</THead>
                     <THead field="" width="5%">&nbsp;</THead>
                   </THeadGroup>
@@ -370,7 +396,17 @@ export function IstanzeClient({ servizi }: IstanzeClientProps) {
                             dangerouslySetInnerHTML={{ __html: formatEvidenza(istanza.datiInEvidenza) }}
                           />
                         </td>
-                        <td>{getFaseBadge(istanza)}</td>
+                        <td>
+                          <div>{getFaseBadge(istanza)}</div>
+                          {(() => {
+                            const ufficio = istanza.faseCorrente?.ufficioVariabile
+                              ? istanza.ufficioCorrente
+                              : istanza.faseCorrente?.ufficio;
+                            return ufficio
+                              ? <small className="text-muted">{ufficio.nome}</small>
+                              : null;
+                          })()}
+                        </td>
                         <td>{getStatusBadge(istanza)}</td>
                         <td>
                           <Link href={`/istanze/${istanza.id}`} className="btn btn-sm btn-outline-primary">

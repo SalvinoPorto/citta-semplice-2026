@@ -20,7 +20,14 @@ export default async function IstanzePage() {
   const user = await requireAuth();
   const operatoreId = parseInt(user.id);
   const isAdmin = (user.ruoli ?? []).includes(ROLES.ADMIN);
-  const servizi = await getServizi(operatoreId, isAdmin);
+  const [servizi, uffici] = await Promise.all([
+    getServizi(operatoreId, isAdmin),
+    prisma.ufficio.findMany({
+      where: { attivo: true },
+      select: { id: true, nome: true },
+      orderBy: { nome: 'asc' },
+    }),
+  ]);
 
   return (
     <>
@@ -29,7 +36,7 @@ export default async function IstanzePage() {
         <p>Gestione delle istanze degli utenti</p>
       </div>
       <Suspense>
-        <IstanzeClient servizi={servizi} />
+        <IstanzeClient servizi={servizi} uffici={uffici} />
       </Suspense>
     </>
   );

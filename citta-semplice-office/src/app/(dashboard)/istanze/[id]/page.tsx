@@ -15,6 +15,17 @@ async function getIstanza(id: number) {
     where: { id },
     include: {
       utente: true,
+      faseCorrente: {
+        include: { ufficio: true },
+      },
+      ufficioCorrente: true,
+      workflowFasi: {
+        include: {
+          fase: { include: { ufficio: true } },
+          operatoreCompletamento: true,
+        },
+        orderBy: { dataInizio: 'asc' },
+      },
       servizio: {
         include: {
           area: true,
@@ -23,6 +34,10 @@ async function getIstanza(id: number) {
             where: { attivo: true },
             orderBy: { ordine: 'asc' },
             include: { pagamentoConfig: true },
+          },
+          fasi: {
+            include: { ufficio: true },
+            orderBy: { ordine: 'asc' },
           },
         },
       },
@@ -87,6 +102,32 @@ export default async function IstanzaDetailPage({
     : lastWorkflow.operatore.id === operatoreId
       ? ASSIGNEDTO.ME
       : ASSIGNEDTO.OTHER;
+
+  const faseCorrente = istanza.faseCorrente ?? null;
+  const fasePrecedente = faseCorrente && faseCorrente.ordine > 1
+    ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine - 1) ?? null
+    : null;
+  const canRollbackFase = !istanza.conclusa && !istanza.respinta && fasePrecedente !== null;
+
+  // Prossima fase (per sapere se ha ufficio variabile al momento dell'avanzamento)
+  const nextFase = faseCorrente
+    ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine + 1) ?? null
+    : null;
+
+  // Il selettore ufficio si mostra solo se lo step corrente è l'ultimo della sua fase
+  const isLastStepOfFase = currentStep?.faseId != null
+    ? !steps.some(s => s.faseId === currentStep.faseId && s.ordine > currentStep.ordine)
+    : false;
+  const nextFaseUfficioVariabile = isLastStepOfFase && (nextFase?.ufficioVariabile ?? false);
+
+  // Uffici disponibili (necessari solo se la prossima fase ha ufficio variabile)
+  const ufficiDisponibili = nextFaseUfficioVariabile
+    ? await prisma.ufficio.findMany({
+        where: { attivo: true },
+        select: { id: true, nome: true },
+        orderBy: { nome: 'asc' },
+      })
+    : [];
   interface CampoDato { name: string; label: string; value: string; }
   function parseDati(raw: string | null | undefined): CampoDato[] {
     if (!raw) return [];
@@ -131,6 +172,15 @@ export default async function IstanzaDetailPage({
           <h1 className="d-flex align-items-center gap-3">
             Istanza #{istanza.id}
             {getStatusBadge()}
+            {faseCorrente && (
+              <span className="badge text-bg-info ms-2">
+                {faseCorrente.nome}
+                {faseCorrente.ufficioVariabile
+                  ? istanza.ufficioCorrente && ` — ${istanza.ufficioCorrente.nome}`
+                  : faseCorrente.ufficio && ` — ${faseCorrente.ufficio.nome}`
+                }
+              </span>
+            )}
           </h1>
           <p>
             {istanza.servizio.titolo}
@@ -173,6 +223,14 @@ export default async function IstanzaDetailPage({
           currentPayment={lastWorkflow?.pagamentoAtteso ?? null}
           stepOrdine={currentStep?.ordine ?? 0}
           isLastStep={isLastStep}
+          canRollbackFase={canRollbackFase}
+          faseCorrente={faseCorrente ? { nome: faseCorrente.nome, ordine: faseCorrente.ordine } : null}
+          fasePrecedente={fasePrecedente ? {
+            nome: fasePrecedente.nome,
+            ufficio: fasePrecedente.ufficio ? { nome: fasePrecedente.ufficio.nome, email: fasePrecedente.ufficio.email ?? null } : null,
+          } : null}
+          nextFaseUfficioVariabile={nextFaseUfficioVariabile}
+          ufficiDisponibili={ufficiDisponibili}
         />
       </div>
 

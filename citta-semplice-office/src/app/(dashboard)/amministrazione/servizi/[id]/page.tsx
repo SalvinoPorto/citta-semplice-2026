@@ -7,6 +7,7 @@ async function getServizio(id: number) {
   return prisma.servizio.findUnique({
     where: { id },
     include: {
+      fasi: { orderBy: { ordine: 'asc' } },
       steps: {
         include: { pagamentoConfig: true, allegatiRichiestiList: true },
         orderBy: { ordine: 'asc' },
@@ -96,6 +97,15 @@ export default async function ModificaServizioPage({ params }: PageProps) {
           postFormValidation: servizio.postFormValidation,
           postFormValidationAPI: servizio.postFormValidationAPI || '',
           postFormValidationFields: servizio.postFormValidationFields || '',
+          fasi: servizio.fasi.length > 0
+            ? servizio.fasi.map((f) => ({
+                id: f.id,
+                nome: f.nome,
+                ordine: f.ordine,
+                ufficioVariabile: f.ufficioVariabile,
+                ufficioId: f.ufficioId,
+              }))
+            : [{ nome: 'Fase 1', ordine: 1, ufficioVariabile: false, ufficioId: null }],
           steps: servizio.steps.map((step) => ({
             id: step.id,
             descrizione: step.descrizione,
@@ -125,6 +135,9 @@ export default async function ModificaServizioPage({ params }: PageProps) {
               interno: a.interno,
               soggetto: (a.soggetto ?? 'UT') as 'UT' | 'OP',
             })),
+            faseOrdine: step.faseId
+              ? (servizio.fasi.find((f) => f.id === step.faseId)?.ordine ?? 1)
+              : 1,
           })),
           ricevutaArt18: servizio.ricevuta ? {
             richiestaArt18: servizio.ricevuta.richiestaArt18,

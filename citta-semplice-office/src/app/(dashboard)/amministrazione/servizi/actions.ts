@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/db/prisma';
 import { servizioSchema, type ServizioFormData } from '@/lib/validations/servizio';
 
-function buildStepData(step: ServizioFormData['steps'][number], idx: number) {
+function buildStepData(step: ServizioFormData['steps'][number], idx: number, faseId?: number) {
   return {
     descrizione: step.descrizione,
     ordine: idx + 1,
@@ -19,7 +19,56 @@ function buildStepData(step: ServizioFormData['steps'][number], idx: number) {
     tipoProtocollo: step.tipoProtocollo || null,
     unitaOrganizzativa: step.unitaOrganizzativa || null,
     numerazioneInterna: step.numerazioneInterna,
+    ...(faseId !== undefined && { faseId }),
   };
+}
+
+async function upsertFasi(
+  servizioId: number,
+  fasiFormData: ServizioFormData['fasi'],
+): Promise<Array<{ ordine: number; id: number }>> {
+  const faseSalvate: Array<{ ordine: number; id: number }> = [];
+
+  for (let i = 0; i < fasiFormData.length; i++) {
+    const faseData = fasiFormData[i];
+    if (faseData.id) {
+      const fase = await prisma.fase.update({
+        where: { id: faseData.id },
+        data: {
+          nome: faseData.nome,
+          ordine: i + 1,
+          ufficioVariabile: faseData.ufficioVariabile,
+          ufficioId: faseData.ufficioVariabile ? null : (faseData.ufficioId ?? null),
+        },
+      });
+      faseSalvate.push({ ordine: i + 1, id: fase.id });
+    } else {
+      const fase = await prisma.fase.create({
+        data: {
+          nome: faseData.nome,
+          ordine: i + 1,
+          servizioId,
+          ufficioVariabile: faseData.ufficioVariabile,
+          ufficioId: faseData.ufficioVariabile ? null : (faseData.ufficioId ?? null),
+        },
+      });
+      faseSalvate.push({ ordine: i + 1, id: fase.id });
+    }
+  }
+
+  // Elimina fasi non più nel form (usa gli id effettivi salvati, incluse le nuove)
+  await prisma.fase.deleteMany({
+    where: {
+      servizioId,
+      id: { notIn: faseSalvate.length > 0 ? faseSalvate.map((f) => f.id) : [-1] },
+    },
+  });
+
+  return faseSalvate;
+}
+
+function getFaseId(faseSalvate: Array<{ ordine: number; id: number }>, faseOrdine: number): number | undefined {
+  return faseSalvate.find((f) => f.ordine === faseOrdine)?.id ?? faseSalvate[0]?.id;
 }
 
 async function createAllegatiRichiestiForStep(stepId: number, step: ServizioFormData['steps'][number]) {
@@ -116,22 +165,33 @@ function buildRicevutaArt18Data(r: NonNullable<ServizioFormData['ricevutaArt18']
 export async function createServizio(data: ServizioFormData) {
   const validated = servizioSchema.parse(data);
 
+  // Crea il servizio senza step (le fasi devono esistere prima degli step)
   const servizio = await prisma.servizio.create({
     data: {
       ...buildServizioData(validated),
-      steps: {
-        create: validated.steps.map((step, idx) => buildStepData(step, idx)),
-      },
       ...(validated.ricevutaArt18 && {
         ricevuta: { create: buildRicevutaArt18Data(validated.ricevutaArt18) },
       }),
     },
-    include: { steps: true },
   });
+
+  // Crea le fasi
+  const faseSalvate = await upsertFasi(servizio.id, validated.fasi);
+
+  // Crea gli step con faseId
+  const createdSteps: { id: number; ordine: number }[] = [];
+  for (let i = 0; i < validated.steps.length; i++) {
+    const step = validated.steps[i];
+    const faseId = getFaseId(faseSalvate, step.faseOrdine);
+    const created = await prisma.step.create({
+      data: { ...buildStepData(step, i, faseId), servizioId: servizio.id },
+    });
+    createdSteps.push({ id: created.id, ordine: i + 1 });
+  }
 
   for (let i = 0; i < validated.steps.length; i++) {
     const step = validated.steps[i];
-    const createdStep = servizio.steps.find((s) => s.ordine === i + 1);
+    const createdStep = createdSteps.find((s) => s.ordine === i + 1);
     if (createdStep) {
       if (step.pagamento) await upsertPagamentoForStep(createdStep.id, step);
       await createAllegatiRichiestiForStep(createdStep.id, step);
@@ -200,12 +260,16 @@ export async function updateServizio(id: number, data: ServizioFormData) {
     },
   });
 
+  // Upsert delle fasi
+  const faseSalvate = await upsertFasi(id, validated.fasi);
+
   // Upsert degli step: aggiorna quelli con id, crea quelli senza
   const savedSteps: { id: number; ordine: number }[] = [];
 
   for (let i = 0; i < validated.steps.length; i++) {
     const step = validated.steps[i];
-    const stepData = buildStepData(step, i);
+    const faseId = getFaseId(faseSalvate, step.faseOrdine);
+    const stepData = buildStepData(step, i, faseId);
 
     if (step.id) {
       // Step esistente → update
