@@ -67,6 +67,8 @@ export const ModelName = {
   Utente: 'Utente',
   Istanza: 'Istanza',
   Workflow: 'Workflow',
+  Fase: 'Fase',
+  WorkflowFase: 'WorkflowFase',
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
   AllegatoRisposta: 'AllegatoRisposta',
@@ -256,7 +258,8 @@ export const StepScalarFieldEnum = {
   numerazioneInterna: 'numerazioneInterna',
   assegnabileASpecificoUfficio: 'assegnabileASpecificoUfficio',
   settaAttributo: 'settaAttributo',
-  servizioId: 'servizioId'
+  servizioId: 'servizioId',
+  faseId: 'faseId'
 } as const
 
 export type StepScalarFieldEnum = (typeof StepScalarFieldEnum)[keyof typeof StepScalarFieldEnum]
@@ -322,7 +325,9 @@ export const IstanzaScalarFieldEnum = {
   createdAt: 'createdAt',
   utenteId: 'utenteId',
   servizioId: 'servizioId',
-  lastStepId: 'lastStepId'
+  lastStepId: 'lastStepId',
+  faseCorrenteId: 'faseCorrenteId',
+  ufficioCorrenteId: 'ufficioCorrenteId'
 } as const
 
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
@@ -340,6 +345,31 @@ export const WorkflowScalarFieldEnum = {
 } as const
 
 export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
+
+
+export const FaseScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  ordine: 'ordine',
+  servizioId: 'servizioId',
+  ufficioId: 'ufficioId',
+  ufficioVariabile: 'ufficioVariabile'
+} as const
+
+export type FaseScalarFieldEnum = (typeof FaseScalarFieldEnum)[keyof typeof FaseScalarFieldEnum]
+
+
+export const WorkflowFaseScalarFieldEnum = {
+  id: 'id',
+  dataInizio: 'dataInizio',
+  dataCompletamento: 'dataCompletamento',
+  direzione: 'direzione',
+  istanzaId: 'istanzaId',
+  faseId: 'faseId',
+  operatoreCompletamentoId: 'operatoreCompletamentoId'
+} as const
+
+export type WorkflowFaseScalarFieldEnum = (typeof WorkflowFaseScalarFieldEnum)[keyof typeof WorkflowFaseScalarFieldEnum]
 
 
 export const ComunicazioneScalarFieldEnum = {

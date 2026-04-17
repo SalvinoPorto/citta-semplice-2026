@@ -32,6 +32,8 @@ export type IstanzaAvgAggregateOutputType = {
   utenteId: number | null
   servizioId: number | null
   lastStepId: number | null
+  faseCorrenteId: number | null
+  ufficioCorrenteId: number | null
 }
 
 export type IstanzaSumAggregateOutputType = {
@@ -40,6 +42,8 @@ export type IstanzaSumAggregateOutputType = {
   utenteId: number | null
   servizioId: number | null
   lastStepId: number | null
+  faseCorrenteId: number | null
+  ufficioCorrenteId: number | null
 }
 
 export type IstanzaMinAggregateOutputType = {
@@ -61,6 +65,8 @@ export type IstanzaMinAggregateOutputType = {
   utenteId: number | null
   servizioId: number | null
   lastStepId: number | null
+  faseCorrenteId: number | null
+  ufficioCorrenteId: number | null
 }
 
 export type IstanzaMaxAggregateOutputType = {
@@ -82,6 +88,8 @@ export type IstanzaMaxAggregateOutputType = {
   utenteId: number | null
   servizioId: number | null
   lastStepId: number | null
+  faseCorrenteId: number | null
+  ufficioCorrenteId: number | null
 }
 
 export type IstanzaCountAggregateOutputType = {
@@ -103,6 +111,8 @@ export type IstanzaCountAggregateOutputType = {
   utenteId: number
   servizioId: number
   lastStepId: number
+  faseCorrenteId: number
+  ufficioCorrenteId: number
   _all: number
 }
 
@@ -113,6 +123,8 @@ export type IstanzaAvgAggregateInputType = {
   utenteId?: true
   servizioId?: true
   lastStepId?: true
+  faseCorrenteId?: true
+  ufficioCorrenteId?: true
 }
 
 export type IstanzaSumAggregateInputType = {
@@ -121,6 +133,8 @@ export type IstanzaSumAggregateInputType = {
   utenteId?: true
   servizioId?: true
   lastStepId?: true
+  faseCorrenteId?: true
+  ufficioCorrenteId?: true
 }
 
 export type IstanzaMinAggregateInputType = {
@@ -142,6 +156,8 @@ export type IstanzaMinAggregateInputType = {
   utenteId?: true
   servizioId?: true
   lastStepId?: true
+  faseCorrenteId?: true
+  ufficioCorrenteId?: true
 }
 
 export type IstanzaMaxAggregateInputType = {
@@ -163,6 +179,8 @@ export type IstanzaMaxAggregateInputType = {
   utenteId?: true
   servizioId?: true
   lastStepId?: true
+  faseCorrenteId?: true
+  ufficioCorrenteId?: true
 }
 
 export type IstanzaCountAggregateInputType = {
@@ -184,6 +202,8 @@ export type IstanzaCountAggregateInputType = {
   utenteId?: true
   servizioId?: true
   lastStepId?: true
+  faseCorrenteId?: true
+  ufficioCorrenteId?: true
   _all?: true
 }
 
@@ -292,6 +312,8 @@ export type IstanzaGroupByOutputType = {
   utenteId: number
   servizioId: number
   lastStepId: number | null
+  faseCorrenteId: number | null
+  ufficioCorrenteId: number | null
   _count: IstanzaCountAggregateOutputType | null
   _avg: IstanzaAvgAggregateOutputType | null
   _sum: IstanzaSumAggregateOutputType | null
@@ -336,10 +358,15 @@ export type IstanzaWhereInput = {
   utenteId?: Prisma.IntFilter<"Istanza"> | number
   servizioId?: Prisma.IntFilter<"Istanza"> | number
   lastStepId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+  faseCorrenteId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+  ufficioCorrenteId?: Prisma.IntNullableFilter<"Istanza"> | number | null
   utente?: Prisma.XOR<Prisma.UtenteScalarRelationFilter, Prisma.UtenteWhereInput>
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
+  faseCorrente?: Prisma.XOR<Prisma.FaseNullableScalarRelationFilter, Prisma.FaseWhereInput> | null
+  ufficioCorrente?: Prisma.XOR<Prisma.UfficioNullableScalarRelationFilter, Prisma.UfficioWhereInput> | null
   workflows?: Prisma.WorkflowListRelationFilter
   comunicazioni?: Prisma.ComunicazioneListRelationFilter
+  workflowFasi?: Prisma.WorkflowFaseListRelationFilter
 }
 
 export type IstanzaOrderByWithRelationInput = {
@@ -361,10 +388,15 @@ export type IstanzaOrderByWithRelationInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrderInput | Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrderInput | Prisma.SortOrder
   utente?: Prisma.UtenteOrderByWithRelationInput
   servizio?: Prisma.ServizioOrderByWithRelationInput
+  faseCorrente?: Prisma.FaseOrderByWithRelationInput
+  ufficioCorrente?: Prisma.UfficioOrderByWithRelationInput
   workflows?: Prisma.WorkflowOrderByRelationAggregateInput
   comunicazioni?: Prisma.ComunicazioneOrderByRelationAggregateInput
+  workflowFasi?: Prisma.WorkflowFaseOrderByRelationAggregateInput
 }
 
 export type IstanzaWhereUniqueInput = Prisma.AtLeast<{
@@ -389,10 +421,15 @@ export type IstanzaWhereUniqueInput = Prisma.AtLeast<{
   utenteId?: Prisma.IntFilter<"Istanza"> | number
   servizioId?: Prisma.IntFilter<"Istanza"> | number
   lastStepId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+  faseCorrenteId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+  ufficioCorrenteId?: Prisma.IntNullableFilter<"Istanza"> | number | null
   utente?: Prisma.XOR<Prisma.UtenteScalarRelationFilter, Prisma.UtenteWhereInput>
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
+  faseCorrente?: Prisma.XOR<Prisma.FaseNullableScalarRelationFilter, Prisma.FaseWhereInput> | null
+  ufficioCorrente?: Prisma.XOR<Prisma.UfficioNullableScalarRelationFilter, Prisma.UfficioWhereInput> | null
   workflows?: Prisma.WorkflowListRelationFilter
   comunicazioni?: Prisma.ComunicazioneListRelationFilter
+  workflowFasi?: Prisma.WorkflowFaseListRelationFilter
 }, "id">
 
 export type IstanzaOrderByWithAggregationInput = {
@@ -414,6 +451,8 @@ export type IstanzaOrderByWithAggregationInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrderInput | Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.IstanzaCountOrderByAggregateInput
   _avg?: Prisma.IstanzaAvgOrderByAggregateInput
   _max?: Prisma.IstanzaMaxOrderByAggregateInput
@@ -443,6 +482,8 @@ export type IstanzaScalarWhereWithAggregatesInput = {
   utenteId?: Prisma.IntWithAggregatesFilter<"Istanza"> | number
   servizioId?: Prisma.IntWithAggregatesFilter<"Istanza"> | number
   lastStepId?: Prisma.IntNullableWithAggregatesFilter<"Istanza"> | number | null
+  faseCorrenteId?: Prisma.IntNullableWithAggregatesFilter<"Istanza"> | number | null
+  ufficioCorrenteId?: Prisma.IntNullableWithAggregatesFilter<"Istanza"> | number | null
 }
 
 export type IstanzaCreateInput = {
@@ -463,8 +504,11 @@ export type IstanzaCreateInput = {
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateInput = {
@@ -486,8 +530,11 @@ export type IstanzaUncheckedCreateInput = {
   utenteId: number
   servizioId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUpdateInput = {
@@ -508,8 +555,11 @@ export type IstanzaUpdateInput = {
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateInput = {
@@ -531,8 +581,11 @@ export type IstanzaUncheckedUpdateInput = {
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaCreateManyInput = {
@@ -554,6 +607,8 @@ export type IstanzaCreateManyInput = {
   utenteId: number
   servizioId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
 }
 
 export type IstanzaUpdateManyMutationInput = {
@@ -593,6 +648,8 @@ export type IstanzaUncheckedUpdateManyInput = {
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type IstanzaListRelationFilter = {
@@ -624,6 +681,8 @@ export type IstanzaCountOrderByAggregateInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrder
 }
 
 export type IstanzaAvgOrderByAggregateInput = {
@@ -632,6 +691,8 @@ export type IstanzaAvgOrderByAggregateInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrder
 }
 
 export type IstanzaMaxOrderByAggregateInput = {
@@ -653,6 +714,8 @@ export type IstanzaMaxOrderByAggregateInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrder
 }
 
 export type IstanzaMinOrderByAggregateInput = {
@@ -674,6 +737,8 @@ export type IstanzaMinOrderByAggregateInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrder
 }
 
 export type IstanzaSumOrderByAggregateInput = {
@@ -682,6 +747,8 @@ export type IstanzaSumOrderByAggregateInput = {
   utenteId?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   lastStepId?: Prisma.SortOrder
+  faseCorrenteId?: Prisma.SortOrder
+  ufficioCorrenteId?: Prisma.SortOrder
 }
 
 export type IstanzaScalarRelationFilter = {
@@ -728,6 +795,48 @@ export type IstanzaUncheckedUpdateManyWithoutServizioNestedInput = {
   connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
   update?: Prisma.IstanzaUpdateWithWhereUniqueWithoutServizioInput | Prisma.IstanzaUpdateWithWhereUniqueWithoutServizioInput[]
   updateMany?: Prisma.IstanzaUpdateManyWithWhereWithoutServizioInput | Prisma.IstanzaUpdateManyWithWhereWithoutServizioInput[]
+  deleteMany?: Prisma.IstanzaScalarWhereInput | Prisma.IstanzaScalarWhereInput[]
+}
+
+export type IstanzaCreateNestedManyWithoutUfficioCorrenteInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput> | Prisma.IstanzaCreateWithoutUfficioCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyUfficioCorrenteInputEnvelope
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+}
+
+export type IstanzaUncheckedCreateNestedManyWithoutUfficioCorrenteInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput> | Prisma.IstanzaCreateWithoutUfficioCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyUfficioCorrenteInputEnvelope
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+}
+
+export type IstanzaUpdateManyWithoutUfficioCorrenteNestedInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput> | Prisma.IstanzaCreateWithoutUfficioCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput[]
+  upsert?: Prisma.IstanzaUpsertWithWhereUniqueWithoutUfficioCorrenteInput | Prisma.IstanzaUpsertWithWhereUniqueWithoutUfficioCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyUfficioCorrenteInputEnvelope
+  set?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  disconnect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  delete?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  update?: Prisma.IstanzaUpdateWithWhereUniqueWithoutUfficioCorrenteInput | Prisma.IstanzaUpdateWithWhereUniqueWithoutUfficioCorrenteInput[]
+  updateMany?: Prisma.IstanzaUpdateManyWithWhereWithoutUfficioCorrenteInput | Prisma.IstanzaUpdateManyWithWhereWithoutUfficioCorrenteInput[]
+  deleteMany?: Prisma.IstanzaScalarWhereInput | Prisma.IstanzaScalarWhereInput[]
+}
+
+export type IstanzaUncheckedUpdateManyWithoutUfficioCorrenteNestedInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput> | Prisma.IstanzaCreateWithoutUfficioCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutUfficioCorrenteInput[]
+  upsert?: Prisma.IstanzaUpsertWithWhereUniqueWithoutUfficioCorrenteInput | Prisma.IstanzaUpsertWithWhereUniqueWithoutUfficioCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyUfficioCorrenteInputEnvelope
+  set?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  disconnect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  delete?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  update?: Prisma.IstanzaUpdateWithWhereUniqueWithoutUfficioCorrenteInput | Prisma.IstanzaUpdateWithWhereUniqueWithoutUfficioCorrenteInput[]
+  updateMany?: Prisma.IstanzaUpdateManyWithWhereWithoutUfficioCorrenteInput | Prisma.IstanzaUpdateManyWithWhereWithoutUfficioCorrenteInput[]
   deleteMany?: Prisma.IstanzaScalarWhereInput | Prisma.IstanzaScalarWhereInput[]
 }
 
@@ -787,6 +896,62 @@ export type IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.IstanzaUpdateToOneWithWhereWithoutWorkflowsInput, Prisma.IstanzaUpdateWithoutWorkflowsInput>, Prisma.IstanzaUncheckedUpdateWithoutWorkflowsInput>
 }
 
+export type IstanzaCreateNestedManyWithoutFaseCorrenteInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput> | Prisma.IstanzaCreateWithoutFaseCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyFaseCorrenteInputEnvelope
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+}
+
+export type IstanzaUncheckedCreateNestedManyWithoutFaseCorrenteInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput> | Prisma.IstanzaCreateWithoutFaseCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyFaseCorrenteInputEnvelope
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+}
+
+export type IstanzaUpdateManyWithoutFaseCorrenteNestedInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput> | Prisma.IstanzaCreateWithoutFaseCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput[]
+  upsert?: Prisma.IstanzaUpsertWithWhereUniqueWithoutFaseCorrenteInput | Prisma.IstanzaUpsertWithWhereUniqueWithoutFaseCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyFaseCorrenteInputEnvelope
+  set?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  disconnect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  delete?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  update?: Prisma.IstanzaUpdateWithWhereUniqueWithoutFaseCorrenteInput | Prisma.IstanzaUpdateWithWhereUniqueWithoutFaseCorrenteInput[]
+  updateMany?: Prisma.IstanzaUpdateManyWithWhereWithoutFaseCorrenteInput | Prisma.IstanzaUpdateManyWithWhereWithoutFaseCorrenteInput[]
+  deleteMany?: Prisma.IstanzaScalarWhereInput | Prisma.IstanzaScalarWhereInput[]
+}
+
+export type IstanzaUncheckedUpdateManyWithoutFaseCorrenteNestedInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput> | Prisma.IstanzaCreateWithoutFaseCorrenteInput[] | Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput[]
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput | Prisma.IstanzaCreateOrConnectWithoutFaseCorrenteInput[]
+  upsert?: Prisma.IstanzaUpsertWithWhereUniqueWithoutFaseCorrenteInput | Prisma.IstanzaUpsertWithWhereUniqueWithoutFaseCorrenteInput[]
+  createMany?: Prisma.IstanzaCreateManyFaseCorrenteInputEnvelope
+  set?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  disconnect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  delete?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  connect?: Prisma.IstanzaWhereUniqueInput | Prisma.IstanzaWhereUniqueInput[]
+  update?: Prisma.IstanzaUpdateWithWhereUniqueWithoutFaseCorrenteInput | Prisma.IstanzaUpdateWithWhereUniqueWithoutFaseCorrenteInput[]
+  updateMany?: Prisma.IstanzaUpdateManyWithWhereWithoutFaseCorrenteInput | Prisma.IstanzaUpdateManyWithWhereWithoutFaseCorrenteInput[]
+  deleteMany?: Prisma.IstanzaScalarWhereInput | Prisma.IstanzaScalarWhereInput[]
+}
+
+export type IstanzaCreateNestedOneWithoutWorkflowFasiInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutWorkflowFasiInput, Prisma.IstanzaUncheckedCreateWithoutWorkflowFasiInput>
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutWorkflowFasiInput
+  connect?: Prisma.IstanzaWhereUniqueInput
+}
+
+export type IstanzaUpdateOneRequiredWithoutWorkflowFasiNestedInput = {
+  create?: Prisma.XOR<Prisma.IstanzaCreateWithoutWorkflowFasiInput, Prisma.IstanzaUncheckedCreateWithoutWorkflowFasiInput>
+  connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutWorkflowFasiInput
+  upsert?: Prisma.IstanzaUpsertWithoutWorkflowFasiInput
+  connect?: Prisma.IstanzaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IstanzaUpdateToOneWithWhereWithoutWorkflowFasiInput, Prisma.IstanzaUpdateWithoutWorkflowFasiInput>, Prisma.IstanzaUncheckedUpdateWithoutWorkflowFasiInput>
+}
+
 export type IstanzaCreateNestedOneWithoutComunicazioniInput = {
   create?: Prisma.XOR<Prisma.IstanzaCreateWithoutComunicazioniInput, Prisma.IstanzaUncheckedCreateWithoutComunicazioniInput>
   connectOrCreate?: Prisma.IstanzaCreateOrConnectWithoutComunicazioniInput
@@ -818,8 +983,11 @@ export type IstanzaCreateWithoutServizioInput = {
   createdAt?: Date | string
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutServizioInput = {
@@ -840,8 +1008,11 @@ export type IstanzaUncheckedCreateWithoutServizioInput = {
   createdAt?: Date | string
   utenteId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutServizioInput = {
@@ -892,6 +1063,83 @@ export type IstanzaScalarWhereInput = {
   utenteId?: Prisma.IntFilter<"Istanza"> | number
   servizioId?: Prisma.IntFilter<"Istanza"> | number
   lastStepId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+  faseCorrenteId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+  ufficioCorrenteId?: Prisma.IntNullableFilter<"Istanza"> | number | null
+}
+
+export type IstanzaCreateWithoutUfficioCorrenteInput = {
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  lastStepId?: number | null
+  utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
+  servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaUncheckedCreateWithoutUfficioCorrenteInput = {
+  id?: number
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  utenteId: number
+  servizioId: number
+  lastStepId?: number | null
+  faseCorrenteId?: number | null
+  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaCreateOrConnectWithoutUfficioCorrenteInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput>
+}
+
+export type IstanzaCreateManyUfficioCorrenteInputEnvelope = {
+  data: Prisma.IstanzaCreateManyUfficioCorrenteInput | Prisma.IstanzaCreateManyUfficioCorrenteInput[]
+  skipDuplicates?: boolean
+}
+
+export type IstanzaUpsertWithWhereUniqueWithoutUfficioCorrenteInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  update: Prisma.XOR<Prisma.IstanzaUpdateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedUpdateWithoutUfficioCorrenteInput>
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutUfficioCorrenteInput>
+}
+
+export type IstanzaUpdateWithWhereUniqueWithoutUfficioCorrenteInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  data: Prisma.XOR<Prisma.IstanzaUpdateWithoutUfficioCorrenteInput, Prisma.IstanzaUncheckedUpdateWithoutUfficioCorrenteInput>
+}
+
+export type IstanzaUpdateManyWithWhereWithoutUfficioCorrenteInput = {
+  where: Prisma.IstanzaScalarWhereInput
+  data: Prisma.XOR<Prisma.IstanzaUpdateManyMutationInput, Prisma.IstanzaUncheckedUpdateManyWithoutUfficioCorrenteInput>
 }
 
 export type IstanzaCreateWithoutUtenteInput = {
@@ -911,8 +1159,11 @@ export type IstanzaCreateWithoutUtenteInput = {
   createdAt?: Date | string
   lastStepId?: number | null
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutUtenteInput = {
@@ -933,8 +1184,11 @@ export type IstanzaUncheckedCreateWithoutUtenteInput = {
   createdAt?: Date | string
   servizioId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutUtenteInput = {
@@ -981,7 +1235,10 @@ export type IstanzaCreateWithoutWorkflowsInput = {
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutWorkflowsInput = {
@@ -1003,7 +1260,10 @@ export type IstanzaUncheckedCreateWithoutWorkflowsInput = {
   utenteId: number
   servizioId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutWorkflowsInput = {
@@ -1040,7 +1300,10 @@ export type IstanzaUpdateWithoutWorkflowsInput = {
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutWorkflowsInput = {
@@ -1062,6 +1325,198 @@ export type IstanzaUncheckedUpdateWithoutWorkflowsInput = {
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaCreateWithoutFaseCorrenteInput = {
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  lastStepId?: number | null
+  utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
+  servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
+  workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaUncheckedCreateWithoutFaseCorrenteInput = {
+  id?: number
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  utenteId: number
+  servizioId: number
+  lastStepId?: number | null
+  ufficioCorrenteId?: number | null
+  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaCreateOrConnectWithoutFaseCorrenteInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput>
+}
+
+export type IstanzaCreateManyFaseCorrenteInputEnvelope = {
+  data: Prisma.IstanzaCreateManyFaseCorrenteInput | Prisma.IstanzaCreateManyFaseCorrenteInput[]
+  skipDuplicates?: boolean
+}
+
+export type IstanzaUpsertWithWhereUniqueWithoutFaseCorrenteInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  update: Prisma.XOR<Prisma.IstanzaUpdateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedUpdateWithoutFaseCorrenteInput>
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedCreateWithoutFaseCorrenteInput>
+}
+
+export type IstanzaUpdateWithWhereUniqueWithoutFaseCorrenteInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  data: Prisma.XOR<Prisma.IstanzaUpdateWithoutFaseCorrenteInput, Prisma.IstanzaUncheckedUpdateWithoutFaseCorrenteInput>
+}
+
+export type IstanzaUpdateManyWithWhereWithoutFaseCorrenteInput = {
+  where: Prisma.IstanzaScalarWhereInput
+  data: Prisma.XOR<Prisma.IstanzaUpdateManyMutationInput, Prisma.IstanzaUncheckedUpdateManyWithoutFaseCorrenteInput>
+}
+
+export type IstanzaCreateWithoutWorkflowFasiInput = {
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  lastStepId?: number | null
+  utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
+  servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
+  workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaUncheckedCreateWithoutWorkflowFasiInput = {
+  id?: number
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  utenteId: number
+  servizioId: number
+  lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
+  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutIstanzaInput
+}
+
+export type IstanzaCreateOrConnectWithoutWorkflowFasiInput = {
+  where: Prisma.IstanzaWhereUniqueInput
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutWorkflowFasiInput, Prisma.IstanzaUncheckedCreateWithoutWorkflowFasiInput>
+}
+
+export type IstanzaUpsertWithoutWorkflowFasiInput = {
+  update: Prisma.XOR<Prisma.IstanzaUpdateWithoutWorkflowFasiInput, Prisma.IstanzaUncheckedUpdateWithoutWorkflowFasiInput>
+  create: Prisma.XOR<Prisma.IstanzaCreateWithoutWorkflowFasiInput, Prisma.IstanzaUncheckedCreateWithoutWorkflowFasiInput>
+  where?: Prisma.IstanzaWhereInput
+}
+
+export type IstanzaUpdateToOneWithWhereWithoutWorkflowFasiInput = {
+  where?: Prisma.IstanzaWhereInput
+  data: Prisma.XOR<Prisma.IstanzaUpdateWithoutWorkflowFasiInput, Prisma.IstanzaUncheckedUpdateWithoutWorkflowFasiInput>
+}
+
+export type IstanzaUpdateWithoutWorkflowFasiInput = {
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
+  servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaUncheckedUpdateWithoutWorkflowFasiInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  utenteId?: Prisma.IntFieldUpdateOperationsInput | number
+  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
@@ -1083,7 +1538,10 @@ export type IstanzaCreateWithoutComunicazioniInput = {
   lastStepId?: number | null
   utente: Prisma.UtenteCreateNestedOneWithoutIstanzeInput
   servizio: Prisma.ServizioCreateNestedOneWithoutIstanzeInput
+  faseCorrente?: Prisma.FaseCreateNestedOneWithoutIstanzeFaseCorrenteInput
+  ufficioCorrente?: Prisma.UfficioCreateNestedOneWithoutIstanzeUfficioCorrenteInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaUncheckedCreateWithoutComunicazioniInput = {
@@ -1105,7 +1563,10 @@ export type IstanzaUncheckedCreateWithoutComunicazioniInput = {
   utenteId: number
   servizioId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutIstanzaInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutIstanzaInput
 }
 
 export type IstanzaCreateOrConnectWithoutComunicazioniInput = {
@@ -1142,7 +1603,10 @@ export type IstanzaUpdateWithoutComunicazioniInput = {
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutComunicazioniInput = {
@@ -1164,7 +1628,10 @@ export type IstanzaUncheckedUpdateWithoutComunicazioniInput = {
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaCreateManyServizioInput = {
@@ -1185,6 +1652,8 @@ export type IstanzaCreateManyServizioInput = {
   createdAt?: Date | string
   utenteId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
 }
 
 export type IstanzaUpdateWithoutServizioInput = {
@@ -1204,8 +1673,11 @@ export type IstanzaUpdateWithoutServizioInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutServizioInput = {
@@ -1226,8 +1698,11 @@ export type IstanzaUncheckedUpdateWithoutServizioInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateManyWithoutServizioInput = {
@@ -1248,6 +1723,101 @@ export type IstanzaUncheckedUpdateManyWithoutServizioInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   utenteId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type IstanzaCreateManyUfficioCorrenteInput = {
+  id?: number
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  utenteId: number
+  servizioId: number
+  lastStepId?: number | null
+  faseCorrenteId?: number | null
+}
+
+export type IstanzaUpdateWithoutUfficioCorrenteInput = {
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
+  servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaUncheckedUpdateWithoutUfficioCorrenteInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  utenteId?: Prisma.IntFieldUpdateOperationsInput | number
+  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaUncheckedUpdateManyWithoutUfficioCorrenteInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  utenteId?: Prisma.IntFieldUpdateOperationsInput | number
+  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type IstanzaCreateManyUtenteInput = {
@@ -1268,6 +1838,8 @@ export type IstanzaCreateManyUtenteInput = {
   createdAt?: Date | string
   servizioId: number
   lastStepId?: number | null
+  faseCorrenteId?: number | null
+  ufficioCorrenteId?: number | null
 }
 
 export type IstanzaUpdateWithoutUtenteInput = {
@@ -1287,8 +1859,11 @@ export type IstanzaUpdateWithoutUtenteInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  faseCorrente?: Prisma.FaseUpdateOneWithoutIstanzeFaseCorrenteNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateWithoutUtenteInput = {
@@ -1309,8 +1884,11 @@ export type IstanzaUncheckedUpdateWithoutUtenteInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
 }
 
 export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
@@ -1331,6 +1909,101 @@ export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  faseCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type IstanzaCreateManyFaseCorrenteInput = {
+  id?: number
+  dati?: string | null
+  datiInEvidenza?: string | null
+  datiResponso?: string | null
+  municipalita?: string | null
+  conclusa?: boolean
+  respinta?: boolean
+  inBozza?: boolean
+  activeStep?: number | null
+  protoNumero: string
+  protoData?: Date | string | null
+  protoFinaleNumero?: string | null
+  protoFinaleData?: Date | string | null
+  dataInvio: Date | string
+  createdAt?: Date | string
+  utenteId: number
+  servizioId: number
+  lastStepId?: number | null
+  ufficioCorrenteId?: number | null
+}
+
+export type IstanzaUpdateWithoutFaseCorrenteInput = {
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  utente?: Prisma.UtenteUpdateOneRequiredWithoutIstanzeNestedInput
+  servizio?: Prisma.ServizioUpdateOneRequiredWithoutIstanzeNestedInput
+  ufficioCorrente?: Prisma.UfficioUpdateOneWithoutIstanzeUfficioCorrenteNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaUncheckedUpdateWithoutFaseCorrenteInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  utenteId?: Prisma.IntFieldUpdateOperationsInput | number
+  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutIstanzaNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutIstanzaNestedInput
+  workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutIstanzaNestedInput
+}
+
+export type IstanzaUncheckedUpdateManyWithoutFaseCorrenteInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  dati?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiInEvidenza?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  datiResponso?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  municipalita?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conclusa?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  respinta?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inBozza?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activeStep?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  protoNumero?: Prisma.StringFieldUpdateOperationsInput | string
+  protoData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  protoFinaleNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  protoFinaleData?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dataInvio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  utenteId?: Prisma.IntFieldUpdateOperationsInput | number
+  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
+  lastStepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ufficioCorrenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1341,11 +2014,13 @@ export type IstanzaUncheckedUpdateManyWithoutUtenteInput = {
 export type IstanzaCountOutputType = {
   workflows: number
   comunicazioni: number
+  workflowFasi: number
 }
 
 export type IstanzaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workflows?: boolean | IstanzaCountOutputTypeCountWorkflowsArgs
   comunicazioni?: boolean | IstanzaCountOutputTypeCountComunicazioniArgs
+  workflowFasi?: boolean | IstanzaCountOutputTypeCountWorkflowFasiArgs
 }
 
 /**
@@ -1372,6 +2047,13 @@ export type IstanzaCountOutputTypeCountComunicazioniArgs<ExtArgs extends runtime
   where?: Prisma.ComunicazioneWhereInput
 }
 
+/**
+ * IstanzaCountOutputType without action
+ */
+export type IstanzaCountOutputTypeCountWorkflowFasiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkflowFaseWhereInput
+}
+
 
 export type IstanzaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1392,10 +2074,15 @@ export type IstanzaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   utenteId?: boolean
   servizioId?: boolean
   lastStepId?: boolean
+  faseCorrenteId?: boolean
+  ufficioCorrenteId?: boolean
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
+  faseCorrente?: boolean | Prisma.Istanza$faseCorrenteArgs<ExtArgs>
+  ufficioCorrente?: boolean | Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>
   workflows?: boolean | Prisma.Istanza$workflowsArgs<ExtArgs>
   comunicazioni?: boolean | Prisma.Istanza$comunicazioniArgs<ExtArgs>
+  workflowFasi?: boolean | Prisma.Istanza$workflowFasiArgs<ExtArgs>
   _count?: boolean | Prisma.IstanzaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["istanza"]>
 
@@ -1418,8 +2105,12 @@ export type IstanzaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   utenteId?: boolean
   servizioId?: boolean
   lastStepId?: boolean
+  faseCorrenteId?: boolean
+  ufficioCorrenteId?: boolean
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
+  faseCorrente?: boolean | Prisma.Istanza$faseCorrenteArgs<ExtArgs>
+  ufficioCorrente?: boolean | Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>
 }, ExtArgs["result"]["istanza"]>
 
 export type IstanzaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1441,8 +2132,12 @@ export type IstanzaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   utenteId?: boolean
   servizioId?: boolean
   lastStepId?: boolean
+  faseCorrenteId?: boolean
+  ufficioCorrenteId?: boolean
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
+  faseCorrente?: boolean | Prisma.Istanza$faseCorrenteArgs<ExtArgs>
+  ufficioCorrente?: boolean | Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>
 }, ExtArgs["result"]["istanza"]>
 
 export type IstanzaSelectScalar = {
@@ -1464,23 +2159,32 @@ export type IstanzaSelectScalar = {
   utenteId?: boolean
   servizioId?: boolean
   lastStepId?: boolean
+  faseCorrenteId?: boolean
+  ufficioCorrenteId?: boolean
 }
 
-export type IstanzaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dati" | "datiInEvidenza" | "datiResponso" | "municipalita" | "conclusa" | "respinta" | "inBozza" | "activeStep" | "protoNumero" | "protoData" | "protoFinaleNumero" | "protoFinaleData" | "dataInvio" | "createdAt" | "utenteId" | "servizioId" | "lastStepId", ExtArgs["result"]["istanza"]>
+export type IstanzaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dati" | "datiInEvidenza" | "datiResponso" | "municipalita" | "conclusa" | "respinta" | "inBozza" | "activeStep" | "protoNumero" | "protoData" | "protoFinaleNumero" | "protoFinaleData" | "dataInvio" | "createdAt" | "utenteId" | "servizioId" | "lastStepId" | "faseCorrenteId" | "ufficioCorrenteId", ExtArgs["result"]["istanza"]>
 export type IstanzaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
+  faseCorrente?: boolean | Prisma.Istanza$faseCorrenteArgs<ExtArgs>
+  ufficioCorrente?: boolean | Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>
   workflows?: boolean | Prisma.Istanza$workflowsArgs<ExtArgs>
   comunicazioni?: boolean | Prisma.Istanza$comunicazioniArgs<ExtArgs>
+  workflowFasi?: boolean | Prisma.Istanza$workflowFasiArgs<ExtArgs>
   _count?: boolean | Prisma.IstanzaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type IstanzaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
+  faseCorrente?: boolean | Prisma.Istanza$faseCorrenteArgs<ExtArgs>
+  ufficioCorrente?: boolean | Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>
 }
 export type IstanzaIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   utente?: boolean | Prisma.UtenteDefaultArgs<ExtArgs>
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
+  faseCorrente?: boolean | Prisma.Istanza$faseCorrenteArgs<ExtArgs>
+  ufficioCorrente?: boolean | Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>
 }
 
 export type $IstanzaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1488,8 +2192,11 @@ export type $IstanzaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     utente: Prisma.$UtentePayload<ExtArgs>
     servizio: Prisma.$ServizioPayload<ExtArgs>
+    faseCorrente: Prisma.$FasePayload<ExtArgs> | null
+    ufficioCorrente: Prisma.$UfficioPayload<ExtArgs> | null
     workflows: Prisma.$WorkflowPayload<ExtArgs>[]
     comunicazioni: Prisma.$ComunicazionePayload<ExtArgs>[]
+    workflowFasi: Prisma.$WorkflowFasePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1510,6 +2217,8 @@ export type $IstanzaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     utenteId: number
     servizioId: number
     lastStepId: number | null
+    faseCorrenteId: number | null
+    ufficioCorrenteId: number | null
   }, ExtArgs["result"]["istanza"]>
   composites: {}
 }
@@ -1906,8 +2615,11 @@ export interface Prisma__IstanzaClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   utente<T extends Prisma.UtenteDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UtenteDefaultArgs<ExtArgs>>): Prisma.Prisma__UtenteClient<runtime.Types.Result.GetResult<Prisma.$UtentePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   servizio<T extends Prisma.ServizioDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServizioDefaultArgs<ExtArgs>>): Prisma.Prisma__ServizioClient<runtime.Types.Result.GetResult<Prisma.$ServizioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  faseCorrente<T extends Prisma.Istanza$faseCorrenteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$faseCorrenteArgs<ExtArgs>>): Prisma.Prisma__FaseClient<runtime.Types.Result.GetResult<Prisma.$FasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  ufficioCorrente<T extends Prisma.Istanza$ufficioCorrenteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$ufficioCorrenteArgs<ExtArgs>>): Prisma.Prisma__UfficioClient<runtime.Types.Result.GetResult<Prisma.$UfficioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   workflows<T extends Prisma.Istanza$workflowsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$workflowsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   comunicazioni<T extends Prisma.Istanza$comunicazioniArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$comunicazioniArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ComunicazionePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  workflowFasi<T extends Prisma.Istanza$workflowFasiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Istanza$workflowFasiArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowFasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1955,6 +2667,8 @@ export interface IstanzaFieldRefs {
   readonly utenteId: Prisma.FieldRef<"Istanza", 'Int'>
   readonly servizioId: Prisma.FieldRef<"Istanza", 'Int'>
   readonly lastStepId: Prisma.FieldRef<"Istanza", 'Int'>
+  readonly faseCorrenteId: Prisma.FieldRef<"Istanza", 'Int'>
+  readonly ufficioCorrenteId: Prisma.FieldRef<"Istanza", 'Int'>
 }
     
 
@@ -2356,6 +3070,44 @@ export type IstanzaDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
+ * Istanza.faseCorrente
+ */
+export type Istanza$faseCorrenteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Fase
+   */
+  select?: Prisma.FaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Fase
+   */
+  omit?: Prisma.FaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaseInclude<ExtArgs> | null
+  where?: Prisma.FaseWhereInput
+}
+
+/**
+ * Istanza.ufficioCorrente
+ */
+export type Istanza$ufficioCorrenteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ufficio
+   */
+  select?: Prisma.UfficioSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ufficio
+   */
+  omit?: Prisma.UfficioOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UfficioInclude<ExtArgs> | null
+  where?: Prisma.UfficioWhereInput
+}
+
+/**
  * Istanza.workflows
  */
 export type Istanza$workflowsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2401,6 +3153,30 @@ export type Istanza$comunicazioniArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.ComunicazioneScalarFieldEnum | Prisma.ComunicazioneScalarFieldEnum[]
+}
+
+/**
+ * Istanza.workflowFasi
+ */
+export type Istanza$workflowFasiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkflowFase
+   */
+  select?: Prisma.WorkflowFaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkflowFase
+   */
+  omit?: Prisma.WorkflowFaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkflowFaseInclude<ExtArgs> | null
+  where?: Prisma.WorkflowFaseWhereInput
+  orderBy?: Prisma.WorkflowFaseOrderByWithRelationInput | Prisma.WorkflowFaseOrderByWithRelationInput[]
+  cursor?: Prisma.WorkflowFaseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkflowFaseScalarFieldEnum | Prisma.WorkflowFaseScalarFieldEnum[]
 }
 
 /**

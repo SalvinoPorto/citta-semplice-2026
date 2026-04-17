@@ -14,6 +14,7 @@ export async function createArea(data: AreaFormData) {
       icona: validated.icona || null,
       ordine: validated.ordine,
       attiva: validated.attiva,
+      slug: validated.slug,
     },
   });
 
@@ -32,6 +33,7 @@ export async function updateArea(id: number, data: AreaFormData) {
       icona: validated.icona || null,
       ordine: validated.ordine,
       attiva: validated.attiva,
+      slug: validated.slug,
     },
   });
 

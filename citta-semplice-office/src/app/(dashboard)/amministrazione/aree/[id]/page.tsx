@@ -54,7 +54,8 @@ export default async function ModificaAreaPage({ params }: PageProps) {
           descrizione: area.descrizione || '',
           icona: area.icona || '',
           ordine: area.ordine,
-          attiva: area.attiva
+          attiva: area.attiva,
+          slug: area.slug,
         }}
       />
     </div>

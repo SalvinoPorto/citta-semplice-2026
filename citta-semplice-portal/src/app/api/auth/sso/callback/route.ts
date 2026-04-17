@@ -14,7 +14,6 @@ import { signSsoToken } from '@/lib/auth/sso-token';
 import { prisma } from '@/lib/db/prisma';
 
 const SSO_URL = process.env.CIG_SSO_URL ?? 'https://www.comune.catania.it/sso/';
-const SITE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
 export async function GET(req: NextRequest) {
   const buffer = req.nextUrl.searchParams.get('buffer');
@@ -73,7 +72,8 @@ export async function GET(req: NextRequest) {
   const callbackUrl =
     req.cookies.get('cig_sso_callback')?.value ?? '/le-mie-istanze';
 
-  const redirectTarget = new URL('/login', SITE_URL);
+  // Use request origin so redirect works on any port (dev or prod).
+  const redirectTarget = new URL('/login', req.nextUrl.origin);
   redirectTarget.searchParams.set('ssoToken', ssoToken);
   redirectTarget.searchParams.set('callbackUrl', callbackUrl);
 

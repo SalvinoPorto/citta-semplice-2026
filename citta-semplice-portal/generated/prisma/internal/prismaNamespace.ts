@@ -80,11 +80,11 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.7.0
+ * Prisma Client JS version: 7.6.0
  * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.7.0",
+  client: "7.6.0",
   engine: "75cbdc1eb7150937890ad5465d861175c6624711"
 }
 
@@ -400,6 +400,8 @@ export const ModelName = {
   Utente: 'Utente',
   Istanza: 'Istanza',
   Workflow: 'Workflow',
+  Fase: 'Fase',
+  WorkflowFase: 'WorkflowFase',
   Comunicazione: 'Comunicazione',
   RispostaComunicazione: 'RispostaComunicazione',
   AllegatoRisposta: 'AllegatoRisposta',
@@ -428,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "operatoreServizio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "workflow" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "pagamento" | "pagamentoAtteso" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
+    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "operatoreServizio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "workflow" | "fase" | "workflowFase" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "pagamento" | "pagamentoAtteso" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1616,6 +1618,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Fase: {
+      payload: Prisma.$FasePayload<ExtArgs>
+      fields: Prisma.FaseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FaseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FaseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>
+        }
+        findFirst: {
+          args: Prisma.FaseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FaseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>
+        }
+        findMany: {
+          args: Prisma.FaseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>[]
+        }
+        create: {
+          args: Prisma.FaseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>
+        }
+        createMany: {
+          args: Prisma.FaseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FaseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>[]
+        }
+        delete: {
+          args: Prisma.FaseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>
+        }
+        update: {
+          args: Prisma.FaseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>
+        }
+        deleteMany: {
+          args: Prisma.FaseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FaseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FaseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>[]
+        }
+        upsert: {
+          args: Prisma.FaseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FasePayload>
+        }
+        aggregate: {
+          args: Prisma.FaseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFase>
+        }
+        groupBy: {
+          args: Prisma.FaseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FaseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaseCountAggregateOutputType> | number
+        }
+      }
+    }
+    WorkflowFase: {
+      payload: Prisma.$WorkflowFasePayload<ExtArgs>
+      fields: Prisma.WorkflowFaseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WorkflowFaseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WorkflowFaseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>
+        }
+        findFirst: {
+          args: Prisma.WorkflowFaseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WorkflowFaseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>
+        }
+        findMany: {
+          args: Prisma.WorkflowFaseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>[]
+        }
+        create: {
+          args: Prisma.WorkflowFaseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>
+        }
+        createMany: {
+          args: Prisma.WorkflowFaseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WorkflowFaseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>[]
+        }
+        delete: {
+          args: Prisma.WorkflowFaseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>
+        }
+        update: {
+          args: Prisma.WorkflowFaseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>
+        }
+        deleteMany: {
+          args: Prisma.WorkflowFaseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WorkflowFaseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WorkflowFaseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>[]
+        }
+        upsert: {
+          args: Prisma.WorkflowFaseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowFasePayload>
+        }
+        aggregate: {
+          args: Prisma.WorkflowFaseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkflowFase>
+        }
+        groupBy: {
+          args: Prisma.WorkflowFaseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkflowFaseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WorkflowFaseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkflowFaseCountAggregateOutputType> | number
+        }
+      }
+    }
     Comunicazione: {
       payload: Prisma.$ComunicazionePayload<ExtArgs>
       fields: Prisma.ComunicazioneFieldRefs
@@ -2775,7 +2925,8 @@ export const StepScalarFieldEnum = {
   numerazioneInterna: 'numerazioneInterna',
   assegnabileASpecificoUfficio: 'assegnabileASpecificoUfficio',
   settaAttributo: 'settaAttributo',
-  servizioId: 'servizioId'
+  servizioId: 'servizioId',
+  faseId: 'faseId'
 } as const
 
 export type StepScalarFieldEnum = (typeof StepScalarFieldEnum)[keyof typeof StepScalarFieldEnum]
@@ -2841,7 +2992,9 @@ export const IstanzaScalarFieldEnum = {
   createdAt: 'createdAt',
   utenteId: 'utenteId',
   servizioId: 'servizioId',
-  lastStepId: 'lastStepId'
+  lastStepId: 'lastStepId',
+  faseCorrenteId: 'faseCorrenteId',
+  ufficioCorrenteId: 'ufficioCorrenteId'
 } as const
 
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
@@ -2859,6 +3012,31 @@ export const WorkflowScalarFieldEnum = {
 } as const
 
 export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
+
+
+export const FaseScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  ordine: 'ordine',
+  servizioId: 'servizioId',
+  ufficioId: 'ufficioId',
+  ufficioVariabile: 'ufficioVariabile'
+} as const
+
+export type FaseScalarFieldEnum = (typeof FaseScalarFieldEnum)[keyof typeof FaseScalarFieldEnum]
+
+
+export const WorkflowFaseScalarFieldEnum = {
+  id: 'id',
+  dataInizio: 'dataInizio',
+  dataCompletamento: 'dataCompletamento',
+  direzione: 'direzione',
+  istanzaId: 'istanzaId',
+  faseId: 'faseId',
+  operatoreCompletamentoId: 'operatoreCompletamentoId'
+} as const
+
+export type WorkflowFaseScalarFieldEnum = (typeof WorkflowFaseScalarFieldEnum)[keyof typeof WorkflowFaseScalarFieldEnum]
 
 
 export const ComunicazioneScalarFieldEnum = {
@@ -3242,6 +3420,8 @@ export type GlobalOmitConfig = {
   utente?: Prisma.UtenteOmit
   istanza?: Prisma.IstanzaOmit
   workflow?: Prisma.WorkflowOmit
+  fase?: Prisma.FaseOmit
+  workflowFase?: Prisma.WorkflowFaseOmit
   comunicazione?: Prisma.ComunicazioneOmit
   rispostaComunicazione?: Prisma.RispostaComunicazioneOmit
   allegatoRisposta?: Prisma.AllegatoRispostaOmit

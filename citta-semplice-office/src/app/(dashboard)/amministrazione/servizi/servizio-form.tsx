@@ -60,6 +60,7 @@ interface ServizioData {
   postFormValidation: boolean;
   postFormValidationAPI: string;
   postFormValidationFields: string;
+  fasi: ServizioFormData['fasi'];
   steps: ServizioFormData['steps'];
   ricevutaArt18?: ServizioFormData['ricevutaArt18'];
 }
@@ -291,6 +292,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
       postFormValidation: false,
       postFormValidationAPI: '',
       postFormValidationFields: '',
+      fasi: [{ nome: 'Fase 1', ordine: 1, ufficioVariabile: false, ufficioId: null }],
       steps: [
         {
           descrizione: 'Presentazione Istanza',
@@ -314,6 +316,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
           pagamentoObbligatorio: false,
           pagamentoTipologia: '',
           allegatiRichiestiList: [],
+          faseOrdine: 1,
         },
         {
           descrizione: 'Chiusura Pratica',
@@ -337,6 +340,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
           pagamentoObbligatorio: false,
           pagamentoTipologia: '',
           allegatiRichiestiList: [],
+          faseOrdine: 1,
         },
       ],
     },
@@ -361,6 +365,47 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     name: 'steps',
   });
 
+  const { fields: fasiFields, append: appendFase, remove: removeFase, update: updateFase } = useFieldArray({
+    control,
+    name: 'fasi',
+  });
+
+  const FASE_VUOTA = {
+    nome: 'Nuova Fase',
+    ordine: 1,
+    ufficioVariabile: false,
+    ufficioId: null as number | null,
+  };
+
+  const addFase = () => {
+    const newFaseOrdine = fasiFields.length + 1;
+    // Chiusura Pratica (ultimo step fisso) va sempre nell'ultima fase
+    setValue(`steps.${fields.length - 1}.faseOrdine`, newFaseOrdine);
+    appendFase({ ...FASE_VUOTA });
+  };
+
+  const addStepToFase = (faseOrdine: number) => {
+    const allSteps = watchedSteps ?? [];
+    const stepsInFase = allSteps
+      .map((s, idx) => ({ s, idx }))
+      .filter(({ s }) => (s?.faseOrdine ?? 1) === faseOrdine);
+    const maxFaseOrdine = Math.max(...allSteps.map((s) => s?.faseOrdine ?? 1));
+    const isLastFase = faseOrdine === maxFaseOrdine;
+    if (isLastFase) {
+      // Inserisci prima dell'ultimo step della fase (Chiusura Pratica)
+      const lastIdx = stepsInFase[stepsInFase.length - 1]?.idx ?? fields.length - 1;
+      insert(lastIdx, { ...STEP_VUOTO, faseOrdine });
+    } else {
+      // Inserisci alla fine della fase
+      const lastIdx = stepsInFase[stepsInFase.length - 1]?.idx ?? 0;
+      insert(lastIdx + 1, { ...STEP_VUOTO, faseOrdine });
+    }
+  };
+
+  const moveStepToFase = (stepIndex: number, targetFaseOrdine: number) => {
+    setValue(`steps.${stepIndex}.faseOrdine`, targetFaseOrdine);
+  };
+
   const STEP_VUOTO = {
     descrizione: '',
     ordine: 0,
@@ -383,6 +428,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     pagamentoObbligatorio: false,
     pagamentoTipologia: '',
     allegatiRichiestiList: [] as NonNullable<ServizioFormData['steps'][number]['allegatiRichiestiList']>,
+    faseOrdine: 1,
   };
 
   // Insert new intermediate step before the last (fixed) step
@@ -468,6 +514,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
 
   // const prevedeDoc = watch('prevedeDocumentoFinale');
   const watchedSteps = watch('steps');
+  const watchedFasi = watch('fasi');
 
   // Carica uffici se almeno uno step ha già protocollo esterno (modalità editing)
   useEffect(() => {
@@ -881,16 +928,108 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
             <Card className="mb-4">
               <CardBody>
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="mb-0">Steps Workflow</h5>
-                  <Button type="button" variant="primary" onClick={addStep}>
-                    Aggiungi Step
+                  <h5 className="mb-0">Workflow ({fields.length} step, {fasiFields.length} fase)</h5>
+                  <Button type="button" variant="outline-secondary" onClick={addFase}>
+                    + Aggiungi Fase
                   </Button>
                 </div>
 
-                {fields.map((field, index) => {
-                  const isFirst = index === 0;
-                  const isLast = index === fields.length - 1;
-                  const isMiddle = !isFirst && !isLast;
+                {fasiFields.map((fase, faseIndex) => {
+                  const faseOrdine = faseIndex + 1;
+                  const allSteps = watchedSteps ?? [];
+                  const stepsInFase = fields
+                    .map((f, idx) => ({ field: f, index: idx }))
+                    .filter(({ index: idx }) => (allSteps[idx]?.faseOrdine ?? 1) === faseOrdine);
+                  const isUnicaFase = fasiFields.length === 1;
+
+                  return (
+                    <div key={fase.id} className="mb-4">
+                      {/* Header fase */}
+                      <div className="d-flex align-items-center gap-2 mb-2 p-2 rounded"
+                        style={{ background: 'var(--bs-primary-bg-subtle, #cfe2ff)', borderLeft: '4px solid var(--bs-primary, #0d6efd)' }}>
+                        <span className="fw-bold text-primary" style={{ minWidth: 60 }}>Fase {faseOrdine}</span>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          style={{ maxWidth: 200 }}
+                          placeholder="Nome fase"
+                          {...register(`fasi.${faseIndex}.nome`)}
+                        />
+                        {/* Toggle fisso / variabile */}
+                        <div className="d-flex align-items-center gap-2">
+                          <div className="form-check form-check-inline mb-0">
+                            <input
+                              type="radio"
+                              className="form-check-input"
+                              id={`fase-${faseIndex}-ufficio-fisso`}
+                              checked={!(watchedFasi?.[faseIndex]?.ufficioVariabile ?? false)}
+                              onChange={() => {
+                                const cur = watchedFasi?.[faseIndex];
+                                if (cur) updateFase(faseIndex, { ...cur, ufficioVariabile: false });
+                              }}
+                            />
+                            <label className="form-check-label small" htmlFor={`fase-${faseIndex}-ufficio-fisso`}>
+                              Ufficio fisso
+                            </label>
+                          </div>
+                          <div className="form-check form-check-inline mb-0">
+                            <input
+                              type="radio"
+                              className="form-check-input"
+                              id={`fase-${faseIndex}-ufficio-variabile`}
+                              checked={watchedFasi?.[faseIndex]?.ufficioVariabile ?? false}
+                              onChange={() => {
+                                const cur = watchedFasi?.[faseIndex];
+                                if (cur) updateFase(faseIndex, { ...cur, ufficioVariabile: true, ufficioId: null });
+                              }}
+                            />
+                            <label className="form-check-label small" htmlFor={`fase-${faseIndex}-ufficio-variabile`}>
+                              Ufficio variabile
+                            </label>
+                          </div>
+                        </div>
+                        {!(watchedFasi?.[faseIndex]?.ufficioVariabile ?? false) && (
+                          <select
+                            className="form-select form-select-sm"
+                            style={{ maxWidth: 200 }}
+                            {...register(`fasi.${faseIndex}.ufficioId`, {
+                              setValueAs: (v) => (v === '' ? null : parseInt(v, 10)),
+                            })}
+                          >
+                            <option value="">Nessun ufficio</option>
+                            {uffici.map((u) => (
+                              <option key={u.id} value={u.id}>{u.nome}</option>
+                            ))}
+                          </select>
+                        )}
+                        {!isUnicaFase && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger ms-auto"
+                            title="Elimina fase (gli step verranno spostati alla fase precedente)"
+                            onClick={() => {
+                              // Sposta step di questa fase alla precedente
+                              fields.forEach((_, idx) => {
+                                if ((allSteps[idx]?.faseOrdine ?? 1) === faseOrdine) {
+                                  setValue(`steps.${idx}.faseOrdine`, Math.max(1, faseOrdine - 1));
+                                }
+                              });
+                              removeFase(faseIndex);
+                            }}
+                          >
+                            ✕ Elimina fase
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Step della fase */}
+                      <div className="ms-2">
+                        {stepsInFase.map(({ field, index }) => {
+                          const isFirst = index === 0;
+                          const isLast = index === fields.length - 1;
+                          const isMiddle = !isFirst && !isLast;
+                          const isFirstOfFase = stepsInFase[0]?.index === index;
+                          const isLastOfFase = stepsInFase[stepsInFase.length - 1]?.index === index;
 
                   const stepData = watchedSteps?.[index];
                   const hasPagamento = stepData?.pagamento;
@@ -937,13 +1076,13 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                           )}
                         </div>
                         {isMiddle && (
-                          <div className="d-flex gap-1">
+                          <div className="d-flex gap-1 flex-wrap">
                             <button
                               type="button"
                               className="btn btn-sm btn-outline-secondary"
                               onClick={() => moveStep(index, 'up')}
-                              disabled={index === 1}
-                              title="Sposta su"
+                              disabled={isFirstOfFase || index === 1}
+                              title="Sposta su (nella stessa fase)"
                             >
                               ↑
                             </button>
@@ -951,14 +1090,34 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                               type="button"
                               className="btn btn-sm btn-outline-secondary"
                               onClick={() => moveStep(index, 'down')}
-                              disabled={index === fields.length - 2}
-                              title="Sposta giù"
+                              disabled={isLastOfFase || index === fields.length - 2}
+                              title="Sposta giù (nella stessa fase)"
                             >
                               ↓
                             </button>
+                            {faseOrdine > 1 && isFirstOfFase && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-warning"
+                                onClick={() => moveStepToFase(index, faseOrdine - 1)}
+                                title={`Sposta in Fase ${faseOrdine - 1}`}
+                              >
+                                ← Fase {faseOrdine - 1}
+                              </button>
+                            )}
+                            {faseOrdine < fasiFields.length && isLastOfFase && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-warning"
+                                onClick={() => moveStepToFase(index, faseOrdine + 1)}
+                                title={`Sposta in Fase ${faseOrdine + 1}`}
+                              >
+                                Fase {faseOrdine + 1} →
+                              </button>
+                            )}
                             <button
                               type="button"
-                              className="btn btn-sm btn-outline-danger"
+                              className="btn btn-sm btn-outline-danger ms-auto"
                               onClick={() => remove(index)}
                             >
                               Rimuovi
@@ -1307,6 +1466,21 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                           )}
                         </>
                       )}
+                    </div>
+                  );
+                })}
+
+                        {/* Pulsante Aggiungi step nella fase */}
+                        <div className="mt-2">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => addStepToFase(faseOrdine)}
+                          >
+                            + Aggiungi step in Fase {faseOrdine}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}

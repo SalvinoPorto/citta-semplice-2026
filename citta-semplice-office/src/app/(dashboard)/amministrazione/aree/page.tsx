@@ -61,7 +61,7 @@ export default async function AreePage() {
                     Modifica
                   </Link>
                   <Link
-                    href={`/servizi?area=${area.id}`}
+                    href={`/amministrazione/servizi?area=${area.id}`}
                     className="btn btn-sm btn-outline-secondary"
                   >
                     Vedi Servizi

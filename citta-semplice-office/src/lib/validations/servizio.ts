@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+export const faseSchema = z.object({
+  id: z.number().optional(),
+  nome: z.string().min(1, 'Il nome è obbligatorio'),
+  ordine: z.number().int().min(1),
+  ufficioVariabile: z.boolean(),
+  ufficioId: z.number().int().nullable().optional(),
+});
+
 export const allegatoRichiestoSchema = z.object({
   id: z.number().optional(),
   nomeAllegatoRichiesto: z.string().min(1, 'Il nome è obbligatorio'),
@@ -37,6 +45,7 @@ export const stepSchema = z.object({
   pagamentoCausaleVariabile: z.boolean(),
   pagamentoObbligatorio: z.boolean(),
   pagamentoTipologia: z.string().optional(),
+  faseOrdine: z.number().int().min(1), // ordine della fase di appartenenza
 });
 
 export const servizioSchema = z.object({
@@ -96,8 +105,10 @@ export const servizioSchema = z.object({
   }).optional(),
 
   // Workflow
+  fasi: z.array(faseSchema).min(1, 'Almeno una fase è obbligatoria'),
   steps: z.array(stepSchema),
 });
 
+export type FaseFormData = z.infer<typeof faseSchema>;
 export type StepFormData = z.infer<typeof stepSchema>;
 export type ServizioFormData = z.infer<typeof servizioSchema>;

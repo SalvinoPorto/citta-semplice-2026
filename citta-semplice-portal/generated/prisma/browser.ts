@@ -98,6 +98,16 @@ export type Istanza = Prisma.IstanzaModel
  */
 export type Workflow = Prisma.WorkflowModel
 /**
+ * Model Fase
+ * 
+ */
+export type Fase = Prisma.FaseModel
+/**
+ * Model WorkflowFase
+ * 
+ */
+export type WorkflowFase = Prisma.WorkflowFaseModel
+/**
  * Model Comunicazione
  * 
  */

@@ -260,6 +260,7 @@ export type OperatoreWhereInput = {
   servizi?: Prisma.OperatoreServizioListRelationFilter
   workflows?: Prisma.WorkflowListRelationFilter
   comunicazioni?: Prisma.ComunicazioneListRelationFilter
+  workflowFasiCompletati?: Prisma.WorkflowFaseListRelationFilter
 }
 
 export type OperatoreOrderByWithRelationInput = {
@@ -277,6 +278,7 @@ export type OperatoreOrderByWithRelationInput = {
   servizi?: Prisma.OperatoreServizioOrderByRelationAggregateInput
   workflows?: Prisma.WorkflowOrderByRelationAggregateInput
   comunicazioni?: Prisma.ComunicazioneOrderByRelationAggregateInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseOrderByRelationAggregateInput
 }
 
 export type OperatoreWhereUniqueInput = Prisma.AtLeast<{
@@ -297,6 +299,7 @@ export type OperatoreWhereUniqueInput = Prisma.AtLeast<{
   servizi?: Prisma.OperatoreServizioListRelationFilter
   workflows?: Prisma.WorkflowListRelationFilter
   comunicazioni?: Prisma.ComunicazioneListRelationFilter
+  workflowFasiCompletati?: Prisma.WorkflowFaseListRelationFilter
 }, "id" | "userName">
 
 export type OperatoreOrderByWithAggregationInput = {
@@ -347,6 +350,7 @@ export type OperatoreCreateInput = {
   servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreUncheckedCreateInput = {
@@ -364,6 +368,7 @@ export type OperatoreUncheckedCreateInput = {
   servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreUpdateInput = {
@@ -380,6 +385,7 @@ export type OperatoreUpdateInput = {
   servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreUncheckedUpdateInput = {
@@ -397,6 +403,7 @@ export type OperatoreUncheckedUpdateInput = {
   servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreCreateManyInput = {
@@ -562,6 +569,22 @@ export type OperatoreUpdateOneWithoutWorkflowsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutWorkflowsInput, Prisma.OperatoreUpdateWithoutWorkflowsInput>, Prisma.OperatoreUncheckedUpdateWithoutWorkflowsInput>
 }
 
+export type OperatoreCreateNestedOneWithoutWorkflowFasiCompletatiInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUncheckedCreateWithoutWorkflowFasiCompletatiInput>
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutWorkflowFasiCompletatiInput
+  connect?: Prisma.OperatoreWhereUniqueInput
+}
+
+export type OperatoreUpdateOneWithoutWorkflowFasiCompletatiNestedInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUncheckedCreateWithoutWorkflowFasiCompletatiInput>
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutWorkflowFasiCompletatiInput
+  upsert?: Prisma.OperatoreUpsertWithoutWorkflowFasiCompletatiInput
+  disconnect?: Prisma.OperatoreWhereInput | boolean
+  delete?: Prisma.OperatoreWhereInput | boolean
+  connect?: Prisma.OperatoreWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUpdateWithoutWorkflowFasiCompletatiInput>, Prisma.OperatoreUncheckedUpdateWithoutWorkflowFasiCompletatiInput>
+}
+
 export type OperatoreCreateNestedOneWithoutComunicazioniInput = {
   create?: Prisma.XOR<Prisma.OperatoreCreateWithoutComunicazioniInput, Prisma.OperatoreUncheckedCreateWithoutComunicazioniInput>
   connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutComunicazioniInput
@@ -591,6 +614,7 @@ export type OperatoreCreateWithoutRuoliInput = {
   servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreUncheckedCreateWithoutRuoliInput = {
@@ -607,6 +631,7 @@ export type OperatoreUncheckedCreateWithoutRuoliInput = {
   servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreCreateOrConnectWithoutRuoliInput = {
@@ -638,6 +663,7 @@ export type OperatoreUpdateWithoutRuoliInput = {
   servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreUncheckedUpdateWithoutRuoliInput = {
@@ -654,6 +680,7 @@ export type OperatoreUncheckedUpdateWithoutRuoliInput = {
   servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreCreateWithoutServiziInput = {
@@ -669,6 +696,7 @@ export type OperatoreCreateWithoutServiziInput = {
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreUncheckedCreateWithoutServiziInput = {
@@ -685,6 +713,7 @@ export type OperatoreUncheckedCreateWithoutServiziInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreCreateOrConnectWithoutServiziInput = {
@@ -716,6 +745,7 @@ export type OperatoreUpdateWithoutServiziInput = {
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreUncheckedUpdateWithoutServiziInput = {
@@ -732,6 +762,7 @@ export type OperatoreUncheckedUpdateWithoutServiziInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreCreateWithoutWorkflowsInput = {
@@ -747,6 +778,7 @@ export type OperatoreCreateWithoutWorkflowsInput = {
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
   servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreUncheckedCreateWithoutWorkflowsInput = {
@@ -763,6 +795,7 @@ export type OperatoreUncheckedCreateWithoutWorkflowsInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
   servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreCreateOrConnectWithoutWorkflowsInput = {
@@ -794,6 +827,7 @@ export type OperatoreUpdateWithoutWorkflowsInput = {
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
   servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreUncheckedUpdateWithoutWorkflowsInput = {
@@ -810,6 +844,89 @@ export type OperatoreUncheckedUpdateWithoutWorkflowsInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
   servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
+}
+
+export type OperatoreCreateWithoutWorkflowFasiCompletatiInput = {
+  email: string
+  password: string
+  nome: string
+  cognome: string
+  userName: string
+  telefono?: string | null
+  attivo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
+  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
+  workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
+  comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
+}
+
+export type OperatoreUncheckedCreateWithoutWorkflowFasiCompletatiInput = {
+  id?: number
+  email: string
+  password: string
+  nome: string
+  cognome: string
+  userName: string
+  telefono?: string | null
+  attivo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
+  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
+  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
+}
+
+export type OperatoreCreateOrConnectWithoutWorkflowFasiCompletatiInput = {
+  where: Prisma.OperatoreWhereUniqueInput
+  create: Prisma.XOR<Prisma.OperatoreCreateWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUncheckedCreateWithoutWorkflowFasiCompletatiInput>
+}
+
+export type OperatoreUpsertWithoutWorkflowFasiCompletatiInput = {
+  update: Prisma.XOR<Prisma.OperatoreUpdateWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUncheckedUpdateWithoutWorkflowFasiCompletatiInput>
+  create: Prisma.XOR<Prisma.OperatoreCreateWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUncheckedCreateWithoutWorkflowFasiCompletatiInput>
+  where?: Prisma.OperatoreWhereInput
+}
+
+export type OperatoreUpdateToOneWithWhereWithoutWorkflowFasiCompletatiInput = {
+  where?: Prisma.OperatoreWhereInput
+  data: Prisma.XOR<Prisma.OperatoreUpdateWithoutWorkflowFasiCompletatiInput, Prisma.OperatoreUncheckedUpdateWithoutWorkflowFasiCompletatiInput>
+}
+
+export type OperatoreUpdateWithoutWorkflowFasiCompletatiInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
+  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
+}
+
+export type OperatoreUncheckedUpdateWithoutWorkflowFasiCompletatiInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
+  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
 }
 
 export type OperatoreCreateWithoutComunicazioniInput = {
@@ -825,6 +942,7 @@ export type OperatoreCreateWithoutComunicazioniInput = {
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
   servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreUncheckedCreateWithoutComunicazioniInput = {
@@ -841,6 +959,7 @@ export type OperatoreUncheckedCreateWithoutComunicazioniInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
   servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
 export type OperatoreCreateOrConnectWithoutComunicazioniInput = {
@@ -872,6 +991,7 @@ export type OperatoreUpdateWithoutComunicazioniInput = {
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
   servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 export type OperatoreUncheckedUpdateWithoutComunicazioniInput = {
@@ -888,6 +1008,7 @@ export type OperatoreUncheckedUpdateWithoutComunicazioniInput = {
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
   servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
 
@@ -900,6 +1021,7 @@ export type OperatoreCountOutputType = {
   servizi: number
   workflows: number
   comunicazioni: number
+  workflowFasiCompletati: number
 }
 
 export type OperatoreCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -907,6 +1029,7 @@ export type OperatoreCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
   servizi?: boolean | OperatoreCountOutputTypeCountServiziArgs
   workflows?: boolean | OperatoreCountOutputTypeCountWorkflowsArgs
   comunicazioni?: boolean | OperatoreCountOutputTypeCountComunicazioniArgs
+  workflowFasiCompletati?: boolean | OperatoreCountOutputTypeCountWorkflowFasiCompletatiArgs
 }
 
 /**
@@ -947,6 +1070,13 @@ export type OperatoreCountOutputTypeCountComunicazioniArgs<ExtArgs extends runti
   where?: Prisma.ComunicazioneWhereInput
 }
 
+/**
+ * OperatoreCountOutputType without action
+ */
+export type OperatoreCountOutputTypeCountWorkflowFasiCompletatiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkflowFaseWhereInput
+}
+
 
 export type OperatoreSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -963,6 +1093,7 @@ export type OperatoreSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   servizi?: boolean | Prisma.Operatore$serviziArgs<ExtArgs>
   workflows?: boolean | Prisma.Operatore$workflowsArgs<ExtArgs>
   comunicazioni?: boolean | Prisma.Operatore$comunicazioniArgs<ExtArgs>
+  workflowFasiCompletati?: boolean | Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs>
   _count?: boolean | Prisma.OperatoreCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["operatore"]>
 
@@ -1011,6 +1142,7 @@ export type OperatoreInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   servizi?: boolean | Prisma.Operatore$serviziArgs<ExtArgs>
   workflows?: boolean | Prisma.Operatore$workflowsArgs<ExtArgs>
   comunicazioni?: boolean | Prisma.Operatore$comunicazioniArgs<ExtArgs>
+  workflowFasiCompletati?: boolean | Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs>
   _count?: boolean | Prisma.OperatoreCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OperatoreIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1023,6 +1155,7 @@ export type $OperatorePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     servizi: Prisma.$OperatoreServizioPayload<ExtArgs>[]
     workflows: Prisma.$WorkflowPayload<ExtArgs>[]
     comunicazioni: Prisma.$ComunicazionePayload<ExtArgs>[]
+    workflowFasiCompletati: Prisma.$WorkflowFasePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1433,6 +1566,7 @@ export interface Prisma__OperatoreClient<T, Null = never, ExtArgs extends runtim
   servizi<T extends Prisma.Operatore$serviziArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$serviziArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperatoreServizioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workflows<T extends Prisma.Operatore$workflowsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$workflowsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   comunicazioni<T extends Prisma.Operatore$comunicazioniArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$comunicazioniArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ComunicazionePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  workflowFasiCompletati<T extends Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowFasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1958,6 +2092,30 @@ export type Operatore$comunicazioniArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.ComunicazioneScalarFieldEnum | Prisma.ComunicazioneScalarFieldEnum[]
+}
+
+/**
+ * Operatore.workflowFasiCompletati
+ */
+export type Operatore$workflowFasiCompletatiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkflowFase
+   */
+  select?: Prisma.WorkflowFaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkflowFase
+   */
+  omit?: Prisma.WorkflowFaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkflowFaseInclude<ExtArgs> | null
+  where?: Prisma.WorkflowFaseWhereInput
+  orderBy?: Prisma.WorkflowFaseOrderByWithRelationInput | Prisma.WorkflowFaseOrderByWithRelationInput[]
+  cursor?: Prisma.WorkflowFaseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkflowFaseScalarFieldEnum | Prisma.WorkflowFaseScalarFieldEnum[]
 }
 
 /**

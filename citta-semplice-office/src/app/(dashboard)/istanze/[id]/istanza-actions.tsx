@@ -15,6 +15,7 @@ import {
   takeCharge,
   assignAttributo,
   generatePayment,
+  rollbackFase,
   type AllegatoComunicazione,
 } from './actions';
 import { ASSIGNEDTO } from '@/lib/models/assigned-to';
@@ -40,6 +41,16 @@ interface CurrentStep {
   pagamentoConfig: PagamentoConfig | null;
 }
 
+interface FaseCorrente {
+  nome: string;
+  ordine: number;
+}
+
+interface FasePrecedente {
+  nome: string;
+  ufficio: { nome: string; email: string | null } | null;
+}
+
 interface IstanzaActionsProps {
   istanza: {
     id: number;
@@ -63,6 +74,11 @@ interface IstanzaActionsProps {
   } | null;
   stepOrdine: number;
   isLastStep: boolean;
+  canRollbackFase?: boolean;
+  faseCorrente?: FaseCorrente | null;
+  fasePrecedente?: FasePrecedente | null;
+  nextFaseUfficioVariabile?: boolean;
+  ufficiDisponibili?: Array<{ id: number; nome: string }>;
   attributoType?: {
     tipoAttributo: string;
     attributi: { id: number; valore: string }[];
@@ -77,6 +93,10 @@ export function IstanzaActions({
   currentPayment,
   stepOrdine,
   isLastStep,
+  canRollbackFase = false,
+  fasePrecedente = null,
+  nextFaseUfficioVariabile = false,
+  ufficiDisponibili = [],
   attributoType,
 }: IstanzaActionsProps) {
   const router = useRouter();
@@ -87,10 +107,12 @@ export function IstanzaActions({
   const [showCommunicationModal, setShowCommunicationModal] = useState(false);
   const [showConcludeModal, setShowConcludeModal] = useState(false);
   const [showAttributoModal, setShowAttributoModal] = useState(false);
+  const [showRollbackFaseModal, setShowRollbackFaseModal] = useState(false);
 
   // Advance state
   const [note, setNote] = useState('');
   const [confirmAdvanceWithoutPayment, setConfirmAdvanceWithoutPayment] = useState(false);
+  const [selectedUfficioId, setSelectedUfficioId] = useState<string>('');
 
   // Regress state
   const [regressNote, setRegressNote] = useState('');
@@ -123,7 +145,38 @@ export function IstanzaActions({
     istanza.attributoId ? String(istanza.attributoId) : ''
   );
 
+  // Rollback fase state
+  const [rollbackNote, setRollbackNote] = useState('');
+  const [inviaEmailRollback, setInviaEmailRollback] = useState(true);
+  const [rollbackLoading, setRollbackLoading] = useState(false);
+
   const [loading, setLoading] = useState(false);
+
+  const handleRollbackFase = async () => {
+    if (!rollbackNote.trim()) {
+      toast.error('La motivazione è obbligatoria');
+      return;
+    }
+    setRollbackLoading(true);
+    try {
+      const result = await rollbackFase({
+        istanzaId: istanza.id,
+        note: rollbackNote,
+        inviaEmail: inviaEmailRollback,
+      });
+      if (result.success) {
+        toast.success(result.message);
+        router.refresh();
+      } else {
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error('Errore nel rollback di fase');
+    } finally {
+      setRollbackLoading(false);
+      setShowRollbackFaseModal(false);
+    }
+  };
 
   const isFirstStep = stepOrdine === 1;
   const paymentStep = currentStep?.pagamento ?? false;
@@ -156,18 +209,24 @@ export function IstanzaActions({
       toast.error('Per avanzare senza pagamento confermato, selezionare la conferma esplicita.');
       return;
     }
+    if (nextFaseUfficioVariabile && !selectedUfficioId) {
+      toast.error('Seleziona l\'ufficio destinatario prima di avanzare.');
+      return;
+    }
 
     setLoading(true);
     try {
       const result = await advanceWorkflow({
         istanzaId: istanza.id,
         note,
+        ufficioId: nextFaseUfficioVariabile && selectedUfficioId ? parseInt(selectedUfficioId) : undefined,
       });
       if (result.success) {
         toast.success(result.message || 'Workflow avanzato con successo');
         setShowAdvanceModal(false);
         setNote('');
         setConfirmAdvanceWithoutPayment(false);
+        setSelectedUfficioId('');
         router.refresh();
       } else {
         toast.error(result.message || 'Errore durante l\'avanzamento');
@@ -422,6 +481,14 @@ export function IstanzaActions({
                 Respingi
               </Button>
             )}
+            {canRollbackFase && (
+              <Button
+                variant="outline-warning"
+                onClick={() => setShowRollbackFaseModal(true)}
+              >
+                ↩ Rimanda a fase precedente
+              </Button>
+            )}
             {attributoType && (
               <Button
                 variant="outline-secondary"
@@ -450,6 +517,22 @@ export function IstanzaActions({
         </ModalHeader>
         <ModalBody>
           <p>Confermi di voler avanzare allo step successivo?</p>
+          {nextFaseUfficioVariabile && (
+            <div className="alert alert-info py-2 mb-3">
+              <label className="form-label fw-semibold mb-1">Ufficio destinatario *</label>
+              <select
+                className="form-select form-select-sm"
+                value={selectedUfficioId}
+                onChange={(e) => setSelectedUfficioId(e.target.value)}
+              >
+                <option value="">Seleziona ufficio...</option>
+                {ufficiDisponibili.map((u) => (
+                  <option key={u.id} value={u.id}>{u.nome}</option>
+                ))}
+              </select>
+              <small className="text-muted">L&apos;ufficio riceverà la pratica per questa fase.</small>
+            </div>
+          )}
           {paymentStep && !paymentConfirmed && (
             <div className="alert alert-warning">
               {paymentRequired
@@ -782,6 +865,61 @@ export function IstanzaActions({
             loading={loading}
           >
             Concludi
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Rollback Fase Modal */}
+      <Modal
+        isOpen={showRollbackFaseModal}
+        onClose={() => setShowRollbackFaseModal(false)}
+        size="md"
+      >
+        <ModalHeader onClose={() => setShowRollbackFaseModal(false)}>
+          Rimanda a fase precedente
+        </ModalHeader>
+        <ModalBody>
+          <p>
+            La pratica verrà rimandata a <strong>{fasePrecedente?.nome}</strong>
+            {fasePrecedente?.ufficio && ` (Ufficio: ${fasePrecedente.ufficio.nome})`}.
+          </p>
+          <Textarea
+            label="Motivazione *"
+            value={rollbackNote}
+            onChange={(e) => setRollbackNote(e.target.value)}
+            rows={3}
+            placeholder="Indica il motivo del rimando..."
+            required
+          />
+          {fasePrecedente?.ufficio?.email && (
+            <div className="form-check mt-3">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="inviaEmailRollback"
+                checked={inviaEmailRollback}
+                onChange={(e) => setInviaEmailRollback(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="inviaEmailRollback">
+                Invia notifica email all&apos;ufficio {fasePrecedente.ufficio.nome}
+              </label>
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="secondary"
+            onClick={() => setShowRollbackFaseModal(false)}
+            disabled={rollbackLoading}
+          >
+            Annulla
+          </Button>
+          <Button
+            variant="warning"
+            onClick={handleRollbackFase}
+            loading={rollbackLoading}
+          >
+            Conferma rimando
           </Button>
         </ModalFooter>
       </Modal>

@@ -2,8 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db/prisma';
-import { getCurrentUser } from '@/lib/auth/session';
+import { getCurrentUser, requireAuth } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
+import { sendFaseTransitionEmail } from '@/lib/services/faseTransitionEmail';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pmPayService } from '@/lib/external/pmpay';
@@ -32,6 +33,8 @@ function getNumeroDocumento(codiceTributo: string, istanzaId: number): string {
 export interface AdvanceWorkflowParams {
   istanzaId: number;
   note: string;
+  inviaEmailPassaggioFase?: boolean; // default: true — usato solo se c'è cambio fase
+  ufficioId?: number | null; // operatore sceglie ufficio se fase successiva ha ufficioVariabile=true
 }
 
 export interface GeneratePaymentParams {
@@ -66,7 +69,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             steps: {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
-              include: { pagamentoConfig: true, allegatiRichiestiList: true },
+              include: { pagamentoConfig: true, allegatiRichiestiList: true, fase: true },
             },
           },
         },
@@ -75,6 +78,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           take: 1,
           include: { step: { include: { pagamentoConfig: true, allegatiRichiestiList: true } }, allegati: true, pagamentoAtteso: true },
         },
+        faseCorrente: { include: { ufficio: true } },
       },
     });
 
@@ -90,7 +94,6 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
     const steps = istanza.servizio.steps;
     const currentStepOrder = lastWorkflow?.step?.ordine || 0;
     const currentStep = lastWorkflow?.step;
-    const nextStep = steps.find((s) => s.ordine === currentStepOrder + 1);
 
     const currentPayment = lastWorkflow?.pagamentoAtteso;
     const paymentStep = currentStep?.pagamento ?? false;
@@ -172,30 +175,119 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       });
     }
 
-    if (nextStep) {
-      // Create new workflow for next step
+    const currentFase = istanza.faseCorrente;
+
+    // Cerca il prossimo step nella STESSA fase
+    const nextStepSameFase = steps.find(
+      (s) => s.faseId === currentStep?.faseId && s.ordine === currentStepOrder + 1
+    );
+
+    let resultMessage: string;
+
+    if (nextStepSameFase) {
+      // Avanzamento intra-fase: l'operatore rimane assegnato
       await prisma.workflow.create({
         data: {
           istanzaId,
-          stepId: nextStep.id,
+          stepId: nextStepSameFase.id,
+          dataVariazione: now,
           stato: STATO_IN_LAVORAZIONE,
           operatoreId,
-          dataVariazione: now,
-          note: '',
+        },
+      });
+      await prisma.istanza.update({
+        where: { id: istanzaId },
+        data: { lastStepId: nextStepSameFase.id, activeStep: nextStepSameFase.ordine },
+      });
+      resultMessage = `Avanzato allo step: ${nextStepSameFase.descrizione}`;
+    } else {
+      // Fine della fase corrente — cerca la fase successiva
+      const allFasi = await prisma.fase.findMany({
+        where: { servizioId: istanza.servizioId },
+        orderBy: { ordine: 'asc' },
+        include: {
+          steps: { orderBy: { ordine: 'asc' } },
+          ufficio: true,
         },
       });
 
-      // Update istanza last step
-      await prisma.istanza.update({
-        where: { id: istanzaId },
-        data: { lastStepId: nextStep.id },
-      });
-    } else {
-      // No more steps - mark as concluded
-      await prisma.istanza.update({
-        where: { id: istanzaId },
-        data: { conclusa: true },
-      });
+      const nextFase = allFasi.find((f) => f.ordine === (currentFase?.ordine ?? 1) + 1);
+
+      if (!nextFase) {
+        // Nessuna fase successiva → istanza conclusa
+        await prisma.istanza.update({
+          where: { id: istanza.id },
+          data: { conclusa: true },
+        });
+        resultMessage = 'Istanza conclusa con successo';
+      } else {
+        // Passaggio alla fase successiva
+        const firstStepNextFase = nextFase.steps[0];
+
+        // Chiudi WorkflowFase corrente
+        if (currentFase) {
+          await prisma.workflowFase.updateMany({
+            where: { istanzaId: istanza.id, faseId: currentFase.id, dataCompletamento: null },
+            data: {
+              dataCompletamento: now,
+              operatoreCompletamentoId: operatoreId,
+            },
+          });
+        }
+
+        // Apri nuovo WorkflowFase
+        await prisma.workflowFase.create({
+          data: {
+            istanzaId: istanza.id,
+            faseId: nextFase.id,
+            dataInizio: now,
+            direzione: 'AVANZAMENTO',
+          },
+        });
+
+        // Ufficio effettivo: fisso dalla fase o scelto dall'operatore se variabile
+        const nextUfficioCorrenteId = nextFase.ufficioVariabile
+          ? (params.ufficioId ?? null)
+          : (nextFase.ufficioId ?? null);
+
+        // Aggiorna istanza
+        await prisma.istanza.update({
+          where: { id: istanza.id },
+          data: {
+            faseCorrenteId: nextFase.id,
+            ufficioCorrenteId: nextUfficioCorrenteId,
+            lastStepId: firstStepNextFase.id,
+            activeStep: firstStepNextFase.ordine,
+          },
+        });
+
+        // Crea workflow per il primo step della nuova fase (operatoreId: null)
+        await prisma.workflow.create({
+          data: {
+            istanzaId: istanza.id,
+            stepId: firstStepNextFase.id,
+            dataVariazione: now,
+            stato: STATO_IN_LAVORAZIONE,
+            // operatoreId: null — l'ufficio entrante prende in carico liberamente
+          },
+        });
+
+        // Email notifica (condizionale)
+        if (params.inviaEmailPassaggioFase !== false) {
+          await sendFaseTransitionEmail({
+            istanza: {
+              id: istanza.id,
+              protoNumero: istanza.protoNumero ?? '',
+              utente: { nome: istanza.utente.nome, cognome: istanza.utente.cognome },
+              servizio: { titolo: istanza.servizio.titolo },
+            },
+            nuovaFase: nextFase,
+            direzione: 'AVANZAMENTO',
+          });
+        }
+
+        resultMessage = `Trasferito alla fase: ${nextFase.nome}`;
+      }
     }
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -203,9 +295,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
 
     return {
       success: true,
-      message: nextStep
-        ? `Avanzato allo step: ${nextStep.descrizione}`
-        : 'Istanza conclusa con successo',
+      message: resultMessage,
       protoNumero: protoNumeroStep,
       protoData: protoDataStep,
     };
@@ -960,4 +1050,116 @@ export async function generatePayment(params: GeneratePaymentParams) {
     console.error('Error generating payment:', error);
     return { success: false, message: 'Errore durante la generazione del pagamento' };
   }
+}
+
+export async function rollbackFase(params: {
+  istanzaId: number;
+  note: string;
+  inviaEmail?: boolean;
+}): Promise<{ success: boolean; message: string }> {
+  const operatore = await requireAuth();
+
+  const istanza = await prisma.istanza.findUnique({
+    where: { id: params.istanzaId },
+    include: {
+      servizio: {
+        include: {
+          fasi: {
+            include: {
+              steps: { orderBy: { ordine: 'asc' } },
+              ufficio: true,
+            },
+            orderBy: { ordine: 'asc' },
+          },
+        },
+      },
+      faseCorrente: { include: { ufficio: true } },
+      utente: true,
+    },
+  });
+
+  if (!istanza) return { success: false, message: 'Istanza non trovata' };
+  if (istanza.conclusa) return { success: false, message: "L'istanza è già conclusa" };
+  if (istanza.respinta) return { success: false, message: "L'istanza è respinta" };
+  if (!istanza.faseCorrente || istanza.faseCorrente.ordine <= 1) {
+    return { success: false, message: 'Non è possibile tornare a una fase precedente: questa è già la prima fase' };
+  }
+
+  const fasePrecedente = istanza.servizio.fasi.find(
+    (f) => f.ordine === istanza.faseCorrente!.ordine - 1
+  );
+  if (!fasePrecedente) return { success: false, message: 'Fase precedente non trovata' };
+
+  const lastStepFasePrecedente = fasePrecedente.steps[fasePrecedente.steps.length - 1];
+  if (!lastStepFasePrecedente) return { success: false, message: 'Nessuno step nella fase precedente' };
+
+  const now = new Date();
+  const operatoreId = parseInt(operatore.id);
+
+  // Chiudi WorkflowFase corrente con direzione ROLLBACK
+  await prisma.workflowFase.updateMany({
+    where: { istanzaId: istanza.id, faseId: istanza.faseCorrente.id, dataCompletamento: null },
+    data: {
+      dataCompletamento: now,
+      operatoreCompletamentoId: operatoreId,
+      direzione: 'ROLLBACK',
+    },
+  });
+
+  // Crea nuovo WorkflowFase per la fase precedente
+  await prisma.workflowFase.create({
+    data: {
+      istanzaId: istanza.id,
+      faseId: fasePrecedente.id,
+      dataInizio: now,
+      direzione: 'ROLLBACK',
+    },
+  });
+
+  // Crea nuovo Workflow per l'ultimo step della fase precedente (operatore null — nuova presa in carico)
+  await prisma.workflow.create({
+    data: {
+      istanzaId: istanza.id,
+      stepId: lastStepFasePrecedente.id,
+      dataVariazione: now,
+      stato: STATO_IN_LAVORAZIONE,
+      note: `[Rollback di fase] ${params.note}`,
+      // operatoreId: null
+    },
+  });
+
+  // Aggiorna istanza — per rollback ufficio torna al fisso della fase precedente (variabile → null, richiederà nuova scelta)
+  const rollbackUfficioCorrenteId = fasePrecedente.ufficioVariabile
+    ? null
+    : (fasePrecedente.ufficioId ?? null);
+
+  // Aggiorna istanza
+  await prisma.istanza.update({
+    where: { id: istanza.id },
+    data: {
+      faseCorrenteId: fasePrecedente.id,
+      ufficioCorrenteId: rollbackUfficioCorrenteId,
+      lastStepId: lastStepFasePrecedente.id,
+      activeStep: lastStepFasePrecedente.ordine,
+    },
+  });
+
+  // Email notifica (condizionale)
+  if (params.inviaEmail !== false) {
+    await sendFaseTransitionEmail({
+      istanza: {
+        id: istanza.id,
+        protoNumero: istanza.protoNumero ?? '',
+        utente: { nome: istanza.utente.nome, cognome: istanza.utente.cognome },
+        servizio: { titolo: istanza.servizio.titolo },
+      },
+      nuovaFase: fasePrecedente,
+      direzione: 'ROLLBACK',
+    });
+  }
+
+  revalidatePath(`/istanze/${istanza.id}`);
+  revalidatePath('/istanze');
+
+  return { success: true, message: `Pratica rimandata alla fase: ${fasePrecedente.nome}` };
 }

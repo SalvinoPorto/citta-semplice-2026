@@ -10,13 +10,17 @@ interface Props {
 
 export function SsoHandoff({ ssoToken, callbackUrl }: Props) {
   useEffect(() => {
-    signIn('cig-sso', { ssoToken, redirect: false }).then((result) => {
-      if (result?.error) {
+    signIn('cig-sso', { ssoToken, redirect: false })
+      .then((result) => {
+        if (!result?.ok || result?.error) {
+          window.location.href = `/login?error=sso_auth&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+        } else {
+          window.location.href = callbackUrl;
+        }
+      })
+      .catch(() => {
         window.location.href = `/login?error=sso_auth&callbackUrl=${encodeURIComponent(callbackUrl)}`;
-      } else {
-        window.location.href = callbackUrl;
-      }
-    });
+      });
   }, [ssoToken, callbackUrl]);
 
   return (

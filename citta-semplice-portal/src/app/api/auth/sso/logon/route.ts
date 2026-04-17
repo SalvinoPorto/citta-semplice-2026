@@ -11,15 +11,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CigClient, buildAuthRequestXml, PS2S } from '@/lib/auth/cig-client';
 
 const SSO_URL = process.env.CIG_SSO_URL ?? 'https://www.comune.catania.it/sso/';
-const SITE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const STYLESHEET = process.env.CIG_STYLESHEET ?? '';
 const LOGO_URL = process.env.CIG_LOGO_URL ?? '';
 
 export async function GET(req: NextRequest) {
   const callbackUrl = req.nextUrl.searchParams.get('callbackUrl') ?? '/le-mie-istanze';
 
-  const urlReturn = `${SITE_URL}/api/auth/sso/callback`;
-  const urlErrore = `${SITE_URL}/login?error=sso`;
+  // Use the request's own origin so the callback URL is always correct
+  // regardless of NEXTAUTH_URL or which port the dev server is on.
+  const origin = req.nextUrl.origin;
+  const urlReturn = `${origin}/api/auth/sso/callback`;
+  const urlErrore = `${origin}/login?error=sso`;
 
   const authXml = buildAuthRequestXml(urlReturn, urlErrore, STYLESHEET, LOGO_URL);
 
