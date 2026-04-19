@@ -292,7 +292,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
       postFormValidation: false,
       postFormValidationAPI: '',
       postFormValidationFields: '',
-      fasi: [{ nome: 'Fase 1', ordine: 1, ufficioVariabile: false, ufficioId: null }],
+      fasi: [{ nome: 'Fase 1', ordine: 1, ufficioId: null }],
       steps: [
         {
           descrizione: 'Presentazione Istanza',
@@ -365,7 +365,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     name: 'steps',
   });
 
-  const { fields: fasiFields, append: appendFase, remove: removeFase, update: updateFase } = useFieldArray({
+  const { fields: fasiFields, append: appendFase, remove: removeFase } = useFieldArray({
     control,
     name: 'fasi',
   });
@@ -373,7 +373,6 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   const FASE_VUOTA = {
     nome: 'Nuova Fase',
     ordine: 1,
-    ufficioVariabile: false,
     ufficioId: null as number | null,
   };
 
@@ -514,7 +513,6 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
 
   // const prevedeDoc = watch('prevedeDocumentoFinale');
   const watchedSteps = watch('steps');
-  const watchedFasi = watch('fasi');
 
   // Carica uffici se almeno uno step ha già protocollo esterno (modalità editing)
   useEffect(() => {
@@ -955,53 +953,18 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                           placeholder="Nome fase"
                           {...register(`fasi.${faseIndex}.nome`)}
                         />
-                        {/* Toggle fisso / variabile */}
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="form-check form-check-inline mb-0">
-                            <input
-                              type="radio"
-                              className="form-check-input"
-                              id={`fase-${faseIndex}-ufficio-fisso`}
-                              checked={!(watchedFasi?.[faseIndex]?.ufficioVariabile ?? false)}
-                              onChange={() => {
-                                const cur = watchedFasi?.[faseIndex];
-                                if (cur) updateFase(faseIndex, { ...cur, ufficioVariabile: false });
-                              }}
-                            />
-                            <label className="form-check-label small" htmlFor={`fase-${faseIndex}-ufficio-fisso`}>
-                              Ufficio fisso
-                            </label>
-                          </div>
-                          <div className="form-check form-check-inline mb-0">
-                            <input
-                              type="radio"
-                              className="form-check-input"
-                              id={`fase-${faseIndex}-ufficio-variabile`}
-                              checked={watchedFasi?.[faseIndex]?.ufficioVariabile ?? false}
-                              onChange={() => {
-                                const cur = watchedFasi?.[faseIndex];
-                                if (cur) updateFase(faseIndex, { ...cur, ufficioVariabile: true, ufficioId: null });
-                              }}
-                            />
-                            <label className="form-check-label small" htmlFor={`fase-${faseIndex}-ufficio-variabile`}>
-                              Ufficio variabile
-                            </label>
-                          </div>
-                        </div>
-                        {!(watchedFasi?.[faseIndex]?.ufficioVariabile ?? false) && (
-                          <select
-                            className="form-select form-select-sm"
-                            style={{ maxWidth: 200 }}
-                            {...register(`fasi.${faseIndex}.ufficioId`, {
-                              setValueAs: (v) => (v === '' ? null : parseInt(v, 10)),
-                            })}
-                          >
-                            <option value="">Nessun ufficio</option>
-                            {uffici.map((u) => (
-                              <option key={u.id} value={u.id}>{u.nome}</option>
-                            ))}
-                          </select>
-                        )}
+                        <select
+                          className="form-select form-select-sm"
+                          style={{ maxWidth: 220 }}
+                          {...register(`fasi.${faseIndex}.ufficioId`, {
+                            setValueAs: (v) => (v === '' ? null : parseInt(v, 10)),
+                          })}
+                        >
+                          <option value="">Nessun ufficio</option>
+                          {uffici.map((u) => (
+                            <option key={u.id} value={u.id}>{u.nome}</option>
+                          ))}
+                        </select>
                         {!isUnicaFase && (
                           <button
                             type="button"

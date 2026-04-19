@@ -19,31 +19,24 @@ export async function createOperatore(data: OperatoreCreateFormData) {
 
   const hashedPassword = await hash(validated.password, 10);
 
-  const operatore = await prisma.operatore.create({
+  await prisma.operatore.create({
     data: {
       email: validated.email,
       password: hashedPassword,
       userName: validated.userName,
       nome: validated.nome,
       cognome: validated.cognome,
-      // codiceFiscale: validated.codiceFiscale || null,
       telefono: validated.telefono || null,
       attivo: validated.attivo,
+      ufficioId: validated.ufficioId ?? null,
       ruoli: {
-        create: validated.ruoliIds.map((ruoloId) => ({
-          ruoloId,
-        })),
-      },
-      servizi: {
-        create: validated.serviziIds.map((servizioId) => ({
-          servizioId,
-        })),
+        create: validated.ruoliIds.map((ruoloId) => ({ ruoloId })),
       },
     },
   });
 
   revalidatePath('/operatori');
-  redirect('/operatori');
+  redirect('/amministrazione/operatori');
 }
 
 export async function updateOperatore(id: number, data: OperatoreFormData) {
@@ -57,42 +50,29 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
     return { error: 'Un altro operatore con questo nome utente esiste già' };
   }
 
-  // Prepare update data
   const updateData: Record<string, unknown> = {
     email: validated.email,
     userName: validated.userName,
     nome: validated.nome,
     cognome: validated.cognome,
-    // codiceFiscale: validated.codiceFiscale || null,
     telefono: validated.telefono || null,
     attivo: validated.attivo,
+    ufficioId: validated.ufficioId ?? null,
   };
 
-  // Update password only if provided
   if (validated.password) {
     updateData.password = await hash(validated.password, 10);
   }
 
-  // Update operatore with relations
   await prisma.$transaction(async (tx) => {
-    // Delete existing relations
     await tx.operatoreRuolo.deleteMany({ where: { operatoreId: id } });
-    await tx.operatoreServizio.deleteMany({ where: { operatoreId: id } });
 
-    // Update operatore
     await tx.operatore.update({
       where: { id },
       data: {
         ...updateData,
         ruoli: {
-          create: validated.ruoliIds.map((ruoloId) => ({
-            ruoloId,
-          })),
-        },
-        servizi: {
-          create: validated.serviziIds.map((servizioId) => ({
-            servizioId,
-          })),
+          create: validated.ruoliIds.map((ruoloId) => ({ ruoloId })),
         },
       },
     });
@@ -104,9 +84,7 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
 }
 
 export async function deleteOperatore(id: number) {
-  await prisma.operatore.delete({
-    where: { id },
-  });
+  await prisma.operatore.delete({ where: { id } });
 
   revalidatePath('/amministrazione/operatori');
   redirect('/amministrazione/operatori');

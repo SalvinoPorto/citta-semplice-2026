@@ -6,6 +6,17 @@ import Link from 'next/link';
 async function getUfficio(id: number) {
   return prisma.ufficio.findUnique({
     where: { id },
+    include: {
+      fasi: {
+        select: {
+          id: true,
+          nome: true,
+          ordine: true,
+          servizio: { select: { id: true, titolo: true } },
+        },
+        orderBy: [{ servizio: { titolo: 'asc' } }, { ordine: 'asc' }],
+      },
+    },
   });
 }
 
@@ -49,6 +60,7 @@ export default async function ModificaUfficioPage({ params }: PageProps) {
           indirizzo: ufficio.indirizzo || '',
           attivo: ufficio.attivo,
         }}
+        fasiAssegnate={ufficio.fasi}
       />
     </div>
   );

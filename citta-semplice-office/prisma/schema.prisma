@@ -23,9 +23,11 @@ model Operatore {
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
+  ufficioId         Int?      @map("ufficio_id")
+  ufficio           Ufficio?  @relation(fields: [ufficioId], references: [id], onDelete: SetNull)
+
   // Relations
   ruoli             OperatoreRuolo[]
-  servizi           OperatoreServizio[]
   workflows         Workflow[]
   comunicazioni     Comunicazione[]
   workflowFasiCompletati  WorkflowFase[]
@@ -153,7 +155,6 @@ model Servizio {
   createdAt             DateTime? @default(now()) @map("created_at")
   updatedAt             DateTime? @map("updated_at")
   
-  operatori             OperatoreServizio[]
   steps                 Step[]
   istanze               Istanza[]
   customerSatisfaction  CustomerSatisfaction?
@@ -175,21 +176,12 @@ model Ufficio {
 
   servizi              Servizio[]
   fasi                 Fase[]
+  operatori            Operatore[]
   istanzeUfficioCorrente Istanza[] @relation("UfficioCorrente")
 
   @@map("uffici")
 }
 
-model OperatoreServizio {
-  operatoreId Int       @map("operatore_id")
-  servizioId  Int       @map("servizio_id")
-
-  operatore   Operatore @relation(fields: [operatoreId], references: [id], onDelete: Cascade)
-  servizio    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
-
-  @@id([operatoreId, servizioId])
-  @@map("operatori_servizi")
-}
 
 model ServizioRuoloUser {
   servizioId  Int       @map("servizio_id")
@@ -396,8 +388,6 @@ model Fase {
 
   ufficioId        Int?     @map("ufficio_id")
   ufficio          Ufficio? @relation(fields: [ufficioId], references: [id], onDelete: SetNull)
-
-  ufficioVariabile Boolean  @default(false) @map("ufficio_variabile")
 
   steps                Step[]
   workflowFasi         WorkflowFase[]

@@ -46,7 +46,6 @@ export type FaseMinAggregateOutputType = {
   ordine: number | null
   servizioId: number | null
   ufficioId: number | null
-  ufficioVariabile: boolean | null
 }
 
 export type FaseMaxAggregateOutputType = {
@@ -55,7 +54,6 @@ export type FaseMaxAggregateOutputType = {
   ordine: number | null
   servizioId: number | null
   ufficioId: number | null
-  ufficioVariabile: boolean | null
 }
 
 export type FaseCountAggregateOutputType = {
@@ -64,7 +62,6 @@ export type FaseCountAggregateOutputType = {
   ordine: number
   servizioId: number
   ufficioId: number
-  ufficioVariabile: number
   _all: number
 }
 
@@ -89,7 +86,6 @@ export type FaseMinAggregateInputType = {
   ordine?: true
   servizioId?: true
   ufficioId?: true
-  ufficioVariabile?: true
 }
 
 export type FaseMaxAggregateInputType = {
@@ -98,7 +94,6 @@ export type FaseMaxAggregateInputType = {
   ordine?: true
   servizioId?: true
   ufficioId?: true
-  ufficioVariabile?: true
 }
 
 export type FaseCountAggregateInputType = {
@@ -107,7 +102,6 @@ export type FaseCountAggregateInputType = {
   ordine?: true
   servizioId?: true
   ufficioId?: true
-  ufficioVariabile?: true
   _all?: true
 }
 
@@ -203,7 +197,6 @@ export type FaseGroupByOutputType = {
   ordine: number
   servizioId: number
   ufficioId: number | null
-  ufficioVariabile: boolean
   _count: FaseCountAggregateOutputType | null
   _avg: FaseAvgAggregateOutputType | null
   _sum: FaseSumAggregateOutputType | null
@@ -235,7 +228,6 @@ export type FaseWhereInput = {
   ordine?: Prisma.IntFilter<"Fase"> | number
   servizioId?: Prisma.IntFilter<"Fase"> | number
   ufficioId?: Prisma.IntNullableFilter<"Fase"> | number | null
-  ufficioVariabile?: Prisma.BoolFilter<"Fase"> | boolean
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
   ufficio?: Prisma.XOR<Prisma.UfficioNullableScalarRelationFilter, Prisma.UfficioWhereInput> | null
   steps?: Prisma.StepListRelationFilter
@@ -249,7 +241,6 @@ export type FaseOrderByWithRelationInput = {
   ordine?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   ufficioId?: Prisma.SortOrderInput | Prisma.SortOrder
-  ufficioVariabile?: Prisma.SortOrder
   servizio?: Prisma.ServizioOrderByWithRelationInput
   ufficio?: Prisma.UfficioOrderByWithRelationInput
   steps?: Prisma.StepOrderByRelationAggregateInput
@@ -266,7 +257,6 @@ export type FaseWhereUniqueInput = Prisma.AtLeast<{
   ordine?: Prisma.IntFilter<"Fase"> | number
   servizioId?: Prisma.IntFilter<"Fase"> | number
   ufficioId?: Prisma.IntNullableFilter<"Fase"> | number | null
-  ufficioVariabile?: Prisma.BoolFilter<"Fase"> | boolean
   servizio?: Prisma.XOR<Prisma.ServizioScalarRelationFilter, Prisma.ServizioWhereInput>
   ufficio?: Prisma.XOR<Prisma.UfficioNullableScalarRelationFilter, Prisma.UfficioWhereInput> | null
   steps?: Prisma.StepListRelationFilter
@@ -280,7 +270,6 @@ export type FaseOrderByWithAggregationInput = {
   ordine?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   ufficioId?: Prisma.SortOrderInput | Prisma.SortOrder
-  ufficioVariabile?: Prisma.SortOrder
   _count?: Prisma.FaseCountOrderByAggregateInput
   _avg?: Prisma.FaseAvgOrderByAggregateInput
   _max?: Prisma.FaseMaxOrderByAggregateInput
@@ -297,13 +286,11 @@ export type FaseScalarWhereWithAggregatesInput = {
   ordine?: Prisma.IntWithAggregatesFilter<"Fase"> | number
   servizioId?: Prisma.IntWithAggregatesFilter<"Fase"> | number
   ufficioId?: Prisma.IntNullableWithAggregatesFilter<"Fase"> | number | null
-  ufficioVariabile?: Prisma.BoolWithAggregatesFilter<"Fase"> | boolean
 }
 
 export type FaseCreateInput = {
   nome: string
   ordine: number
-  ufficioVariabile?: boolean
   servizio: Prisma.ServizioCreateNestedOneWithoutFasiInput
   ufficio?: Prisma.UfficioCreateNestedOneWithoutFasiInput
   steps?: Prisma.StepCreateNestedManyWithoutFaseInput
@@ -317,7 +304,6 @@ export type FaseUncheckedCreateInput = {
   ordine: number
   servizioId: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
   steps?: Prisma.StepUncheckedCreateNestedManyWithoutFaseInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutFaseInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutFaseCorrenteInput
@@ -326,7 +312,6 @@ export type FaseUncheckedCreateInput = {
 export type FaseUpdateInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutFasiNestedInput
   ufficio?: Prisma.UfficioUpdateOneWithoutFasiNestedInput
   steps?: Prisma.StepUpdateManyWithoutFaseNestedInput
@@ -340,7 +325,6 @@ export type FaseUncheckedUpdateInput = {
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   steps?: Prisma.StepUncheckedUpdateManyWithoutFaseNestedInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutFaseNestedInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutFaseCorrenteNestedInput
@@ -352,13 +336,11 @@ export type FaseCreateManyInput = {
   ordine: number
   servizioId: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
 }
 
 export type FaseUpdateManyMutationInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type FaseUncheckedUpdateManyInput = {
@@ -367,7 +349,6 @@ export type FaseUncheckedUpdateManyInput = {
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type FaseListRelationFilter = {
@@ -391,7 +372,6 @@ export type FaseCountOrderByAggregateInput = {
   ordine?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   ufficioId?: Prisma.SortOrder
-  ufficioVariabile?: Prisma.SortOrder
 }
 
 export type FaseAvgOrderByAggregateInput = {
@@ -407,7 +387,6 @@ export type FaseMaxOrderByAggregateInput = {
   ordine?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   ufficioId?: Prisma.SortOrder
-  ufficioVariabile?: Prisma.SortOrder
 }
 
 export type FaseMinOrderByAggregateInput = {
@@ -416,7 +395,6 @@ export type FaseMinOrderByAggregateInput = {
   ordine?: Prisma.SortOrder
   servizioId?: Prisma.SortOrder
   ufficioId?: Prisma.SortOrder
-  ufficioVariabile?: Prisma.SortOrder
 }
 
 export type FaseSumOrderByAggregateInput = {
@@ -564,7 +542,6 @@ export type FaseUpdateOneRequiredWithoutWorkflowFasiNestedInput = {
 export type FaseCreateWithoutServizioInput = {
   nome: string
   ordine: number
-  ufficioVariabile?: boolean
   ufficio?: Prisma.UfficioCreateNestedOneWithoutFasiInput
   steps?: Prisma.StepCreateNestedManyWithoutFaseInput
   workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutFaseInput
@@ -576,7 +553,6 @@ export type FaseUncheckedCreateWithoutServizioInput = {
   nome: string
   ordine: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
   steps?: Prisma.StepUncheckedCreateNestedManyWithoutFaseInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutFaseInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutFaseCorrenteInput
@@ -617,13 +593,11 @@ export type FaseScalarWhereInput = {
   ordine?: Prisma.IntFilter<"Fase"> | number
   servizioId?: Prisma.IntFilter<"Fase"> | number
   ufficioId?: Prisma.IntNullableFilter<"Fase"> | number | null
-  ufficioVariabile?: Prisma.BoolFilter<"Fase"> | boolean
 }
 
 export type FaseCreateWithoutUfficioInput = {
   nome: string
   ordine: number
-  ufficioVariabile?: boolean
   servizio: Prisma.ServizioCreateNestedOneWithoutFasiInput
   steps?: Prisma.StepCreateNestedManyWithoutFaseInput
   workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutFaseInput
@@ -635,7 +609,6 @@ export type FaseUncheckedCreateWithoutUfficioInput = {
   nome: string
   ordine: number
   servizioId: number
-  ufficioVariabile?: boolean
   steps?: Prisma.StepUncheckedCreateNestedManyWithoutFaseInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutFaseInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutFaseCorrenteInput
@@ -670,7 +643,6 @@ export type FaseUpdateManyWithWhereWithoutUfficioInput = {
 export type FaseCreateWithoutStepsInput = {
   nome: string
   ordine: number
-  ufficioVariabile?: boolean
   servizio: Prisma.ServizioCreateNestedOneWithoutFasiInput
   ufficio?: Prisma.UfficioCreateNestedOneWithoutFasiInput
   workflowFasi?: Prisma.WorkflowFaseCreateNestedManyWithoutFaseInput
@@ -683,7 +655,6 @@ export type FaseUncheckedCreateWithoutStepsInput = {
   ordine: number
   servizioId: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
   workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutFaseInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutFaseCorrenteInput
 }
@@ -707,7 +678,6 @@ export type FaseUpdateToOneWithWhereWithoutStepsInput = {
 export type FaseUpdateWithoutStepsInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutFasiNestedInput
   ufficio?: Prisma.UfficioUpdateOneWithoutFasiNestedInput
   workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutFaseNestedInput
@@ -720,7 +690,6 @@ export type FaseUncheckedUpdateWithoutStepsInput = {
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutFaseNestedInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutFaseCorrenteNestedInput
 }
@@ -728,7 +697,6 @@ export type FaseUncheckedUpdateWithoutStepsInput = {
 export type FaseCreateWithoutIstanzeFaseCorrenteInput = {
   nome: string
   ordine: number
-  ufficioVariabile?: boolean
   servizio: Prisma.ServizioCreateNestedOneWithoutFasiInput
   ufficio?: Prisma.UfficioCreateNestedOneWithoutFasiInput
   steps?: Prisma.StepCreateNestedManyWithoutFaseInput
@@ -741,7 +709,6 @@ export type FaseUncheckedCreateWithoutIstanzeFaseCorrenteInput = {
   ordine: number
   servizioId: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
   steps?: Prisma.StepUncheckedCreateNestedManyWithoutFaseInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutFaseInput
 }
@@ -765,7 +732,6 @@ export type FaseUpdateToOneWithWhereWithoutIstanzeFaseCorrenteInput = {
 export type FaseUpdateWithoutIstanzeFaseCorrenteInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutFasiNestedInput
   ufficio?: Prisma.UfficioUpdateOneWithoutFasiNestedInput
   steps?: Prisma.StepUpdateManyWithoutFaseNestedInput
@@ -778,7 +744,6 @@ export type FaseUncheckedUpdateWithoutIstanzeFaseCorrenteInput = {
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   steps?: Prisma.StepUncheckedUpdateManyWithoutFaseNestedInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutFaseNestedInput
 }
@@ -786,7 +751,6 @@ export type FaseUncheckedUpdateWithoutIstanzeFaseCorrenteInput = {
 export type FaseCreateWithoutWorkflowFasiInput = {
   nome: string
   ordine: number
-  ufficioVariabile?: boolean
   servizio: Prisma.ServizioCreateNestedOneWithoutFasiInput
   ufficio?: Prisma.UfficioCreateNestedOneWithoutFasiInput
   steps?: Prisma.StepCreateNestedManyWithoutFaseInput
@@ -799,7 +763,6 @@ export type FaseUncheckedCreateWithoutWorkflowFasiInput = {
   ordine: number
   servizioId: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
   steps?: Prisma.StepUncheckedCreateNestedManyWithoutFaseInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutFaseCorrenteInput
 }
@@ -823,7 +786,6 @@ export type FaseUpdateToOneWithWhereWithoutWorkflowFasiInput = {
 export type FaseUpdateWithoutWorkflowFasiInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutFasiNestedInput
   ufficio?: Prisma.UfficioUpdateOneWithoutFasiNestedInput
   steps?: Prisma.StepUpdateManyWithoutFaseNestedInput
@@ -836,7 +798,6 @@ export type FaseUncheckedUpdateWithoutWorkflowFasiInput = {
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   steps?: Prisma.StepUncheckedUpdateManyWithoutFaseNestedInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutFaseCorrenteNestedInput
 }
@@ -846,13 +807,11 @@ export type FaseCreateManyServizioInput = {
   nome: string
   ordine: number
   ufficioId?: number | null
-  ufficioVariabile?: boolean
 }
 
 export type FaseUpdateWithoutServizioInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ufficio?: Prisma.UfficioUpdateOneWithoutFasiNestedInput
   steps?: Prisma.StepUpdateManyWithoutFaseNestedInput
   workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutFaseNestedInput
@@ -864,7 +823,6 @@ export type FaseUncheckedUpdateWithoutServizioInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   steps?: Prisma.StepUncheckedUpdateManyWithoutFaseNestedInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutFaseNestedInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutFaseCorrenteNestedInput
@@ -875,7 +833,6 @@ export type FaseUncheckedUpdateManyWithoutServizioInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type FaseCreateManyUfficioInput = {
@@ -883,13 +840,11 @@ export type FaseCreateManyUfficioInput = {
   nome: string
   ordine: number
   servizioId: number
-  ufficioVariabile?: boolean
 }
 
 export type FaseUpdateWithoutUfficioInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizio?: Prisma.ServizioUpdateOneRequiredWithoutFasiNestedInput
   steps?: Prisma.StepUpdateManyWithoutFaseNestedInput
   workflowFasi?: Prisma.WorkflowFaseUpdateManyWithoutFaseNestedInput
@@ -901,7 +856,6 @@ export type FaseUncheckedUpdateWithoutUfficioInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
   steps?: Prisma.StepUncheckedUpdateManyWithoutFaseNestedInput
   workflowFasi?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutFaseNestedInput
   istanzeFaseCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutFaseCorrenteNestedInput
@@ -912,7 +866,6 @@ export type FaseUncheckedUpdateManyWithoutUfficioInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   ordine?: Prisma.IntFieldUpdateOperationsInput | number
   servizioId?: Prisma.IntFieldUpdateOperationsInput | number
-  ufficioVariabile?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -970,7 +923,6 @@ export type FaseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   ordine?: boolean
   servizioId?: boolean
   ufficioId?: boolean
-  ufficioVariabile?: boolean
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   ufficio?: boolean | Prisma.Fase$ufficioArgs<ExtArgs>
   steps?: boolean | Prisma.Fase$stepsArgs<ExtArgs>
@@ -985,7 +937,6 @@ export type FaseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   ordine?: boolean
   servizioId?: boolean
   ufficioId?: boolean
-  ufficioVariabile?: boolean
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   ufficio?: boolean | Prisma.Fase$ufficioArgs<ExtArgs>
 }, ExtArgs["result"]["fase"]>
@@ -996,7 +947,6 @@ export type FaseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   ordine?: boolean
   servizioId?: boolean
   ufficioId?: boolean
-  ufficioVariabile?: boolean
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   ufficio?: boolean | Prisma.Fase$ufficioArgs<ExtArgs>
 }, ExtArgs["result"]["fase"]>
@@ -1007,10 +957,9 @@ export type FaseSelectScalar = {
   ordine?: boolean
   servizioId?: boolean
   ufficioId?: boolean
-  ufficioVariabile?: boolean
 }
 
-export type FaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "ordine" | "servizioId" | "ufficioId" | "ufficioVariabile", ExtArgs["result"]["fase"]>
+export type FaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "ordine" | "servizioId" | "ufficioId", ExtArgs["result"]["fase"]>
 export type FaseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   servizio?: boolean | Prisma.ServizioDefaultArgs<ExtArgs>
   ufficio?: boolean | Prisma.Fase$ufficioArgs<ExtArgs>
@@ -1043,7 +992,6 @@ export type $FasePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     ordine: number
     servizioId: number
     ufficioId: number | null
-    ufficioVariabile: boolean
   }, ExtArgs["result"]["fase"]>
   composites: {}
 }
@@ -1477,7 +1425,6 @@ export interface FaseFieldRefs {
   readonly ordine: Prisma.FieldRef<"Fase", 'Int'>
   readonly servizioId: Prisma.FieldRef<"Fase", 'Int'>
   readonly ufficioId: Prisma.FieldRef<"Fase", 'Int'>
-  readonly ufficioVariabile: Prisma.FieldRef<"Fase", 'Boolean'>
 }
     
 

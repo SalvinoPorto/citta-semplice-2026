@@ -147,7 +147,7 @@ async function main() {
   }
   console.log('Created steps');
 
-  // Assign servizio to admin
+ /*  // Assign servizio to admin
   await prisma.operatoreServizio.upsert({
     where: {
       operatoreId_servizioId: {
@@ -161,7 +161,7 @@ async function main() {
       servizioId: servizio.id,
     },
   });
-  console.log('Assigned servizio to admin');
+  console.log('Assigned servizio to admin'); */
 
   // Create Utente fittizio
   const utente = await prisma.utente.upsert({

@@ -4,6 +4,20 @@ import { compare } from 'bcryptjs';
 import prisma from '@/lib/db/prisma';
 
 export const authConfig: NextAuthConfig = {
+  cookies: {
+    sessionToken: {
+      name: 'office.session-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    csrfToken: {
+      name: 'office.csrf-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    callbackUrl: {
+      name: 'office.callback-url',
+      options: { sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+  },
   providers: [
     Credentials({
       name: 'credentials',

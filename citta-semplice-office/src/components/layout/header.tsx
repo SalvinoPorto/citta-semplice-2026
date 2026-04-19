@@ -15,7 +15,8 @@ export function Header({ user }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    await signOut({ redirect: false });
+    window.location.href = '/login';
   };
 
   const getRoleBadge = () => {

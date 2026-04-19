@@ -5,11 +5,16 @@ import { ROLES } from '@/lib/auth/roles';
 import { IstanzeClient } from './istanze-client';
 
 async function getServizi(operatoreId: number, isAdmin: boolean) {
+  const ufficioId = isAdmin ? null : (await prisma.operatore.findUnique({
+    where: { id: operatoreId },
+    select: { ufficioId: true },
+  }))?.ufficioId ?? null;
+
   return prisma.servizio.findMany({
     where: {
       attivo: true,
       OR: [{ dataFine: null }, { dataFine: { gte: new Date() } }],
-      ...(!isAdmin && { operatori: { some: { operatoreId } } }),
+      ...(!isAdmin && ufficioId && { fasi: { some: { ufficioId } } }),
     },
     orderBy: { titolo: 'asc' },
     select: { id: true, titolo: true, campiInEvidenza: true },

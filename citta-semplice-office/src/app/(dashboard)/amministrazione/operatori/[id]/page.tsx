@@ -8,21 +8,20 @@ async function getOperatore(id: number) {
     where: { id },
     include: {
       ruoli: { select: { ruoloId: true } },
-      servizi: { select: { servizioId: true } },
     },
   });
 }
 
 async function getFormData() {
-  const [ruoli, servizi] = await Promise.all([
+  const [ruoli, uffici] = await Promise.all([
     prisma.ruolo.findMany({ orderBy: { nome: 'asc' } }),
-    prisma.servizio.findMany({
+    prisma.ufficio.findMany({
       where: { attivo: true },
-      select: { id: true, titolo: true, area: { select: { nome: true } } },
-      orderBy: [{ area: { nome: 'asc' } }, { titolo: 'asc' }],
+      select: { id: true, nome: true },
+      orderBy: { nome: 'asc' },
     }),
   ]);
-  return { ruoli, servizi };
+  return { ruoli, uffici };
 }
 
 interface PageProps {
@@ -35,7 +34,7 @@ export default async function ModificaOperatorePage({ params }: PageProps) {
 
   if (isNaN(operatoreId)) notFound();
 
-  const [operatore, { ruoli, servizi }] = await Promise.all([
+  const [operatore, { ruoli, uffici }] = await Promise.all([
     getOperatore(operatoreId),
     getFormData(),
   ]);
@@ -64,10 +63,10 @@ export default async function ModificaOperatorePage({ params }: PageProps) {
           telefono: operatore.telefono || '',
           attivo: operatore.attivo,
           ruoliIds: operatore.ruoli.map((r) => r.ruoloId),
-          serviziIds: operatore.servizi.map((s) => s.servizioId),
+          ufficioId: operatore.ufficioId,
         }}
         ruoli={ruoli}
-        servizi={servizi}
+        uffici={uffici}
       />
     </div>
   );

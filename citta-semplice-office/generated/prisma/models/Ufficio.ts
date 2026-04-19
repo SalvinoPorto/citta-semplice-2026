@@ -234,6 +234,7 @@ export type UfficioWhereInput = {
   attivo?: Prisma.BoolFilter<"Ufficio"> | boolean
   servizi?: Prisma.ServizioListRelationFilter
   fasi?: Prisma.FaseListRelationFilter
+  operatori?: Prisma.OperatoreListRelationFilter
   istanzeUfficioCorrente?: Prisma.IstanzaListRelationFilter
 }
 
@@ -247,6 +248,7 @@ export type UfficioOrderByWithRelationInput = {
   attivo?: Prisma.SortOrder
   servizi?: Prisma.ServizioOrderByRelationAggregateInput
   fasi?: Prisma.FaseOrderByRelationAggregateInput
+  operatori?: Prisma.OperatoreOrderByRelationAggregateInput
   istanzeUfficioCorrente?: Prisma.IstanzaOrderByRelationAggregateInput
 }
 
@@ -263,6 +265,7 @@ export type UfficioWhereUniqueInput = Prisma.AtLeast<{
   attivo?: Prisma.BoolFilter<"Ufficio"> | boolean
   servizi?: Prisma.ServizioListRelationFilter
   fasi?: Prisma.FaseListRelationFilter
+  operatori?: Prisma.OperatoreListRelationFilter
   istanzeUfficioCorrente?: Prisma.IstanzaListRelationFilter
 }, "id">
 
@@ -303,6 +306,7 @@ export type UfficioCreateInput = {
   attivo?: boolean
   servizi?: Prisma.ServizioCreateNestedManyWithoutUfficioInput
   fasi?: Prisma.FaseCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreCreateNestedManyWithoutUfficioInput
   istanzeUfficioCorrente?: Prisma.IstanzaCreateNestedManyWithoutUfficioCorrenteInput
 }
 
@@ -316,6 +320,7 @@ export type UfficioUncheckedCreateInput = {
   attivo?: boolean
   servizi?: Prisma.ServizioUncheckedCreateNestedManyWithoutUfficioInput
   fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreUncheckedCreateNestedManyWithoutUfficioInput
   istanzeUfficioCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutUfficioCorrenteInput
 }
 
@@ -328,6 +333,7 @@ export type UfficioUpdateInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizi?: Prisma.ServizioUpdateManyWithoutUfficioNestedInput
   fasi?: Prisma.FaseUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUpdateManyWithoutUfficioNestedInput
   istanzeUfficioCorrente?: Prisma.IstanzaUpdateManyWithoutUfficioCorrenteNestedInput
 }
 
@@ -341,6 +347,7 @@ export type UfficioUncheckedUpdateInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizi?: Prisma.ServizioUncheckedUpdateManyWithoutUfficioNestedInput
   fasi?: Prisma.FaseUncheckedUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUncheckedUpdateManyWithoutUfficioNestedInput
   istanzeUfficioCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutUfficioCorrenteNestedInput
 }
 
@@ -416,6 +423,22 @@ export type UfficioSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type UfficioCreateNestedOneWithoutOperatoriInput = {
+  create?: Prisma.XOR<Prisma.UfficioCreateWithoutOperatoriInput, Prisma.UfficioUncheckedCreateWithoutOperatoriInput>
+  connectOrCreate?: Prisma.UfficioCreateOrConnectWithoutOperatoriInput
+  connect?: Prisma.UfficioWhereUniqueInput
+}
+
+export type UfficioUpdateOneWithoutOperatoriNestedInput = {
+  create?: Prisma.XOR<Prisma.UfficioCreateWithoutOperatoriInput, Prisma.UfficioUncheckedCreateWithoutOperatoriInput>
+  connectOrCreate?: Prisma.UfficioCreateOrConnectWithoutOperatoriInput
+  upsert?: Prisma.UfficioUpsertWithoutOperatoriInput
+  disconnect?: Prisma.UfficioWhereInput | boolean
+  delete?: Prisma.UfficioWhereInput | boolean
+  connect?: Prisma.UfficioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UfficioUpdateToOneWithWhereWithoutOperatoriInput, Prisma.UfficioUpdateWithoutOperatoriInput>, Prisma.UfficioUncheckedUpdateWithoutOperatoriInput>
+}
+
 export type UfficioCreateNestedOneWithoutServiziInput = {
   create?: Prisma.XOR<Prisma.UfficioCreateWithoutServiziInput, Prisma.UfficioUncheckedCreateWithoutServiziInput>
   connectOrCreate?: Prisma.UfficioCreateOrConnectWithoutServiziInput
@@ -464,6 +487,72 @@ export type UfficioUpdateOneWithoutFasiNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UfficioUpdateToOneWithWhereWithoutFasiInput, Prisma.UfficioUpdateWithoutFasiInput>, Prisma.UfficioUncheckedUpdateWithoutFasiInput>
 }
 
+export type UfficioCreateWithoutOperatoriInput = {
+  nome: string
+  descrizione?: string | null
+  email?: string | null
+  telefono?: string | null
+  indirizzo?: string | null
+  attivo?: boolean
+  servizi?: Prisma.ServizioCreateNestedManyWithoutUfficioInput
+  fasi?: Prisma.FaseCreateNestedManyWithoutUfficioInput
+  istanzeUfficioCorrente?: Prisma.IstanzaCreateNestedManyWithoutUfficioCorrenteInput
+}
+
+export type UfficioUncheckedCreateWithoutOperatoriInput = {
+  id?: number
+  nome: string
+  descrizione?: string | null
+  email?: string | null
+  telefono?: string | null
+  indirizzo?: string | null
+  attivo?: boolean
+  servizi?: Prisma.ServizioUncheckedCreateNestedManyWithoutUfficioInput
+  fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutUfficioInput
+  istanzeUfficioCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutUfficioCorrenteInput
+}
+
+export type UfficioCreateOrConnectWithoutOperatoriInput = {
+  where: Prisma.UfficioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UfficioCreateWithoutOperatoriInput, Prisma.UfficioUncheckedCreateWithoutOperatoriInput>
+}
+
+export type UfficioUpsertWithoutOperatoriInput = {
+  update: Prisma.XOR<Prisma.UfficioUpdateWithoutOperatoriInput, Prisma.UfficioUncheckedUpdateWithoutOperatoriInput>
+  create: Prisma.XOR<Prisma.UfficioCreateWithoutOperatoriInput, Prisma.UfficioUncheckedCreateWithoutOperatoriInput>
+  where?: Prisma.UfficioWhereInput
+}
+
+export type UfficioUpdateToOneWithWhereWithoutOperatoriInput = {
+  where?: Prisma.UfficioWhereInput
+  data: Prisma.XOR<Prisma.UfficioUpdateWithoutOperatoriInput, Prisma.UfficioUncheckedUpdateWithoutOperatoriInput>
+}
+
+export type UfficioUpdateWithoutOperatoriInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  servizi?: Prisma.ServizioUpdateManyWithoutUfficioNestedInput
+  fasi?: Prisma.FaseUpdateManyWithoutUfficioNestedInput
+  istanzeUfficioCorrente?: Prisma.IstanzaUpdateManyWithoutUfficioCorrenteNestedInput
+}
+
+export type UfficioUncheckedUpdateWithoutOperatoriInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  descrizione?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  servizi?: Prisma.ServizioUncheckedUpdateManyWithoutUfficioNestedInput
+  fasi?: Prisma.FaseUncheckedUpdateManyWithoutUfficioNestedInput
+  istanzeUfficioCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutUfficioCorrenteNestedInput
+}
+
 export type UfficioCreateWithoutServiziInput = {
   nome: string
   descrizione?: string | null
@@ -472,6 +561,7 @@ export type UfficioCreateWithoutServiziInput = {
   indirizzo?: string | null
   attivo?: boolean
   fasi?: Prisma.FaseCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreCreateNestedManyWithoutUfficioInput
   istanzeUfficioCorrente?: Prisma.IstanzaCreateNestedManyWithoutUfficioCorrenteInput
 }
 
@@ -484,6 +574,7 @@ export type UfficioUncheckedCreateWithoutServiziInput = {
   indirizzo?: string | null
   attivo?: boolean
   fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreUncheckedCreateNestedManyWithoutUfficioInput
   istanzeUfficioCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutUfficioCorrenteInput
 }
 
@@ -511,6 +602,7 @@ export type UfficioUpdateWithoutServiziInput = {
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fasi?: Prisma.FaseUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUpdateManyWithoutUfficioNestedInput
   istanzeUfficioCorrente?: Prisma.IstanzaUpdateManyWithoutUfficioCorrenteNestedInput
 }
 
@@ -523,6 +615,7 @@ export type UfficioUncheckedUpdateWithoutServiziInput = {
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fasi?: Prisma.FaseUncheckedUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUncheckedUpdateManyWithoutUfficioNestedInput
   istanzeUfficioCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutUfficioCorrenteNestedInput
 }
 
@@ -535,6 +628,7 @@ export type UfficioCreateWithoutIstanzeUfficioCorrenteInput = {
   attivo?: boolean
   servizi?: Prisma.ServizioCreateNestedManyWithoutUfficioInput
   fasi?: Prisma.FaseCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreCreateNestedManyWithoutUfficioInput
 }
 
 export type UfficioUncheckedCreateWithoutIstanzeUfficioCorrenteInput = {
@@ -547,6 +641,7 @@ export type UfficioUncheckedCreateWithoutIstanzeUfficioCorrenteInput = {
   attivo?: boolean
   servizi?: Prisma.ServizioUncheckedCreateNestedManyWithoutUfficioInput
   fasi?: Prisma.FaseUncheckedCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreUncheckedCreateNestedManyWithoutUfficioInput
 }
 
 export type UfficioCreateOrConnectWithoutIstanzeUfficioCorrenteInput = {
@@ -574,6 +669,7 @@ export type UfficioUpdateWithoutIstanzeUfficioCorrenteInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizi?: Prisma.ServizioUpdateManyWithoutUfficioNestedInput
   fasi?: Prisma.FaseUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUpdateManyWithoutUfficioNestedInput
 }
 
 export type UfficioUncheckedUpdateWithoutIstanzeUfficioCorrenteInput = {
@@ -586,6 +682,7 @@ export type UfficioUncheckedUpdateWithoutIstanzeUfficioCorrenteInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizi?: Prisma.ServizioUncheckedUpdateManyWithoutUfficioNestedInput
   fasi?: Prisma.FaseUncheckedUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUncheckedUpdateManyWithoutUfficioNestedInput
 }
 
 export type UfficioCreateWithoutFasiInput = {
@@ -596,6 +693,7 @@ export type UfficioCreateWithoutFasiInput = {
   indirizzo?: string | null
   attivo?: boolean
   servizi?: Prisma.ServizioCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreCreateNestedManyWithoutUfficioInput
   istanzeUfficioCorrente?: Prisma.IstanzaCreateNestedManyWithoutUfficioCorrenteInput
 }
 
@@ -608,6 +706,7 @@ export type UfficioUncheckedCreateWithoutFasiInput = {
   indirizzo?: string | null
   attivo?: boolean
   servizi?: Prisma.ServizioUncheckedCreateNestedManyWithoutUfficioInput
+  operatori?: Prisma.OperatoreUncheckedCreateNestedManyWithoutUfficioInput
   istanzeUfficioCorrente?: Prisma.IstanzaUncheckedCreateNestedManyWithoutUfficioCorrenteInput
 }
 
@@ -635,6 +734,7 @@ export type UfficioUpdateWithoutFasiInput = {
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizi?: Prisma.ServizioUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUpdateManyWithoutUfficioNestedInput
   istanzeUfficioCorrente?: Prisma.IstanzaUpdateManyWithoutUfficioCorrenteNestedInput
 }
 
@@ -647,6 +747,7 @@ export type UfficioUncheckedUpdateWithoutFasiInput = {
   indirizzo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   servizi?: Prisma.ServizioUncheckedUpdateManyWithoutUfficioNestedInput
+  operatori?: Prisma.OperatoreUncheckedUpdateManyWithoutUfficioNestedInput
   istanzeUfficioCorrente?: Prisma.IstanzaUncheckedUpdateManyWithoutUfficioCorrenteNestedInput
 }
 
@@ -658,12 +759,14 @@ export type UfficioUncheckedUpdateWithoutFasiInput = {
 export type UfficioCountOutputType = {
   servizi: number
   fasi: number
+  operatori: number
   istanzeUfficioCorrente: number
 }
 
 export type UfficioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   servizi?: boolean | UfficioCountOutputTypeCountServiziArgs
   fasi?: boolean | UfficioCountOutputTypeCountFasiArgs
+  operatori?: boolean | UfficioCountOutputTypeCountOperatoriArgs
   istanzeUfficioCorrente?: boolean | UfficioCountOutputTypeCountIstanzeUfficioCorrenteArgs
 }
 
@@ -694,6 +797,13 @@ export type UfficioCountOutputTypeCountFasiArgs<ExtArgs extends runtime.Types.Ex
 /**
  * UfficioCountOutputType without action
  */
+export type UfficioCountOutputTypeCountOperatoriArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OperatoreWhereInput
+}
+
+/**
+ * UfficioCountOutputType without action
+ */
 export type UfficioCountOutputTypeCountIstanzeUfficioCorrenteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.IstanzaWhereInput
 }
@@ -709,6 +819,7 @@ export type UfficioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   attivo?: boolean
   servizi?: boolean | Prisma.Ufficio$serviziArgs<ExtArgs>
   fasi?: boolean | Prisma.Ufficio$fasiArgs<ExtArgs>
+  operatori?: boolean | Prisma.Ufficio$operatoriArgs<ExtArgs>
   istanzeUfficioCorrente?: boolean | Prisma.Ufficio$istanzeUfficioCorrenteArgs<ExtArgs>
   _count?: boolean | Prisma.UfficioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ufficio"]>
@@ -747,6 +858,7 @@ export type UfficioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type UfficioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   servizi?: boolean | Prisma.Ufficio$serviziArgs<ExtArgs>
   fasi?: boolean | Prisma.Ufficio$fasiArgs<ExtArgs>
+  operatori?: boolean | Prisma.Ufficio$operatoriArgs<ExtArgs>
   istanzeUfficioCorrente?: boolean | Prisma.Ufficio$istanzeUfficioCorrenteArgs<ExtArgs>
   _count?: boolean | Prisma.UfficioCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -758,6 +870,7 @@ export type $UfficioPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     servizi: Prisma.$ServizioPayload<ExtArgs>[]
     fasi: Prisma.$FasePayload<ExtArgs>[]
+    operatori: Prisma.$OperatorePayload<ExtArgs>[]
     istanzeUfficioCorrente: Prisma.$IstanzaPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1164,6 +1277,7 @@ export interface Prisma__UfficioClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   servizi<T extends Prisma.Ufficio$serviziArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ufficio$serviziArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServizioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fasi<T extends Prisma.Ufficio$fasiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ufficio$fasiArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  operatori<T extends Prisma.Ufficio$operatoriArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ufficio$operatoriArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperatorePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   istanzeUfficioCorrente<T extends Prisma.Ufficio$istanzeUfficioCorrenteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ufficio$istanzeUfficioCorrenteArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IstanzaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1639,6 +1753,30 @@ export type Ufficio$fasiArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.FaseScalarFieldEnum | Prisma.FaseScalarFieldEnum[]
+}
+
+/**
+ * Ufficio.operatori
+ */
+export type Ufficio$operatoriArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Operatore
+   */
+  select?: Prisma.OperatoreSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Operatore
+   */
+  omit?: Prisma.OperatoreOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OperatoreInclude<ExtArgs> | null
+  where?: Prisma.OperatoreWhereInput
+  orderBy?: Prisma.OperatoreOrderByWithRelationInput | Prisma.OperatoreOrderByWithRelationInput[]
+  cursor?: Prisma.OperatoreWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OperatoreScalarFieldEnum | Prisma.OperatoreScalarFieldEnum[]
 }
 
 /**
