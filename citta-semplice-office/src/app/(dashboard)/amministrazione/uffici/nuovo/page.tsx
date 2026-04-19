@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { UfficioForm } from '../ufficio-form';
 
-export default function NuovoUfficioPage() {
+export default async function NuovoUfficioPage() {
   return (
     <div>
       <div className="page-header">

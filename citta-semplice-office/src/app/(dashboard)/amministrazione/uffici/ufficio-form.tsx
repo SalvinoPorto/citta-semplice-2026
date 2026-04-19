@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardBody, Button, Input, Textarea, Alert } from '@/components/ui';
@@ -18,15 +18,27 @@ interface UfficioData {
   attivo: boolean;
 }
 
+interface FaseAssegnata {
+  id: number;
+  nome: string;
+  ordine: number;
+  servizio: { id: number; titolo: string };
+}
+
 interface UfficioFormProps {
   ufficio?: UfficioData;
   isNew?: boolean;
+  fasiAssegnate?: FaseAssegnata[];
 }
 
-export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
+const FASI_PAGE_SIZE = 10;
+
+export function UfficioForm({ ufficio, isNew, fasiAssegnate }: UfficioFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [fasiSearch, setFasiSearch] = useState('');
+  const [fasiPage, setFasiPage] = useState(1);
 
   const {
     register,
@@ -34,7 +46,7 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
     formState: { errors },
   } = useForm<UfficioFormData>({
     resolver: zodResolver(ufficioSchema),
-    defaultValues: ufficio || {
+    defaultValues: ufficio ?? {
       nome: '',
       descrizione: '',
       email: '',
@@ -43,6 +55,16 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
       attivo: true,
     },
   });
+
+  const filteredFasi = useMemo(() => {
+    const q = fasiSearch.trim().toLowerCase();
+    return (fasiAssegnate ?? []).filter(
+      (f) => !q || f.nome.toLowerCase().includes(q) || f.servizio.titolo.toLowerCase().includes(q)
+    );
+  }, [fasiAssegnate, fasiSearch]);
+
+  const fasiTotalPages = Math.max(1, Math.ceil(filteredFasi.length / FASI_PAGE_SIZE));
+  const pagedFasi = filteredFasi.slice((fasiPage - 1) * FASI_PAGE_SIZE, fasiPage * FASI_PAGE_SIZE);
 
   const onSubmit = (data: UfficioFormData) => {
     setError(null);
@@ -53,7 +75,7 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
         } else if (ufficio) {
           await updateUfficio(ufficio.id, data);
         }
-      } catch (e) {
+      } catch {
         setError('Si è verificato un errore');
       }
     });
@@ -63,10 +85,10 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
     if (!ufficio) return;
     startTransition(async () => {
       const result = await deleteUfficio(ufficio.id);
-      if (result?.error) {
-        setError(result.error);
-        setShowDeleteConfirm(false);
-      }
+      /*  if (result?.error) {
+         setError(result.error);
+         setShowDeleteConfirm(false);
+       } */
     });
   };
 
@@ -140,6 +162,81 @@ export function UfficioForm({ ufficio, isNew }: UfficioFormProps) {
               </div>
             </CardBody>
           </Card>
+
+          {!isNew && fasiAssegnate && (
+            <Card className="mb-4">
+              <CardBody>
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <h5 className="mb-0">Fasi assegnate ({fasiAssegnate.length})</h5>
+                </div>
+
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="Cerca servizio o fase..."
+                    value={fasiSearch}
+                    onChange={(e) => { setFasiSearch(e.target.value); setFasiPage(1); }}
+                  />
+                </div>
+
+                <div className="table-responsive">
+                  <table className="table table-sm table-hover mb-2">
+                    <thead>
+                      <tr>
+                        <th>Servizio</th>
+                        <th>Fase</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedFasi.length === 0 ? (
+                        <tr>
+                          <td colSpan={2} className="text-muted fst-italic">
+                            {fasiSearch ? 'Nessun risultato' : 'Nessuna fase assegnata'}
+                          </td>
+                        </tr>
+                      ) : pagedFasi.map((f) => (
+                        <tr key={f.id}>
+                          <td>
+                            <Link href={`/amministrazione/servizi/${f.servizio.id}`} className="text-decoration-none">
+                              {f.servizio.titolo}
+                            </Link>
+                          </td>
+                          <td className="text-muted">{f.nome}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {fasiTotalPages > 1 && (
+                  <div className="d-flex align-items-center justify-content-between">
+                    <small className="text-muted">
+                      Pagina {fasiPage} di {fasiTotalPages} ({filteredFasi.length} risultati)
+                    </small>
+                    <div className="d-flex gap-1">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        disabled={fasiPage === 1}
+                        onClick={() => setFasiPage((p) => p - 1)}
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        disabled={fasiPage === fasiTotalPages}
+                        onClick={() => setFasiPage((p) => p + 1)}
+                      >
+                        ›
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          )}
         </div>
 
         <div className="col-lg-4">

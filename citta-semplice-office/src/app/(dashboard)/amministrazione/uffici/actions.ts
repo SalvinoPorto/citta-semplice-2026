@@ -44,15 +44,6 @@ export async function updateUfficio(id: number, data: UfficioFormData) {
 }
 
 export async function deleteUfficio(id: number) {
-  // Check for dependent servizi
-  const serviziCount = await prisma.servizio.count({
-    where: { ufficioId: id },
-  });
-
-  if (serviziCount > 0) {
-    return { error: `Impossibile eliminare: l'ufficio ha ${serviziCount} servizi associati` };
-  }
-
   await prisma.ufficio.delete({
     where: { id },
   });

@@ -37,8 +37,7 @@ async function upsertFasi(
         data: {
           nome: faseData.nome,
           ordine: i + 1,
-          ufficioVariabile: faseData.ufficioVariabile,
-          ufficioId: faseData.ufficioVariabile ? null : (faseData.ufficioId ?? null),
+          ufficioId: faseData.ufficioId ?? null,
         },
       });
       faseSalvate.push({ ordine: i + 1, id: fase.id });
@@ -48,8 +47,7 @@ async function upsertFasi(
           nome: faseData.nome,
           ordine: i + 1,
           servizioId,
-          ufficioVariabile: faseData.ufficioVariabile,
-          ufficioId: faseData.ufficioVariabile ? null : (faseData.ufficioId ?? null),
+          ufficioId: faseData.ufficioId ?? null,
         },
       });
       faseSalvate.push({ ordine: i + 1, id: fase.id });

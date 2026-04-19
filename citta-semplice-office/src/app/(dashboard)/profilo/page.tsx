@@ -6,18 +6,8 @@ async function getOperatoreDetails(operatoreId: number) {
   return prisma.operatore.findUnique({
     where: { id: operatoreId },
     include: {
-      ruoli: {
-        include: {
-          ruolo: true,
-        },
-      },
-      servizi: {
-        include: {
-          servizio: {
-            select: { id: true, titolo: true },
-          },
-        },
-      },
+      ruoli: { include: { ruolo: true } },
+      ufficio: true,
     },
   });
 }
@@ -90,50 +80,11 @@ export default async function ProfiloPage() {
 
           <Card>
             <CardBody>
-              <CardTitle>Servizi di Competenza</CardTitle>
-              {operatore.servizi.length === 0 ? (
-                <p className="text-muted">Nessun servizio assegnato</p>
+              <CardTitle>Ufficio di Appartenenza</CardTitle>
+              {operatore.ufficio ? (
+                <div className="fw-bold">{operatore.ufficio.nome}</div>
               ) : (
-                <ul className="list-unstyled mb-0">
-                  {operatore.servizi.map((s) => (
-                    <li key={s.servizioId} className="mb-2">
-                      <svg className="icon icon-sm me-2 text-primary">
-                        <use href="/bootstrap-italia/dist/svg/sprites.svg#it-pa"></use>
-                      </svg>
-                      {s.servizio.titolo}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        <div className="col-12">
-          <Card>
-            <CardBody>
-              <CardTitle>Servizi Assegnati</CardTitle>
-              {operatore.servizi.length === 0 ? (
-                <p className="text-muted">Nessun servizio assegnato</p>
-              ) : (
-                <div className="table-responsive">
-                  <table className="table table-sm">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Titolo Servizio</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {operatore.servizi.map((s) => (
-                        <tr key={s.servizioId}>
-                          <td>#{s.servizio.id}</td>
-                          <td>{s.servizio.titolo}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <p className="text-muted">Nessun ufficio assegnato</p>
               )}
             </CardBody>
           </Card>

@@ -4,6 +4,20 @@ import { prisma } from '@/lib/db/prisma';
 import { verifySsoToken } from './sso-token';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  cookies: {
+    sessionToken: {
+      name: 'portal.session-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    csrfToken: {
+      name: 'portal.csrf-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    callbackUrl: {
+      name: 'portal.callback-url',
+      options: { sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+  },
   providers: [
     // ── Provider 1: codice fiscale + password (backoffice / testing) ──────
     CredentialsProvider({

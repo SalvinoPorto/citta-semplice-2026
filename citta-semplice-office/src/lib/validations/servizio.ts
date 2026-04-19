@@ -4,7 +4,6 @@ export const faseSchema = z.object({
   id: z.number().optional(),
   nome: z.string().min(1, 'Il nome è obbligatorio'),
   ordine: z.number().int().min(1),
-  ufficioVariabile: z.boolean(),
   ufficioId: z.number().int().nullable().optional(),
 });
 

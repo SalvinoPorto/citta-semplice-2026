@@ -77,8 +77,6 @@ interface IstanzaActionsProps {
   canRollbackFase?: boolean;
   faseCorrente?: FaseCorrente | null;
   fasePrecedente?: FasePrecedente | null;
-  nextFaseUfficioVariabile?: boolean;
-  ufficiDisponibili?: Array<{ id: number; nome: string }>;
   attributoType?: {
     tipoAttributo: string;
     attributi: { id: number; valore: string }[];
@@ -95,8 +93,6 @@ export function IstanzaActions({
   isLastStep,
   canRollbackFase = false,
   fasePrecedente = null,
-  nextFaseUfficioVariabile = false,
-  ufficiDisponibili = [],
   attributoType,
 }: IstanzaActionsProps) {
   const router = useRouter();
@@ -209,17 +205,12 @@ export function IstanzaActions({
       toast.error('Per avanzare senza pagamento confermato, selezionare la conferma esplicita.');
       return;
     }
-    if (nextFaseUfficioVariabile && !selectedUfficioId) {
-      toast.error('Seleziona l\'ufficio destinatario prima di avanzare.');
-      return;
-    }
 
     setLoading(true);
     try {
       const result = await advanceWorkflow({
         istanzaId: istanza.id,
-        note,
-        ufficioId: nextFaseUfficioVariabile && selectedUfficioId ? parseInt(selectedUfficioId) : undefined,
+        note
       });
       if (result.success) {
         toast.success(result.message || 'Workflow avanzato con successo');
@@ -517,22 +508,6 @@ export function IstanzaActions({
         </ModalHeader>
         <ModalBody>
           <p>Confermi di voler avanzare allo step successivo?</p>
-          {nextFaseUfficioVariabile && (
-            <div className="alert alert-info py-2 mb-3">
-              <label className="form-label fw-semibold mb-1">Ufficio destinatario *</label>
-              <select
-                className="form-select form-select-sm"
-                value={selectedUfficioId}
-                onChange={(e) => setSelectedUfficioId(e.target.value)}
-              >
-                <option value="">Seleziona ufficio...</option>
-                {ufficiDisponibili.map((u) => (
-                  <option key={u.id} value={u.id}>{u.nome}</option>
-                ))}
-              </select>
-              <small className="text-muted">L&apos;ufficio riceverà la pratica per questa fase.</small>
-            </div>
-          )}
           {paymentStep && !paymentConfirmed && (
             <div className="alert alert-warning">
               {paymentRequired

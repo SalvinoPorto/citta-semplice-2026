@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useMemo } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,11 +15,9 @@ interface Ruolo {
   descrizione: string | null;
 }
 
-
-interface Servizio {
+interface Ufficio {
   id: number;
-  titolo: string;
-  area: { nome: string } | null;
+  nome: string;
 }
 
 interface OperatoreData {
@@ -31,25 +29,20 @@ interface OperatoreData {
   telefono: string;
   attivo: boolean;
   ruoliIds: number[];
-  serviziIds: number[];
+  ufficioId?: number | null;
 }
 
 interface OperatoreFormProps {
   operatore?: OperatoreData;
   ruoli: Ruolo[];
-  servizi: Servizio[];
+  uffici: Ufficio[];
   isNew?: boolean;
 }
 
-export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFormProps) {
-  const router = useRouter();
+export function OperatoreForm({ operatore, ruoli, uffici, isNew }: OperatoreFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [serviziSearch, setServiziSearch] = useState('');
-  const [serviziPage, setServiziPage] = useState(1);
-  const [soloSelezionati, setSoloSelezionati] = useState(false);
-  const PAGE_SIZE = 10;
 
   const {
     register,
@@ -68,31 +61,18 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
       telefono: '',
       attivo: true,
       ruoliIds: [],
-      serviziIds: []
+      ufficioId: null,
     },
   });
 
   const selectedRuoli = watch('ruoliIds') || [];
-  const selectedServizi = watch('serviziIds') || [];
 
-  const filteredServizi = useMemo(() => {
-    const q = serviziSearch.trim().toLowerCase();
-    return servizi.filter((s) => {
-      const matchSearch = !q || s.titolo.toLowerCase().includes(q) || (s.area?.nome ?? '').toLowerCase().includes(q);
-      const matchSelezione = !soloSelezionati || selectedServizi.includes(s.id);
-      return matchSearch && matchSelezione;
-    });
-  }, [servizi, serviziSearch, soloSelezionati, selectedServizi]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredServizi.length / PAGE_SIZE));
-  const pagedServizi = filteredServizi.slice((serviziPage - 1) * PAGE_SIZE, serviziPage * PAGE_SIZE);
-
-  const toggleSelection = (field: 'ruoliIds' | 'serviziIds', id: number) => {
-    const current = watch(field) || [];
+  const toggleRuolo = (id: number) => {
+    const current = watch('ruoliIds') || [];
     if (current.includes(id)) {
-      setValue(field, current.filter((v) => v !== id));
+      setValue('ruoliIds', current.filter((v) => v !== id));
     } else {
-      setValue(field, [...current, id]);
+      setValue('ruoliIds', [...current, id]);
     }
   };
 
@@ -109,7 +89,7 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
         if (result?.error) {
           setError(result.error);
         }
-      } catch (e) {
+      } catch {
         setError('Si è verificato un errore');
       }
     });
@@ -183,10 +163,7 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
                     error={errors.password?.message}
                   />
                 </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-12 mb-3">
+                <div className="col-md-6 mb-3">
                   <Input
                     type="text"
                     label="Telefono"
@@ -212,6 +189,24 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
 
           <Card className="mb-4">
             <CardBody>
+              <h5 className="mb-4">Ufficio di Appartenenza</h5>
+              <select
+                className="form-select"
+                {...register('ufficioId', { setValueAs: (v) => v === '' ? null : parseInt(v, 10) })}
+              >
+                <option value="">— Nessun ufficio —</option>
+                {uffici.map((u) => (
+                  <option key={u.id} value={u.id}>{u.nome}</option>
+                ))}
+              </select>
+              <div className="form-text">
+                L&apos;operatore vedrà le istanze assegnate all&apos;ufficio selezionato.
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="mb-4">
+            <CardBody>
               <h5 className="mb-4">Ruoli *</h5>
               {errors.ruoliIds && (
                 <Alert variant="danger" className="mb-3">
@@ -227,7 +222,7 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
                         className="form-check-input"
                         id={`ruolo-${ruolo.id}`}
                         checked={selectedRuoli.includes(ruolo.id)}
-                        onChange={() => toggleSelection('ruoliIds', ruolo.id)}
+                        onChange={() => toggleRuolo(ruolo.id)}
                       />
                       <label className="form-check-label" htmlFor={`ruolo-${ruolo.id}`}>
                         <strong>{ruolo.nome}</strong>
@@ -239,93 +234,6 @@ export function OperatoreForm({ operatore, ruoli, servizi, isNew }: OperatoreFor
                   </div>
                 ))}
               </div>
-            </CardBody>
-          </Card>
-
-          <Card className="mb-4">
-            <CardBody>
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h5 className="mb-0">Servizi Assegnati</h5>
-                <small className="text-muted">{selectedServizi.length} selezionati</small>
-              </div>
-
-              <div className="d-flex gap-2 align-items-center mb-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  placeholder="Cerca servizio..."
-                  value={serviziSearch}
-                  onChange={(e) => { setServiziSearch(e.target.value); setServiziPage(1); }}
-                />
-                <div className="form-check mb-0 text-nowrap">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="solo-selezionati"
-                    checked={soloSelezionati}
-                    onChange={(e) => { setSoloSelezionati(e.target.checked); setServiziPage(1); }}
-                  />
-                  <label className="form-check-label small" htmlFor="solo-selezionati">
-                    Solo selezionati
-                  </label>
-                </div>
-              </div>
-
-              <div className="table-responsive">
-                <table className="table table-sm table-hover mb-2">
-                  <tbody>
-                    {pagedServizi.length === 0 ? (
-                      <tr>
-                        <td className="text-muted fst-italic">Nessun servizio trovato</td>
-                      </tr>
-                    ) : pagedServizi.map((servizio) => (
-                      <tr
-                        key={servizio.id}
-                        onClick={() => toggleSelection('serviziIds', servizio.id)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <td style={{ width: 32 }}>
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            checked={selectedServizi.includes(servizio.id)}
-                            onChange={() => toggleSelection('serviziIds', servizio.id)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </td>
-                        <td>{servizio.titolo}</td>
-                        <td className="text-muted small">{servizio.area?.nome ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {totalPages > 1 && (
-                <div className="d-flex align-items-center justify-content-between">
-                  <small className="text-muted">
-                    Pagina {serviziPage} di {totalPages} ({filteredServizi.length} risultati)
-                  </small>
-                  <div className="d-flex gap-1">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-secondary"
-                      disabled={serviziPage === 1}
-                      onClick={() => setServiziPage((p) => p - 1)}
-                    >
-                      ‹
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-secondary"
-                      disabled={serviziPage === totalPages}
-                      onClick={() => setServiziPage((p) => p + 1)}
-                    >
-                      ›
-                    </button>
-                  </div>
-                </div>
-              )}
             </CardBody>
           </Card>
         </div>

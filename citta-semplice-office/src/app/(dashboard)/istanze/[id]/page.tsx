@@ -114,20 +114,6 @@ export default async function IstanzaDetailPage({
     ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine + 1) ?? null
     : null;
 
-  // Il selettore ufficio si mostra solo se lo step corrente è l'ultimo della sua fase
-  const isLastStepOfFase = currentStep?.faseId != null
-    ? !steps.some(s => s.faseId === currentStep.faseId && s.ordine > currentStep.ordine)
-    : false;
-  const nextFaseUfficioVariabile = isLastStepOfFase && (nextFase?.ufficioVariabile ?? false);
-
-  // Uffici disponibili (necessari solo se la prossima fase ha ufficio variabile)
-  const ufficiDisponibili = nextFaseUfficioVariabile
-    ? await prisma.ufficio.findMany({
-        where: { attivo: true },
-        select: { id: true, nome: true },
-        orderBy: { nome: 'asc' },
-      })
-    : [];
   interface CampoDato { name: string; label: string; value: string; }
   function parseDati(raw: string | null | undefined): CampoDato[] {
     if (!raw) return [];
@@ -145,6 +131,12 @@ export default async function IstanzaDetailPage({
   const steps = istanza.servizio.steps;
   const lastStepOrdine = steps.length > 0 ? steps[steps.length - 1].ordine : 0;
   const isLastStep = currentStep ? currentStep.ordine === lastStepOrdine : false;
+
+  // Il selettore ufficio si mostra solo se lo step corrente è l'ultimo della sua fase
+  const isLastStepOfFase = currentStep?.faseId != null
+    ? !steps.some(s => s.faseId === currentStep.faseId && s.ordine > currentStep.ordine)
+    : false;
+  const ufficiDisponibili: { id: number; nome: string }[] = [];
 
   const getStatusBadge = () => {
     if (istanza.conclusa) {
@@ -175,10 +167,7 @@ export default async function IstanzaDetailPage({
             {faseCorrente && (
               <span className="badge text-bg-info ms-2">
                 {faseCorrente.nome}
-                {faseCorrente.ufficioVariabile
-                  ? istanza.ufficioCorrente && ` — ${istanza.ufficioCorrente.nome}`
-                  : faseCorrente.ufficio && ` — ${faseCorrente.ufficio.nome}`
-                }
+                {faseCorrente.ufficio && ` — ${faseCorrente.ufficio.nome}`}
               </span>
             )}
           </h1>
@@ -229,8 +218,7 @@ export default async function IstanzaDetailPage({
             nome: fasePrecedente.nome,
             ufficio: fasePrecedente.ufficio ? { nome: fasePrecedente.ufficio.nome, email: fasePrecedente.ufficio.email ?? null } : null,
           } : null}
-          nextFaseUfficioVariabile={nextFaseUfficioVariabile}
-          ufficiDisponibili={ufficiDisponibili}
+
         />
       </div>
 

@@ -102,10 +102,9 @@ export default async function ModificaServizioPage({ params }: PageProps) {
                 id: f.id,
                 nome: f.nome,
                 ordine: f.ordine,
-                ufficioVariabile: f.ufficioVariabile,
                 ufficioId: f.ufficioId,
               }))
-            : [{ nome: 'Fase 1', ordine: 1, ufficioVariabile: false, ufficioId: null }],
+            : [{ nome: 'Fase 1', ordine: 1, ufficioId: null }],
           steps: servizio.steps.map((step) => ({
             id: step.id,
             descrizione: step.descrizione,

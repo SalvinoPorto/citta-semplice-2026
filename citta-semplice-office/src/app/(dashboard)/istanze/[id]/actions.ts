@@ -34,7 +34,7 @@ export interface AdvanceWorkflowParams {
   istanzaId: number;
   note: string;
   inviaEmailPassaggioFase?: boolean; // default: true — usato solo se c'è cambio fase
-  ufficioId?: number | null; // operatore sceglie ufficio se fase successiva ha ufficioVariabile=true
+  ufficioId?: number | null;
 }
 
 export interface GeneratePaymentParams {
@@ -245,10 +245,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           },
         });
 
-        // Ufficio effettivo: fisso dalla fase o scelto dall'operatore se variabile
-        const nextUfficioCorrenteId = nextFase.ufficioVariabile
-          ? (params.ufficioId ?? null)
-          : (nextFase.ufficioId ?? null);
+        const nextUfficioCorrenteId = nextFase.ufficioId ?? null;
 
         // Aggiorna istanza
         await prisma.istanza.update({
@@ -1128,10 +1125,7 @@ export async function rollbackFase(params: {
     },
   });
 
-  // Aggiorna istanza — per rollback ufficio torna al fisso della fase precedente (variabile → null, richiederà nuova scelta)
-  const rollbackUfficioCorrenteId = fasePrecedente.ufficioVariabile
-    ? null
-    : (fasePrecedente.ufficioId ?? null);
+  const rollbackUfficioCorrenteId = fasePrecedente.ufficioId ?? null;
 
   // Aggiorna istanza
   await prisma.istanza.update({

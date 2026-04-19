@@ -41,7 +41,6 @@ interface Istanza {
   faseCorrente: {
     id: number;
     nome: string;
-    ufficioVariabile: boolean;
     ufficio: { id: number; nome: string } | null;
   } | null;
   ufficioCorrente: { id: number; nome: string } | null;
@@ -398,14 +397,9 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
                         </td>
                         <td>
                           <div>{getFaseBadge(istanza)}</div>
-                          {(() => {
-                            const ufficio = istanza.faseCorrente?.ufficioVariabile
-                              ? istanza.ufficioCorrente
-                              : istanza.faseCorrente?.ufficio;
-                            return ufficio
-                              ? <small className="text-muted">{ufficio.nome}</small>
-                              : null;
-                          })()}
+                          {istanza.faseCorrente?.ufficio && (
+                            <small className="text-muted">{istanza.faseCorrente.ufficio.nome}</small>
+                          )}
                         </td>
                         <td>{getStatusBadge(istanza)}</td>
                         <td>
