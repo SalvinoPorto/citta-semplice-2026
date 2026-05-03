@@ -1005,10 +1005,12 @@ async function migrateWorkflow(src, dst) {
     note, 
     data_variazione, 
     id_istanza as istanza_id, 
+    CASE id_status WHEN 1 THEN 0 ELSE 1 END stato,
     id_step as step_id, 
     id_notifica as notifica_id, 
     id_operatore as operatore_id 
     FROM workflow
+    WHERE id_step IS NOT null
     ORDER BY id
   `);
   console.log(`Workflow trovati: ${rows.length}`);
@@ -1124,8 +1126,8 @@ async function main() {
   await dst.connect();
 
   try {
-
-   /*  //  1. Migra enti (nessuna dipendenza)
+/* 
+    //  1. Migra enti (nessuna dipendenza)
     await migrateEnti(src, dst);
 
     //  2. Migra uffici (nessuna dipendenza)
@@ -1142,7 +1144,7 @@ async function main() {
 
     //  6. Migra fasi (dipende da servizi, uffici; una fase unica per servizio)
     await migrateFasi(src, dst);
- */
+
     //  7. Migra steps (dipende da servizi, fasi; aggiorna fase_id post-insert)
     await migrateSteps(src, dst);
 
@@ -1160,9 +1162,9 @@ async function main() {
 
     // 11. Migra istanze (dipende da utenti, servizi, steps; risolve CF→id; setta fase_corrente_id)
     await migrateIstanze(src, dst);
-
     // 12. Migra workflow (dipende da istanze, steps, operatori)
     await migrateWorkflow(src, dst);
+    */
 
     // 13. Migra workflow_fasi (dipende da istanze, fasi)
     await migrateWorkflowFasi(src, dst);

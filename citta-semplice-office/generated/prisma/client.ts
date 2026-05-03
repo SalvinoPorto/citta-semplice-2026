@@ -92,11 +92,6 @@ export type ServizioRuoloUser = Prisma.ServizioRuoloUserModel
  */
 export type Step = Prisma.StepModel
 /**
- * Model Notifica
- * 
- */
-export type Notifica = Prisma.NotificaModel
-/**
  * Model AllegatoRichiesto
  * 
  */

@@ -394,7 +394,6 @@ export const ModelName = {
   Ufficio: 'Ufficio',
   ServizioRuoloUser: 'ServizioRuoloUser',
   Step: 'Step',
-  Notifica: 'Notifica',
   AllegatoRichiesto: 'AllegatoRichiesto',
   Utente: 'Utente',
   Istanza: 'Istanza',
@@ -429,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "servizioRuoloUser" | "step" | "notifica" | "allegatoRichiesto" | "utente" | "istanza" | "workflow" | "fase" | "workflowFase" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "pagamento" | "pagamentoAtteso" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
+    modelProps: "operatore" | "ruolo" | "operatoreRuolo" | "ruoloUser" | "ente" | "area" | "servizio" | "ufficio" | "servizioRuoloUser" | "step" | "allegatoRichiesto" | "utente" | "istanza" | "workflow" | "fase" | "workflowFase" | "comunicazione" | "rispostaComunicazione" | "allegatoRisposta" | "allegato" | "pagamento" | "pagamentoAtteso" | "customerSatisfaction" | "ricevuta" | "protocolloEmergenzaCounter" | "protocolloEmergenza" | "statisticheGiornaliere" | "statistichePagamenti" | "emailConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1170,80 +1169,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.StepCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.StepCountAggregateOutputType> | number
-        }
-      }
-    }
-    Notifica: {
-      payload: Prisma.$NotificaPayload<ExtArgs>
-      fields: Prisma.NotificaFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.NotificaFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.NotificaFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>
-        }
-        findFirst: {
-          args: Prisma.NotificaFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.NotificaFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>
-        }
-        findMany: {
-          args: Prisma.NotificaFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>[]
-        }
-        create: {
-          args: Prisma.NotificaCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>
-        }
-        createMany: {
-          args: Prisma.NotificaCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.NotificaCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>[]
-        }
-        delete: {
-          args: Prisma.NotificaDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>
-        }
-        update: {
-          args: Prisma.NotificaUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>
-        }
-        deleteMany: {
-          args: Prisma.NotificaDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.NotificaUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.NotificaUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>[]
-        }
-        upsert: {
-          args: Prisma.NotificaUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificaPayload>
-        }
-        aggregate: {
-          args: Prisma.NotificaAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateNotifica>
-        }
-        groupBy: {
-          args: Prisma.NotificaGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.NotificaGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.NotificaCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.NotificaCountAggregateOutputType> | number
         }
       }
     }
@@ -2850,23 +2775,13 @@ export const StepScalarFieldEnum = {
 export type StepScalarFieldEnum = (typeof StepScalarFieldEnum)[keyof typeof StepScalarFieldEnum]
 
 
-export const NotificaScalarFieldEnum = {
-  id: 'id',
-  descrizione: 'descrizione',
-  allegati: 'allegati'
-} as const
-
-export type NotificaScalarFieldEnum = (typeof NotificaScalarFieldEnum)[keyof typeof NotificaScalarFieldEnum]
-
-
 export const AllegatoRichiestoScalarFieldEnum = {
   id: 'id',
   nomeAllegatoRichiesto: 'nomeAllegatoRichiesto',
   obbligatorio: 'obbligatorio',
   interno: 'interno',
   soggetto: 'soggetto',
-  stepId: 'stepId',
-  notificaId: 'notificaId'
+  stepId: 'stepId'
 } as const
 
 export type AllegatoRichiestoScalarFieldEnum = (typeof AllegatoRichiestoScalarFieldEnum)[keyof typeof AllegatoRichiestoScalarFieldEnum]
@@ -2924,7 +2839,6 @@ export const WorkflowScalarFieldEnum = {
   dataVariazione: 'dataVariazione',
   istanzaId: 'istanzaId',
   stepId: 'stepId',
-  notificaId: 'notificaId',
   stato: 'stato',
   operatoreId: 'operatoreId'
 } as const
@@ -3331,7 +3245,6 @@ export type GlobalOmitConfig = {
   ufficio?: Prisma.UfficioOmit
   servizioRuoloUser?: Prisma.ServizioRuoloUserOmit
   step?: Prisma.StepOmit
-  notifica?: Prisma.NotificaOmit
   allegatoRichiesto?: Prisma.AllegatoRichiestoOmit
   utente?: Prisma.UtenteOmit
   istanza?: Prisma.IstanzaOmit

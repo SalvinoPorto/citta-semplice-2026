@@ -18,9 +18,6 @@ interface Workflow {
     descrizione: string;
     ordine: number;
   } | null;
-  notifica: {
-    descrizione: string;
-  } | null;
   operatore: {
     nome: string;
     cognome: string;

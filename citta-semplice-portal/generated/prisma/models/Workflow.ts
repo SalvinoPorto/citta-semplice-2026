@@ -30,7 +30,6 @@ export type WorkflowAvgAggregateOutputType = {
   id: number | null
   istanzaId: number | null
   stepId: number | null
-  notificaId: number | null
   stato: number | null
   operatoreId: number | null
 }
@@ -39,7 +38,6 @@ export type WorkflowSumAggregateOutputType = {
   id: number | null
   istanzaId: number | null
   stepId: number | null
-  notificaId: number | null
   stato: number | null
   operatoreId: number | null
 }
@@ -50,7 +48,6 @@ export type WorkflowMinAggregateOutputType = {
   dataVariazione: Date | null
   istanzaId: number | null
   stepId: number | null
-  notificaId: number | null
   stato: number | null
   operatoreId: number | null
 }
@@ -61,7 +58,6 @@ export type WorkflowMaxAggregateOutputType = {
   dataVariazione: Date | null
   istanzaId: number | null
   stepId: number | null
-  notificaId: number | null
   stato: number | null
   operatoreId: number | null
 }
@@ -72,7 +68,6 @@ export type WorkflowCountAggregateOutputType = {
   dataVariazione: number
   istanzaId: number
   stepId: number
-  notificaId: number
   stato: number
   operatoreId: number
   _all: number
@@ -83,7 +78,6 @@ export type WorkflowAvgAggregateInputType = {
   id?: true
   istanzaId?: true
   stepId?: true
-  notificaId?: true
   stato?: true
   operatoreId?: true
 }
@@ -92,7 +86,6 @@ export type WorkflowSumAggregateInputType = {
   id?: true
   istanzaId?: true
   stepId?: true
-  notificaId?: true
   stato?: true
   operatoreId?: true
 }
@@ -103,7 +96,6 @@ export type WorkflowMinAggregateInputType = {
   dataVariazione?: true
   istanzaId?: true
   stepId?: true
-  notificaId?: true
   stato?: true
   operatoreId?: true
 }
@@ -114,7 +106,6 @@ export type WorkflowMaxAggregateInputType = {
   dataVariazione?: true
   istanzaId?: true
   stepId?: true
-  notificaId?: true
   stato?: true
   operatoreId?: true
 }
@@ -125,7 +116,6 @@ export type WorkflowCountAggregateInputType = {
   dataVariazione?: true
   istanzaId?: true
   stepId?: true
-  notificaId?: true
   stato?: true
   operatoreId?: true
   _all?: true
@@ -223,7 +213,6 @@ export type WorkflowGroupByOutputType = {
   dataVariazione: Date
   istanzaId: number
   stepId: number
-  notificaId: number | null
   stato: number
   operatoreId: number | null
   _count: WorkflowCountAggregateOutputType | null
@@ -257,12 +246,10 @@ export type WorkflowWhereInput = {
   dataVariazione?: Prisma.DateTimeFilter<"Workflow"> | Date | string
   istanzaId?: Prisma.IntFilter<"Workflow"> | number
   stepId?: Prisma.IntFilter<"Workflow"> | number
-  notificaId?: Prisma.IntNullableFilter<"Workflow"> | number | null
   stato?: Prisma.IntFilter<"Workflow"> | number
   operatoreId?: Prisma.IntNullableFilter<"Workflow"> | number | null
   istanza?: Prisma.XOR<Prisma.IstanzaScalarRelationFilter, Prisma.IstanzaWhereInput>
   step?: Prisma.XOR<Prisma.StepNullableScalarRelationFilter, Prisma.StepWhereInput> | null
-  notifica?: Prisma.XOR<Prisma.NotificaNullableScalarRelationFilter, Prisma.NotificaWhereInput> | null
   operatore?: Prisma.XOR<Prisma.OperatoreNullableScalarRelationFilter, Prisma.OperatoreWhereInput> | null
   allegati?: Prisma.AllegatoListRelationFilter
   pagamentoAtteso?: Prisma.XOR<Prisma.PagamentoAttesoNullableScalarRelationFilter, Prisma.PagamentoAttesoWhereInput> | null
@@ -274,12 +261,10 @@ export type WorkflowOrderByWithRelationInput = {
   dataVariazione?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrderInput | Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrderInput | Prisma.SortOrder
   istanza?: Prisma.IstanzaOrderByWithRelationInput
   step?: Prisma.StepOrderByWithRelationInput
-  notifica?: Prisma.NotificaOrderByWithRelationInput
   operatore?: Prisma.OperatoreOrderByWithRelationInput
   allegati?: Prisma.AllegatoOrderByRelationAggregateInput
   pagamentoAtteso?: Prisma.PagamentoAttesoOrderByWithRelationInput
@@ -294,12 +279,10 @@ export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
   dataVariazione?: Prisma.DateTimeFilter<"Workflow"> | Date | string
   istanzaId?: Prisma.IntFilter<"Workflow"> | number
   stepId?: Prisma.IntFilter<"Workflow"> | number
-  notificaId?: Prisma.IntNullableFilter<"Workflow"> | number | null
   stato?: Prisma.IntFilter<"Workflow"> | number
   operatoreId?: Prisma.IntNullableFilter<"Workflow"> | number | null
   istanza?: Prisma.XOR<Prisma.IstanzaScalarRelationFilter, Prisma.IstanzaWhereInput>
   step?: Prisma.XOR<Prisma.StepNullableScalarRelationFilter, Prisma.StepWhereInput> | null
-  notifica?: Prisma.XOR<Prisma.NotificaNullableScalarRelationFilter, Prisma.NotificaWhereInput> | null
   operatore?: Prisma.XOR<Prisma.OperatoreNullableScalarRelationFilter, Prisma.OperatoreWhereInput> | null
   allegati?: Prisma.AllegatoListRelationFilter
   pagamentoAtteso?: Prisma.XOR<Prisma.PagamentoAttesoNullableScalarRelationFilter, Prisma.PagamentoAttesoWhereInput> | null
@@ -311,7 +294,6 @@ export type WorkflowOrderByWithAggregationInput = {
   dataVariazione?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrderInput | Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WorkflowCountOrderByAggregateInput
@@ -330,7 +312,6 @@ export type WorkflowScalarWhereWithAggregatesInput = {
   dataVariazione?: Prisma.DateTimeWithAggregatesFilter<"Workflow"> | Date | string
   istanzaId?: Prisma.IntWithAggregatesFilter<"Workflow"> | number
   stepId?: Prisma.IntWithAggregatesFilter<"Workflow"> | number
-  notificaId?: Prisma.IntNullableWithAggregatesFilter<"Workflow"> | number | null
   stato?: Prisma.IntWithAggregatesFilter<"Workflow"> | number
   operatoreId?: Prisma.IntNullableWithAggregatesFilter<"Workflow"> | number | null
 }
@@ -341,7 +322,6 @@ export type WorkflowCreateInput = {
   stato?: number
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowsInput
   step?: Prisma.StepCreateNestedOneWithoutWorkflowsInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutWorkflowsInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutWorkflowsInput
   allegati?: Prisma.AllegatoCreateNestedManyWithoutWorkflowInput
   pagamentoAtteso?: Prisma.PagamentoAttesoCreateNestedOneWithoutWorkflowInput
@@ -353,7 +333,6 @@ export type WorkflowUncheckedCreateInput = {
   dataVariazione: Date | string
   istanzaId: number
   stepId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
   allegati?: Prisma.AllegatoUncheckedCreateNestedManyWithoutWorkflowInput
@@ -366,7 +345,6 @@ export type WorkflowUpdateInput = {
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput
   step?: Prisma.StepUpdateOneWithoutWorkflowsNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutWorkflowsNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutWorkflowsNestedInput
   allegati?: Prisma.AllegatoUpdateManyWithoutWorkflowNestedInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUpdateOneWithoutWorkflowNestedInput
@@ -378,7 +356,6 @@ export type WorkflowUncheckedUpdateInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   allegati?: Prisma.AllegatoUncheckedUpdateManyWithoutWorkflowNestedInput
@@ -391,7 +368,6 @@ export type WorkflowCreateManyInput = {
   dataVariazione: Date | string
   istanzaId: number
   stepId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
 }
@@ -408,7 +384,6 @@ export type WorkflowUncheckedUpdateManyInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -429,7 +404,6 @@ export type WorkflowCountOrderByAggregateInput = {
   dataVariazione?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -438,7 +412,6 @@ export type WorkflowAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -449,7 +422,6 @@ export type WorkflowMaxOrderByAggregateInput = {
   dataVariazione?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -460,7 +432,6 @@ export type WorkflowMinOrderByAggregateInput = {
   dataVariazione?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -469,7 +440,6 @@ export type WorkflowSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
   stato?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -563,48 +533,6 @@ export type WorkflowUncheckedUpdateManyWithoutStepNestedInput = {
   deleteMany?: Prisma.WorkflowScalarWhereInput | Prisma.WorkflowScalarWhereInput[]
 }
 
-export type WorkflowCreateNestedManyWithoutNotificaInput = {
-  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutNotificaInput, Prisma.WorkflowUncheckedCreateWithoutNotificaInput> | Prisma.WorkflowCreateWithoutNotificaInput[] | Prisma.WorkflowUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutNotificaInput | Prisma.WorkflowCreateOrConnectWithoutNotificaInput[]
-  createMany?: Prisma.WorkflowCreateManyNotificaInputEnvelope
-  connect?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-}
-
-export type WorkflowUncheckedCreateNestedManyWithoutNotificaInput = {
-  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutNotificaInput, Prisma.WorkflowUncheckedCreateWithoutNotificaInput> | Prisma.WorkflowCreateWithoutNotificaInput[] | Prisma.WorkflowUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutNotificaInput | Prisma.WorkflowCreateOrConnectWithoutNotificaInput[]
-  createMany?: Prisma.WorkflowCreateManyNotificaInputEnvelope
-  connect?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-}
-
-export type WorkflowUpdateManyWithoutNotificaNestedInput = {
-  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutNotificaInput, Prisma.WorkflowUncheckedCreateWithoutNotificaInput> | Prisma.WorkflowCreateWithoutNotificaInput[] | Prisma.WorkflowUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutNotificaInput | Prisma.WorkflowCreateOrConnectWithoutNotificaInput[]
-  upsert?: Prisma.WorkflowUpsertWithWhereUniqueWithoutNotificaInput | Prisma.WorkflowUpsertWithWhereUniqueWithoutNotificaInput[]
-  createMany?: Prisma.WorkflowCreateManyNotificaInputEnvelope
-  set?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  disconnect?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  delete?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  connect?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  update?: Prisma.WorkflowUpdateWithWhereUniqueWithoutNotificaInput | Prisma.WorkflowUpdateWithWhereUniqueWithoutNotificaInput[]
-  updateMany?: Prisma.WorkflowUpdateManyWithWhereWithoutNotificaInput | Prisma.WorkflowUpdateManyWithWhereWithoutNotificaInput[]
-  deleteMany?: Prisma.WorkflowScalarWhereInput | Prisma.WorkflowScalarWhereInput[]
-}
-
-export type WorkflowUncheckedUpdateManyWithoutNotificaNestedInput = {
-  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutNotificaInput, Prisma.WorkflowUncheckedCreateWithoutNotificaInput> | Prisma.WorkflowCreateWithoutNotificaInput[] | Prisma.WorkflowUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutNotificaInput | Prisma.WorkflowCreateOrConnectWithoutNotificaInput[]
-  upsert?: Prisma.WorkflowUpsertWithWhereUniqueWithoutNotificaInput | Prisma.WorkflowUpsertWithWhereUniqueWithoutNotificaInput[]
-  createMany?: Prisma.WorkflowCreateManyNotificaInputEnvelope
-  set?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  disconnect?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  delete?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  connect?: Prisma.WorkflowWhereUniqueInput | Prisma.WorkflowWhereUniqueInput[]
-  update?: Prisma.WorkflowUpdateWithWhereUniqueWithoutNotificaInput | Prisma.WorkflowUpdateWithWhereUniqueWithoutNotificaInput[]
-  updateMany?: Prisma.WorkflowUpdateManyWithWhereWithoutNotificaInput | Prisma.WorkflowUpdateManyWithWhereWithoutNotificaInput[]
-  deleteMany?: Prisma.WorkflowScalarWhereInput | Prisma.WorkflowScalarWhereInput[]
-}
-
 export type WorkflowCreateNestedManyWithoutIstanzaInput = {
   create?: Prisma.XOR<Prisma.WorkflowCreateWithoutIstanzaInput, Prisma.WorkflowUncheckedCreateWithoutIstanzaInput> | Prisma.WorkflowCreateWithoutIstanzaInput[] | Prisma.WorkflowUncheckedCreateWithoutIstanzaInput[]
   connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutIstanzaInput | Prisma.WorkflowCreateOrConnectWithoutIstanzaInput[]
@@ -681,7 +609,6 @@ export type WorkflowCreateWithoutOperatoreInput = {
   stato?: number
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowsInput
   step?: Prisma.StepCreateNestedOneWithoutWorkflowsInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutWorkflowsInput
   allegati?: Prisma.AllegatoCreateNestedManyWithoutWorkflowInput
   pagamentoAtteso?: Prisma.PagamentoAttesoCreateNestedOneWithoutWorkflowInput
 }
@@ -692,7 +619,6 @@ export type WorkflowUncheckedCreateWithoutOperatoreInput = {
   dataVariazione: Date | string
   istanzaId: number
   stepId: number
-  notificaId?: number | null
   stato?: number
   allegati?: Prisma.AllegatoUncheckedCreateNestedManyWithoutWorkflowInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUncheckedCreateNestedOneWithoutWorkflowInput
@@ -733,7 +659,6 @@ export type WorkflowScalarWhereInput = {
   dataVariazione?: Prisma.DateTimeFilter<"Workflow"> | Date | string
   istanzaId?: Prisma.IntFilter<"Workflow"> | number
   stepId?: Prisma.IntFilter<"Workflow"> | number
-  notificaId?: Prisma.IntNullableFilter<"Workflow"> | number | null
   stato?: Prisma.IntFilter<"Workflow"> | number
   operatoreId?: Prisma.IntNullableFilter<"Workflow"> | number | null
 }
@@ -743,7 +668,6 @@ export type WorkflowCreateWithoutStepInput = {
   dataVariazione: Date | string
   stato?: number
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowsInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutWorkflowsInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutWorkflowsInput
   allegati?: Prisma.AllegatoCreateNestedManyWithoutWorkflowInput
   pagamentoAtteso?: Prisma.PagamentoAttesoCreateNestedOneWithoutWorkflowInput
@@ -754,7 +678,6 @@ export type WorkflowUncheckedCreateWithoutStepInput = {
   note?: string | null
   dataVariazione: Date | string
   istanzaId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
   allegati?: Prisma.AllegatoUncheckedCreateNestedManyWithoutWorkflowInput
@@ -787,61 +710,11 @@ export type WorkflowUpdateManyWithWhereWithoutStepInput = {
   data: Prisma.XOR<Prisma.WorkflowUpdateManyMutationInput, Prisma.WorkflowUncheckedUpdateManyWithoutStepInput>
 }
 
-export type WorkflowCreateWithoutNotificaInput = {
-  note?: string | null
-  dataVariazione: Date | string
-  stato?: number
-  istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowsInput
-  step?: Prisma.StepCreateNestedOneWithoutWorkflowsInput
-  operatore?: Prisma.OperatoreCreateNestedOneWithoutWorkflowsInput
-  allegati?: Prisma.AllegatoCreateNestedManyWithoutWorkflowInput
-  pagamentoAtteso?: Prisma.PagamentoAttesoCreateNestedOneWithoutWorkflowInput
-}
-
-export type WorkflowUncheckedCreateWithoutNotificaInput = {
-  id?: number
-  note?: string | null
-  dataVariazione: Date | string
-  istanzaId: number
-  stepId: number
-  stato?: number
-  operatoreId?: number | null
-  allegati?: Prisma.AllegatoUncheckedCreateNestedManyWithoutWorkflowInput
-  pagamentoAtteso?: Prisma.PagamentoAttesoUncheckedCreateNestedOneWithoutWorkflowInput
-}
-
-export type WorkflowCreateOrConnectWithoutNotificaInput = {
-  where: Prisma.WorkflowWhereUniqueInput
-  create: Prisma.XOR<Prisma.WorkflowCreateWithoutNotificaInput, Prisma.WorkflowUncheckedCreateWithoutNotificaInput>
-}
-
-export type WorkflowCreateManyNotificaInputEnvelope = {
-  data: Prisma.WorkflowCreateManyNotificaInput | Prisma.WorkflowCreateManyNotificaInput[]
-  skipDuplicates?: boolean
-}
-
-export type WorkflowUpsertWithWhereUniqueWithoutNotificaInput = {
-  where: Prisma.WorkflowWhereUniqueInput
-  update: Prisma.XOR<Prisma.WorkflowUpdateWithoutNotificaInput, Prisma.WorkflowUncheckedUpdateWithoutNotificaInput>
-  create: Prisma.XOR<Prisma.WorkflowCreateWithoutNotificaInput, Prisma.WorkflowUncheckedCreateWithoutNotificaInput>
-}
-
-export type WorkflowUpdateWithWhereUniqueWithoutNotificaInput = {
-  where: Prisma.WorkflowWhereUniqueInput
-  data: Prisma.XOR<Prisma.WorkflowUpdateWithoutNotificaInput, Prisma.WorkflowUncheckedUpdateWithoutNotificaInput>
-}
-
-export type WorkflowUpdateManyWithWhereWithoutNotificaInput = {
-  where: Prisma.WorkflowScalarWhereInput
-  data: Prisma.XOR<Prisma.WorkflowUpdateManyMutationInput, Prisma.WorkflowUncheckedUpdateManyWithoutNotificaInput>
-}
-
 export type WorkflowCreateWithoutIstanzaInput = {
   note?: string | null
   dataVariazione: Date | string
   stato?: number
   step?: Prisma.StepCreateNestedOneWithoutWorkflowsInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutWorkflowsInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutWorkflowsInput
   allegati?: Prisma.AllegatoCreateNestedManyWithoutWorkflowInput
   pagamentoAtteso?: Prisma.PagamentoAttesoCreateNestedOneWithoutWorkflowInput
@@ -852,7 +725,6 @@ export type WorkflowUncheckedCreateWithoutIstanzaInput = {
   note?: string | null
   dataVariazione: Date | string
   stepId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
   allegati?: Prisma.AllegatoUncheckedCreateNestedManyWithoutWorkflowInput
@@ -891,7 +763,6 @@ export type WorkflowCreateWithoutAllegatiInput = {
   stato?: number
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowsInput
   step?: Prisma.StepCreateNestedOneWithoutWorkflowsInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutWorkflowsInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutWorkflowsInput
   pagamentoAtteso?: Prisma.PagamentoAttesoCreateNestedOneWithoutWorkflowInput
 }
@@ -902,7 +773,6 @@ export type WorkflowUncheckedCreateWithoutAllegatiInput = {
   dataVariazione: Date | string
   istanzaId: number
   stepId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
   pagamentoAtteso?: Prisma.PagamentoAttesoUncheckedCreateNestedOneWithoutWorkflowInput
@@ -930,7 +800,6 @@ export type WorkflowUpdateWithoutAllegatiInput = {
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput
   step?: Prisma.StepUpdateOneWithoutWorkflowsNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutWorkflowsNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutWorkflowsNestedInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUpdateOneWithoutWorkflowNestedInput
 }
@@ -941,7 +810,6 @@ export type WorkflowUncheckedUpdateWithoutAllegatiInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   pagamentoAtteso?: Prisma.PagamentoAttesoUncheckedUpdateOneWithoutWorkflowNestedInput
@@ -953,7 +821,6 @@ export type WorkflowCreateWithoutPagamentoAttesoInput = {
   stato?: number
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowsInput
   step?: Prisma.StepCreateNestedOneWithoutWorkflowsInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutWorkflowsInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutWorkflowsInput
   allegati?: Prisma.AllegatoCreateNestedManyWithoutWorkflowInput
 }
@@ -964,7 +831,6 @@ export type WorkflowUncheckedCreateWithoutPagamentoAttesoInput = {
   dataVariazione: Date | string
   istanzaId: number
   stepId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
   allegati?: Prisma.AllegatoUncheckedCreateNestedManyWithoutWorkflowInput
@@ -992,7 +858,6 @@ export type WorkflowUpdateWithoutPagamentoAttesoInput = {
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput
   step?: Prisma.StepUpdateOneWithoutWorkflowsNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutWorkflowsNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutWorkflowsNestedInput
   allegati?: Prisma.AllegatoUpdateManyWithoutWorkflowNestedInput
 }
@@ -1003,7 +868,6 @@ export type WorkflowUncheckedUpdateWithoutPagamentoAttesoInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   allegati?: Prisma.AllegatoUncheckedUpdateManyWithoutWorkflowNestedInput
@@ -1015,7 +879,6 @@ export type WorkflowCreateManyOperatoreInput = {
   dataVariazione: Date | string
   istanzaId: number
   stepId: number
-  notificaId?: number | null
   stato?: number
 }
 
@@ -1025,7 +888,6 @@ export type WorkflowUpdateWithoutOperatoreInput = {
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput
   step?: Prisma.StepUpdateOneWithoutWorkflowsNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutWorkflowsNestedInput
   allegati?: Prisma.AllegatoUpdateManyWithoutWorkflowNestedInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUpdateOneWithoutWorkflowNestedInput
 }
@@ -1036,7 +898,6 @@ export type WorkflowUncheckedUpdateWithoutOperatoreInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   allegati?: Prisma.AllegatoUncheckedUpdateManyWithoutWorkflowNestedInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUncheckedUpdateOneWithoutWorkflowNestedInput
@@ -1048,7 +909,6 @@ export type WorkflowUncheckedUpdateManyWithoutOperatoreInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -1057,7 +917,6 @@ export type WorkflowCreateManyStepInput = {
   note?: string | null
   dataVariazione: Date | string
   istanzaId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
 }
@@ -1067,7 +926,6 @@ export type WorkflowUpdateWithoutStepInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutWorkflowsNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutWorkflowsNestedInput
   allegati?: Prisma.AllegatoUpdateManyWithoutWorkflowNestedInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUpdateOneWithoutWorkflowNestedInput
@@ -1078,7 +936,6 @@ export type WorkflowUncheckedUpdateWithoutStepInput = {
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   allegati?: Prisma.AllegatoUncheckedUpdateManyWithoutWorkflowNestedInput
@@ -1090,50 +947,6 @@ export type WorkflowUncheckedUpdateManyWithoutStepInput = {
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  stato?: Prisma.IntFieldUpdateOperationsInput | number
-  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-}
-
-export type WorkflowCreateManyNotificaInput = {
-  id?: number
-  note?: string | null
-  dataVariazione: Date | string
-  istanzaId: number
-  stepId: number
-  stato?: number
-  operatoreId?: number | null
-}
-
-export type WorkflowUpdateWithoutNotificaInput = {
-  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  stato?: Prisma.IntFieldUpdateOperationsInput | number
-  istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowsNestedInput
-  step?: Prisma.StepUpdateOneWithoutWorkflowsNestedInput
-  operatore?: Prisma.OperatoreUpdateOneWithoutWorkflowsNestedInput
-  allegati?: Prisma.AllegatoUpdateManyWithoutWorkflowNestedInput
-  pagamentoAtteso?: Prisma.PagamentoAttesoUpdateOneWithoutWorkflowNestedInput
-}
-
-export type WorkflowUncheckedUpdateWithoutNotificaInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
-  stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  stato?: Prisma.IntFieldUpdateOperationsInput | number
-  operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  allegati?: Prisma.AllegatoUncheckedUpdateManyWithoutWorkflowNestedInput
-  pagamentoAtteso?: Prisma.PagamentoAttesoUncheckedUpdateOneWithoutWorkflowNestedInput
-}
-
-export type WorkflowUncheckedUpdateManyWithoutNotificaInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
-  stepId?: Prisma.IntFieldUpdateOperationsInput | number
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -1143,7 +956,6 @@ export type WorkflowCreateManyIstanzaInput = {
   note?: string | null
   dataVariazione: Date | string
   stepId: number
-  notificaId?: number | null
   stato?: number
   operatoreId?: number | null
 }
@@ -1153,7 +965,6 @@ export type WorkflowUpdateWithoutIstanzaInput = {
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   step?: Prisma.StepUpdateOneWithoutWorkflowsNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutWorkflowsNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutWorkflowsNestedInput
   allegati?: Prisma.AllegatoUpdateManyWithoutWorkflowNestedInput
   pagamentoAtteso?: Prisma.PagamentoAttesoUpdateOneWithoutWorkflowNestedInput
@@ -1164,7 +975,6 @@ export type WorkflowUncheckedUpdateWithoutIstanzaInput = {
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   allegati?: Prisma.AllegatoUncheckedUpdateManyWithoutWorkflowNestedInput
@@ -1176,7 +986,6 @@ export type WorkflowUncheckedUpdateManyWithoutIstanzaInput = {
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataVariazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stepId?: Prisma.IntFieldUpdateOperationsInput | number
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   stato?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -1218,12 +1027,10 @@ export type WorkflowSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   dataVariazione?: boolean
   istanzaId?: boolean
   stepId?: boolean
-  notificaId?: boolean
   stato?: boolean
   operatoreId?: boolean
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   step?: boolean | Prisma.Workflow$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.Workflow$notificaArgs<ExtArgs>
   operatore?: boolean | Prisma.Workflow$operatoreArgs<ExtArgs>
   allegati?: boolean | Prisma.Workflow$allegatiArgs<ExtArgs>
   pagamentoAtteso?: boolean | Prisma.Workflow$pagamentoAttesoArgs<ExtArgs>
@@ -1236,12 +1043,10 @@ export type WorkflowSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   dataVariazione?: boolean
   istanzaId?: boolean
   stepId?: boolean
-  notificaId?: boolean
   stato?: boolean
   operatoreId?: boolean
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   step?: boolean | Prisma.Workflow$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.Workflow$notificaArgs<ExtArgs>
   operatore?: boolean | Prisma.Workflow$operatoreArgs<ExtArgs>
 }, ExtArgs["result"]["workflow"]>
 
@@ -1251,12 +1056,10 @@ export type WorkflowSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   dataVariazione?: boolean
   istanzaId?: boolean
   stepId?: boolean
-  notificaId?: boolean
   stato?: boolean
   operatoreId?: boolean
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   step?: boolean | Prisma.Workflow$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.Workflow$notificaArgs<ExtArgs>
   operatore?: boolean | Prisma.Workflow$operatoreArgs<ExtArgs>
 }, ExtArgs["result"]["workflow"]>
 
@@ -1266,16 +1069,14 @@ export type WorkflowSelectScalar = {
   dataVariazione?: boolean
   istanzaId?: boolean
   stepId?: boolean
-  notificaId?: boolean
   stato?: boolean
   operatoreId?: boolean
 }
 
-export type WorkflowOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "note" | "dataVariazione" | "istanzaId" | "stepId" | "notificaId" | "stato" | "operatoreId", ExtArgs["result"]["workflow"]>
+export type WorkflowOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "note" | "dataVariazione" | "istanzaId" | "stepId" | "stato" | "operatoreId", ExtArgs["result"]["workflow"]>
 export type WorkflowInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   step?: boolean | Prisma.Workflow$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.Workflow$notificaArgs<ExtArgs>
   operatore?: boolean | Prisma.Workflow$operatoreArgs<ExtArgs>
   allegati?: boolean | Prisma.Workflow$allegatiArgs<ExtArgs>
   pagamentoAtteso?: boolean | Prisma.Workflow$pagamentoAttesoArgs<ExtArgs>
@@ -1284,13 +1085,11 @@ export type WorkflowInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type WorkflowIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   step?: boolean | Prisma.Workflow$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.Workflow$notificaArgs<ExtArgs>
   operatore?: boolean | Prisma.Workflow$operatoreArgs<ExtArgs>
 }
 export type WorkflowIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   step?: boolean | Prisma.Workflow$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.Workflow$notificaArgs<ExtArgs>
   operatore?: boolean | Prisma.Workflow$operatoreArgs<ExtArgs>
 }
 
@@ -1299,7 +1098,6 @@ export type $WorkflowPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     istanza: Prisma.$IstanzaPayload<ExtArgs>
     step: Prisma.$StepPayload<ExtArgs> | null
-    notifica: Prisma.$NotificaPayload<ExtArgs> | null
     operatore: Prisma.$OperatorePayload<ExtArgs> | null
     allegati: Prisma.$AllegatoPayload<ExtArgs>[]
     pagamentoAtteso: Prisma.$PagamentoAttesoPayload<ExtArgs> | null
@@ -1310,7 +1108,6 @@ export type $WorkflowPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     dataVariazione: Date
     istanzaId: number
     stepId: number
-    notificaId: number | null
     stato: number
     operatoreId: number | null
   }, ExtArgs["result"]["workflow"]>
@@ -1709,7 +1506,6 @@ export interface Prisma__WorkflowClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   istanza<T extends Prisma.IstanzaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.IstanzaDefaultArgs<ExtArgs>>): Prisma.Prisma__IstanzaClient<runtime.Types.Result.GetResult<Prisma.$IstanzaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   step<T extends Prisma.Workflow$stepArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$stepArgs<ExtArgs>>): Prisma.Prisma__StepClient<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  notifica<T extends Prisma.Workflow$notificaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$notificaArgs<ExtArgs>>): Prisma.Prisma__NotificaClient<runtime.Types.Result.GetResult<Prisma.$NotificaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   operatore<T extends Prisma.Workflow$operatoreArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$operatoreArgs<ExtArgs>>): Prisma.Prisma__OperatoreClient<runtime.Types.Result.GetResult<Prisma.$OperatorePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   allegati<T extends Prisma.Workflow$allegatiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$allegatiArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AllegatoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   pagamentoAtteso<T extends Prisma.Workflow$pagamentoAttesoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$pagamentoAttesoArgs<ExtArgs>>): Prisma.Prisma__PagamentoAttesoClient<runtime.Types.Result.GetResult<Prisma.$PagamentoAttesoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1747,7 +1543,6 @@ export interface WorkflowFieldRefs {
   readonly dataVariazione: Prisma.FieldRef<"Workflow", 'DateTime'>
   readonly istanzaId: Prisma.FieldRef<"Workflow", 'Int'>
   readonly stepId: Prisma.FieldRef<"Workflow", 'Int'>
-  readonly notificaId: Prisma.FieldRef<"Workflow", 'Int'>
   readonly stato: Prisma.FieldRef<"Workflow", 'Int'>
   readonly operatoreId: Prisma.FieldRef<"Workflow", 'Int'>
 }
@@ -2167,25 +1962,6 @@ export type Workflow$stepArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.StepInclude<ExtArgs> | null
   where?: Prisma.StepWhereInput
-}
-
-/**
- * Workflow.notifica
- */
-export type Workflow$notificaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Notifica
-   */
-  select?: Prisma.NotificaSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Notifica
-   */
-  omit?: Prisma.NotificaOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.NotificaInclude<ExtArgs> | null
-  where?: Prisma.NotificaWhereInput
 }
 
 /**

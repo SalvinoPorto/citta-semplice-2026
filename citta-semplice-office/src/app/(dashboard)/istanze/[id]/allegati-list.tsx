@@ -17,9 +17,6 @@ interface Workflow {
   step: {
     descrizione: string;
   } | null;
-  notifica: {
-    descrizione: string;
-  } | null;
   allegati: Allegato[];
 }
 
@@ -31,7 +28,7 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
   const allAllegati = workflows.flatMap((wf) =>
     wf.allegati.map((a) => ({
       ...a,
-      step: wf.step?.descrizione || wf.notifica?.descrizione || '-',
+      step: wf.step?.descrizione || '-',
     }))
   );
 

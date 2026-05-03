@@ -238,16 +238,6 @@ model Step {
   @@map("steps")
 }
 
-model Notifica {
-  id          Int       @id @default(autoincrement())
-  descrizione String
-  allegati    Boolean   @default(false)
-
-  workflows           Workflow[]
-  allegatiRichiesti   AllegatoRichiesto[]
-
-  @@map("notifiche")
-}
 
 model AllegatoRichiesto {
   id                  Int       @id @default(autoincrement())
@@ -258,9 +248,6 @@ model AllegatoRichiesto {
 
   stepId              Int?      @map("step_id")
   step                Step?     @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-  notificaId          Int?      @map("notifica_id")
-  notifica            Notifica? @relation(fields: [notificaId], references: [id], onDelete: Cascade)
 
   @@map("allegati_richiesti")
 }
@@ -362,9 +349,6 @@ model Workflow {
 
   stepId          Int       @map("step_id")
   step            Step?     @relation(fields: [stepId], references: [id])
-
-  notificaId      Int?      @map("notifica_id")
-  notifica        Notifica? @relation(fields: [notificaId], references: [id])
 
   stato           Int       @default(0)
   operatoreId     Int?      @map("operatore_id")
