@@ -28,10 +28,12 @@ export type AggregateOperatore = {
 
 export type OperatoreAvgAggregateOutputType = {
   id: number | null
+  ufficioId: number | null
 }
 
 export type OperatoreSumAggregateOutputType = {
   id: number | null
+  ufficioId: number | null
 }
 
 export type OperatoreMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type OperatoreMinAggregateOutputType = {
   attivo: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  ufficioId: number | null
 }
 
 export type OperatoreMaxAggregateOutputType = {
@@ -58,6 +61,7 @@ export type OperatoreMaxAggregateOutputType = {
   attivo: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  ufficioId: number | null
 }
 
 export type OperatoreCountAggregateOutputType = {
@@ -71,16 +75,19 @@ export type OperatoreCountAggregateOutputType = {
   attivo: number
   createdAt: number
   updatedAt: number
+  ufficioId: number
   _all: number
 }
 
 
 export type OperatoreAvgAggregateInputType = {
   id?: true
+  ufficioId?: true
 }
 
 export type OperatoreSumAggregateInputType = {
   id?: true
+  ufficioId?: true
 }
 
 export type OperatoreMinAggregateInputType = {
@@ -94,6 +101,7 @@ export type OperatoreMinAggregateInputType = {
   attivo?: true
   createdAt?: true
   updatedAt?: true
+  ufficioId?: true
 }
 
 export type OperatoreMaxAggregateInputType = {
@@ -107,6 +115,7 @@ export type OperatoreMaxAggregateInputType = {
   attivo?: true
   createdAt?: true
   updatedAt?: true
+  ufficioId?: true
 }
 
 export type OperatoreCountAggregateInputType = {
@@ -120,6 +129,7 @@ export type OperatoreCountAggregateInputType = {
   attivo?: true
   createdAt?: true
   updatedAt?: true
+  ufficioId?: true
   _all?: true
 }
 
@@ -220,6 +230,7 @@ export type OperatoreGroupByOutputType = {
   attivo: boolean
   createdAt: Date
   updatedAt: Date
+  ufficioId: number | null
   _count: OperatoreCountAggregateOutputType | null
   _avg: OperatoreAvgAggregateOutputType | null
   _sum: OperatoreSumAggregateOutputType | null
@@ -256,8 +267,9 @@ export type OperatoreWhereInput = {
   attivo?: Prisma.BoolFilter<"Operatore"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Operatore"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Operatore"> | Date | string
+  ufficioId?: Prisma.IntNullableFilter<"Operatore"> | number | null
+  ufficio?: Prisma.XOR<Prisma.UfficioNullableScalarRelationFilter, Prisma.UfficioWhereInput> | null
   ruoli?: Prisma.OperatoreRuoloListRelationFilter
-  servizi?: Prisma.OperatoreServizioListRelationFilter
   workflows?: Prisma.WorkflowListRelationFilter
   comunicazioni?: Prisma.ComunicazioneListRelationFilter
   workflowFasiCompletati?: Prisma.WorkflowFaseListRelationFilter
@@ -274,8 +286,9 @@ export type OperatoreOrderByWithRelationInput = {
   attivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrderInput | Prisma.SortOrder
+  ufficio?: Prisma.UfficioOrderByWithRelationInput
   ruoli?: Prisma.OperatoreRuoloOrderByRelationAggregateInput
-  servizi?: Prisma.OperatoreServizioOrderByRelationAggregateInput
   workflows?: Prisma.WorkflowOrderByRelationAggregateInput
   comunicazioni?: Prisma.ComunicazioneOrderByRelationAggregateInput
   workflowFasiCompletati?: Prisma.WorkflowFaseOrderByRelationAggregateInput
@@ -295,8 +308,9 @@ export type OperatoreWhereUniqueInput = Prisma.AtLeast<{
   attivo?: Prisma.BoolFilter<"Operatore"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Operatore"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Operatore"> | Date | string
+  ufficioId?: Prisma.IntNullableFilter<"Operatore"> | number | null
+  ufficio?: Prisma.XOR<Prisma.UfficioNullableScalarRelationFilter, Prisma.UfficioWhereInput> | null
   ruoli?: Prisma.OperatoreRuoloListRelationFilter
-  servizi?: Prisma.OperatoreServizioListRelationFilter
   workflows?: Prisma.WorkflowListRelationFilter
   comunicazioni?: Prisma.ComunicazioneListRelationFilter
   workflowFasiCompletati?: Prisma.WorkflowFaseListRelationFilter
@@ -313,6 +327,7 @@ export type OperatoreOrderByWithAggregationInput = {
   attivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OperatoreCountOrderByAggregateInput
   _avg?: Prisma.OperatoreAvgOrderByAggregateInput
   _max?: Prisma.OperatoreMaxOrderByAggregateInput
@@ -334,6 +349,7 @@ export type OperatoreScalarWhereWithAggregatesInput = {
   attivo?: Prisma.BoolWithAggregatesFilter<"Operatore"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Operatore"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Operatore"> | Date | string
+  ufficioId?: Prisma.IntNullableWithAggregatesFilter<"Operatore"> | number | null
 }
 
 export type OperatoreCreateInput = {
@@ -346,8 +362,8 @@ export type OperatoreCreateInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficio?: Prisma.UfficioCreateNestedOneWithoutOperatoriInput
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
@@ -364,8 +380,8 @@ export type OperatoreUncheckedCreateInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficioId?: number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
@@ -381,8 +397,8 @@ export type OperatoreUpdateInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficio?: Prisma.UfficioUpdateOneWithoutOperatoriNestedInput
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
@@ -399,8 +415,8 @@ export type OperatoreUncheckedUpdateInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
@@ -417,6 +433,7 @@ export type OperatoreCreateManyInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficioId?: number | null
 }
 
 export type OperatoreUpdateManyMutationInput = {
@@ -442,6 +459,7 @@ export type OperatoreUncheckedUpdateManyInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type OperatoreCountOrderByAggregateInput = {
@@ -455,10 +473,12 @@ export type OperatoreCountOrderByAggregateInput = {
   attivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrder
 }
 
 export type OperatoreAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrder
 }
 
 export type OperatoreMaxOrderByAggregateInput = {
@@ -472,6 +492,7 @@ export type OperatoreMaxOrderByAggregateInput = {
   attivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrder
 }
 
 export type OperatoreMinOrderByAggregateInput = {
@@ -485,15 +506,27 @@ export type OperatoreMinOrderByAggregateInput = {
   attivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrder
 }
 
 export type OperatoreSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ufficioId?: Prisma.SortOrder
 }
 
 export type OperatoreScalarRelationFilter = {
   is?: Prisma.OperatoreWhereInput
   isNot?: Prisma.OperatoreWhereInput
+}
+
+export type OperatoreListRelationFilter = {
+  every?: Prisma.OperatoreWhereInput
+  some?: Prisma.OperatoreWhereInput
+  none?: Prisma.OperatoreWhereInput
+}
+
+export type OperatoreOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type OperatoreNullableScalarRelationFilter = {
@@ -525,6 +558,14 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type OperatoreCreateNestedOneWithoutRuoliInput = {
   create?: Prisma.XOR<Prisma.OperatoreCreateWithoutRuoliInput, Prisma.OperatoreUncheckedCreateWithoutRuoliInput>
   connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutRuoliInput
@@ -539,18 +580,46 @@ export type OperatoreUpdateOneRequiredWithoutRuoliNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutRuoliInput, Prisma.OperatoreUpdateWithoutRuoliInput>, Prisma.OperatoreUncheckedUpdateWithoutRuoliInput>
 }
 
-export type OperatoreCreateNestedOneWithoutServiziInput = {
-  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutServiziInput, Prisma.OperatoreUncheckedCreateWithoutServiziInput>
-  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutServiziInput
-  connect?: Prisma.OperatoreWhereUniqueInput
+export type OperatoreCreateNestedManyWithoutUfficioInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutUfficioInput, Prisma.OperatoreUncheckedCreateWithoutUfficioInput> | Prisma.OperatoreCreateWithoutUfficioInput[] | Prisma.OperatoreUncheckedCreateWithoutUfficioInput[]
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutUfficioInput | Prisma.OperatoreCreateOrConnectWithoutUfficioInput[]
+  createMany?: Prisma.OperatoreCreateManyUfficioInputEnvelope
+  connect?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
 }
 
-export type OperatoreUpdateOneRequiredWithoutServiziNestedInput = {
-  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutServiziInput, Prisma.OperatoreUncheckedCreateWithoutServiziInput>
-  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutServiziInput
-  upsert?: Prisma.OperatoreUpsertWithoutServiziInput
-  connect?: Prisma.OperatoreWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OperatoreUpdateToOneWithWhereWithoutServiziInput, Prisma.OperatoreUpdateWithoutServiziInput>, Prisma.OperatoreUncheckedUpdateWithoutServiziInput>
+export type OperatoreUncheckedCreateNestedManyWithoutUfficioInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutUfficioInput, Prisma.OperatoreUncheckedCreateWithoutUfficioInput> | Prisma.OperatoreCreateWithoutUfficioInput[] | Prisma.OperatoreUncheckedCreateWithoutUfficioInput[]
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutUfficioInput | Prisma.OperatoreCreateOrConnectWithoutUfficioInput[]
+  createMany?: Prisma.OperatoreCreateManyUfficioInputEnvelope
+  connect?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+}
+
+export type OperatoreUpdateManyWithoutUfficioNestedInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutUfficioInput, Prisma.OperatoreUncheckedCreateWithoutUfficioInput> | Prisma.OperatoreCreateWithoutUfficioInput[] | Prisma.OperatoreUncheckedCreateWithoutUfficioInput[]
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutUfficioInput | Prisma.OperatoreCreateOrConnectWithoutUfficioInput[]
+  upsert?: Prisma.OperatoreUpsertWithWhereUniqueWithoutUfficioInput | Prisma.OperatoreUpsertWithWhereUniqueWithoutUfficioInput[]
+  createMany?: Prisma.OperatoreCreateManyUfficioInputEnvelope
+  set?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  disconnect?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  delete?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  connect?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  update?: Prisma.OperatoreUpdateWithWhereUniqueWithoutUfficioInput | Prisma.OperatoreUpdateWithWhereUniqueWithoutUfficioInput[]
+  updateMany?: Prisma.OperatoreUpdateManyWithWhereWithoutUfficioInput | Prisma.OperatoreUpdateManyWithWhereWithoutUfficioInput[]
+  deleteMany?: Prisma.OperatoreScalarWhereInput | Prisma.OperatoreScalarWhereInput[]
+}
+
+export type OperatoreUncheckedUpdateManyWithoutUfficioNestedInput = {
+  create?: Prisma.XOR<Prisma.OperatoreCreateWithoutUfficioInput, Prisma.OperatoreUncheckedCreateWithoutUfficioInput> | Prisma.OperatoreCreateWithoutUfficioInput[] | Prisma.OperatoreUncheckedCreateWithoutUfficioInput[]
+  connectOrCreate?: Prisma.OperatoreCreateOrConnectWithoutUfficioInput | Prisma.OperatoreCreateOrConnectWithoutUfficioInput[]
+  upsert?: Prisma.OperatoreUpsertWithWhereUniqueWithoutUfficioInput | Prisma.OperatoreUpsertWithWhereUniqueWithoutUfficioInput[]
+  createMany?: Prisma.OperatoreCreateManyUfficioInputEnvelope
+  set?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  disconnect?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  delete?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  connect?: Prisma.OperatoreWhereUniqueInput | Prisma.OperatoreWhereUniqueInput[]
+  update?: Prisma.OperatoreUpdateWithWhereUniqueWithoutUfficioInput | Prisma.OperatoreUpdateWithWhereUniqueWithoutUfficioInput[]
+  updateMany?: Prisma.OperatoreUpdateManyWithWhereWithoutUfficioInput | Prisma.OperatoreUpdateManyWithWhereWithoutUfficioInput[]
+  deleteMany?: Prisma.OperatoreScalarWhereInput | Prisma.OperatoreScalarWhereInput[]
 }
 
 export type OperatoreCreateNestedOneWithoutWorkflowsInput = {
@@ -611,7 +680,7 @@ export type OperatoreCreateWithoutRuoliInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
+  ufficio?: Prisma.UfficioCreateNestedOneWithoutOperatoriInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
@@ -628,7 +697,7 @@ export type OperatoreUncheckedCreateWithoutRuoliInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
+  ufficioId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
@@ -660,7 +729,7 @@ export type OperatoreUpdateWithoutRuoliInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
+  ufficio?: Prisma.UfficioUpdateOneWithoutOperatoriNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
@@ -677,13 +746,13 @@ export type OperatoreUncheckedUpdateWithoutRuoliInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
 
-export type OperatoreCreateWithoutServiziInput = {
+export type OperatoreCreateWithoutUfficioInput = {
   email: string
   password: string
   nome: string
@@ -699,7 +768,7 @@ export type OperatoreCreateWithoutServiziInput = {
   workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
-export type OperatoreUncheckedCreateWithoutServiziInput = {
+export type OperatoreUncheckedCreateWithoutUfficioInput = {
   id?: number
   email: string
   password: string
@@ -716,53 +785,47 @@ export type OperatoreUncheckedCreateWithoutServiziInput = {
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
 
-export type OperatoreCreateOrConnectWithoutServiziInput = {
+export type OperatoreCreateOrConnectWithoutUfficioInput = {
   where: Prisma.OperatoreWhereUniqueInput
-  create: Prisma.XOR<Prisma.OperatoreCreateWithoutServiziInput, Prisma.OperatoreUncheckedCreateWithoutServiziInput>
+  create: Prisma.XOR<Prisma.OperatoreCreateWithoutUfficioInput, Prisma.OperatoreUncheckedCreateWithoutUfficioInput>
 }
 
-export type OperatoreUpsertWithoutServiziInput = {
-  update: Prisma.XOR<Prisma.OperatoreUpdateWithoutServiziInput, Prisma.OperatoreUncheckedUpdateWithoutServiziInput>
-  create: Prisma.XOR<Prisma.OperatoreCreateWithoutServiziInput, Prisma.OperatoreUncheckedCreateWithoutServiziInput>
-  where?: Prisma.OperatoreWhereInput
+export type OperatoreCreateManyUfficioInputEnvelope = {
+  data: Prisma.OperatoreCreateManyUfficioInput | Prisma.OperatoreCreateManyUfficioInput[]
+  skipDuplicates?: boolean
 }
 
-export type OperatoreUpdateToOneWithWhereWithoutServiziInput = {
-  where?: Prisma.OperatoreWhereInput
-  data: Prisma.XOR<Prisma.OperatoreUpdateWithoutServiziInput, Prisma.OperatoreUncheckedUpdateWithoutServiziInput>
+export type OperatoreUpsertWithWhereUniqueWithoutUfficioInput = {
+  where: Prisma.OperatoreWhereUniqueInput
+  update: Prisma.XOR<Prisma.OperatoreUpdateWithoutUfficioInput, Prisma.OperatoreUncheckedUpdateWithoutUfficioInput>
+  create: Prisma.XOR<Prisma.OperatoreCreateWithoutUfficioInput, Prisma.OperatoreUncheckedCreateWithoutUfficioInput>
 }
 
-export type OperatoreUpdateWithoutServiziInput = {
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  cognome?: Prisma.StringFieldUpdateOperationsInput | string
-  userName?: Prisma.StringFieldUpdateOperationsInput | string
-  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
-  workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
-  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
-  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
+export type OperatoreUpdateWithWhereUniqueWithoutUfficioInput = {
+  where: Prisma.OperatoreWhereUniqueInput
+  data: Prisma.XOR<Prisma.OperatoreUpdateWithoutUfficioInput, Prisma.OperatoreUncheckedUpdateWithoutUfficioInput>
 }
 
-export type OperatoreUncheckedUpdateWithoutServiziInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  cognome?: Prisma.StringFieldUpdateOperationsInput | string
-  userName?: Prisma.StringFieldUpdateOperationsInput | string
-  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
-  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
-  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
-  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
+export type OperatoreUpdateManyWithWhereWithoutUfficioInput = {
+  where: Prisma.OperatoreScalarWhereInput
+  data: Prisma.XOR<Prisma.OperatoreUpdateManyMutationInput, Prisma.OperatoreUncheckedUpdateManyWithoutUfficioInput>
+}
+
+export type OperatoreScalarWhereInput = {
+  AND?: Prisma.OperatoreScalarWhereInput | Prisma.OperatoreScalarWhereInput[]
+  OR?: Prisma.OperatoreScalarWhereInput[]
+  NOT?: Prisma.OperatoreScalarWhereInput | Prisma.OperatoreScalarWhereInput[]
+  id?: Prisma.IntFilter<"Operatore"> | number
+  email?: Prisma.StringFilter<"Operatore"> | string
+  password?: Prisma.StringFilter<"Operatore"> | string
+  nome?: Prisma.StringFilter<"Operatore"> | string
+  cognome?: Prisma.StringFilter<"Operatore"> | string
+  userName?: Prisma.StringFilter<"Operatore"> | string
+  telefono?: Prisma.StringNullableFilter<"Operatore"> | string | null
+  attivo?: Prisma.BoolFilter<"Operatore"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Operatore"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Operatore"> | Date | string
+  ufficioId?: Prisma.IntNullableFilter<"Operatore"> | number | null
 }
 
 export type OperatoreCreateWithoutWorkflowsInput = {
@@ -775,8 +838,8 @@ export type OperatoreCreateWithoutWorkflowsInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficio?: Prisma.UfficioCreateNestedOneWithoutOperatoriInput
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
@@ -792,8 +855,8 @@ export type OperatoreUncheckedCreateWithoutWorkflowsInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficioId?: number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
@@ -824,8 +887,8 @@ export type OperatoreUpdateWithoutWorkflowsInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficio?: Prisma.UfficioUpdateOneWithoutOperatoriNestedInput
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
@@ -841,8 +904,8 @@ export type OperatoreUncheckedUpdateWithoutWorkflowsInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
@@ -857,8 +920,8 @@ export type OperatoreCreateWithoutWorkflowFasiCompletatiInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficio?: Prisma.UfficioCreateNestedOneWithoutOperatoriInput
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneCreateNestedManyWithoutOperatoreInput
 }
@@ -874,8 +937,8 @@ export type OperatoreUncheckedCreateWithoutWorkflowFasiCompletatiInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficioId?: number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   comunicazioni?: Prisma.ComunicazioneUncheckedCreateNestedManyWithoutOperatoreInput
 }
@@ -906,8 +969,8 @@ export type OperatoreUpdateWithoutWorkflowFasiCompletatiInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficio?: Prisma.UfficioUpdateOneWithoutOperatoriNestedInput
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
 }
@@ -923,8 +986,8 @@ export type OperatoreUncheckedUpdateWithoutWorkflowFasiCompletatiInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
 }
@@ -939,8 +1002,8 @@ export type OperatoreCreateWithoutComunicazioniInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficio?: Prisma.UfficioCreateNestedOneWithoutOperatoriInput
   ruoli?: Prisma.OperatoreRuoloCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseCreateNestedManyWithoutOperatoreCompletamentoInput
 }
@@ -956,8 +1019,8 @@ export type OperatoreUncheckedCreateWithoutComunicazioniInput = {
   attivo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ufficioId?: number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedCreateNestedManyWithoutOperatoreInput
-  servizi?: Prisma.OperatoreServizioUncheckedCreateNestedManyWithoutOperatoreInput
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutOperatoreInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedCreateNestedManyWithoutOperatoreCompletamentoInput
 }
@@ -988,8 +1051,8 @@ export type OperatoreUpdateWithoutComunicazioniInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficio?: Prisma.UfficioUpdateOneWithoutOperatoriNestedInput
   ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
 }
@@ -1005,10 +1068,69 @@ export type OperatoreUncheckedUpdateWithoutComunicazioniInput = {
   attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ufficioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
-  servizi?: Prisma.OperatoreServizioUncheckedUpdateManyWithoutOperatoreNestedInput
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
   workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
+}
+
+export type OperatoreCreateManyUfficioInput = {
+  id?: number
+  email: string
+  password: string
+  nome: string
+  cognome: string
+  userName: string
+  telefono?: string | null
+  attivo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OperatoreUpdateWithoutUfficioInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruoli?: Prisma.OperatoreRuoloUpdateManyWithoutOperatoreNestedInput
+  workflows?: Prisma.WorkflowUpdateManyWithoutOperatoreNestedInput
+  comunicazioni?: Prisma.ComunicazioneUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUpdateManyWithoutOperatoreCompletamentoNestedInput
+}
+
+export type OperatoreUncheckedUpdateWithoutUfficioInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruoli?: Prisma.OperatoreRuoloUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutOperatoreNestedInput
+  comunicazioni?: Prisma.ComunicazioneUncheckedUpdateManyWithoutOperatoreNestedInput
+  workflowFasiCompletati?: Prisma.WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoNestedInput
+}
+
+export type OperatoreUncheckedUpdateManyWithoutUfficioInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cognome?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1018,7 +1140,6 @@ export type OperatoreUncheckedUpdateWithoutComunicazioniInput = {
 
 export type OperatoreCountOutputType = {
   ruoli: number
-  servizi: number
   workflows: number
   comunicazioni: number
   workflowFasiCompletati: number
@@ -1026,7 +1147,6 @@ export type OperatoreCountOutputType = {
 
 export type OperatoreCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ruoli?: boolean | OperatoreCountOutputTypeCountRuoliArgs
-  servizi?: boolean | OperatoreCountOutputTypeCountServiziArgs
   workflows?: boolean | OperatoreCountOutputTypeCountWorkflowsArgs
   comunicazioni?: boolean | OperatoreCountOutputTypeCountComunicazioniArgs
   workflowFasiCompletati?: boolean | OperatoreCountOutputTypeCountWorkflowFasiCompletatiArgs
@@ -1047,13 +1167,6 @@ export type OperatoreCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ex
  */
 export type OperatoreCountOutputTypeCountRuoliArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OperatoreRuoloWhereInput
-}
-
-/**
- * OperatoreCountOutputType without action
- */
-export type OperatoreCountOutputTypeCountServiziArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.OperatoreServizioWhereInput
 }
 
 /**
@@ -1089,8 +1202,9 @@ export type OperatoreSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   attivo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  ufficioId?: boolean
+  ufficio?: boolean | Prisma.Operatore$ufficioArgs<ExtArgs>
   ruoli?: boolean | Prisma.Operatore$ruoliArgs<ExtArgs>
-  servizi?: boolean | Prisma.Operatore$serviziArgs<ExtArgs>
   workflows?: boolean | Prisma.Operatore$workflowsArgs<ExtArgs>
   comunicazioni?: boolean | Prisma.Operatore$comunicazioniArgs<ExtArgs>
   workflowFasiCompletati?: boolean | Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs>
@@ -1108,6 +1222,8 @@ export type OperatoreSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   attivo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  ufficioId?: boolean
+  ufficio?: boolean | Prisma.Operatore$ufficioArgs<ExtArgs>
 }, ExtArgs["result"]["operatore"]>
 
 export type OperatoreSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1121,6 +1237,8 @@ export type OperatoreSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   attivo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  ufficioId?: boolean
+  ufficio?: boolean | Prisma.Operatore$ufficioArgs<ExtArgs>
 }, ExtArgs["result"]["operatore"]>
 
 export type OperatoreSelectScalar = {
@@ -1134,25 +1252,30 @@ export type OperatoreSelectScalar = {
   attivo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  ufficioId?: boolean
 }
 
-export type OperatoreOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "nome" | "cognome" | "userName" | "telefono" | "attivo" | "createdAt" | "updatedAt", ExtArgs["result"]["operatore"]>
+export type OperatoreOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "nome" | "cognome" | "userName" | "telefono" | "attivo" | "createdAt" | "updatedAt" | "ufficioId", ExtArgs["result"]["operatore"]>
 export type OperatoreInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ufficio?: boolean | Prisma.Operatore$ufficioArgs<ExtArgs>
   ruoli?: boolean | Prisma.Operatore$ruoliArgs<ExtArgs>
-  servizi?: boolean | Prisma.Operatore$serviziArgs<ExtArgs>
   workflows?: boolean | Prisma.Operatore$workflowsArgs<ExtArgs>
   comunicazioni?: boolean | Prisma.Operatore$comunicazioniArgs<ExtArgs>
   workflowFasiCompletati?: boolean | Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs>
   _count?: boolean | Prisma.OperatoreCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type OperatoreIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type OperatoreIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type OperatoreIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ufficio?: boolean | Prisma.Operatore$ufficioArgs<ExtArgs>
+}
+export type OperatoreIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ufficio?: boolean | Prisma.Operatore$ufficioArgs<ExtArgs>
+}
 
 export type $OperatorePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Operatore"
   objects: {
+    ufficio: Prisma.$UfficioPayload<ExtArgs> | null
     ruoli: Prisma.$OperatoreRuoloPayload<ExtArgs>[]
-    servizi: Prisma.$OperatoreServizioPayload<ExtArgs>[]
     workflows: Prisma.$WorkflowPayload<ExtArgs>[]
     comunicazioni: Prisma.$ComunicazionePayload<ExtArgs>[]
     workflowFasiCompletati: Prisma.$WorkflowFasePayload<ExtArgs>[]
@@ -1168,6 +1291,7 @@ export type $OperatorePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     attivo: boolean
     createdAt: Date
     updatedAt: Date
+    ufficioId: number | null
   }, ExtArgs["result"]["operatore"]>
   composites: {}
 }
@@ -1562,8 +1686,8 @@ readonly fields: OperatoreFieldRefs;
  */
 export interface Prisma__OperatoreClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  ufficio<T extends Prisma.Operatore$ufficioArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$ufficioArgs<ExtArgs>>): Prisma.Prisma__UfficioClient<runtime.Types.Result.GetResult<Prisma.$UfficioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ruoli<T extends Prisma.Operatore$ruoliArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$ruoliArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperatoreRuoloPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  servizi<T extends Prisma.Operatore$serviziArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$serviziArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperatoreServizioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workflows<T extends Prisma.Operatore$workflowsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$workflowsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   comunicazioni<T extends Prisma.Operatore$comunicazioniArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$comunicazioniArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ComunicazionePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workflowFasiCompletati<T extends Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Operatore$workflowFasiCompletatiArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowFasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1606,6 +1730,7 @@ export interface OperatoreFieldRefs {
   readonly attivo: Prisma.FieldRef<"Operatore", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Operatore", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Operatore", 'DateTime'>
+  readonly ufficioId: Prisma.FieldRef<"Operatore", 'Int'>
 }
     
 
@@ -1860,6 +1985,10 @@ export type OperatoreCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    */
   data: Prisma.OperatoreCreateManyInput | Prisma.OperatoreCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OperatoreIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1930,6 +2059,10 @@ export type OperatoreUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    * Limit how many Operatores to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OperatoreIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1999,6 +2132,25 @@ export type OperatoreDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
+ * Operatore.ufficio
+ */
+export type Operatore$ufficioArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ufficio
+   */
+  select?: Prisma.UfficioSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ufficio
+   */
+  omit?: Prisma.UfficioOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UfficioInclude<ExtArgs> | null
+  where?: Prisma.UfficioWhereInput
+}
+
+/**
  * Operatore.ruoli
  */
 export type Operatore$ruoliArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2020,30 +2172,6 @@ export type Operatore$ruoliArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.OperatoreRuoloScalarFieldEnum | Prisma.OperatoreRuoloScalarFieldEnum[]
-}
-
-/**
- * Operatore.servizi
- */
-export type Operatore$serviziArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the OperatoreServizio
-   */
-  select?: Prisma.OperatoreServizioSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the OperatoreServizio
-   */
-  omit?: Prisma.OperatoreServizioOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.OperatoreServizioInclude<ExtArgs> | null
-  where?: Prisma.OperatoreServizioWhereInput
-  orderBy?: Prisma.OperatoreServizioOrderByWithRelationInput | Prisma.OperatoreServizioOrderByWithRelationInput[]
-  cursor?: Prisma.OperatoreServizioWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.OperatoreServizioScalarFieldEnum | Prisma.OperatoreServizioScalarFieldEnum[]
 }
 
 /**

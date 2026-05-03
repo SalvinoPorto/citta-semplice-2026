@@ -442,18 +442,22 @@ async function migrateUffici(src, dst) {
 async function migrateOperatori(src, dst) {
   console.log('\n── Migrazione operatori ────────────────────────────────────────────────');
 
-  const { rows } = await src.query(`SELECT 
-    id, 
-    abilitato as attivo, 
-    cognome, 
-    nome, 
-    COALESCE(data_registrazione, NOW()) as created_at, 
-    COALESCE(data_registrazione, NOW()) as updated_at, 
-    email, 
-    operatore_id as user_name, 
-    passwd as password
-    FROM operatori 
-    ORDER BY id
+  const { rows } = await src.query(`SELECT
+    o.id,
+    o.abilitato as attivo,
+    o.cognome,
+    o.nome,
+    COALESCE(o.data_registrazione, NOW()) as created_at,
+    COALESCE(o.data_registrazione, NOW()) as updated_at,
+    o.email,
+    o.operatore_id as user_name,
+    o.passwd as password,
+    (SELECT m.id_ufficio FROM operatori_moduli om
+     JOIN moduli m ON m.id = om.modulo_id
+     WHERE om.operatore_id = o.id AND m.id_ufficio IS NOT NULL
+     LIMIT 1) as ufficio_id
+    FROM operatori o
+    ORDER BY o.id
     `);
   console.log(`Operatori trovati: ${rows.length}`);
 
@@ -613,49 +617,60 @@ async function migrateOperatoriRuoli(src, dst) {
   console.log(`Operatori-Ruoli: ${ok} OK, ${errors} errori`);
 }
 
-// ── migrazione operatori_servizi ──────────────────────────────────────────────
+// ── migrazione fasi ──────────────────────────────────────────────────────────
+// Crea una fase unica per ogni servizio; la visibilità operatore→servizio
+// è ora mediata dall'ufficio assegnato alla fase (Fase.ufficioId).
 
-async function migrateOperatoriServizi(src, dst) {
-  console.log('\n── Migrazione operatori_servizi ────────────────────────────────────────────────');
+async function migrateFasi(src, dst) {
+  console.log('\n── Migrazione fasi ────────────────────────────────────────────────');
 
-  const { rows } = await src.query(`
-    SELECT
-      operatore_id,
-      modulo_id as servizio_id
-    FROM operatori_moduli
+  await dst.query("DELETE FROM fasi");
+
+  const result = await dst.query(`
+    INSERT INTO fasi (nome, ordine, servizio_id, ufficio_id)
+    SELECT 'Fase principale', 1, id, ufficio_id
+    FROM servizi
+    ORDER BY id
+    RETURNING id
   `);
-  console.log(`Operatori-Servizi trovati: ${rows.length}`);
 
-  if (rows.length === 0) {
-    console.log('Nessun operatore-servizio da migrare.');
-    return;
+  try {
+    await dst.query(`SELECT setval('fasi_id_seq', GREATEST((SELECT MAX(id) FROM fasi), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza fasi: ${err.message}`);
   }
 
-  const columns = Object.keys(rows[0]);
-  const colList = columns.map(c => `"${c}"`).join(', ');
-  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  console.log(`Fasi: ${result.rowCount} create`);
+}
 
-  const sql = `
-    INSERT INTO operatori_servizi (${colList})
-    VALUES (${placeholders})
-    ON CONFLICT (operatore_id, servizio_id) DO NOTHING
-  `;
+// ── migrazione workflow_fasi ──────────────────────────────────────────────────
 
-  let ok = 0, errors = 0;
-  await dst.query("DELETE FROM operatori_servizi");
-  for (const row of rows) {
-    const values = columns.map(col => row[col]);
-    try {
-      await dst.query(sql, values);
-      ok++;
-      if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} operatori-servizi migrati…`);
-    } catch (err) {
-      console.error(`  ✗ errore su operatore-servizio operatore=${row.operatore_id} servizio=${row.servizio_id}: ${err.message}`);
-      errors++;
-    }
+async function migrateWorkflowFasi(src, dst) {
+  console.log('\n── Migrazione workflow_fasi ────────────────────────────────────────────────');
+
+  await dst.query("DELETE FROM workflow_fasi");
+
+  const result = await dst.query(`
+    INSERT INTO workflow_fasi (data_inizio, data_completamento, istanza_id, fase_id, operatore_completamento_id, direzione)
+    SELECT
+      i.data_invio,
+      CASE WHEN i.conclusa OR i.respinta THEN i.data_invio ELSE NULL END,
+      i.id,
+      f.id,
+      NULL,
+      'AVANZAMENTO'
+    FROM istanze i
+    JOIN fasi f ON f.servizio_id = i.servizio_id
+    ORDER BY i.id
+  `);
+
+  try {
+    await dst.query(`SELECT setval('workflow_fasi_id_seq', GREATEST((SELECT MAX(id) FROM workflow_fasi), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza workflow_fasi: ${err.message}`);
   }
 
-  console.log(`Operatori-Servizi: ${ok} OK, ${errors} errori`);
+  console.log(`WorkflowFasi: ${result.rowCount} create`);
 }
 
 // ── migrazione utenti ─────────────────────────────────────────────────────────
@@ -727,23 +742,22 @@ async function migrateSteps(src, dst) {
 
   const { rows } = await src.query(`
     SELECT 
-    s.id, 
-    s.attivo, 
-    s.descrizione, 
-    pagamento, 
-    allegati, 
-    protocollo, 
-    unita_organizzativa, 
-    ordine, 
-    m.id as servizio_id, 
-    --allegati_richiesti, 
-    COALESCE(allegati_op, false) as allegati_op, 
-    --allegati_op_richiesti, 
-    COALESCE(allegati_op_required, false) as allegati_op_required, 
-    COALESCE(allegati_required, false) as allegati_required, 
-    --assegnabileaspecifico_ufficio, 
-    COALESCE(setta_attributo, false) as setta_attributo
-    --termine_risposta
+    s.id,
+    s.attivo,
+    s.descrizione,
+    pagamento,
+    allegati,
+    --allegati_richiesti,
+    --allegati_op_richiesti,
+    protocollo,
+    unita_organizzativa,
+    ordine,
+    m.id as servizio_id,
+    COALESCE(allegati_op, false) as allegati_op
+    --COALESCE(allegati_op_required, false) as allegati_op_required,
+    --COALESCE(allegati_required, false) as allegati_required,
+    --COALESCE(assegnabileaspecifico_ufficio, false) as assegnabile_a_specifico_ufficio,
+    --COALESCE(setta_attributo, false) as setta_attributo
     FROM step s
     LEFT JOIN moduli m ON m.id=s.id_modulo
     LEFT JOIN servizi se ON se.id=m.id_servizio
@@ -790,6 +804,12 @@ async function migrateSteps(src, dst) {
   } catch (err) {
     console.error(`  ⚠ errore nell'aggiornamento sequenza step: ${err.message}`);
   }
+
+  await dst.query(`
+    UPDATE steps SET fase_id = (
+      SELECT id FROM fasi WHERE servizio_id = steps.servizio_id LIMIT 1
+    )
+  `);
 
   console.log(`Steps: ${ok} inseriti/esistenti, ${errors} errori`);
 }
@@ -959,6 +979,14 @@ async function migrateIstanze(src, dst) {
   } catch (err) {
     console.error(`  ⚠ errore nell'aggiornamento sequenza istanze: ${err.message}`);
   }
+
+  await dst.query(`
+    UPDATE istanze SET
+      fase_corrente_id = (SELECT id FROM fasi WHERE servizio_id = istanze.servizio_id LIMIT 1),
+      ufficio_corrente_id = (SELECT ufficio_id FROM fasi WHERE servizio_id = istanze.servizio_id LIMIT 1)
+    WHERE NOT conclusa AND NOT respinta
+  `);
+
   console.log(
     `Istanze: ${ok} OK` +
     ` (${nonConvertiti} dati non convertiti perché non HTML)` +
@@ -1002,7 +1030,7 @@ async function migrateWorkflow(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-
+  await dst.query("DELETE FROM workflows");
   for (const row of rows) {
     try {
       await dst.query(sql, columns.map(col => row[col]));
@@ -1061,7 +1089,7 @@ async function migrateAllegati(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-
+  await dst.query("DELETE FROM allegati");
   for (const row of rows) {
     try {
       await dst.query(sql, columns.map(col => row[col]));
@@ -1097,7 +1125,7 @@ async function main() {
 
   try {
 
-    //  1. Migra enti (nessuna dipendenza)
+   /*  //  1. Migra enti (nessuna dipendenza)
     await migrateEnti(src, dst);
 
     //  2. Migra uffici (nessuna dipendenza)
@@ -1112,30 +1140,34 @@ async function main() {
     //  5. Migra servizi (dipende da aree, uffici; converte attributi nel nuovo formato)
     await migrateServizi(src, dst);
 
-    //  6. Migra steps (dipende da servizi)
+    //  6. Migra fasi (dipende da servizi, uffici; una fase unica per servizio)
+    await migrateFasi(src, dst);
+ */
+    //  7. Migra steps (dipende da servizi, fasi; aggiorna fase_id post-insert)
     await migrateSteps(src, dst);
 
-    //  6b. Migra allegati_richiesti (dipende da steps)
+    //  7b. Migra allegati_richiesti (dipende da steps)
     await migrateAllegatiRichiesti(src, dst);
 
-    //  7. Migra operatori (nessuna dipendenza)
+    //  8. Migra operatori (nessuna dipendenza; include ufficio_id da operatori_moduli)
     await migrateOperatori(src, dst);
 
-    //  8. Migra operatori_ruoli (dipende da operatori, ruoli)
+    //  9. Migra operatori_ruoli (dipende da operatori, ruoli)
     await migrateOperatoriRuoli(src, dst);
-
-    //  9. Migra operatori_servizi da old.operatori_moduli (dipende da operatori, servizi)
-    await migrateOperatoriServizi(src, dst);
 
     // 10. Migra utenti (nessuna dipendenza)
     await migrateUtenti(src, dst);
 
-    // 11. Migra istanze (dipende da utenti, servizi, steps; risolve CF→id)
+    // 11. Migra istanze (dipende da utenti, servizi, steps; risolve CF→id; setta fase_corrente_id)
     await migrateIstanze(src, dst);
 
     // 12. Migra workflow (dipende da istanze, steps, operatori)
     await migrateWorkflow(src, dst);
-    // 13. Migra allegati (dipende da istanze, steps)
+
+    // 13. Migra workflow_fasi (dipende da istanze, fasi)
+    await migrateWorkflowFasi(src, dst);
+
+    // 14. Migra allegati (dipende da workflow)
     await migrateAllegati(src, dst);
 
     console.log('\n✓ Migrazione completata.');

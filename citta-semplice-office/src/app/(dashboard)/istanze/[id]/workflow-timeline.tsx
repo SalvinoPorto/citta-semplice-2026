@@ -151,7 +151,7 @@ const STATO_PAGAMENTO_LABEL: Record<string, string> = {
 };
 
 const STATO_PAGAMENTO_BADGE: Record<string, string> = {
-  ATT: 'bg-warning text-dark',
+  ATT: 'bg-warning',
   CON: 'bg-success',
   NCO: 'bg-secondary',
   DAD: 'bg-secondary',
@@ -329,7 +329,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
                 <div className="mb-1">
                   <span className={`badge ${status === 'completed' ? 'bg-success' :
                     status === 'rejected' ? 'bg-danger' :
-                      'bg-warning text-dark'
+                      'bg-warning'
                     }`}>
                     {statoLabel(last)}
                   </span>

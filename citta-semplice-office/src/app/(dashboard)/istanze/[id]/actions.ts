@@ -9,10 +9,73 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pmPayService } from '@/lib/external/pmpay';
 import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
+import { ROLES } from '@/lib/auth/roles';
 
 // stato: operatoreId=null → In attesa, stato=0 → In lavorazione, stato=1 → Completata
 const STATO_IN_LAVORAZIONE = 0;
 const STATO_COMPLETATA = 1;
+
+/**
+ * Controlla se un operatore può accedere a un'istanza.
+ * Regola: tutti gli uffici che condividono un servizio vedono l'istanza,
+ * ma possono operare solo nella fase di loro competenza.
+ */
+async function checkUfficioAccess(istanzaId: number, operatoreId: number, ruoli: string[]): Promise<boolean> {
+  if (ruoli.includes(ROLES.ADMIN)) return true;
+  const operatore = await prisma.operatore.findUnique({
+    where: { id: operatoreId },
+    select: { ufficioId: true },
+  });
+  // Nessun ufficio assegnato → accesso libero
+  if (!operatore?.ufficioId) return true;
+  const istanza = await prisma.istanza.findUnique({
+    where: { id: istanzaId },
+    select: {
+      ufficioCorrenteId: true,
+      faseCorrente: { select: { ufficioId: true } },
+      servizio: { select: { ufficioId: true, fasi: { select: { ufficioId: true } } } }
+    },
+  });
+  if (!istanza) return false;
+
+  // Costruisci lista di tutti gli uffici che condividono questo servizio
+  const ufficiDelServizio: number[] = [];
+  if (istanza.servizio.ufficioId) ufficiDelServizio.push(istanza.servizio.ufficioId);
+  istanza.servizio.fasi.forEach(f => { if (f.ufficioId) ufficiDelServizio.push(f.ufficioId); });
+
+  // Se l'ufficio dell'operatore non è tra quelli del servizio → nessun accesso
+  if (!ufficiDelServizio.includes(operatore.ufficioId)) return false;
+
+  // Ufficio dell'operatore presente → può vedere l'istanza
+  return true;
+}
+
+/**
+ * Controlla se un operatore può operare (scrivere) su un'istanza.
+ * Permette operazioni solo se l'ufficio corrisponde alla fase corrente.
+ */
+async function checkUfficioWriteAccess(istanzaId: number, operatoreId: number, ruoli: string[]): Promise<boolean> {
+  if (ruoli.includes(ROLES.ADMIN)) return true;
+  const operatore = await prisma.operatore.findUnique({
+    where: { id: operatoreId },
+    select: { ufficioId: true },
+  });
+  // Nessun ufficio assegnato → può operare
+  if (!operatore?.ufficioId) return true;
+  const istanza = await prisma.istanza.findUnique({
+    where: { id: istanzaId },
+    select: {
+      ufficioCorrenteId: true,
+      faseCorrente: { select: { ufficioId: true } }
+    },
+  });
+  if (!istanza) return false;
+  const ufficioCorrente = istanza.ufficioCorrenteId ?? istanza.faseCorrente?.ufficioId ?? null;
+  // Nessun ufficio corrente → può operare
+  if (ufficioCorrente === null) return true;
+  // Può operare solo se è il suo ufficio
+  return ufficioCorrente === operatore.ufficioId;
+}
 
 function formatDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -58,6 +121,13 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
 
     const operatoreId = parseInt(user.id);
     const { istanzaId, note } = params;
+
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
 
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
@@ -311,6 +381,13 @@ export async function regressWorkflow(istanzaId: number, note: string) {
 
     const operatoreId = parseInt(user.id);
 
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
+
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
@@ -404,6 +481,13 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
 
     const operatoreId = parseInt(user.id);
 
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
+
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
@@ -430,7 +514,7 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          stato: STATO_IN_LAVORAZIONE,
+          stato: STATO_COMPLETATA,//STATO_IN_LAVORAZIONE,
           note: motivo,
           dataVariazione: now,
           operatoreId,
@@ -462,6 +546,13 @@ export async function reopenIstanza(istanzaId: number) {
     }
 
     const operatoreId = parseInt(user.id);
+
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
 
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
@@ -559,6 +650,13 @@ export async function addNote(istanzaId: number, noteText: string) {
 
     const operatoreId = parseInt(user.id);
 
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
+
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
@@ -606,6 +704,13 @@ export async function takeCharge(istanzaId: number) {
 
     const operatoreId = parseInt(user.id);
 
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
+
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
@@ -615,6 +720,7 @@ export async function takeCharge(istanzaId: number) {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
               take: 1,
+              include: { fase: { select: { id: true, ufficioId: true } } },
             },
           },
         },
@@ -669,7 +775,16 @@ export async function takeCharge(istanzaId: number) {
 
     await prisma.istanza.update({
       where: { id: istanzaId },
-      data: { lastStepId: firstStep.id },
+      data: {
+        lastStepId: firstStep.id,
+        // Fallback: set faseCorrente/ufficioCorrente if not already set (istanze pre-fix)
+        ...(istanza.faseCorrenteId === null && firstStep.faseId
+          ? {
+              faseCorrenteId: firstStep.faseId,
+              ufficioCorrenteId: firstStep.fase?.ufficioId ?? null,
+            }
+          : {}),
+      },
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -700,6 +815,13 @@ export async function sendComunicazione(
     }
 
     const operatoreId = parseInt(user.id);
+
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
 
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
@@ -823,6 +945,13 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     }
 
     const operatoreId = parseInt(user.id);
+
+    if (!await checkUfficioAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Non autorizzato' };
+    }
+    if (!await checkUfficioWriteAccess(istanzaId, operatoreId, user.ruoli ?? [])) {
+      return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+    }
 
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
@@ -1055,6 +1184,13 @@ export async function rollbackFase(params: {
   inviaEmail?: boolean;
 }): Promise<{ success: boolean; message: string }> {
   const operatore = await requireAuth();
+
+  if (!await checkUfficioAccess(params.istanzaId, parseInt(operatore.id), operatore.ruoli ?? [])) {
+    return { success: false, message: 'Non autorizzato' };
+  }
+  if (!await checkUfficioWriteAccess(params.istanzaId, parseInt(operatore.id), operatore.ruoli ?? [])) {
+    return { success: false, message: 'Puoi operare solo nella fase di tua competenza' };
+  }
 
   const istanza = await prisma.istanza.findUnique({
     where: { id: params.istanzaId },

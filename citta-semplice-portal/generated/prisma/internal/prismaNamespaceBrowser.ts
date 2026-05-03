@@ -59,7 +59,6 @@ export const ModelName = {
   Area: 'Area',
   Servizio: 'Servizio',
   Ufficio: 'Ufficio',
-  OperatoreServizio: 'OperatoreServizio',
   ServizioRuoloUser: 'ServizioRuoloUser',
   Step: 'Step',
   Notifica: 'Notifica',
@@ -110,7 +109,8 @@ export const OperatoreScalarFieldEnum = {
   telefono: 'telefono',
   attivo: 'attivo',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  ufficioId: 'ufficioId'
 } as const
 
 export type OperatoreScalarFieldEnum = (typeof OperatoreScalarFieldEnum)[keyof typeof OperatoreScalarFieldEnum]
@@ -224,14 +224,6 @@ export const UfficioScalarFieldEnum = {
 } as const
 
 export type UfficioScalarFieldEnum = (typeof UfficioScalarFieldEnum)[keyof typeof UfficioScalarFieldEnum]
-
-
-export const OperatoreServizioScalarFieldEnum = {
-  operatoreId: 'operatoreId',
-  servizioId: 'servizioId'
-} as const
-
-export type OperatoreServizioScalarFieldEnum = (typeof OperatoreServizioScalarFieldEnum)[keyof typeof OperatoreServizioScalarFieldEnum]
 
 
 export const ServizioRuoloUserScalarFieldEnum = {
@@ -352,8 +344,7 @@ export const FaseScalarFieldEnum = {
   nome: 'nome',
   ordine: 'ordine',
   servizioId: 'servizioId',
-  ufficioId: 'ufficioId',
-  ufficioVariabile: 'ufficioVariabile'
+  ufficioId: 'ufficioId'
 } as const
 
 export type FaseScalarFieldEnum = (typeof FaseScalarFieldEnum)[keyof typeof FaseScalarFieldEnum]

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { BackButton } from './back-button';
 import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
+import { ROLES } from '@/lib/auth/roles';
 import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
 import { WorkflowTimeline } from './workflow-timeline';
 import { ComunicazioniTimeline } from './comunicazioni-timeline';
@@ -94,6 +95,31 @@ export default async function IstanzaDetailPage({
 
   if (!istanza) {
     notFound();
+  }
+
+  const isAdmin = (user.ruoli ?? []).includes(ROLES.ADMIN);
+  let canOperateFase = isAdmin;
+
+  if (!isAdmin) {
+    const operatoreDb = await prisma.operatore.findUnique({
+      where: { id: operatoreId },
+      select: { ufficioId: true },
+    });
+    if (operatoreDb?.ufficioId) {
+      // Costruisci lista di tutti gli uffici che condividono questo servizio
+      const ufficiDelServizio: number[] = [];
+      if (istanza.servizio.ufficioId) ufficiDelServizio.push(istanza.servizio.ufficioId);
+      istanza.servizio.fasi.forEach(f => { if (f.ufficioId) ufficiDelServizio.push(f.ufficioId); });
+
+      // Se l'ufficio dell'operatore non è tra quelli del servizio → nessun accesso
+      if (!ufficiDelServizio.includes(operatoreDb.ufficioId)) {
+        notFound();
+      }
+
+      // Può operare solo se l'ufficio corrente corrisponde al suo
+      const ufficioCorrente = istanza.ufficioCorrenteId ?? istanza.faseCorrente?.ufficioId ?? null;
+      canOperateFase = ufficioCorrente === null || ufficioCorrente === operatoreDb.ufficioId;
+    }
   }
 
   const lastWorkflow = istanza.workflows[0];
@@ -213,12 +239,12 @@ export default async function IstanzaDetailPage({
           stepOrdine={currentStep?.ordine ?? 0}
           isLastStep={isLastStep}
           canRollbackFase={canRollbackFase}
+          canOperateFase={canOperateFase}
           faseCorrente={faseCorrente ? { nome: faseCorrente.nome, ordine: faseCorrente.ordine } : null}
           fasePrecedente={fasePrecedente ? {
             nome: fasePrecedente.nome,
             ufficio: fasePrecedente.ufficio ? { nome: fasePrecedente.ufficio.nome, email: fasePrecedente.ufficio.email ?? null } : null,
           } : null}
-
         />
       </div>
 
@@ -367,6 +393,8 @@ export default async function IstanzaDetailPage({
                   cognome: istanza.utente.cognome,
                   email: istanza.utente.email,
                 }}
+                canOperateFase={canOperateFase}
+                faseCorrenteOrdine={faseCorrente?.ordine ?? null}
               />
             </CardBody>
           </Card>

@@ -55,11 +55,11 @@ export function ComunicazioniTimeline({ comunicazioni }: ComunicazioniTimelinePr
               style={{ backgroundColor: attesaRisposta ? 'rgba(255,193,7,0.07)' : 'rgba(13,202,240,0.07)' }}
             >
               <div className="d-flex gap-1 flex-wrap mb-1">
-                <span className="badge bg-info text-dark">Comunicazione</span>
+                <span className="badge bg-info">Comunicazione</span>
                 {com.richiedeRisposta && (
                   com.risposta
                     ? <span className="badge bg-success">Risposta ricevuta</span>
-                    : <span className="badge bg-warning text-dark">In attesa di risposta</span>
+                    : <span className="badge bg-warning">In attesa di risposta</span>
                 )}
                 {allegatiRichiesti.length > 0 && (
                   <span className="badge bg-secondary">

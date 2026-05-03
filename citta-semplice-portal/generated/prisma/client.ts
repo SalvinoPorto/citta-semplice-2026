@@ -82,11 +82,6 @@ export type Servizio = Prisma.ServizioModel
  */
 export type Ufficio = Prisma.UfficioModel
 /**
- * Model OperatoreServizio
- * 
- */
-export type OperatoreServizio = Prisma.OperatoreServizioModel
-/**
  * Model ServizioRuoloUser
  * 
  */

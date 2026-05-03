@@ -77,10 +77,10 @@ export default async function LeMieIstanzePage() {
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th scope="col">Servizio</th>
-                      <th scope="col">Ultimo aggiornamento</th>
-                      <th scope="col">Step</th>
-                      <th scope="col"></th>
+                      <th style={{ width: '40%' }} scope="col">Servizio</th>
+                      <th style={{ width: '20%' }} scope="col">Ultimo aggiornamento</th>
+                      <th style={{ width: '10%' }} scope="col">Step</th>
+                      <th style={{ width: '30%' }} scope="col"></th>
                     </tr>
                   </thead>
                   <tbody>

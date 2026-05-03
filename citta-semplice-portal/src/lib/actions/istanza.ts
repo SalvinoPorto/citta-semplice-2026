@@ -5,7 +5,8 @@ import { auth } from '@/lib/auth/config';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { protocolla, generaProtocolloEmergenza } from '@/lib/services/protocollazione/UrbiProtocolloService';
+import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
+import { generaProtocolloEmergenza } from '@/lib/services/protocollazione/ProtocolloEmergenzaService';
 import { generaModuloBuffer, generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
@@ -308,7 +309,10 @@ export async function submitIstanza(formData: FormData) {
       steps: {
         where: { attivo: true },
         orderBy: { ordine: 'asc' },
-        include: { allegatiRichiestiList: { where: { interno: false } } },
+        include: {
+          allegatiRichiestiList: { where: { interno: false } },
+          fase: { select: { id: true, ufficioId: true } },
+        },
       },
     },
   });
@@ -405,6 +409,8 @@ export async function submitIstanza(formData: FormData) {
           dataInvio: new Date(),
           inBozza: false,
           activeStep: null,
+          faseCorrenteId: primoStep?.faseId ?? null,
+          ufficioCorrenteId: primoStep?.fase?.ufficioId ?? null,
           lastStepId: primoStep?.id ?? null,
           protoNumero: protoResult.numero,
           protoData: protoResult.data,
@@ -481,6 +487,8 @@ export async function submitIstanza(formData: FormData) {
         protoData: protoResult.data,
         utenteId: utente.id,
         servizioId,
+        faseCorrenteId: primoStep?.faseId ?? null,
+        ufficioCorrenteId: primoStep?.fase?.ufficioId ?? null,
         lastStepId: primoStep?.id ?? null,
         workflows: primoStep
           ? {

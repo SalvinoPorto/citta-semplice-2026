@@ -10,7 +10,8 @@
  *   URBI_REGISTRATORE, URBI_TIMEOUT_MS
  */
 
-import { prisma } from '@/lib/db/prisma';
+import { generaProtocolloEmergenza } from "./ProtocolloEmergenzaService";
+import { ProtocolloInput, ProtocolloResult } from "./Types";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -25,33 +26,7 @@ function getConfig() {
     classificazione: process.env.URBI_CLASSIFICAZIONE ?? '15',
     registratore: process.env.URBI_REGISTRATORE ?? '',
     timeoutMs: Number(process.env.URBI_TIMEOUT_MS ?? '30000'),
-    fallbackPrefix: process.env.PROTOCOL_FALLBACK_PREFIX ?? 'PE_',
   };
-}
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-export interface ProtocolloInput {
-  /** Può essere null quando il protocollo viene ottenuto prima della creazione dell'istanza */
-  istanzaId: number | null;
-  servizioTitolo: string;
-  tipoProtocollo: string;       // 'E' = Entrata, 'U' = Uscita
-  unitaOrganizzativa: string;
-  utente: {
-    codiceFiscale: string;
-    nome: string;
-    cognome: string;
-  };
-  files: File[];
-}
-
-export interface ProtocolloResult {
-  numero: string;
-  data: Date;
-  fallback: boolean;
-  /** ID del record ProtocolloEmergenza creato, presente solo quando fallback=true */
-  emergenzaId?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,44 +88,7 @@ function parseDataUrbi(dateStr: string): Date | null {
   return isNaN(iso.getTime()) ? null : iso;
 }
 
-// ---------------------------------------------------------------------------
-// Numerazione di emergenza (transazionale, senza buchi nell'anno)
-// ---------------------------------------------------------------------------
 
-/**
- * Genera un numero di protocollo di emergenza univoco nell'anno, usando un
- * contatore atomico PostgreSQL (INSERT ... ON CONFLICT ... DO UPDATE RETURNING).
- * Registra ogni emissione nella tabella protocollo_emergenza.
- */
-export async function generaProtocolloEmergenza(
-  istanzaId: number | null,
-  tipo: 'INGRESSO' | 'USCITA',
-  prefix?: string,
-): Promise<ProtocolloResult> {
-  const config = getConfig();
-  const pfx = prefix ?? config.fallbackPrefix;
-  const anno = new Date().getFullYear();
-
-  // Incremento atomico del contatore annuale
-  const rows = await prisma.$queryRaw<Array<{ progressivo: bigint }>>`
-    INSERT INTO protocollo_emergenza_counters (anno, progressivo)
-    VALUES (${anno}, 1)
-    ON CONFLICT (anno) DO UPDATE
-      SET progressivo = protocollo_emergenza_counters.progressivo + 1
-    RETURNING progressivo
-  `;
-
-  const progressivo = Number(rows[0].progressivo);
-  const numero = `${pfx}${anno}_${String(progressivo).padStart(4, '0')}`;
-
-  // Registra nella tabella di log
-  const record = await prisma.protocolloEmergenza.create({
-    data: { anno, progressivo, tipo, istanzaId },
-  });
-
-  console.warn(`[Protocollo] Emergenza ${tipo} istanza ${istanzaId ?? '(non ancora creata)'}: ${numero}`);
-  return { numero, data: new Date(), fallback: true, emergenzaId: record.id };
-}
 
 // ---------------------------------------------------------------------------
 // Corrispondente: lookup o creazione
@@ -216,7 +154,7 @@ export async function protocolla(input: ProtocolloInput): Promise<ProtocolloResu
 
   if (!config.baseUrl || !config.username || !config.password) {
     console.warn('[Protocollo] Configurazione mancante, uso numerazione interna');
-    return fallback(config, input.istanzaId);
+    return fallback(input.istanzaId);
   }
 
   const auth = buildAuthHeader(config.username, config.password);
@@ -268,14 +206,14 @@ export async function protocolla(input: ProtocolloInput): Promise<ProtocolloResu
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[Protocollo] Errore chiamata insProtocollo: ${msg}`);
-    return fallback(config, input.istanzaId);
+    return fallback(input.istanzaId);
   }
 
   const bodyText = await res.text();
 
   if (!res.ok) {
     console.error(`[Protocollo] HTTP ${res.status} - ${bodyText.slice(0, 200)}`);
-    return fallback(config, input.istanzaId);
+    return fallback(input.istanzaId);
   }
 
   // 4. Estrai numero e data dalla risposta XML
@@ -286,7 +224,7 @@ export async function protocolla(input: ProtocolloInput): Promise<ProtocolloResu
 
   if (!numero) {
     console.error(`[Protocollo] Numero non trovato nella risposta: ${bodyText.slice(0, 300)}`);
-    return fallback(config, input.istanzaId);
+    return fallback(input.istanzaId);
   }
 
   const data = dataStr ? parseDataUrbi(dataStr) ?? new Date() : new Date();
@@ -295,6 +233,6 @@ export async function protocolla(input: ProtocolloInput): Promise<ProtocolloResu
   return { numero, data, fallback: false };
 }
 
-async function fallback(config: ReturnType<typeof getConfig>, istanzaId: number | null): Promise<ProtocolloResult> {
-  return generaProtocolloEmergenza(istanzaId, 'INGRESSO', config.fallbackPrefix);
+async function fallback(istanzaId: number | null): Promise<ProtocolloResult> {
+  return generaProtocolloEmergenza(istanzaId, 'INGRESSO');
 }

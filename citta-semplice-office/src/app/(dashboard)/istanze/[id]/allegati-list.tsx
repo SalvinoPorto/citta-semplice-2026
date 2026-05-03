@@ -99,14 +99,14 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
               <td>
                 <Badge
                   variant={allegato.invUtente ? 'info' : 'warning'}
-                  className="me-1"
+                  className="me-1 w-100"
                 >
                   {allegato.invUtente ? 'Utente' : 'Operatore'}
                 </Badge>
                 {allegato.visto ? (
-                  <Badge variant="success">Visto</Badge>
+                  <Badge variant="success" className='w-100'>Visto</Badge>
                 ) : (
-                  <Badge variant="secondary">Non visto</Badge>
+                  <Badge variant="secondary" className='w-100'>Non visto</Badge>
                 )}
               </td>
               <td>
@@ -128,7 +128,7 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
                     download={allegato.nomeFile}
                     title="Scarica"
                   >
-                    ↓ Scarica
+                    ↓&nbsp;Scarica
                   </a>
                 </div>
               </td>

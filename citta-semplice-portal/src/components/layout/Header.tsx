@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import NavBar from "./nav-bar";
+import { auth } from '@/lib/auth/config';
 
-export function Header() {
+export async function Header() {
+  const session = await auth();
+
   return (
     <header className="it-header-wrapper">
       {/* Slim header */}
@@ -13,16 +16,18 @@ export function Header() {
                 <a className="d-none d-lg-block navbar-brand" href="https://www.regione.sicilia.it" target="_blank" rel="noopener noreferrer">
                   Regione Sicilia
                 </a>
-                <div className="it-header-slim-right-zone">
-                  <Link href="/login" className="btn-full btn-icon btn btn-primary" type="button">
-                    <span className="rounded-icon">
-                      <svg className="icon icon-primary" aria-hidden="true">
-                        <use href="/bootstrap-italia/dist/svg/sprites.svg#it-user"></use>
-                      </svg>
-                    </span>
-                    <span className="d-none d-lg-block">Accedi all'area personale</span>
-                  </Link>
-                </div>
+                {!session?.user && (
+                  <div className="it-header-slim-right-zone">
+                    <Link href="/login" className="btn-full btn-icon btn btn-primary" type="button">
+                      <span className="rounded-icon">
+                        <svg className="icon icon-primary" aria-hidden="true">
+                          <use href="/bootstrap-italia/dist/svg/sprites.svg#it-user"></use>
+                        </svg>
+                      </span>
+                      <span className="d-none d-lg-block">Accedi all'area personale</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
