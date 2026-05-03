@@ -47,7 +47,6 @@ async function getIstanza(id: number) {
           step: {
             include: { pagamentoConfig: true },
           },
-          notifica: true,
           operatore: {
             select: { id: true, nome: true, cognome: true },
           },

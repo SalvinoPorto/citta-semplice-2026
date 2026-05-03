@@ -61,7 +61,6 @@ export const ModelName = {
   Ufficio: 'Ufficio',
   ServizioRuoloUser: 'ServizioRuoloUser',
   Step: 'Step',
-  Notifica: 'Notifica',
   AllegatoRichiesto: 'AllegatoRichiesto',
   Utente: 'Utente',
   Istanza: 'Istanza',
@@ -257,23 +256,13 @@ export const StepScalarFieldEnum = {
 export type StepScalarFieldEnum = (typeof StepScalarFieldEnum)[keyof typeof StepScalarFieldEnum]
 
 
-export const NotificaScalarFieldEnum = {
-  id: 'id',
-  descrizione: 'descrizione',
-  allegati: 'allegati'
-} as const
-
-export type NotificaScalarFieldEnum = (typeof NotificaScalarFieldEnum)[keyof typeof NotificaScalarFieldEnum]
-
-
 export const AllegatoRichiestoScalarFieldEnum = {
   id: 'id',
   nomeAllegatoRichiesto: 'nomeAllegatoRichiesto',
   obbligatorio: 'obbligatorio',
   interno: 'interno',
   soggetto: 'soggetto',
-  stepId: 'stepId',
-  notificaId: 'notificaId'
+  stepId: 'stepId'
 } as const
 
 export type AllegatoRichiestoScalarFieldEnum = (typeof AllegatoRichiestoScalarFieldEnum)[keyof typeof AllegatoRichiestoScalarFieldEnum]
@@ -331,7 +320,6 @@ export const WorkflowScalarFieldEnum = {
   dataVariazione: 'dataVariazione',
   istanzaId: 'istanzaId',
   stepId: 'stepId',
-  notificaId: 'notificaId',
   stato: 'stato',
   operatoreId: 'operatoreId'
 } as const

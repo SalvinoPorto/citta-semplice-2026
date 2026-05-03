@@ -69,7 +69,6 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
         include: {
           step: true,
           allegati: true,
-          notifica: true,
           pagamentoAtteso: true,
         },
         orderBy: { dataVariazione: 'asc' },
@@ -326,14 +325,6 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                                   </h3>
                                   {wf.note && (
                                     <p className="mb-2 text-muted small">{wf.note}</p>
-                                  )}
-                                  {wf.notifica && (
-                                    <div className="alert alert-info py-2 mb-2 small">
-                                      <svg className="icon icon-sm me-1" aria-hidden="true">
-                                        <use href="/bootstrap-italia/dist/svg/sprites.svg#it-mail" />
-                                      </svg>
-                                      {wf.notifica.descrizione}
-                                    </div>
                                   )}
                                   {/* Allegati dell'ufficio in questo step */}
                                   {wf.allegati.filter((a) => !a.invUtente).length > 0 && (

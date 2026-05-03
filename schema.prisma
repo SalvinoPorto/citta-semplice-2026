@@ -246,9 +246,6 @@ model Workflow {
   stepId          Int?      @map("step_id")
   step            Step?     @relation(fields: [stepId], references: [id])
 
-  notificaId      Int?      @map("notifica_id")
-  notifica        Notifica? @relation(fields: [notificaId], references: [id])
-
   statusId        Int       @map("status_id")
   status          Status    @relation(fields: [statusId], references: [id])
 
@@ -296,9 +293,6 @@ model AllegatoRichiesto {
   stepId              Int?      @map("step_id")
   step                Step?     @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
-  notificaId          Int?      @map("notifica_id")
-  notifica            Notifica? @relation(fields: [notificaId], references: [id], onDelete: Cascade)
-
   @@map("allegati_richiesti")
 }
 
@@ -328,17 +322,6 @@ model Ente {
   createdAt       DateTime  @default(now()) @map("created_at")
 
   @@map("enti")
-}
-
-model Notifica {
-  id          Int       @id @default(autoincrement())
-  descrizione String
-  allegati    Boolean   @default(false)
-
-  workflows           Workflow[]
-  allegatiRichiesti   AllegatoRichiesto[]
-
-  @@map("notifiche")
 }
 
 model OperatoreServizio {

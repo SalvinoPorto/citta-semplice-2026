@@ -29,13 +29,11 @@ export type AggregateAllegatoRichiesto = {
 export type AllegatoRichiestoAvgAggregateOutputType = {
   id: number | null
   stepId: number | null
-  notificaId: number | null
 }
 
 export type AllegatoRichiestoSumAggregateOutputType = {
   id: number | null
   stepId: number | null
-  notificaId: number | null
 }
 
 export type AllegatoRichiestoMinAggregateOutputType = {
@@ -45,7 +43,6 @@ export type AllegatoRichiestoMinAggregateOutputType = {
   interno: boolean | null
   soggetto: string | null
   stepId: number | null
-  notificaId: number | null
 }
 
 export type AllegatoRichiestoMaxAggregateOutputType = {
@@ -55,7 +52,6 @@ export type AllegatoRichiestoMaxAggregateOutputType = {
   interno: boolean | null
   soggetto: string | null
   stepId: number | null
-  notificaId: number | null
 }
 
 export type AllegatoRichiestoCountAggregateOutputType = {
@@ -65,7 +61,6 @@ export type AllegatoRichiestoCountAggregateOutputType = {
   interno: number
   soggetto: number
   stepId: number
-  notificaId: number
   _all: number
 }
 
@@ -73,13 +68,11 @@ export type AllegatoRichiestoCountAggregateOutputType = {
 export type AllegatoRichiestoAvgAggregateInputType = {
   id?: true
   stepId?: true
-  notificaId?: true
 }
 
 export type AllegatoRichiestoSumAggregateInputType = {
   id?: true
   stepId?: true
-  notificaId?: true
 }
 
 export type AllegatoRichiestoMinAggregateInputType = {
@@ -89,7 +82,6 @@ export type AllegatoRichiestoMinAggregateInputType = {
   interno?: true
   soggetto?: true
   stepId?: true
-  notificaId?: true
 }
 
 export type AllegatoRichiestoMaxAggregateInputType = {
@@ -99,7 +91,6 @@ export type AllegatoRichiestoMaxAggregateInputType = {
   interno?: true
   soggetto?: true
   stepId?: true
-  notificaId?: true
 }
 
 export type AllegatoRichiestoCountAggregateInputType = {
@@ -109,7 +100,6 @@ export type AllegatoRichiestoCountAggregateInputType = {
   interno?: true
   soggetto?: true
   stepId?: true
-  notificaId?: true
   _all?: true
 }
 
@@ -206,7 +196,6 @@ export type AllegatoRichiestoGroupByOutputType = {
   interno: boolean
   soggetto: string | null
   stepId: number | null
-  notificaId: number | null
   _count: AllegatoRichiestoCountAggregateOutputType | null
   _avg: AllegatoRichiestoAvgAggregateOutputType | null
   _sum: AllegatoRichiestoSumAggregateOutputType | null
@@ -239,9 +228,7 @@ export type AllegatoRichiestoWhereInput = {
   interno?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
   soggetto?: Prisma.StringNullableFilter<"AllegatoRichiesto"> | string | null
   stepId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
-  notificaId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
   step?: Prisma.XOR<Prisma.StepNullableScalarRelationFilter, Prisma.StepWhereInput> | null
-  notifica?: Prisma.XOR<Prisma.NotificaNullableScalarRelationFilter, Prisma.NotificaWhereInput> | null
 }
 
 export type AllegatoRichiestoOrderByWithRelationInput = {
@@ -251,9 +238,7 @@ export type AllegatoRichiestoOrderByWithRelationInput = {
   interno?: Prisma.SortOrder
   soggetto?: Prisma.SortOrderInput | Prisma.SortOrder
   stepId?: Prisma.SortOrderInput | Prisma.SortOrder
-  notificaId?: Prisma.SortOrderInput | Prisma.SortOrder
   step?: Prisma.StepOrderByWithRelationInput
-  notifica?: Prisma.NotificaOrderByWithRelationInput
 }
 
 export type AllegatoRichiestoWhereUniqueInput = Prisma.AtLeast<{
@@ -266,9 +251,7 @@ export type AllegatoRichiestoWhereUniqueInput = Prisma.AtLeast<{
   interno?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
   soggetto?: Prisma.StringNullableFilter<"AllegatoRichiesto"> | string | null
   stepId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
-  notificaId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
   step?: Prisma.XOR<Prisma.StepNullableScalarRelationFilter, Prisma.StepWhereInput> | null
-  notifica?: Prisma.XOR<Prisma.NotificaNullableScalarRelationFilter, Prisma.NotificaWhereInput> | null
 }, "id">
 
 export type AllegatoRichiestoOrderByWithAggregationInput = {
@@ -278,7 +261,6 @@ export type AllegatoRichiestoOrderByWithAggregationInput = {
   interno?: Prisma.SortOrder
   soggetto?: Prisma.SortOrderInput | Prisma.SortOrder
   stepId?: Prisma.SortOrderInput | Prisma.SortOrder
-  notificaId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AllegatoRichiestoCountOrderByAggregateInput
   _avg?: Prisma.AllegatoRichiestoAvgOrderByAggregateInput
   _max?: Prisma.AllegatoRichiestoMaxOrderByAggregateInput
@@ -296,7 +278,6 @@ export type AllegatoRichiestoScalarWhereWithAggregatesInput = {
   interno?: Prisma.BoolWithAggregatesFilter<"AllegatoRichiesto"> | boolean
   soggetto?: Prisma.StringNullableWithAggregatesFilter<"AllegatoRichiesto"> | string | null
   stepId?: Prisma.IntNullableWithAggregatesFilter<"AllegatoRichiesto"> | number | null
-  notificaId?: Prisma.IntNullableWithAggregatesFilter<"AllegatoRichiesto"> | number | null
 }
 
 export type AllegatoRichiestoCreateInput = {
@@ -305,7 +286,6 @@ export type AllegatoRichiestoCreateInput = {
   interno?: boolean
   soggetto?: string | null
   step?: Prisma.StepCreateNestedOneWithoutAllegatiRichiestiListInput
-  notifica?: Prisma.NotificaCreateNestedOneWithoutAllegatiRichiestiInput
 }
 
 export type AllegatoRichiestoUncheckedCreateInput = {
@@ -315,7 +295,6 @@ export type AllegatoRichiestoUncheckedCreateInput = {
   interno?: boolean
   soggetto?: string | null
   stepId?: number | null
-  notificaId?: number | null
 }
 
 export type AllegatoRichiestoUpdateInput = {
@@ -324,7 +303,6 @@ export type AllegatoRichiestoUpdateInput = {
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
   soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.StepUpdateOneWithoutAllegatiRichiestiListNestedInput
-  notifica?: Prisma.NotificaUpdateOneWithoutAllegatiRichiestiNestedInput
 }
 
 export type AllegatoRichiestoUncheckedUpdateInput = {
@@ -334,7 +312,6 @@ export type AllegatoRichiestoUncheckedUpdateInput = {
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
   soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AllegatoRichiestoCreateManyInput = {
@@ -344,7 +321,6 @@ export type AllegatoRichiestoCreateManyInput = {
   interno?: boolean
   soggetto?: string | null
   stepId?: number | null
-  notificaId?: number | null
 }
 
 export type AllegatoRichiestoUpdateManyMutationInput = {
@@ -361,7 +337,6 @@ export type AllegatoRichiestoUncheckedUpdateManyInput = {
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
   soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AllegatoRichiestoListRelationFilter = {
@@ -381,13 +356,11 @@ export type AllegatoRichiestoCountOrderByAggregateInput = {
   interno?: Prisma.SortOrder
   soggetto?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
 }
 
 export type AllegatoRichiestoAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
 }
 
 export type AllegatoRichiestoMaxOrderByAggregateInput = {
@@ -397,7 +370,6 @@ export type AllegatoRichiestoMaxOrderByAggregateInput = {
   interno?: Prisma.SortOrder
   soggetto?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
 }
 
 export type AllegatoRichiestoMinOrderByAggregateInput = {
@@ -407,13 +379,11 @@ export type AllegatoRichiestoMinOrderByAggregateInput = {
   interno?: Prisma.SortOrder
   soggetto?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
 }
 
 export type AllegatoRichiestoSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   stepId?: Prisma.SortOrder
-  notificaId?: Prisma.SortOrder
 }
 
 export type AllegatoRichiestoCreateNestedManyWithoutStepInput = {
@@ -458,54 +428,11 @@ export type AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput = {
   deleteMany?: Prisma.AllegatoRichiestoScalarWhereInput | Prisma.AllegatoRichiestoScalarWhereInput[]
 }
 
-export type AllegatoRichiestoCreateNestedManyWithoutNotificaInput = {
-  create?: Prisma.XOR<Prisma.AllegatoRichiestoCreateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput> | Prisma.AllegatoRichiestoCreateWithoutNotificaInput[] | Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput | Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput[]
-  createMany?: Prisma.AllegatoRichiestoCreateManyNotificaInputEnvelope
-  connect?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-}
-
-export type AllegatoRichiestoUncheckedCreateNestedManyWithoutNotificaInput = {
-  create?: Prisma.XOR<Prisma.AllegatoRichiestoCreateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput> | Prisma.AllegatoRichiestoCreateWithoutNotificaInput[] | Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput | Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput[]
-  createMany?: Prisma.AllegatoRichiestoCreateManyNotificaInputEnvelope
-  connect?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-}
-
-export type AllegatoRichiestoUpdateManyWithoutNotificaNestedInput = {
-  create?: Prisma.XOR<Prisma.AllegatoRichiestoCreateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput> | Prisma.AllegatoRichiestoCreateWithoutNotificaInput[] | Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput | Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput[]
-  upsert?: Prisma.AllegatoRichiestoUpsertWithWhereUniqueWithoutNotificaInput | Prisma.AllegatoRichiestoUpsertWithWhereUniqueWithoutNotificaInput[]
-  createMany?: Prisma.AllegatoRichiestoCreateManyNotificaInputEnvelope
-  set?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  disconnect?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  delete?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  connect?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  update?: Prisma.AllegatoRichiestoUpdateWithWhereUniqueWithoutNotificaInput | Prisma.AllegatoRichiestoUpdateWithWhereUniqueWithoutNotificaInput[]
-  updateMany?: Prisma.AllegatoRichiestoUpdateManyWithWhereWithoutNotificaInput | Prisma.AllegatoRichiestoUpdateManyWithWhereWithoutNotificaInput[]
-  deleteMany?: Prisma.AllegatoRichiestoScalarWhereInput | Prisma.AllegatoRichiestoScalarWhereInput[]
-}
-
-export type AllegatoRichiestoUncheckedUpdateManyWithoutNotificaNestedInput = {
-  create?: Prisma.XOR<Prisma.AllegatoRichiestoCreateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput> | Prisma.AllegatoRichiestoCreateWithoutNotificaInput[] | Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput[]
-  connectOrCreate?: Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput | Prisma.AllegatoRichiestoCreateOrConnectWithoutNotificaInput[]
-  upsert?: Prisma.AllegatoRichiestoUpsertWithWhereUniqueWithoutNotificaInput | Prisma.AllegatoRichiestoUpsertWithWhereUniqueWithoutNotificaInput[]
-  createMany?: Prisma.AllegatoRichiestoCreateManyNotificaInputEnvelope
-  set?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  disconnect?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  delete?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  connect?: Prisma.AllegatoRichiestoWhereUniqueInput | Prisma.AllegatoRichiestoWhereUniqueInput[]
-  update?: Prisma.AllegatoRichiestoUpdateWithWhereUniqueWithoutNotificaInput | Prisma.AllegatoRichiestoUpdateWithWhereUniqueWithoutNotificaInput[]
-  updateMany?: Prisma.AllegatoRichiestoUpdateManyWithWhereWithoutNotificaInput | Prisma.AllegatoRichiestoUpdateManyWithWhereWithoutNotificaInput[]
-  deleteMany?: Prisma.AllegatoRichiestoScalarWhereInput | Prisma.AllegatoRichiestoScalarWhereInput[]
-}
-
 export type AllegatoRichiestoCreateWithoutStepInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
   soggetto?: string | null
-  notifica?: Prisma.NotificaCreateNestedOneWithoutAllegatiRichiestiInput
 }
 
 export type AllegatoRichiestoUncheckedCreateWithoutStepInput = {
@@ -514,7 +441,6 @@ export type AllegatoRichiestoUncheckedCreateWithoutStepInput = {
   obbligatorio?: boolean
   interno?: boolean
   soggetto?: string | null
-  notificaId?: number | null
 }
 
 export type AllegatoRichiestoCreateOrConnectWithoutStepInput = {
@@ -553,50 +479,6 @@ export type AllegatoRichiestoScalarWhereInput = {
   interno?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
   soggetto?: Prisma.StringNullableFilter<"AllegatoRichiesto"> | string | null
   stepId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
-  notificaId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
-}
-
-export type AllegatoRichiestoCreateWithoutNotificaInput = {
-  nomeAllegatoRichiesto: string
-  obbligatorio?: boolean
-  interno?: boolean
-  soggetto?: string | null
-  step?: Prisma.StepCreateNestedOneWithoutAllegatiRichiestiListInput
-}
-
-export type AllegatoRichiestoUncheckedCreateWithoutNotificaInput = {
-  id?: number
-  nomeAllegatoRichiesto: string
-  obbligatorio?: boolean
-  interno?: boolean
-  soggetto?: string | null
-  stepId?: number | null
-}
-
-export type AllegatoRichiestoCreateOrConnectWithoutNotificaInput = {
-  where: Prisma.AllegatoRichiestoWhereUniqueInput
-  create: Prisma.XOR<Prisma.AllegatoRichiestoCreateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput>
-}
-
-export type AllegatoRichiestoCreateManyNotificaInputEnvelope = {
-  data: Prisma.AllegatoRichiestoCreateManyNotificaInput | Prisma.AllegatoRichiestoCreateManyNotificaInput[]
-  skipDuplicates?: boolean
-}
-
-export type AllegatoRichiestoUpsertWithWhereUniqueWithoutNotificaInput = {
-  where: Prisma.AllegatoRichiestoWhereUniqueInput
-  update: Prisma.XOR<Prisma.AllegatoRichiestoUpdateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedUpdateWithoutNotificaInput>
-  create: Prisma.XOR<Prisma.AllegatoRichiestoCreateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedCreateWithoutNotificaInput>
-}
-
-export type AllegatoRichiestoUpdateWithWhereUniqueWithoutNotificaInput = {
-  where: Prisma.AllegatoRichiestoWhereUniqueInput
-  data: Prisma.XOR<Prisma.AllegatoRichiestoUpdateWithoutNotificaInput, Prisma.AllegatoRichiestoUncheckedUpdateWithoutNotificaInput>
-}
-
-export type AllegatoRichiestoUpdateManyWithWhereWithoutNotificaInput = {
-  where: Prisma.AllegatoRichiestoScalarWhereInput
-  data: Prisma.XOR<Prisma.AllegatoRichiestoUpdateManyMutationInput, Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutNotificaInput>
 }
 
 export type AllegatoRichiestoCreateManyStepInput = {
@@ -605,7 +487,6 @@ export type AllegatoRichiestoCreateManyStepInput = {
   obbligatorio?: boolean
   interno?: boolean
   soggetto?: string | null
-  notificaId?: number | null
 }
 
 export type AllegatoRichiestoUpdateWithoutStepInput = {
@@ -613,7 +494,6 @@ export type AllegatoRichiestoUpdateWithoutStepInput = {
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
   soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notifica?: Prisma.NotificaUpdateOneWithoutAllegatiRichiestiNestedInput
 }
 
 export type AllegatoRichiestoUncheckedUpdateWithoutStepInput = {
@@ -622,7 +502,6 @@ export type AllegatoRichiestoUncheckedUpdateWithoutStepInput = {
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
   soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AllegatoRichiestoUncheckedUpdateManyWithoutStepInput = {
@@ -631,42 +510,6 @@ export type AllegatoRichiestoUncheckedUpdateManyWithoutStepInput = {
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
   soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notificaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-}
-
-export type AllegatoRichiestoCreateManyNotificaInput = {
-  id?: number
-  nomeAllegatoRichiesto: string
-  obbligatorio?: boolean
-  interno?: boolean
-  soggetto?: string | null
-  stepId?: number | null
-}
-
-export type AllegatoRichiestoUpdateWithoutNotificaInput = {
-  nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
-  obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  step?: Prisma.StepUpdateOneWithoutAllegatiRichiestiListNestedInput
-}
-
-export type AllegatoRichiestoUncheckedUpdateWithoutNotificaInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
-  obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  stepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-}
-
-export type AllegatoRichiestoUncheckedUpdateManyWithoutNotificaInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
-  obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  stepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -678,9 +521,7 @@ export type AllegatoRichiestoSelect<ExtArgs extends runtime.Types.Extensions.Int
   interno?: boolean
   soggetto?: boolean
   stepId?: boolean
-  notificaId?: boolean
   step?: boolean | Prisma.AllegatoRichiesto$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>
 }, ExtArgs["result"]["allegatoRichiesto"]>
 
 export type AllegatoRichiestoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -690,9 +531,7 @@ export type AllegatoRichiestoSelectCreateManyAndReturn<ExtArgs extends runtime.T
   interno?: boolean
   soggetto?: boolean
   stepId?: boolean
-  notificaId?: boolean
   step?: boolean | Prisma.AllegatoRichiesto$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>
 }, ExtArgs["result"]["allegatoRichiesto"]>
 
 export type AllegatoRichiestoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -702,9 +541,7 @@ export type AllegatoRichiestoSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   interno?: boolean
   soggetto?: boolean
   stepId?: boolean
-  notificaId?: boolean
   step?: boolean | Prisma.AllegatoRichiesto$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>
 }, ExtArgs["result"]["allegatoRichiesto"]>
 
 export type AllegatoRichiestoSelectScalar = {
@@ -714,28 +551,23 @@ export type AllegatoRichiestoSelectScalar = {
   interno?: boolean
   soggetto?: boolean
   stepId?: boolean
-  notificaId?: boolean
 }
 
-export type AllegatoRichiestoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nomeAllegatoRichiesto" | "obbligatorio" | "interno" | "soggetto" | "stepId" | "notificaId", ExtArgs["result"]["allegatoRichiesto"]>
+export type AllegatoRichiestoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nomeAllegatoRichiesto" | "obbligatorio" | "interno" | "soggetto" | "stepId", ExtArgs["result"]["allegatoRichiesto"]>
 export type AllegatoRichiestoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   step?: boolean | Prisma.AllegatoRichiesto$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>
 }
 export type AllegatoRichiestoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   step?: boolean | Prisma.AllegatoRichiesto$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>
 }
 export type AllegatoRichiestoIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   step?: boolean | Prisma.AllegatoRichiesto$stepArgs<ExtArgs>
-  notifica?: boolean | Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>
 }
 
 export type $AllegatoRichiestoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AllegatoRichiesto"
   objects: {
     step: Prisma.$StepPayload<ExtArgs> | null
-    notifica: Prisma.$NotificaPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -744,7 +576,6 @@ export type $AllegatoRichiestoPayload<ExtArgs extends runtime.Types.Extensions.I
     interno: boolean
     soggetto: string | null
     stepId: number | null
-    notificaId: number | null
   }, ExtArgs["result"]["allegatoRichiesto"]>
   composites: {}
 }
@@ -1140,7 +971,6 @@ readonly fields: AllegatoRichiestoFieldRefs;
 export interface Prisma__AllegatoRichiestoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   step<T extends Prisma.AllegatoRichiesto$stepArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AllegatoRichiesto$stepArgs<ExtArgs>>): Prisma.Prisma__StepClient<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  notifica<T extends Prisma.AllegatoRichiesto$notificaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AllegatoRichiesto$notificaArgs<ExtArgs>>): Prisma.Prisma__NotificaClient<runtime.Types.Result.GetResult<Prisma.$NotificaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1176,7 +1006,6 @@ export interface AllegatoRichiestoFieldRefs {
   readonly interno: Prisma.FieldRef<"AllegatoRichiesto", 'Boolean'>
   readonly soggetto: Prisma.FieldRef<"AllegatoRichiesto", 'String'>
   readonly stepId: Prisma.FieldRef<"AllegatoRichiesto", 'Int'>
-  readonly notificaId: Prisma.FieldRef<"AllegatoRichiesto", 'Int'>
 }
     
 
@@ -1594,25 +1423,6 @@ export type AllegatoRichiesto$stepArgs<ExtArgs extends runtime.Types.Extensions.
    */
   include?: Prisma.StepInclude<ExtArgs> | null
   where?: Prisma.StepWhereInput
-}
-
-/**
- * AllegatoRichiesto.notifica
- */
-export type AllegatoRichiesto$notificaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Notifica
-   */
-  select?: Prisma.NotificaSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Notifica
-   */
-  omit?: Prisma.NotificaOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.NotificaInclude<ExtArgs> | null
-  where?: Prisma.NotificaWhereInput
 }
 
 /**
