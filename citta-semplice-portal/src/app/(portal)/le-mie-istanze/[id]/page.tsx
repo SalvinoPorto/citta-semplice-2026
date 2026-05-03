@@ -10,6 +10,7 @@ import { RispostaComunicazioneForm } from '@/components/istanza/RispostaComunica
 import { PagaOnlineButton } from './PagaOnlineButton';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { getCampoValue } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -118,7 +119,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
           items={[
             { label: 'Home', href: '/' },
             { label: 'Le mie istanze', href: '/le-mie-istanze' },
-            { label: `Istanza #${istanza.id}`, active: true },
+            { label: 'Istanza', active: true },
           ]}
         />
       </div>
@@ -131,12 +132,12 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
             <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
               <div>
                 <h1 className="title mb-1">{istanza.servizio.titolo}</h1>
-                <p className="text-muted mb-0">
+                {/* <p className="text-muted mb-0">
                   Istanza #{istanza.id}
                   {istanza.dataInvio && (
                     <> &mdash; Inviata il {format(istanza.dataInvio, 'dd MMMM yyyy', { locale: it })}</>
                   )}
-                </p>
+                </p> */}
               </div>
               <span className={`badge fs-6 ${stato.cls}`}>{stato.label}</span>
             </div>
@@ -235,7 +236,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                       {dati.map((campo) => (
                         <tr key={campo.name}>
                           <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
-                          <td>{campo.value || '-'}</td>
+                          <td>{getCampoValue(campo.value)}</td>
                         </tr>
                       ))}
                     </tbody>

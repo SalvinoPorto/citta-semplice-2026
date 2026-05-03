@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { getCampoValue } from '@/lib/utils';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
 
@@ -132,7 +133,7 @@ function buildModuloHtml(
       const selezionati = campo.values.filter((v) => v.selected).map((v) => v.label);
       valore = selezionati.join(', ') || '—';
     } else {
-      valore = campo.value || '—';
+      valore = getCampoValue(campo.value);
     }
 
     return `

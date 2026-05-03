@@ -116,10 +116,16 @@ export async function POST(request: NextRequest) {
   }
 
   if (formFilters.protocollo) {
-    whereClause.OR = [
+    const protoConditions = [
       { protoNumero: { contains: formFilters.protocollo, mode: 'insensitive' } },
       { protoFinaleNumero: { contains: formFilters.protocollo, mode: 'insensitive' } },
     ];
+    if (whereClause.OR) {
+      whereClause.AND = [{ OR: whereClause.OR }, { OR: protoConditions }];
+      delete whereClause.OR;
+    } else {
+      whereClause.OR = protoConditions;
+    }
   }
 
   if (formFilters.anno) {

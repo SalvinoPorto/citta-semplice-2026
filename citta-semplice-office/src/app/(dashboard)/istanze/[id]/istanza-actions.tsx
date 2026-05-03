@@ -75,6 +75,7 @@ interface IstanzaActionsProps {
   stepOrdine: number;
   isLastStep: boolean;
   canRollbackFase?: boolean;
+  canOperateFase?: boolean;
   faseCorrente?: FaseCorrente | null;
   fasePrecedente?: FasePrecedente | null;
   attributoType?: {
@@ -92,6 +93,7 @@ export function IstanzaActions({
   stepOrdine,
   isLastStep,
   canRollbackFase = false,
+  canOperateFase = true,
   fasePrecedente = null,
   attributoType,
 }: IstanzaActionsProps) {
@@ -417,8 +419,14 @@ export function IstanzaActions({
 
   return (
     <>
+      {!canOperateFase && (
+        <div className="alert alert-info mb-3">
+          <strong>Visibilità in sola lettura:</strong> puoi visualizzare questa istanza perché il tuo ufficio condivide il servizio,
+          ma le operazioni sono riservate all'ufficio assegnato alla fase corrente.
+        </div>
+      )}
       <div className="action-buttons d-flex flex-wrap gap-2">
-        {assignedTo === ASSIGNEDTO.NOONE ? (
+        {canOperateFase && assignedTo === ASSIGNEDTO.NOONE ? (
           <Button
             variant="primary"
             onClick={handleTakeCharge}
@@ -426,7 +434,7 @@ export function IstanzaActions({
           >
             Prendi in Carico
           </Button>
-        ) : (
+        ) : canOperateFase ? (
           <>
             {!isLastStep && (
               <Button
@@ -489,6 +497,8 @@ export function IstanzaActions({
               </Button>
             )}
           </>
+        ) : (
+          <span className="text-muted">Nessuna azione disponibile</span>
         )}
       </div>
 

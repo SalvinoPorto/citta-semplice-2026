@@ -121,7 +121,7 @@ export function IstanzeTable({ utenteId }: Props) {
                       {istanza.faseAttuale ?? <span className="text-muted">—</span>}
                     </td>
                     <td>
-                      <span className={`badge ${stato.cls}`}>{stato.label}</span>
+                      <span className={`badge ${stato.cls} w-100`}>{stato.label}</span>
                     </td>
                   </tr>
                 );

@@ -118,7 +118,7 @@ export function ServiziTable({ areaId, aree }: Props) {
           </label>
         </div>
         {!soloAttivi && (
-          <span className="badge bg-warning text-dark">Visualizzazione: tutti i servizi</span>
+          <span className="badge bg-warning">Visualizzazione: tutti i servizi</span>
         )}
       </div>
 

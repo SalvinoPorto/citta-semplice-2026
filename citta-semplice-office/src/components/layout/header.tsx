@@ -89,7 +89,7 @@ export function Header({ user }: HeaderProps) {
                                 </li>
                                 <li>
                                   <button
-                                    className="dropdown-item list-item text-danger"
+                                    className="dropdown-item list-item text-white"
                                     onClick={handleLogout}
                                   >
                                     <svg className="icon icon-sm me-2">

@@ -19,7 +19,11 @@
       "Bash(npx prisma:*)"
     ]
   },
+  "enabledMcpjsonServers": [
+    "code-review-graph"
+  ],
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true
-  }
+  },
+  "enableAllProjectMcpServers": true
 }

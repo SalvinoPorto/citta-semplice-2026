@@ -83,12 +83,12 @@ export function AllegatiRichiestiEditor({ value, onChange, prefix }: Props) {
                   </span>
                 </td>
                 <td className="text-center align-middle">
-                  <span className={`badge ${item.interno ? 'bg-warning text-dark' : 'bg-secondary'}`}>
+                  <span className={`badge ${item.interno ? 'bg-warning' : 'bg-secondary'}`}>
                     {item.interno ? 'Sì' : 'No'}
                   </span>
                 </td>
                 <td className="text-center align-middle">
-                  <span className={`badge ${item.soggetto === 'UT' ? 'bg-primary' : 'bg-info text-dark'}`}>
+                  <span className={`badge ${item.soggetto === 'UT' ? 'bg-primary' : 'bg-info'}`}>
                     {item.soggetto === 'UT' ? 'Utente' : 'Operatore'}
                   </span>
                 </td>

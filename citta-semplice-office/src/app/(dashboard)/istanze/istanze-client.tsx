@@ -194,21 +194,21 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
 
 
   const getFaseBadge = (istanza: Istanza) => {
-    if (istanza.conclusa) return <Badge variant="success">Conclusa</Badge>;
-    if (istanza.respinta) return <Badge variant="danger">Respinta</Badge>;
+    if (istanza.conclusa) return <Badge variant="success" className="w-100">Conclusa</Badge>;
+    if (istanza.respinta) return <Badge variant="danger" className="w-100">Respinta</Badge>;
     const lastWorkflow = istanza.workflows[0];
-    return <Badge variant="primary">{lastWorkflow?.step.descrizione}</Badge>;
+    return <Badge variant="primary" className="w-100">{lastWorkflow?.step.descrizione}</Badge>;
   }
 
   const getStatusBadge = (istanza: Istanza) => {
     const lastWorkflow = istanza.workflows[0];
     if (lastWorkflow?.operatoreId === null) {
-      return <Badge variant="secondary">In Attesa</Badge>;
+      return <Badge variant="secondary" className="w-100">In Attesa</Badge>;
     }
     if (lastWorkflow?.stato === 1) {
-      return <Badge variant="success">Completata</Badge>;
+      return <Badge variant="success" className="w-100">Completata</Badge>;
     }
-    return <Badge variant="primary">In Lavorazione</Badge>;
+    return <Badge variant="primary" className="w-100">In Lavorazione</Badge>;
   };
 
   const formatEvidenza = (evidenza: string | null) => {
