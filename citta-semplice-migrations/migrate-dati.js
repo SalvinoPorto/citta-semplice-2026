@@ -628,7 +628,7 @@ async function migrateFasi(src, dst) {
 
   const result = await dst.query(`
     INSERT INTO fasi (nome, ordine, servizio_id, ufficio_id)
-    SELECT 'Fase principale', 1, id, ufficio_id
+    SELECT 'Competenza', 1, id, ufficio_id
     FROM servizi
     ORDER BY id
     RETURNING id
@@ -826,8 +826,7 @@ async function migrateAllegatiRichiesti(src, dst) {
       ar.obbligatorio,
       ar.interno,
       ar.soggetto,
-      ar.id_step   AS step_id,
-      ar.id_notifica AS notifica_id
+      ar.id_step   AS step_id
     FROM allegati_richiesti ar
     INNER JOIN step s ON s.id = ar.id_step
     INNER JOIN moduli m ON m.id = s.id_modulo
@@ -1007,7 +1006,6 @@ async function migrateWorkflow(src, dst) {
     id_istanza as istanza_id, 
     CASE id_status WHEN 1 THEN 0 ELSE 1 END stato,
     id_step as step_id, 
-    id_notifica as notifica_id, 
     id_operatore as operatore_id 
     FROM workflow
     WHERE id_step IS NOT null
@@ -1054,6 +1052,65 @@ async function migrateWorkflow(src, dst) {
   console.log(`Workflows: ${ok} inseriti/esistenti, ${errors} errori`);
 }
 
+
+// ── migrazione Comunicazioni da Workflow ─────────────────────────────────────────────────────────
+
+async function migrateComunicazioni(src, dst) {
+  console.log('\n── Migrazione comunicazioni da workflow ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT 
+    data_variazione AS data_creazione, 
+    CASE WHEN note = '' THEN n.descrizione WHEN note IS NULL THEN n.descrizione ELSE note END AS testo,
+    id_operatore as operatore_id, 
+    id_istanza as istanza_id, 
+    CONCAT('[{nome: "',ar.nome_allegato_richiesto,'", obbligatorio: ', CASE ar.obbligatorio WHEN true THEN 'true' ELSE 'false' END, '}]') as allegati_richiesti
+    FROM public.workflow w
+    LEFT JOIN notifiche n ON n.id=w.id_notifica
+    LEFT JOIN allegati_richiesti ar ON n.id=ar.id_notifica
+    where w.id_step is null AND ar.id is not null
+    order by id_istanza;
+  `);
+  console.log(`Workflow di comunicazione trovati: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessun workflow di comunicazione da migrare.');
+    return;
+  }
+
+  // Colonne derivate dalla query (già rinominate con alias)
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+
+  const sql = `
+    INSERT INTO comunicazioni (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  let ok = 0, errors = 0;
+  await dst.query("DELETE FROM comunicazioni");
+  for (const row of rows) {
+    try {
+      await dst.query(sql, columns.map(col => row[col]));
+      ok++;
+      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} comunicazioni migrati…`);
+    } catch (err) {
+      console.error(`  ✗ errore su comunicazione ${row.id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  // aggiorno il numero di sequenza delle comunicazioni per evitare conflitti con nuove comunicazioni create dopo la migrazione
+  try {
+    await dst.query(`SELECT setval('comunicazioni_id_seq', GREATEST((SELECT MAX(id) FROM comunicazioni), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza comunicazioni: ${err.message}`);
+  }
+
+  console.log(`Comunicazioni: ${ok} inserite/esistenti, ${errors} errori`);
+}
 
 // ── migrazione allegati ─────────────────────────────────────────────────────────
 
@@ -1126,7 +1183,7 @@ async function main() {
   await dst.connect();
 
   try {
-/* 
+
     //  1. Migra enti (nessuna dipendenza)
     await migrateEnti(src, dst);
 
@@ -1164,8 +1221,9 @@ async function main() {
     await migrateIstanze(src, dst);
     // 12. Migra workflow (dipende da istanze, steps, operatori)
     await migrateWorkflow(src, dst);
-    */
-
+   
+    // 12. Migra Comunicazioni (dipende da istanze, operatori)
+    await migrateComunicazioni(src, dst);
     // 13. Migra workflow_fasi (dipende da istanze, fasi)
     await migrateWorkflowFasi(src, dst);
 
