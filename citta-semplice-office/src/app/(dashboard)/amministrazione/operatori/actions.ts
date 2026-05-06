@@ -79,7 +79,6 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
   });
 
   revalidatePath('/amministrazione/operatori');
-  revalidatePath(`/amministrazione/operatori/${id}`);
   redirect('/amministrazione/operatori');
 }
 

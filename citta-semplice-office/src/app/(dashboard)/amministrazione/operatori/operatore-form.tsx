@@ -89,7 +89,7 @@ export function OperatoreForm({ operatore, ruoli, uffici, isNew }: OperatoreForm
         if (result?.error) {
           setError(result.error);
         }
-      } catch {
+      } catch(e) {
         setError('Si è verificato un errore');
       }
     });
