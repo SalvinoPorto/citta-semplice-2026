@@ -762,7 +762,7 @@ async function migrateSteps(src, dst) {
     LEFT JOIN moduli m ON m.id=s.id_modulo
     LEFT JOIN servizi se ON se.id=m.id_servizio
 	  WHERE se.id_area in (SELECT id FROM aree WHERE id_ente=1)
-    --AND s.attivo = true
+    AND s.attivo = true
     ORDER BY s.id
   `);
   console.log(`Step trovati: ${rows.length}`);

@@ -23,8 +23,8 @@ export default function LoginPage() {
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-4">
             <div className="text-center mb-4">
-              <h1 className="h3 mb-2">Citta Semplice Office</h1>
-              <p className="text-muted">Backoffice Istanze Online</p>
+              <h1 className="h3 mb-2">Citta Semplice</h1>
+              <p className="text-muted">Gestione Istanze Online</p>
             </div>
 
             <Suspense fallback={<LoginFallback />}>
@@ -32,7 +32,7 @@ export default function LoginPage() {
             </Suspense>
 
             <p className="text-center mt-4 text-muted small">
-              Comune di Catania - Istanze Online
+              Comune di Catania
             </p>
           </div>
         </div>
