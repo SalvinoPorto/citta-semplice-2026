@@ -9,6 +9,7 @@ async function getSystemInfo() {
     areeCount,
     serviziCount,
     operatoriCount,
+    ufficiCount,
     utentiCount,
     ruoliCount,
     emailConfig,
@@ -17,6 +18,7 @@ async function getSystemInfo() {
     prisma.area.count(),
     prisma.servizio.count(),
     prisma.operatore.count(),
+    prisma.ufficio.count(),
     prisma.utente.count(),
     prisma.ruolo.count(),
     prisma.emailConfig.findFirst(),
@@ -27,6 +29,7 @@ async function getSystemInfo() {
     areeCount,
     serviziCount,
     operatoriCount,
+    ufficiCount,
     utentiCount,
     ruoliCount,
     emailConfig,
@@ -43,7 +46,7 @@ export default async function AmministrazionePage() {
       items: [
         { href: '/amministrazione/enti', label: 'Enti', count: info.entiCount },
         { href: '/amministrazione/aree', label: 'Aree', count: info.areeCount },
-        { href: '/amministrazione/uffici', label: 'Uffici', count: 0 },
+        { href: '/amministrazione/uffici', label: 'Uffici', count: info.ufficiCount },
       ],
     },
     {

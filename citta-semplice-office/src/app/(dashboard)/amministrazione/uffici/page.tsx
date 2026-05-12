@@ -8,7 +8,7 @@ async function getUffici() {
     orderBy: { nome: 'asc' },
     include: {
       _count: {
-        select: { servizi: true },
+        select: { fasi: true },
       },
     },
   });
@@ -59,8 +59,8 @@ export default async function UfficiPage() {
                     <p className="text-muted small mb-3">{ufficio.descrizione}</p>
                   )}
                   <div className="mb-3">
-                    <strong>{ufficio._count.servizi}</strong>
-                    <span className="text-muted ms-1">servizi assegnati</span>
+                    <strong>{ufficio._count.fasi}</strong>
+                    <span className="text-muted ms-1">fasi assegnate</span>
                   </div>
                   {ufficio.email && (
                     <div className="small text-muted mb-1">📧 {ufficio.email}</div>

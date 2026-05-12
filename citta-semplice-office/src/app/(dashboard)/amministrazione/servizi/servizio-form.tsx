@@ -752,9 +752,9 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
             <>
               <Card className="mb-4">
                 <CardBody>
-                  <h5 className="mb-4">Ufficio e Disponibilità</h5>
+                  <h5 className="mb-4">Disponibilità</h5>
 
-                  <div className="row">
+                  {/* <div className="row">
                     <div className="col-md-6 mb-3">
                       <Select
                         label="Ufficio gestore"
@@ -770,7 +770,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                         ))}
                       </Select>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
@@ -994,444 +994,444 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                           const isFirstOfFase = stepsInFase[0]?.index === index;
                           const isLastOfFase = stepsInFase[stepsInFase.length - 1]?.index === index;
 
-                  const stepData = watchedSteps?.[index];
-                  const hasPagamento = stepData?.pagamento;
-                  const hasAllegati = stepData?.allegati;
-                  const importoVariabile = stepData?.pagamentoImportoVariabile;
-                  const causaleVariabile = stepData?.pagamentoCausaleVariabile;
+                          const stepData = watchedSteps?.[index];
+                          const hasPagamento = stepData?.pagamento;
+                          const hasAllegati = stepData?.allegati;
+                          const importoVariabile = stepData?.pagamentoImportoVariabile;
+                          const causaleVariabile = stepData?.pagamentoCausaleVariabile;
 
-                  // Protocollo mode for first/last steps: 'nessuno' | 'esterno' | 'interno'
-                  type ProtoMode = 'nessuno' | 'esterno' | 'interno';
-                  const protoMode: ProtoMode = stepData?.numerazioneInterna
-                    ? 'interno'
-                    : stepData?.protocollo
-                      ? 'esterno'
-                      : 'nessuno';
+                          // Protocollo mode for first/last steps: 'nessuno' | 'esterno' | 'interno'
+                          type ProtoMode = 'nessuno' | 'esterno' | 'interno';
+                          const protoMode: ProtoMode = stepData?.numerazioneInterna
+                            ? 'interno'
+                            : stepData?.protocollo
+                              ? 'esterno'
+                              : 'nessuno';
 
-                  const setProtoMode = (mode: ProtoMode) => {
-                    setValue(`steps.${index}.protocollo`, mode === 'esterno');
-                    setValue(`steps.${index}.numerazioneInterna`, mode === 'interno');
-                    if (mode === 'esterno') {
-                      setValue(`steps.${index}.tipoProtocollo`, isFirst ? 'E' : 'U');
-                      loadUffici();
-                    } else {
-                      setValue(`steps.${index}.tipoProtocollo`, undefined);
-                    }
-                  };
+                          const setProtoMode = (mode: ProtoMode) => {
+                            setValue(`steps.${index}.protocollo`, mode === 'esterno');
+                            setValue(`steps.${index}.numerazioneInterna`, mode === 'interno');
+                            if (mode === 'esterno') {
+                              setValue(`steps.${index}.tipoProtocollo`, isFirst ? 'E' : 'U');
+                              loadUffici();
+                            } else {
+                              setValue(`steps.${index}.tipoProtocollo`, undefined);
+                            }
+                          };
 
-                  return (
-                    <div
-                      key={field.id}
-                      className={`border rounded p-3 mb-3 ${isFirst || isLast ? 'border-primary bg-primary bg-opacity-10' : ''}`}
-                    >
-                      {/* Step header */}
-                      <div className="d-flex justify-content-between align-items-start mb-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <h6 className="mb-0">
-                            Step {index + 1}
-                            {isFirst && ' — Presentazione Istanza'}
-                            {isLast && ' — Chiusura Pratica'}
-                          </h6>
-                          {(isFirst || isLast) && (
-                            <span className="badge text-bg-primary" style={{ fontSize: '0.65rem' }}>
-                              Fisso
-                            </span>
-                          )}
-                        </div>
-                        {isMiddle && (
-                          <div className="d-flex gap-1 flex-wrap">
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-secondary"
-                              onClick={() => moveStep(index, 'up')}
-                              disabled={isFirstOfFase || index === 1}
-                              title="Sposta su (nella stessa fase)"
+                          return (
+                            <div
+                              key={field.id}
+                              className={`border rounded p-3 mb-3 ${isFirst || isLast ? 'border-primary bg-primary bg-opacity-10' : ''}`}
                             >
-                              ↑
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-secondary"
-                              onClick={() => moveStep(index, 'down')}
-                              disabled={isLastOfFase || index === fields.length - 2}
-                              title="Sposta giù (nella stessa fase)"
-                            >
-                              ↓
-                            </button>
-                            {faseOrdine > 1 && isFirstOfFase && (
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-warning"
-                                onClick={() => moveStepToFase(index, faseOrdine - 1)}
-                                title={`Sposta in Fase ${faseOrdine - 1}`}
-                              >
-                                ← Fase {faseOrdine - 1}
-                              </button>
-                            )}
-                            {faseOrdine < fasiFields.length && isLastOfFase && (
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-warning"
-                                onClick={() => moveStepToFase(index, faseOrdine + 1)}
-                                title={`Sposta in Fase ${faseOrdine + 1}`}
-                              >
-                                Fase {faseOrdine + 1} →
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-danger ms-auto"
-                              onClick={() => remove(index)}
-                            >
-                              Rimuovi
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Descrizione: readonly per primo e ultimo, editabile per gli intermedi */}
-                      {isMiddle ? (
-                        <div className="mb-3">
-                          <Input
-                            type="text"
-                            label="Descrizione step *"
-                            {...register(`steps.${index}.descrizione`)}
-                            error={errors.steps?.[index]?.descrizione?.message}
-                          />
-                        </div>
-                      ) : (
-                        <input type="hidden" {...register(`steps.${index}.descrizione`)} />
-                      )}
-
-                      <div className="form-check mb-3">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id={`step-${index}-attivo`}
-                          {...register(`steps.${index}.attivo`)}
-                        />
-                        <label className="form-check-label" htmlFor={`step-${index}-attivo`}>
-                          Step attivo
-                        </label>
-                      </div>
-
-                      {/* ── Protocollo: primo e ultimo usano radio a 3 opzioni ── */}
-                      {(isFirst || isLast) && (
-                        <div className="mb-3">
-                          <label className="form-label small fw-semibold">Protocollazione</label>
-                          <div className="d-flex flex-column gap-1 ms-1">
-                            <div className="form-check">
-                              <input
-                                type="radio"
-                                className="form-check-input"
-                                id={`step-${index}-proto-nessuno`}
-                                checked={protoMode === 'nessuno'}
-                                onChange={() => setProtoMode('nessuno')}
-                              />
-                              <label className="form-check-label small" htmlFor={`step-${index}-proto-nessuno`}>
-                                Nessuna protocollazione
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="radio"
-                                className="form-check-input"
-                                id={`step-${index}-proto-esterno`}
-                                checked={protoMode === 'esterno'}
-                                onChange={() => setProtoMode('esterno')}
-                              />
-                              <label className="form-check-label small" htmlFor={`step-${index}-proto-esterno`}>
-                                Protocollazione esterna ({isFirst ? 'Entrata' : 'Uscita'}) — API protocollo
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="radio"
-                                className="form-check-input"
-                                id={`step-${index}-proto-interno`}
-                                checked={protoMode === 'interno'}
-                                onChange={() => setProtoMode('interno')}
-                              />
-                              <label className="form-check-label small" htmlFor={`step-${index}-proto-interno`}>
-                                Numerazione progressiva interna (prefisso <code>PE_</code>)
-                              </label>
-                            </div>
-                          </div>
-                          {protoMode === 'esterno' && (
-                            <div className="ms-4 mt-2">
-                              <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
-                                <option value="">
-                                  {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
-                                </option>
-                                {(urbiUffici ?? []).map((uo) => (
-                                  <option key={uo.codice} value={uo.codice}>
-                                    {uo.descrizione || uo.codice}
-                                  </option>
-                                ))}
-                              </Select>
-                            </div>
-                          )}
-                          {protoMode === 'interno' && (
-                            <p className="ms-4 mt-1 mb-0 text-muted small">
-                              Verrà assegnato un numero progressivo interno con prefisso <code>PE_</code>.
-                              Questo vale anche come protocollo di emergenza quando l&apos;API esterna non è disponibile.
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* ── Protocollo: step intermedi (comportamento corrente) ── */}
-                      {isMiddle && (
-                        <>
-                          <div className="form-check mb-2">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`step-${index}-protocollo`}
-                              {...register(`steps.${index}.protocollo`)}
-                            />
-                            <label className="form-check-label" htmlFor={`step-${index}-protocollo`}>
-                              Richiede protocollo
-                            </label>
-                          </div>
-
-                          {stepData?.protocollo && (
-                            <div className="ms-4 mb-3 p-3 bg-light rounded">
-                              <div className="row">
-                                <div className="col-md-4 mb-2">
-                                  <label className="form-label small">Tipo protocollo</label>
-                                  <Controller
-                                    control={control}
-                                    name={`steps.${index}.tipoProtocollo`}
-                                    render={({ field: { value, onChange } }) => (
-                                      <div className="d-flex gap-3">
-                                        <div className="form-check">
-                                          <input
-                                            type="radio"
-                                            className="form-check-input"
-                                            id={`step-${index}-proto-e`}
-                                            checked={value === 'E'}
-                                            onChange={() => onChange('E')}
-                                          />
-                                          <label className="form-check-label small" htmlFor={`step-${index}-proto-e`}>
-                                            Entrata
-                                          </label>
-                                        </div>
-                                        <div className="form-check">
-                                          <input
-                                            type="radio"
-                                            className="form-check-input"
-                                            id={`step-${index}-proto-u`}
-                                            checked={value === 'U'}
-                                            onChange={() => onChange('U')}
-                                          />
-                                          <label className="form-check-label small" htmlFor={`step-${index}-proto-u`}>
-                                            Uscita
-                                          </label>
-                                        </div>
-                                      </div>
-                                    )}
-                                  />
-                                </div>
-                                <div className="col-md-8 mb-2">
-                                  <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
-                                    <option value="">
-                                      {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
-                                    </option>
-                                    {(urbiUffici ?? []).map((uo) => (
-                                      <option key={uo.codice} value={uo.codice}>
-                                        {uo.descrizione || uo.codice}
-                                      </option>
-                                    ))}
-                                  </Select>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                      {/* ── Allegati: tutti gli step ── */}
-                      <div className="form-check mb-2">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id={`step-${index}-allegati`}
-                          {...register(`steps.${index}.allegati`)}
-                        />
-                        <label className="form-check-label" htmlFor={`step-${index}-allegati`}>
-                          Prevede allegati
-                        </label>
-                      </div>
-                      {hasAllegati && (
-                        <div className="ms-4 mb-3">
-                          <Controller
-                            control={control}
-                            name={`steps.${index}.allegatiRichiestiList`}
-                            render={({ field: { value, onChange } }) => (
-                              <AllegatiRichiestiEditor
-                                value={value ?? []}
-                                onChange={onChange}
-                                prefix={`step-${index}-allegato`}
-                              />
-                            )}
-                          />
-                          <small className="text-muted d-block mt-1">
-                            Usa il campo <strong>Soggetto</strong> per indicare se l&apos;allegato è a carico del richiedente (Utente) o dell&apos;operatore.
-                          </small>
-                        </div>
-                      )}
-
-                      {/* ── Pagamento: solo step intermedi ── */}
-                      {isMiddle && (
-                        <>
-                          <div className="form-check mb-2">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`step-${index}-pagamento`}
-                              {...register(`steps.${index}.pagamento`)}
-                              onChange={(e) => {
-                                register(`steps.${index}.pagamento`).onChange(e);
-                                if (e.target.checked) loadPmPayServizi();
-                              }}
-                            />
-                            <label className="form-check-label" htmlFor={`step-${index}-pagamento`}>
-                              Richiede pagamento (PagoPA)
-                            </label>
-                          </div>
-
-                          {hasPagamento && (
-                            <div className="ms-4 mb-3 p-3 bg-light rounded">
-                              <div className="mb-3">
-                                <Select
-                                  label="Servizio / Tributo PmPay"
-                                  value={watchedSteps?.[index]?.pagamentoCodiceTributo ?? ''}
-                                  onChange={(e) => {
-                                    const selected = pmPayServizi?.find(s => s.codiceServizio === e.target.value);
-                                    setValue(`steps.${index}.pagamentoCodiceTributo`, e.target.value);
-                                    setValue(`steps.${index}.pagamentoDescrizioneTributo`, selected?.descrizione ?? '');
-                                  }}
-                                >
-                                  <option value="">
-                                    {pmPayLoading ? 'Caricamento...' : 'Seleziona servizio'}
-                                  </option>
-                                  {(pmPayServizi ?? []).map((s) => (
-                                    <option key={s.codiceServizio} value={s.codiceServizio}>
-                                      {s.codiceServizio}{s.descrizione ? ` - ${s.descrizione}` : ''}
-                                    </option>
-                                  ))}
-                                </Select>
-                              </div>
-
-                              <div className="mb-3">
-                                <label className="form-label small fw-semibold">Importo</label>
-                                <Controller
-                                  control={control}
-                                  name={`steps.${index}.pagamentoImportoVariabile`}
-                                  render={({ field: { value, onChange } }) => (
-                                    <div className="d-flex gap-3 mb-2">
-                                      <div className="form-check">
-                                        <input
-                                          type="radio"
-                                          className="form-check-input"
-                                          id={`step-${index}-importo-fisso`}
-                                          checked={!value}
-                                          onChange={() => onChange(false)}
-                                        />
-                                        <label className="form-check-label small" htmlFor={`step-${index}-importo-fisso`}>
-                                          Importo fisso
-                                        </label>
-                                      </div>
-                                      <div className="form-check">
-                                        <input
-                                          type="radio"
-                                          className="form-check-input"
-                                          id={`step-${index}-importo-variabile`}
-                                          checked={!!value}
-                                          onChange={() => onChange(true)}
-                                        />
-                                        <label className="form-check-label small" htmlFor={`step-${index}-importo-variabile`}>
-                                          Variabile (operatore inserisce l&apos;importo)
-                                        </label>
-                                      </div>
-                                    </div>
+                              {/* Step header */}
+                              <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="d-flex align-items-center gap-2">
+                                  <h6 className="mb-0">
+                                    Step {index + 1}
+                                    {isFirst && ' — Presentazione Istanza'}
+                                    {isLast && ' — Chiusura Pratica'}
+                                  </h6>
+                                  {(isFirst || isLast) && (
+                                    <span className="badge text-bg-primary" style={{ fontSize: '0.65rem' }}>
+                                      Fisso
+                                    </span>
                                   )}
-                                />
-                                {!importoVariabile && (
-                                  <Input
-                                    type="number"
-                                    label="Importo (€)"
-                                    step="0.01"
-                                    min={0}
-                                    {...register(`steps.${index}.pagamentoImporto`, {
-                                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                                    })}
-                                  />
+                                </div>
+                                {isMiddle && (
+                                  <div className="d-flex gap-1 flex-wrap">
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-secondary"
+                                      onClick={() => moveStep(index, 'up')}
+                                      disabled={isFirstOfFase || index === 1}
+                                      title="Sposta su (nella stessa fase)"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-secondary"
+                                      onClick={() => moveStep(index, 'down')}
+                                      disabled={isLastOfFase || index === fields.length - 2}
+                                      title="Sposta giù (nella stessa fase)"
+                                    >
+                                      ↓
+                                    </button>
+                                    {faseOrdine > 1 && isFirstOfFase && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-warning"
+                                        onClick={() => moveStepToFase(index, faseOrdine - 1)}
+                                        title={`Sposta in Fase ${faseOrdine - 1}`}
+                                      >
+                                        ← Fase {faseOrdine - 1}
+                                      </button>
+                                    )}
+                                    {faseOrdine < fasiFields.length && isLastOfFase && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-warning"
+                                        onClick={() => moveStepToFase(index, faseOrdine + 1)}
+                                        title={`Sposta in Fase ${faseOrdine + 1}`}
+                                      >
+                                        Fase {faseOrdine + 1} →
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-danger ms-auto"
+                                      onClick={() => remove(index)}
+                                    >
+                                      Rimuovi
+                                    </button>
+                                  </div>
                                 )}
                               </div>
 
-                              <div className="mb-3">
-                                <label className="form-label small fw-semibold">Causale</label>
-                                <Controller
-                                  control={control}
-                                  name={`steps.${index}.pagamentoCausaleVariabile`}
-                                  render={({ field: { value, onChange } }) => (
-                                    <div className="d-flex gap-3 mb-2">
-                                      <div className="form-check">
-                                        <input
-                                          type="radio"
-                                          className="form-check-input"
-                                          id={`step-${index}-causale-fissa`}
-                                          checked={!value}
-                                          onChange={() => onChange(false)}
-                                        />
-                                        <label className="form-check-label small" htmlFor={`step-${index}-causale-fissa`}>
-                                          Causale fissa
-                                        </label>
-                                      </div>
-                                      <div className="form-check">
-                                        <input
-                                          type="radio"
-                                          className="form-check-input"
-                                          id={`step-${index}-causale-variabile`}
-                                          checked={!!value}
-                                          onChange={() => onChange(true)}
-                                        />
-                                        <label className="form-check-label small" htmlFor={`step-${index}-causale-variabile`}>
-                                          Variabile (operatore inserisce la causale)
-                                        </label>
-                                      </div>
-                                    </div>
-                                  )}
-                                />
-                                {!causaleVariabile && (
+                              {/* Descrizione: readonly per primo e ultimo, editabile per gli intermedi */}
+                              {isMiddle ? (
+                                <div className="mb-3">
                                   <Input
                                     type="text"
-                                    label="Causale"
-                                    {...register(`steps.${index}.pagamentoCausale`)}
+                                    label="Descrizione step *"
+                                    {...register(`steps.${index}.descrizione`)}
+                                    error={errors.steps?.[index]?.descrizione?.message}
                                   />
-                                )}
-                              </div>
+                                </div>
+                              ) : (
+                                <input type="hidden" {...register(`steps.${index}.descrizione`)} />
+                              )}
 
-                              <div className="form-check">
+                              <div className="form-check mb-3">
                                 <input
                                   type="checkbox"
                                   className="form-check-input"
-                                  id={`step-${index}-pagamento-obbligatorio`}
-                                  {...register(`steps.${index}.pagamentoObbligatorio`)}
+                                  id={`step-${index}-attivo`}
+                                  {...register(`steps.${index}.attivo`)}
                                 />
-                                <label className="form-check-label" htmlFor={`step-${index}-pagamento-obbligatorio`}>
-                                  Pagamento obbligatorio per avanzare al passo successivo
+                                <label className="form-check-label" htmlFor={`step-${index}-attivo`}>
+                                  Step attivo
                                 </label>
                               </div>
+
+                              {/* ── Protocollo: primo e ultimo usano radio a 3 opzioni ── */}
+                              {(isFirst || isLast) && (
+                                <div className="mb-3">
+                                  <label className="form-label small fw-semibold">Protocollazione</label>
+                                  <div className="d-flex flex-column gap-1 ms-1">
+                                    <div className="form-check">
+                                      <input
+                                        type="radio"
+                                        className="form-check-input"
+                                        id={`step-${index}-proto-nessuno`}
+                                        checked={protoMode === 'nessuno'}
+                                        onChange={() => setProtoMode('nessuno')}
+                                      />
+                                      <label className="form-check-label small" htmlFor={`step-${index}-proto-nessuno`}>
+                                        Nessuna protocollazione
+                                      </label>
+                                    </div>
+                                    <div className="form-check">
+                                      <input
+                                        type="radio"
+                                        className="form-check-input"
+                                        id={`step-${index}-proto-esterno`}
+                                        checked={protoMode === 'esterno'}
+                                        onChange={() => setProtoMode('esterno')}
+                                      />
+                                      <label className="form-check-label small" htmlFor={`step-${index}-proto-esterno`}>
+                                        Protocollazione esterna ({isFirst ? 'Entrata' : 'Uscita'}) — API protocollo
+                                      </label>
+                                    </div>
+                                    <div className="form-check">
+                                      <input
+                                        type="radio"
+                                        className="form-check-input"
+                                        id={`step-${index}-proto-interno`}
+                                        checked={protoMode === 'interno'}
+                                        onChange={() => setProtoMode('interno')}
+                                      />
+                                      <label className="form-check-label small" htmlFor={`step-${index}-proto-interno`}>
+                                        Numerazione progressiva interna (prefisso <code>PE_</code>)
+                                      </label>
+                                    </div>
+                                  </div>
+                                  {protoMode === 'esterno' && (
+                                    <div className="ms-4 mt-2">
+                                      <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
+                                        <option value="">
+                                          {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
+                                        </option>
+                                        {(urbiUffici ?? []).map((uo) => (
+                                          <option key={uo.codice} value={uo.codice}>
+                                            {uo.descrizione || uo.codice}
+                                          </option>
+                                        ))}
+                                      </Select>
+                                    </div>
+                                  )}
+                                  {protoMode === 'interno' && (
+                                    <p className="ms-4 mt-1 mb-0 text-muted small">
+                                      Verrà assegnato un numero progressivo interno con prefisso <code>PE_</code>.
+                                      Questo vale anche come protocollo di emergenza quando l&apos;API esterna non è disponibile.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* ── Protocollo: step intermedi (comportamento corrente) ── */}
+                              {isMiddle && (
+                                <>
+                                  <div className="form-check mb-2">
+                                    <input
+                                      type="checkbox"
+                                      className="form-check-input"
+                                      id={`step-${index}-protocollo`}
+                                      {...register(`steps.${index}.protocollo`)}
+                                    />
+                                    <label className="form-check-label" htmlFor={`step-${index}-protocollo`}>
+                                      Richiede protocollo
+                                    </label>
+                                  </div>
+
+                                  {stepData?.protocollo && (
+                                    <div className="ms-4 mb-3 p-3 bg-light rounded">
+                                      <div className="row">
+                                        <div className="col-md-4 mb-2">
+                                          <label className="form-label small">Tipo protocollo</label>
+                                          <Controller
+                                            control={control}
+                                            name={`steps.${index}.tipoProtocollo`}
+                                            render={({ field: { value, onChange } }) => (
+                                              <div className="d-flex gap-3">
+                                                <div className="form-check">
+                                                  <input
+                                                    type="radio"
+                                                    className="form-check-input"
+                                                    id={`step-${index}-proto-e`}
+                                                    checked={value === 'E'}
+                                                    onChange={() => onChange('E')}
+                                                  />
+                                                  <label className="form-check-label small" htmlFor={`step-${index}-proto-e`}>
+                                                    Entrata
+                                                  </label>
+                                                </div>
+                                                <div className="form-check">
+                                                  <input
+                                                    type="radio"
+                                                    className="form-check-input"
+                                                    id={`step-${index}-proto-u`}
+                                                    checked={value === 'U'}
+                                                    onChange={() => onChange('U')}
+                                                  />
+                                                  <label className="form-check-label small" htmlFor={`step-${index}-proto-u`}>
+                                                    Uscita
+                                                  </label>
+                                                </div>
+                                              </div>
+                                            )}
+                                          />
+                                        </div>
+                                        <div className="col-md-8 mb-2">
+                                          <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
+                                            <option value="">
+                                              {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
+                                            </option>
+                                            {(urbiUffici ?? []).map((uo) => (
+                                              <option key={uo.codice} value={uo.codice}>
+                                                {uo.descrizione || uo.codice}
+                                              </option>
+                                            ))}
+                                          </Select>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* ── Allegati: tutti gli step ── */}
+                              <div className="form-check mb-2">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  id={`step-${index}-allegati`}
+                                  {...register(`steps.${index}.allegati`)}
+                                />
+                                <label className="form-check-label" htmlFor={`step-${index}-allegati`}>
+                                  Prevede allegati
+                                </label>
+                              </div>
+                              {hasAllegati && (
+                                <div className="ms-4 mb-3">
+                                  <Controller
+                                    control={control}
+                                    name={`steps.${index}.allegatiRichiestiList`}
+                                    render={({ field: { value, onChange } }) => (
+                                      <AllegatiRichiestiEditor
+                                        value={value ?? []}
+                                        onChange={onChange}
+                                        prefix={`step-${index}-allegato`}
+                                      />
+                                    )}
+                                  />
+                                  <small className="text-muted d-block mt-1">
+                                    Usa il campo <strong>Soggetto</strong> per indicare se l&apos;allegato è a carico del richiedente (Utente) o dell&apos;operatore.
+                                  </small>
+                                </div>
+                              )}
+
+                              {/* ── Pagamento: solo step intermedi ── */}
+                              {isMiddle && (
+                                <>
+                                  <div className="form-check mb-2">
+                                    <input
+                                      type="checkbox"
+                                      className="form-check-input"
+                                      id={`step-${index}-pagamento`}
+                                      {...register(`steps.${index}.pagamento`)}
+                                      onChange={(e) => {
+                                        register(`steps.${index}.pagamento`).onChange(e);
+                                        if (e.target.checked) loadPmPayServizi();
+                                      }}
+                                    />
+                                    <label className="form-check-label" htmlFor={`step-${index}-pagamento`}>
+                                      Richiede pagamento (PagoPA)
+                                    </label>
+                                  </div>
+
+                                  {hasPagamento && (
+                                    <div className="ms-4 mb-3 p-3 bg-light rounded">
+                                      <div className="mb-3">
+                                        <Select
+                                          label="Servizio / Tributo PmPay"
+                                          value={watchedSteps?.[index]?.pagamentoCodiceTributo ?? ''}
+                                          onChange={(e) => {
+                                            const selected = pmPayServizi?.find(s => s.codiceServizio === e.target.value);
+                                            setValue(`steps.${index}.pagamentoCodiceTributo`, e.target.value);
+                                            setValue(`steps.${index}.pagamentoDescrizioneTributo`, selected?.descrizione ?? '');
+                                          }}
+                                        >
+                                          <option value="">
+                                            {pmPayLoading ? 'Caricamento...' : 'Seleziona servizio'}
+                                          </option>
+                                          {(pmPayServizi ?? []).map((s) => (
+                                            <option key={s.codiceServizio} value={s.codiceServizio}>
+                                              {s.codiceServizio}{s.descrizione ? ` - ${s.descrizione}` : ''}
+                                            </option>
+                                          ))}
+                                        </Select>
+                                      </div>
+
+                                      <div className="mb-3">
+                                        <label className="form-label small fw-semibold">Importo</label>
+                                        <Controller
+                                          control={control}
+                                          name={`steps.${index}.pagamentoImportoVariabile`}
+                                          render={({ field: { value, onChange } }) => (
+                                            <div className="d-flex gap-3 mb-2">
+                                              <div className="form-check">
+                                                <input
+                                                  type="radio"
+                                                  className="form-check-input"
+                                                  id={`step-${index}-importo-fisso`}
+                                                  checked={!value}
+                                                  onChange={() => onChange(false)}
+                                                />
+                                                <label className="form-check-label small" htmlFor={`step-${index}-importo-fisso`}>
+                                                  Importo fisso
+                                                </label>
+                                              </div>
+                                              <div className="form-check">
+                                                <input
+                                                  type="radio"
+                                                  className="form-check-input"
+                                                  id={`step-${index}-importo-variabile`}
+                                                  checked={!!value}
+                                                  onChange={() => onChange(true)}
+                                                />
+                                                <label className="form-check-label small" htmlFor={`step-${index}-importo-variabile`}>
+                                                  Variabile (operatore inserisce l&apos;importo)
+                                                </label>
+                                              </div>
+                                            </div>
+                                          )}
+                                        />
+                                        {!importoVariabile && (
+                                          <Input
+                                            type="number"
+                                            label="Importo (€)"
+                                            step="0.01"
+                                            min={0}
+                                            {...register(`steps.${index}.pagamentoImporto`, {
+                                              setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                                            })}
+                                          />
+                                        )}
+                                      </div>
+
+                                      <div className="mb-3">
+                                        <label className="form-label small fw-semibold">Causale</label>
+                                        <Controller
+                                          control={control}
+                                          name={`steps.${index}.pagamentoCausaleVariabile`}
+                                          render={({ field: { value, onChange } }) => (
+                                            <div className="d-flex gap-3 mb-2">
+                                              <div className="form-check">
+                                                <input
+                                                  type="radio"
+                                                  className="form-check-input"
+                                                  id={`step-${index}-causale-fissa`}
+                                                  checked={!value}
+                                                  onChange={() => onChange(false)}
+                                                />
+                                                <label className="form-check-label small" htmlFor={`step-${index}-causale-fissa`}>
+                                                  Causale fissa
+                                                </label>
+                                              </div>
+                                              <div className="form-check">
+                                                <input
+                                                  type="radio"
+                                                  className="form-check-input"
+                                                  id={`step-${index}-causale-variabile`}
+                                                  checked={!!value}
+                                                  onChange={() => onChange(true)}
+                                                />
+                                                <label className="form-check-label small" htmlFor={`step-${index}-causale-variabile`}>
+                                                  Variabile (operatore inserisce la causale)
+                                                </label>
+                                              </div>
+                                            </div>
+                                          )}
+                                        />
+                                        {!causaleVariabile && (
+                                          <Input
+                                            type="text"
+                                            label="Causale"
+                                            {...register(`steps.${index}.pagamentoCausale`)}
+                                          />
+                                        )}
+                                      </div>
+
+                                      <div className="form-check">
+                                        <input
+                                          type="checkbox"
+                                          className="form-check-input"
+                                          id={`step-${index}-pagamento-obbligatorio`}
+                                          {...register(`steps.${index}.pagamentoObbligatorio`)}
+                                        />
+                                        <label className="form-check-label" htmlFor={`step-${index}-pagamento-obbligatorio`}>
+                                          Pagamento obbligatorio per avanzare al passo successivo
+                                        </label>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
+                          );
+                        })}
 
                         {/* Pulsante Aggiungi step nella fase */}
                         <div className="mt-2">
