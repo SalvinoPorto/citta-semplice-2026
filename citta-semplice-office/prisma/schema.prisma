@@ -174,9 +174,8 @@ model Ufficio {
   indirizzo   String?   @db.VarChar(255)
   attivo      Boolean   @default(true)
 
-  servizi              Servizio[]
-  fasi                 Fase[]
-  operatori            Operatore[]
+  fasi        Fase[]
+  operatori   Operatore[]
   istanzeUfficioCorrente Istanza[] @relation("UfficioCorrente")
 
   @@map("uffici")

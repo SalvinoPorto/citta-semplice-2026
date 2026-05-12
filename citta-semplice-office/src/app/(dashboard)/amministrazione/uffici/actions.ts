@@ -19,8 +19,8 @@ export async function createUfficio(data: UfficioFormData) {
     },
   });
 
-  revalidatePath('/uffici');
-  redirect('/uffici');
+  revalidatePath('/amministrazione/uffici');
+  redirect('/amministrazione/uffici');
 }
 
 export async function updateUfficio(id: number, data: UfficioFormData) {
@@ -48,6 +48,6 @@ export async function deleteUfficio(id: number) {
     where: { id },
   });
 
-  revalidatePath('/uffici');
-  redirect('/uffici');
+  revalidatePath('/amministrazione/uffici');
+  redirect('/amministrazione/uffici');
 }

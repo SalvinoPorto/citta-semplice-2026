@@ -85,10 +85,10 @@ export function UfficioForm({ ufficio, isNew, fasiAssegnate }: UfficioFormProps)
     if (!ufficio) return;
     startTransition(async () => {
       const result = await deleteUfficio(ufficio.id);
-      /*  if (result?.error) {
-         setError(result.error);
-         setShowDeleteConfirm(false);
-       } */
+      /* if (result?.error) {
+        setError(result.error);
+        setShowDeleteConfirm(false);
+      } */
     });
   };
 

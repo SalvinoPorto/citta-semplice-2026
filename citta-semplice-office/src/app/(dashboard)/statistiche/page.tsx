@@ -21,7 +21,7 @@ async function getStatistiche(giorni: number) {
     istanzePeriodo,
     statisticheGiornaliere,
     statistichePagamenti,
-    istanzePerModulo,
+    istanzePerServizio,
     istanzePerStato,
   ] = await Promise.all([
     prisma.istanza.count(),
@@ -54,7 +54,7 @@ async function getStatistiche(giorni: number) {
   ]);
 
   // Get servizio names
-  const servizioIds = istanzePerModulo.map((i) => i.servizioId);
+  const servizioIds = istanzePerServizio.map((i) => i.servizioId);
   const servizi = await prisma.servizio.findMany({
     where: { id: { in: servizioIds } },
     select: { id: true, titolo: true },
@@ -86,7 +86,7 @@ async function getStatistiche(giorni: number) {
     istanzePeriodo,
     statisticheGiornaliere,
     statistichePagamenti,
-    istanzePerModulo: istanzePerModulo.map((i) => ({
+    istanzePerServizio: istanzePerServizio.map((i) => ({
       servizioId: i.servizioId,
       servizioName: servizioMap[i.servizioId] || 'Sconosciuto',
       count: i._count,
@@ -140,9 +140,8 @@ export default async function StatistichePage({
             <Link
               key={periodo.value}
               href={`/statistiche?periodo=${periodo.value}`}
-              className={`btn btn-sm ${
-                giorni === periodo.value ? 'btn-primary' : 'btn-outline-primary'
-              }`}
+              className={`btn btn-sm ${giorni === periodo.value ? 'btn-primary' : 'btn-outline-primary'
+                }`}
             >
               {periodo.label}
             </Link>
@@ -283,26 +282,26 @@ export default async function StatistichePage({
       {/* Top Moduli */}
       <Card className="mb-4">
         <CardBody>
-          <CardTitle>Top 10 Moduli per Numero di Istanze (ultimi {giorni} giorni)</CardTitle>
+          <CardTitle>Top 10 Servizi per numero di Istanze (ultimi {giorni} giorni)</CardTitle>
           <div className="table-responsive">
             <table className="table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Modulo</th>
+                  <th>Servizio</th>
                   <th className="text-end">Istanze</th>
                   <th style={{ width: '40%' }}></th>
                 </tr>
               </thead>
               <tbody>
-                {stats.istanzePerModulo.length === 0 ? (
+                {stats.istanzePerServizio.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="text-center text-muted">
                       Nessuna istanza nel periodo selezionato
                     </td>
                   </tr>
                 ) : (
-                  stats.istanzePerModulo.map((item, index) => {
+                  stats.istanzePerServizio.map((item, index) => {
                     const percentage =
                       stats.istanzePeriodo > 0
                         ? (item.count / stats.istanzePeriodo) * 100
