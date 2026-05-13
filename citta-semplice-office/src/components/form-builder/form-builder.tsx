@@ -124,10 +124,10 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
       </div>
 
       {view === 'builder' && (
-        <div className="row">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '1rem', height: 'calc(100vh - 380px)', minHeight: '500px' }}>
           {/* Left: Field Palette */}
-          <div className="col-md-3">
-            <Card>
+          <div style={{ overflowY: 'auto' }}>
+            <Card style={{ height: '100%' }}>
               <CardBody>
                 <h6 className="mb-3">Componenti</h6>
                 <FieldPalette onDragStart={handleDragStart} onDragEnd={handleDragEnd} />
@@ -136,8 +136,8 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
           </div>
 
           {/* Center: Canvas */}
-          <div className="col-md-6">
-            <Card>
+          <div style={{ overflowY: 'auto' }}>
+            <Card style={{ minHeight: '100%' }}>
               <CardBody>
                 <h6 className="mb-3">Form</h6>
                 <FormCanvas
@@ -157,8 +157,8 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
           </div>
 
           {/* Right: Field Properties */}
-          <div className="col-md-3">
-            <Card>
+          <div style={{ overflowY: 'auto' }}>
+            <Card style={{ minHeight: '100%' }}>
               <CardBody>
                 <h6 className="mb-3">Proprietà</h6>
                 {selectedField ? (
@@ -203,11 +203,6 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
         </Card>
       )}
 
-      <style jsx>{`
-        .form-builder {
-          min-height: 600px;
-        }
-      `}</style>
     </div>
   );
 }
