@@ -38,7 +38,7 @@ export async function requireAdmin() {
 
 export async function requirePermission(permission: Permission) {
   const user = await requireAuth();
-  if (!hasPermission(user.ruoli, permission)) {
+  if (!hasPermission(user.ruoli, permission, user.permessi ?? [])) {
     redirect('/non-autorizzato');
   }
   return user;
@@ -51,5 +51,5 @@ export async function checkAdmin() {
 
 export async function checkPermission(permission: Permission) {
   const user = await getCurrentUser();
-  return user ? hasPermission(user.ruoli, permission) : false;
+  return user ? hasPermission(user.ruoli, permission, user.permessi ?? []) : false;
 }

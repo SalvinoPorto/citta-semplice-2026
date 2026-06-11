@@ -68,28 +68,23 @@ export function isAdmin(userRoles: string[]): boolean {
   return hasRole(userRoles, ROLES.ADMIN);
 }
 
-export function hasPermission(userRoles: string[], permission: Permission): boolean {
-  // Admin has all permissions
-  if (isAdmin(userRoles)) {
-    return true;
-  }
-
-  // Check if any of the user's roles has the permission
+// If permessi (loaded from DB at login) is provided, use it directly.
+// Otherwise falls back to the hardcoded ROLE_PERMISSIONS map.
+export function hasPermission(userRoles: string[], permission: Permission, permessi?: string[]): boolean {
+  if (isAdmin(userRoles)) return true;
+  if (permessi !== undefined) return permessi.includes(permission);
   return userRoles.some((roleName) => {
     const permissions = ROLE_PERMISSIONS[roleName as RoleName];
     return permissions?.includes(permission);
   });
 }
 
-export function getPermissions(userRoles: string[]): Permission[] {
+export function getPermissions(userRoles: string[], permessi?: string[]): Permission[] {
+  if (permessi !== undefined) return permessi as Permission[];
   const permissions = new Set<Permission>();
-
   userRoles.forEach((roleName) => {
     const rolePermissions = ROLE_PERMISSIONS[roleName as RoleName];
-    if (rolePermissions) {
-      rolePermissions.forEach((p) => permissions.add(p));
-    }
+    if (rolePermissions) rolePermissions.forEach((p) => permissions.add(p));
   });
-
   return Array.from(permissions);
 }

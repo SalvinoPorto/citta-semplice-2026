@@ -375,33 +375,31 @@ class PMPayService {
         },
       });
 
-      for (const payment of pendingPayments) {
-        if (!payment.iuv) continue;
-
-        try {
-          const result = await this.getPaymentDetail(payment.iuv);
-          if (!result.success || !result.detail) {
-            errors++;
-            continue;
-          }
-
-          const nuovoStato = result.detail.statoPagamento;
-
-          if (nuovoStato !== payment.stato) {
-            await prisma.pagamentoAtteso.update({
-              where: { id: payment.id },
-              data: {
-                stato: nuovoStato,
-                ...(result.detail.dataOperazione
-                  ? { dataOperazione: new Date(result.detail.dataOperazione) }
-                  : {}),
-              },
-            });
-            synced++;
-          }
-        } catch {
-          errors++;
-        }
+      const BATCH = 5;
+      for (let i = 0; i < pendingPayments.length; i += BATCH) {
+        await Promise.all(
+          pendingPayments.slice(i, i + BATCH).map(async (payment) => {
+            if (!payment.iuv) return;
+            try {
+              const result = await this.getPaymentDetail(payment.iuv);
+              if (!result.success || !result.detail) { errors++; return; }
+              if (result.detail.statoPagamento !== payment.stato) {
+                await prisma.pagamentoAtteso.update({
+                  where: { id: payment.id },
+                  data: {
+                    stato: result.detail.statoPagamento,
+                    ...(result.detail.dataOperazione
+                      ? { dataOperazione: new Date(result.detail.dataOperazione) }
+                      : {}),
+                  },
+                });
+                synced++;
+              }
+            } catch {
+              errors++;
+            }
+          })
+        );
       }
     } catch (err) {
       console.error('[PmPay] syncPendingPayments error:', err);

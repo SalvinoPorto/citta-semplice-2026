@@ -1,4 +1,14 @@
 {
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\src\" -Recurse -Name | Where-Object { $_ -match \"\\\\.\\(ts|tsx\\)$\" })",
+      "PowerShell($pkg = Get-Content \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\package.json\" | ConvertFrom-Json; \"Version: $\\($pkg.version\\)\"; \"build/index.js exists: $\\(Test-Path 'e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\build\\\\index.js'\\)\")",
+      "PowerShell(npm view prisma@7.7.0 dist.files 2>&1)",
+      "PowerShell(npm pack prisma@7.7.0 --dry-run 2>&1)",
+      "PowerShell($pkg = Get-Content \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\package.json\" | ConvertFrom-Json; $pkg.version; npm pack prisma@7.8.0 --dry-run 2>&1 | Select-String \"build/index.js\")",
+      "PowerShell($v = \\(Get-Content \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\package.json\" | ConvertFrom-Json\\).version; \"Installed: $v\"; \"build/index.js exists: $\\(Test-Path 'e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\build\\\\index.js'\\)\")"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {

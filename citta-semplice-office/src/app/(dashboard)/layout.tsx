@@ -16,6 +16,7 @@ export default async function DashboardLayout({
     nome: sessionUser.nome,
     cognome: sessionUser.cognome,
     ruoli: sessionUser.ruoli,
+    permessi: sessionUser.permessi ?? [],
   };
 
   return (

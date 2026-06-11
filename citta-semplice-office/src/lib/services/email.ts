@@ -153,10 +153,20 @@ async function sendWithSmtp(
   }
 }
 
+let _configCache: { data: Awaited<ReturnType<typeof prisma.emailConfig.findFirst>>; ts: number } | null = null;
+
+async function getEmailConfig() {
+  const now = Date.now();
+  if (_configCache && now - _configCache.ts < 60_000) return _configCache.data;
+  const data = await prisma.emailConfig.findFirst();
+  _configCache = { data, ts: now };
+  return data;
+}
+
 // Main function to send email using configured provider
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   try {
-    const config = await prisma.emailConfig.findFirst();
+    const config = await getEmailConfig();
 
     if (!config || !config.attivo) {
       return {

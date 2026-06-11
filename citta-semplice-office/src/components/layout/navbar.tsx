@@ -3,9 +3,10 @@ import Link from "next/link";
 
 interface NavbarProps {
     userRoles: string[];
+    userPermessi: string[];
 }
 
-export function Navbar({ userRoles }: NavbarProps) {
+export function Navbar({ userRoles, userPermessi }: NavbarProps) {
     return (
         <div className="it-header-navbar-wrapper">
             <div className="container">
@@ -31,7 +32,7 @@ export function Navbar({ userRoles }: NavbarProps) {
                                         <li className="nav-item">
                                             <Link className="nav-link" href="/istanze" ><span>Istanze</span></Link>
                                         </li>
-                                        {(hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW) || hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW)) &&
+                                        {(hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW, userPermessi) || hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW, userPermessi)) &&
                                             <li className="nav-item dropdown">
                                                 <Link className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="mainNavDropdown1">
                                                     <span>Report</span>
@@ -40,10 +41,10 @@ export function Navbar({ userRoles }: NavbarProps) {
                                                 <div className="dropdown-menu" role="region" aria-labelledby="mainNavDropdown1">
                                                     <div className="link-list-wrapper">
                                                         <ul className="link-list">
-                                                            {hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW) &&
+                                                            {hasPermission(userRoles, PERMISSIONS.STATISTICHE_VIEW, userPermessi) &&
                                                                 <li><Link className="dropdown-item list-item" href="/statistiche"><span>Statistiche</span></Link></li>
                                                             }
-                                                            {hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW) &&
+                                                            {hasPermission(userRoles, PERMISSIONS.RICERCHE_VIEW, userPermessi) &&
                                                                 <li><Link className="dropdown-item list-item" href="/ricerche"><span>Ricerche</span></Link></li>
                                                             }
                                                         </ul>
@@ -51,7 +52,7 @@ export function Navbar({ userRoles }: NavbarProps) {
                                                 </div>
                                             </li>
                                         }
-                                        {hasPermission(userRoles, PERMISSIONS.ADMIN_ACCESS) &&
+                                        {hasPermission(userRoles, PERMISSIONS.ADMIN_ACCESS, userPermessi) &&
                                             <li className="nav-item">
                                                 <Link className="nav-link" href="/amministrazione">
                                                     <span>Amministrazione</span>
