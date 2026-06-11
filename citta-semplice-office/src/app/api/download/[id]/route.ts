@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { auth } from '@/lib/auth';
+import { ROLES } from '@/lib/auth/roles';
 import prisma from '@/lib/db/prisma';
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/uploads';
+import { getStorage } from '@/lib/storage';
 
 function formatDate(date: Date): string {
   return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
@@ -26,11 +24,23 @@ export async function GET(
       return NextResponse.json({ error: 'ID non valido' }, { status: 400 });
     }
 
-    // Get allegato from database
     const allegato = await prisma.allegato.findUnique({
       where: { id },
       include: {
-        workflow: true,
+        workflow: {
+          include: {
+            istanza: {
+              select: {
+                servizio: {
+                  select: {
+                    ufficioId: true,
+                    fasi: { select: { ufficioId: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -38,24 +48,48 @@ export async function GET(
       return NextResponse.json({ error: 'Allegato non trovato' }, { status: 404 });
     }
 
-    // Mark as viewed
+    // IDOR check: verify the operator's office has access to this istanza
+    const isAdmin = (session.user.ruoli ?? []).includes(ROLES.ADMIN);
+    if (!isAdmin) {
+      const operatoreId = parseInt(session.user.id);
+      const operatore = await prisma.operatore.findUnique({
+        where: { id: operatoreId },
+        select: { ufficioId: true },
+      });
+      if (operatore?.ufficioId) {
+        const { istanza } = allegato.workflow;
+        const ufficiServizio = [
+          istanza.servizio.ufficioId,
+          ...istanza.servizio.fasi.map((f) => f.ufficioId),
+        ].filter((uid): uid is number => uid !== null);
+        if (ufficiServizio.length > 0 && !ufficiServizio.includes(operatore.ufficioId)) {
+          return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+        }
+      }
+    }
+
     await prisma.allegato.update({
       where: { id },
       data: { visto: true },
     });
 
-    // Determine file path
-    const filePath = join(UPLOAD_DIR, allegato.nomeHash);
-
-    // Read file
+    const storage = getStorage();
     let fileBuffer: Buffer;
     try {
-      fileBuffer = await readFile(filePath);
+      // New records: nomeHash is the full relative path (YYYY/MM/DD/hash)
+      fileBuffer = await storage.read(allegato.nomeHash);
     } catch {
-      return NextResponse.json({ error: 'File non trovato' }, { status: 404 });
+      // Legacy records (pre-P3): nomeHash is just the hash — reconstruct date path
+      if (!allegato.dataInserimento) {
+        return NextResponse.json({ error: 'File non trovato' }, { status: 404 });
+      }
+      try {
+        fileBuffer = await storage.read(`${formatDate(allegato.dataInserimento)}/${allegato.nomeHash}`);
+      } catch {
+        return NextResponse.json({ error: 'File non trovato' }, { status: 404 });
+      }
     }
 
-    // Return file with appropriate headers
     const headers = new Headers();
     headers.set('Content-Type', allegato.mimeType || 'application/octet-stream');
     headers.set(

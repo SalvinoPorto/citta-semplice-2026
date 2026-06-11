@@ -5,9 +5,8 @@ import prisma from '@/lib/db/prisma';
 import { getCurrentUser, requireAuth } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
 import { sendFaseTransitionEmail } from '@/lib/services/faseTransitionEmail';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { pmPayService } from '@/lib/external/pmpay';
+import { getStorage } from '@/lib/storage';
 import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
 import { ROLES } from '@/lib/auth/roles';
 
@@ -79,6 +78,10 @@ async function checkUfficioWriteAccess(istanzaId: number, operatoreId: number, r
 
 function formatDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function getStatoLabel(operatoreId: number | null, stato: number): string {
@@ -192,18 +195,22 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
     }
 
     const now = new Date();
+    const currentFase = istanza.faseCorrente;
+    const nextStepSameFase = steps.find(
+      (s) => s.faseId === currentStep?.faseId && s.ordine === currentStepOrder + 1
+    );
 
-    // --- Gestione protocollo step corrente ---
+    // --- Protocolla (external call — before the DB transaction, cannot be rolled back) ---
     let protoNumeroStep: string | undefined;
     let protoDataStep: Date | undefined;
 
     if (currentStep?.protocollo) {
-        const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
+        const storage = getStorage();
         const files = await Promise.all(
           (lastWorkflow?.allegati ?? []).map(async (a) => {
             try {
-              const buf = await readFile(join(UPLOAD_DIR, a.nomeHash));
-              return new File([buf], a.nomeFile, { type: 'application/pdf' });
+              const buf = await storage.read(a.nomeHash);
+              return new File([new Uint8Array(buf)], a.nomeFile, { type: 'application/pdf' });
             } catch {
               return null;
             }
@@ -226,135 +233,126 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         });
         protoNumeroStep = result.numero;
         protoDataStep = result.data;
-        await prisma.istanza.update({
+    }
+
+    // --- DB mutations (atomic) ---
+    let resultMessage = '';
+    let pendingFaseEmail: { nuovaFase: { nome: string; ufficio?: { email?: string | null; nome: string } | null } } | null = null;
+
+    await prisma.$transaction(async (tx) => {
+      if (protoNumeroStep) {
+        await tx.istanza.update({
           where: { id: istanzaId },
-          data: { protoNumero: result.numero, protoData: result.data },
+          data: { protoNumero: protoNumeroStep, protoData: protoDataStep },
         });
-      
-    }
+      }
 
-    // Update current workflow to success (mantieni dataVariazione originale)
-    if (lastWorkflow) {
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
-        data: {
-          stato: STATO_COMPLETATA,
-          note: note || lastWorkflow.note,
-          operatoreId,
-        },
-      });
-    }
-
-    const currentFase = istanza.faseCorrente;
-
-    // Cerca il prossimo step nella STESSA fase
-    const nextStepSameFase = steps.find(
-      (s) => s.faseId === currentStep?.faseId && s.ordine === currentStepOrder + 1
-    );
-
-    let resultMessage: string;
-
-    if (nextStepSameFase) {
-      // Avanzamento intra-fase: l'operatore rimane assegnato
-      await prisma.workflow.create({
-        data: {
-          istanzaId,
-          stepId: nextStepSameFase.id,
-          dataVariazione: now,
-          stato: STATO_IN_LAVORAZIONE,
-          operatoreId,
-        },
-      });
-      await prisma.istanza.update({
-        where: { id: istanzaId },
-        data: { lastStepId: nextStepSameFase.id, activeStep: nextStepSameFase.ordine },
-      });
-      resultMessage = `Avanzato allo step: ${nextStepSameFase.descrizione}`;
-    } else {
-      // Fine della fase corrente — cerca la fase successiva
-      const allFasi = await prisma.fase.findMany({
-        where: { servizioId: istanza.servizioId },
-        orderBy: { ordine: 'asc' },
-        include: {
-          steps: { orderBy: { ordine: 'asc' } },
-          ufficio: true,
-        },
-      });
-
-      const nextFase = allFasi.find((f) => f.ordine === (currentFase?.ordine ?? 1) + 1);
-
-      if (!nextFase) {
-        // Nessuna fase successiva → istanza conclusa
-        await prisma.istanza.update({
-          where: { id: istanza.id },
-          data: { conclusa: true },
-        });
-        resultMessage = 'Istanza conclusa con successo';
-      } else {
-        // Passaggio alla fase successiva
-        const firstStepNextFase = nextFase.steps[0];
-
-        // Chiudi WorkflowFase corrente
-        if (currentFase) {
-          await prisma.workflowFase.updateMany({
-            where: { istanzaId: istanza.id, faseId: currentFase.id, dataCompletamento: null },
-            data: {
-              dataCompletamento: now,
-              operatoreCompletamentoId: operatoreId,
-            },
-          });
-        }
-
-        // Apri nuovo WorkflowFase
-        await prisma.workflowFase.create({
+      if (lastWorkflow) {
+        await tx.workflow.update({
+          where: { id: lastWorkflow.id },
           data: {
-            istanzaId: istanza.id,
-            faseId: nextFase.id,
-            dataInizio: now,
-            direzione: 'AVANZAMENTO',
+            stato: STATO_COMPLETATA,
+            note: note || lastWorkflow.note,
+            operatoreId,
           },
         });
+      }
 
-        const nextUfficioCorrenteId = nextFase.ufficioId ?? null;
-
-        // Aggiorna istanza
-        await prisma.istanza.update({
-          where: { id: istanza.id },
+      if (nextStepSameFase) {
+        await tx.workflow.create({
           data: {
-            faseCorrenteId: nextFase.id,
-            ufficioCorrenteId: nextUfficioCorrenteId,
-            lastStepId: firstStepNextFase.id,
-            activeStep: firstStepNextFase.ordine,
-          },
-        });
-
-        // Crea workflow per il primo step della nuova fase (operatoreId: null)
-        await prisma.workflow.create({
-          data: {
-            istanzaId: istanza.id,
-            stepId: firstStepNextFase.id,
+            istanzaId,
+            stepId: nextStepSameFase.id,
             dataVariazione: now,
             stato: STATO_IN_LAVORAZIONE,
-            // operatoreId: null — l'ufficio entrante prende in carico liberamente
+            operatoreId,
+          },
+        });
+        await tx.istanza.update({
+          where: { id: istanzaId },
+          data: { lastStepId: nextStepSameFase.id, activeStep: nextStepSameFase.ordine },
+        });
+        resultMessage = `Avanzato allo step: ${nextStepSameFase.descrizione}`;
+      } else {
+        const allFasi = await tx.fase.findMany({
+          where: { servizioId: istanza.servizioId },
+          orderBy: { ordine: 'asc' },
+          include: {
+            steps: { orderBy: { ordine: 'asc' } },
+            ufficio: true,
           },
         });
 
-        // Email notifica (condizionale)
-        if (params.inviaEmailPassaggioFase !== false) {
-          await sendFaseTransitionEmail({
-            istanza: {
-              id: istanza.id,
-              protoNumero: istanza.protoNumero ?? '',
-              utente: { nome: istanza.utente.nome, cognome: istanza.utente.cognome },
-              servizio: { titolo: istanza.servizio.titolo },
-            },
-            nuovaFase: nextFase,
-            direzione: 'AVANZAMENTO',
-          });
-        }
+        const nextFase = allFasi.find((f) => f.ordine === (currentFase?.ordine ?? 1) + 1);
 
-        resultMessage = `Trasferito alla fase: ${nextFase.nome}`;
+        if (!nextFase) {
+          await tx.istanza.update({
+            where: { id: istanza.id },
+            data: { conclusa: true },
+          });
+          resultMessage = 'Istanza conclusa con successo';
+        } else {
+          const firstStepNextFase = nextFase.steps[0];
+
+          if (currentFase) {
+            await tx.workflowFase.updateMany({
+              where: { istanzaId: istanza.id, faseId: currentFase.id, dataCompletamento: null },
+              data: {
+                dataCompletamento: now,
+                operatoreCompletamentoId: operatoreId,
+              },
+            });
+          }
+
+          await tx.workflowFase.create({
+            data: {
+              istanzaId: istanza.id,
+              faseId: nextFase.id,
+              dataInizio: now,
+              direzione: 'AVANZAMENTO',
+            },
+          });
+
+          await tx.istanza.update({
+            where: { id: istanza.id },
+            data: {
+              faseCorrenteId: nextFase.id,
+              ufficioCorrenteId: nextFase.ufficioId ?? null,
+              lastStepId: firstStepNextFase.id,
+              activeStep: firstStepNextFase.ordine,
+            },
+          });
+
+          await tx.workflow.create({
+            data: {
+              istanzaId: istanza.id,
+              stepId: firstStepNextFase.id,
+              dataVariazione: now,
+              stato: STATO_IN_LAVORAZIONE,
+            },
+          });
+
+          resultMessage = `Trasferito alla fase: ${nextFase.nome}`;
+
+          if (params.inviaEmailPassaggioFase !== false) {
+            pendingFaseEmail = { nuovaFase: nextFase };
+          }
+        }
       }
+    });
+
+    // --- Email (after transaction commits) ---
+    if (pendingFaseEmail) {
+      await sendFaseTransitionEmail({
+        istanza: {
+          id: istanza.id,
+          protoNumero: istanza.protoNumero ?? '',
+          utente: { nome: istanza.utente.nome, cognome: istanza.utente.cognome },
+          servizio: { titolo: istanza.servizio.titolo },
+        },
+        nuovaFase: (pendingFaseEmail as { nuovaFase: { nome: string; ufficio?: { email?: string | null; nome: string } | null } }).nuovaFase,
+        direzione: 'AVANZAMENTO',
+      });
     }
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -396,13 +394,14 @@ export async function regressWorkflow(istanzaId: number, note: string) {
             steps: {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
+              include: { fase: { select: { id: true, ufficioId: true } } },
             },
           },
         },
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
-          include: { step: true },
+          include: { step: { include: { fase: { select: { id: true } } } } },
         },
       },
     });
@@ -430,36 +429,44 @@ export async function regressWorkflow(istanzaId: number, note: string) {
     }
 
     const now = new Date();
+    const currentStep = lastWorkflow?.step;
+    const crossingPhase = prevStep.faseId !== (currentStep?.faseId ?? null);
 
-    // Mark current workflow as "retroceded"
-    if (lastWorkflow) {
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
+    await prisma.$transaction(async (tx) => {
+      if (lastWorkflow) {
+        await tx.workflow.update({
+          where: { id: lastWorkflow.id },
+          data: {
+            stato: STATO_IN_LAVORAZIONE,
+            note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
+            dataVariazione: now,
+            operatoreId,
+          },
+        });
+      }
+
+      await tx.workflow.create({
         data: {
+          istanzaId,
+          stepId: prevStep.id,
           stato: STATO_IN_LAVORAZIONE,
-          note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
-          dataVariazione: now,
           operatoreId,
+          dataVariazione: now,
+          note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
         },
       });
-    }
 
-    // Create new workflow at previous step
-    await prisma.workflow.create({
-      data: {
-        istanzaId,
-        stepId: prevStep.id,
-        stato: STATO_IN_LAVORAZIONE,
-        operatoreId,
-        dataVariazione: now,
-        note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
-      },
-    });
-
-    // Update last step
-    await prisma.istanza.update({
-      where: { id: istanzaId },
-      data: { lastStepId: prevStep.id },
+      await tx.istanza.update({
+        where: { id: istanzaId },
+        data: {
+          lastStepId: prevStep.id,
+          activeStep: prevStep.ordine,
+          ...(crossingPhase && prevStep.faseId !== null ? {
+            faseCorrenteId: prevStep.faseId,
+            ufficioCorrenteId: prevStep.fase?.ufficioId ?? null,
+          } : {}),
+        },
+      });
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -850,7 +857,7 @@ export async function sendComunicazione(
       const emailResult = await sendEmail({
         to: istanza.utente.email,
         subject: 'Comunicazione dal Comune',
-        html: `<p>${testo.replace(/\n/g, '<br>')}</p>`,
+        html: `<p>${escapeHtml(testo).replace(/\n/g, '<br>')}</p>`,
         text: testo,
       });
       emailSent = emailResult.success;
@@ -1001,12 +1008,12 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     let protoFinaleData: Date | undefined;
 
     if (lastStep?.protocollo) {
-      const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
+      const storage = getStorage();
       const files = await Promise.all(
         (lastWorkflow?.allegati ?? []).map(async (a) => {
           try {
-            const buf = await readFile(join(UPLOAD_DIR, a.nomeHash));
-            return new File([buf], a.nomeFile, { type: 'application/pdf' });
+            const buf = await storage.read(a.nomeHash);
+            return new File([new Uint8Array(buf)], a.nomeFile, { type: 'application/pdf' });
           } catch {
             return null;
           }
@@ -1031,26 +1038,26 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
       protoFinaleData = result.data;
     }
 
-    // Update last workflow to success
-    if (lastWorkflow) {
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
+    await prisma.$transaction(async (tx) => {
+      if (lastWorkflow) {
+        await tx.workflow.update({
+          where: { id: lastWorkflow.id },
+          data: {
+            stato: STATO_COMPLETATA,
+            note: note || lastWorkflow.note,
+            dataVariazione: now,
+            operatoreId,
+          },
+        });
+      }
+
+      await tx.istanza.update({
+        where: { id: istanzaId },
         data: {
-          stato: STATO_COMPLETATA,
-          note: note || lastWorkflow.note,
-          dataVariazione: now,
-          operatoreId,
+          conclusa: true,
+          ...(protoFinaleNumero && { protoFinaleNumero, protoFinaleData }),
         },
       });
-    }
-
-    // Mark istanza as concluded
-    await prisma.istanza.update({
-      where: { id: istanzaId },
-      data: {
-        conclusa: true,
-        ...(protoFinaleNumero && { protoFinaleNumero, protoFinaleData }),
-      },
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -1066,18 +1073,6 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     console.error('Error concluding istanza:', error);
     return { success: false, message: 'Errore durante la conclusione' };
   }
-}
-
-export interface GeneratePaymentParams {
-  istanzaId: number;
-  workflowId: number;
-  importo?: number;
-  causale?: string;
-  // Dati del debitore (se diverso dal richiedente)
-  cf?: string;
-  nome?: string;
-  cognome?: string;
-  email?: string;
 }
 
 export async function generatePayment(params: GeneratePaymentParams) {
@@ -1229,52 +1224,49 @@ export async function rollbackFase(params: {
   const now = new Date();
   const operatoreId = parseInt(operatore.id);
 
-  // Chiudi WorkflowFase corrente con direzione ROLLBACK
-  await prisma.workflowFase.updateMany({
-    where: { istanzaId: istanza.id, faseId: istanza.faseCorrente.id, dataCompletamento: null },
-    data: {
-      dataCompletamento: now,
-      operatoreCompletamentoId: operatoreId,
-      direzione: 'ROLLBACK',
-    },
-  });
-
-  // Crea nuovo WorkflowFase per la fase precedente
-  await prisma.workflowFase.create({
-    data: {
-      istanzaId: istanza.id,
-      faseId: fasePrecedente.id,
-      dataInizio: now,
-      direzione: 'ROLLBACK',
-    },
-  });
-
-  // Crea nuovo Workflow per l'ultimo step della fase precedente (operatore null — nuova presa in carico)
-  await prisma.workflow.create({
-    data: {
-      istanzaId: istanza.id,
-      stepId: lastStepFasePrecedente.id,
-      dataVariazione: now,
-      stato: STATO_IN_LAVORAZIONE,
-      note: `[Rollback di fase] ${params.note}`,
-      // operatoreId: null
-    },
-  });
-
   const rollbackUfficioCorrenteId = fasePrecedente.ufficioId ?? null;
 
-  // Aggiorna istanza
-  await prisma.istanza.update({
-    where: { id: istanza.id },
-    data: {
-      faseCorrenteId: fasePrecedente.id,
-      ufficioCorrenteId: rollbackUfficioCorrenteId,
-      lastStepId: lastStepFasePrecedente.id,
-      activeStep: lastStepFasePrecedente.ordine,
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.workflowFase.updateMany({
+      where: { istanzaId: istanza.id, faseId: istanza.faseCorrente!.id, dataCompletamento: null },
+      data: {
+        dataCompletamento: now,
+        operatoreCompletamentoId: operatoreId,
+        direzione: 'ROLLBACK',
+      },
+    });
+
+    await tx.workflowFase.create({
+      data: {
+        istanzaId: istanza.id,
+        faseId: fasePrecedente.id,
+        dataInizio: now,
+        direzione: 'ROLLBACK',
+      },
+    });
+
+    await tx.workflow.create({
+      data: {
+        istanzaId: istanza.id,
+        stepId: lastStepFasePrecedente.id,
+        dataVariazione: now,
+        stato: STATO_IN_LAVORAZIONE,
+        note: `[Rollback di fase] ${params.note}`,
+      },
+    });
+
+    await tx.istanza.update({
+      where: { id: istanza.id },
+      data: {
+        faseCorrenteId: fasePrecedente.id,
+        ufficioCorrenteId: rollbackUfficioCorrenteId,
+        lastStepId: lastStepFasePrecedente.id,
+        activeStep: lastStepFasePrecedente.ordine,
+      },
+    });
   });
 
-  // Email notifica (condizionale)
+  // Email (after transaction commits)
   if (params.inviaEmail !== false) {
     await sendFaseTransitionEmail({
       istanza: {

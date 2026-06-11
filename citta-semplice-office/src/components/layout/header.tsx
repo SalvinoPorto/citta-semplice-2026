@@ -130,7 +130,7 @@ export function Header({ user }: HeaderProps) {
             </div>
           </div>
         </div>
-        <Navbar userRoles={user.ruoli} />
+        <Navbar userRoles={user.ruoli} userPermessi={user.permessi} />
       </div>
     </header>
   );

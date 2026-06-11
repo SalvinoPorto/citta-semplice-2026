@@ -10,6 +10,7 @@ export interface UserData {
   nome: string;
   cognome: string;
   ruoli: string[];
+  permessi: string[];
 }
 
 interface UserContextValue {
@@ -36,7 +37,7 @@ export function UserProvider({ children, user }: UserProviderProps) {
     user,
     isAdmin: user ? isAdmin(user.ruoli) : false,
     hasPermission: (permission: Permission) =>
-      user ? hasPermission(user.ruoli, permission) : false,
+      user ? hasPermission(user.ruoli, permission, user.permessi) : false,
     hasRole: (role: RoleName) => (user ? hasRole(user.ruoli, role) : false),
   };
 

@@ -9,6 +9,7 @@ declare module 'next-auth' {
     nome: string;
     cognome: string;
     ruoli: string[];
+    permessi: string[];
   }
 
   interface Session {
@@ -17,7 +18,7 @@ declare module 'next-auth' {
       nome: string;
       cognome: string;
       ruoli: string[];
-      entiIds: number[];
+      permessi: string[];
     };
   }
 }
@@ -28,6 +29,6 @@ declare module 'next-auth/jwt' {
     nome: string;
     cognome: string;
     ruoli: string[];
-    entiIds: number[];
+    permessi: string[];
   }
 }

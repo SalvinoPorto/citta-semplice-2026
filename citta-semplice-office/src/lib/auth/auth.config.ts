@@ -62,6 +62,7 @@ export const authConfig: NextAuthConfig = {
           nome: operatore.nome,
           cognome: operatore.cognome,
           ruoli: operatore.ruoli.map((r) => r.ruolo.nome),
+          permessi: [...new Set(operatore.ruoli.flatMap((r) => r.ruolo.permessi))],
         };
       },
     }),
@@ -81,6 +82,7 @@ export const authConfig: NextAuthConfig = {
         token.nome = user.nome;
         token.cognome = user.cognome;
         token.ruoli = user.ruoli;
+        token.permessi = user.permessi;
       }
       return token;
     },
@@ -90,6 +92,7 @@ export const authConfig: NextAuthConfig = {
         session.user.nome = token.nome as string;
         session.user.cognome = token.cognome as string;
         session.user.ruoli = token.ruoli as string[];
+        session.user.permessi = token.permessi as string[];
       }
       return session;
     },

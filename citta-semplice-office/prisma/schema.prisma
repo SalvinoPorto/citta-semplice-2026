@@ -14,7 +14,7 @@ datasource db {
 model Operatore {
   id                Int       @id @default(autoincrement())
   email             String    @db.VarChar(100)
-  password          String    @db.VarChar(64)
+  password          String    @db.VarChar(255)
   nome              String    @db.VarChar(100)
   cognome           String    @db.VarChar(100)
   userName          String    @db.VarChar(64) @unique @map("user_name")
