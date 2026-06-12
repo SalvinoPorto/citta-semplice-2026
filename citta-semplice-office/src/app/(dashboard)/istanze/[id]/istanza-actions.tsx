@@ -74,6 +74,7 @@ interface IstanzaActionsProps {
   } | null;
   stepOrdine: number;
   isLastStep: boolean;
+  isFirstStepOfCurrentFase?: boolean;
   canRollbackFase?: boolean;
   canOperateFase?: boolean;
   faseCorrente?: FaseCorrente | null;
@@ -92,6 +93,7 @@ export function IstanzaActions({
   currentPayment,
   stepOrdine,
   isLastStep,
+  isFirstStepOfCurrentFase = false,
   canRollbackFase = false,
   canOperateFase = true,
   fasePrecedente = null,
@@ -444,7 +446,7 @@ export function IstanzaActions({
                 Avanza Step
               </Button>
             )}
-            {stepOrdine > 1 && !paymentConfirmed && (
+            {!isFirstStepOfCurrentFase && !paymentConfirmed && (
               <Button
                 variant="outline-warning"
                 onClick={() => setShowRegressModal(true)}

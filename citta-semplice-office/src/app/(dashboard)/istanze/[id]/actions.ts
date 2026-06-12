@@ -10,7 +10,8 @@ import { getStorage } from '@/lib/storage';
 import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
 import { ROLES } from '@/lib/auth/roles';
 
-// stato: operatoreId=null → In attesa, stato=0 → In lavorazione, stato=1 → Completata
+// stato: -1 → Indefinito/In attesa (non ancora preso in carico), 0 → In lavorazione, 1 → Completata
+const STATO_INDEFINITO = -1;
 const STATO_IN_LAVORAZIONE = 0;
 const STATO_COMPLETATA = 1;
 
@@ -85,8 +86,9 @@ function escapeHtml(s: string): string {
 }
 
 function getStatoLabel(operatoreId: number | null, stato: number): string {
-  if (operatoreId === null) return 'In attesa';
-  if (stato === 1) return 'Completata';
+  if (stato === STATO_INDEFINITO && operatoreId !== null) return 'Retrocesso';
+  if (stato === STATO_INDEFINITO || operatoreId === null) return 'In attesa';
+  if (stato === STATO_COMPLETATA) return 'Completata';
   return 'In lavorazione';
 }
 
@@ -261,6 +263,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       if (nextStepSameFase) {
         await tx.workflow.create({
           data: {
+<<<<<<< HEAD
             istanzaId,
             stepId: nextStepSameFase.id,
             dataVariazione: now,
@@ -280,6 +283,23 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           include: {
             steps: { orderBy: { ordine: 'asc' } },
             ufficio: true,
+=======
+            faseCorrenteId: nextFase.id,
+            ufficioCorrenteId: nextUfficioCorrenteId,
+            lastStepId: firstStepNextFase.id,
+            activeStep: firstStepNextFase.ordine,
+          },
+        });
+
+        // Crea workflow per il primo step della nuova fase (stato indefinito: l'ufficio entrante prende in carico)
+        await prisma.workflow.create({
+          data: {
+            istanzaId: istanza.id,
+            stepId: firstStepNextFase.id,
+            dataVariazione: now,
+            stato: STATO_INDEFINITO,
+            // operatoreId: null
+>>>>>>> 194f9686cdff7566d7183d6f519f50161ec5bff8
           },
         });
 
@@ -415,7 +435,8 @@ export async function regressWorkflow(istanzaId: number, note: string) {
     }
 
     const lastWorkflow = istanza.workflows[0];
-    const currentStepOrder = lastWorkflow?.step?.ordine || 0;
+    const currentStep = lastWorkflow?.step;
+    const currentStepOrder = currentStep?.ordine || 0;
 
     if (currentStepOrder <= 1) {
       return { success: false, message: 'Impossibile retrocedere: siamo già al primo step' };
@@ -428,10 +449,16 @@ export async function regressWorkflow(istanzaId: number, note: string) {
       return { success: false, message: 'Step precedente non trovato' };
     }
 
+    // Previeni retrocessione cross-fase: usare "Rimanda a fase precedente"
+    if (prevStep.faseId !== currentStep?.faseId) {
+      return { success: false, message: 'Impossibile retrocedere oltre il primo step della fase corrente. Usa "Rimanda a fase precedente".' };
+    }
+
     const now = new Date();
     const currentStep = lastWorkflow?.step;
     const crossingPhase = prevStep.faseId !== (currentStep?.faseId ?? null);
 
+<<<<<<< HEAD
     await prisma.$transaction(async (tx) => {
       if (lastWorkflow) {
         await tx.workflow.update({
@@ -450,12 +477,23 @@ export async function regressWorkflow(istanzaId: number, note: string) {
           istanzaId,
           stepId: prevStep.id,
           stato: STATO_IN_LAVORAZIONE,
+=======
+    // Segna il workflow corrente come retrocesso (stato indefinito, operatore mantenuto per audit)
+    if (lastWorkflow) {
+      await prisma.workflow.update({
+        where: { id: lastWorkflow.id },
+        data: {
+          stato: STATO_INDEFINITO,
+          note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
+          dataVariazione: now,
+>>>>>>> 194f9686cdff7566d7183d6f519f50161ec5bff8
           operatoreId,
           dataVariazione: now,
           note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
         },
       });
 
+<<<<<<< HEAD
       await tx.istanza.update({
         where: { id: istanzaId },
         data: {
@@ -467,6 +505,24 @@ export async function regressWorkflow(istanzaId: number, note: string) {
           } : {}),
         },
       });
+=======
+    // Crea nuovo workflow al passo precedente (in lavorazione)
+    await prisma.workflow.create({
+      data: {
+        istanzaId,
+        stepId: prevStep.id,
+        stato: STATO_IN_LAVORAZIONE,
+        operatoreId,
+        dataVariazione: now,
+        note: note ? `[Retrocesso da step ${currentStepOrder}] ${note}` : `[Retrocesso da step ${currentStepOrder}]`,
+      },
+    });
+
+    // Update last step
+    await prisma.istanza.update({
+      where: { id: istanzaId },
+      data: { lastStepId: prevStep.id },
+>>>>>>> 194f9686cdff7566d7183d6f519f50161ec5bff8
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -753,21 +809,20 @@ export async function takeCharge(istanzaId: number) {
 
     const lastWorkflow = istanza.workflows[0];
 
-    // Se c'è già un workflow al primo step con operatore assegnato, è già in carico
-    if (lastWorkflow?.stepId === firstStep.id && lastWorkflow.operatoreId !== null) {
+    if (lastWorkflow && lastWorkflow.operatoreId !== null) {
       return { success: false, message: 'Istanza già presa in carico' };
     }
 
     const now = new Date();
 
-    if (lastWorkflow?.stepId === firstStep.id && lastWorkflow.operatoreId === null) {
-      // Workflow auto-creato all'invio: aggiorna solo l'operatore
+    if (lastWorkflow) {
+      // Aggiorna il workflow corrente (qualunque step sia, anche in fase successiva alla prima)
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
-        data: { operatoreId },
+        data: { operatoreId, stato: STATO_IN_LAVORAZIONE },
       });
     } else {
-      // Nessun workflow esistente: crea il primo step
+      // Edge case: nessun workflow esistente (legacy) — crea al primo step del servizio
       await prisma.workflow.create({
         data: {
           istanzaId,
@@ -1224,6 +1279,41 @@ export async function rollbackFase(params: {
   const now = new Date();
   const operatoreId = parseInt(operatore.id);
 
+<<<<<<< HEAD
+=======
+  // Chiudi WorkflowFase corrente con direzione ROLLBACK
+  await prisma.workflowFase.updateMany({
+    where: { istanzaId: istanza.id, faseId: istanza.faseCorrente.id, dataCompletamento: null },
+    data: {
+      dataCompletamento: now,
+      operatoreCompletamentoId: operatoreId,
+      direzione: 'ROLLBACK',
+    },
+  });
+
+  // Crea nuovo WorkflowFase per la fase precedente
+  await prisma.workflowFase.create({
+    data: {
+      istanzaId: istanza.id,
+      faseId: fasePrecedente.id,
+      dataInizio: now,
+      direzione: 'ROLLBACK',
+    },
+  });
+
+  // Crea nuovo Workflow per l'ultimo step della fase precedente (stato indefinito: l'ufficio precedente riprende in carico)
+  await prisma.workflow.create({
+    data: {
+      istanzaId: istanza.id,
+      stepId: lastStepFasePrecedente.id,
+      dataVariazione: now,
+      stato: STATO_INDEFINITO,
+      note: `[Rollback di fase] ${params.note}`,
+      // operatoreId: null
+    },
+  });
+
+>>>>>>> 194f9686cdff7566d7183d6f519f50161ec5bff8
   const rollbackUfficioCorrenteId = fasePrecedente.ufficioId ?? null;
 
   await prisma.$transaction(async (tx) => {
