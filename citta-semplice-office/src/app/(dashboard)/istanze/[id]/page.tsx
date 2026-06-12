@@ -156,6 +156,9 @@ export default async function IstanzaDetailPage({
   const steps = istanza.servizio.steps;
   const lastStepOrdine = steps.length > 0 ? steps[steps.length - 1].ordine : 0;
   const isLastStep = currentStep ? currentStep.ordine === lastStepOrdine : false;
+  const isFirstStepOfCurrentFase = currentStep
+    ? !steps.some((s) => s.faseId === currentStep.faseId && s.ordine < currentStep.ordine)
+    : true;
 
   // Il selettore ufficio si mostra solo se lo step corrente è l'ultimo della sua fase
   const isLastStepOfFase = currentStep?.faseId != null
@@ -237,6 +240,7 @@ export default async function IstanzaDetailPage({
           currentPayment={lastWorkflow?.pagamentoAtteso ?? null}
           stepOrdine={currentStep?.ordine ?? 0}
           isLastStep={isLastStep}
+          isFirstStepOfCurrentFase={isFirstStepOfCurrentFase}
           canRollbackFase={canRollbackFase}
           canOperateFase={canOperateFase}
           faseCorrente={faseCorrente ? { nome: faseCorrente.nome, ordine: faseCorrente.ordine } : null}
@@ -392,8 +396,6 @@ export default async function IstanzaDetailPage({
                   cognome: istanza.utente.cognome,
                   email: istanza.utente.email,
                 }}
-                canOperateFase={canOperateFase}
-                faseCorrenteOrdine={faseCorrente?.ordine ?? null}
               />
             </CardBody>
           </Card>

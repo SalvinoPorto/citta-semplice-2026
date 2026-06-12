@@ -11,8 +11,6 @@ async function getServizi() {
 
 export default async function RicerchePage() {
   const servizi = await getServizi();
-  // Map to { id, name } shape expected by RicercheClient
-  const moduli = servizi.map((s) => ({ id: s.id, name: s.titolo }));
 
   return (
     <div>
@@ -21,7 +19,7 @@ export default async function RicerchePage() {
         <p>Ricerca avanzata e esportazione dati</p>
       </div>
 
-      <RicercheClient moduli={moduli} />
+      <RicercheClient servizi={servizi} />
     </div>
   );
 }

@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
       'Cognome',
       'Nome',
       'Causale',
-      'Modulo',
+      'Servizio',
       'ID Istanza',
     ];
 

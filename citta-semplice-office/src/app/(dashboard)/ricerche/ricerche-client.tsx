@@ -4,13 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardBody, CardTitle, Button, Input, Select, Badge } from '@/components/ui';
 
-interface Modulo {
+interface Servizio {
   id: number;
-  name: string;
+  titolo: string;
 }
 
 interface RicercheClientProps {
-  moduli: Modulo[];
+  servizi: Servizio[];
 }
 
 interface SearchResult {
@@ -25,7 +25,7 @@ interface SearchResult {
   iuv?: string;
 }
 
-export function RicercheClient({ moduli }: RicercheClientProps) {
+export function RicercheClient({ servizi }: RicercheClientProps) {
   const [searchType, setSearchType] = useState('istanze');
   const [filters, setFilters] = useState({
     codiceFiscale: '',
@@ -132,9 +132,9 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
                 }
               >
                 <option value="">Tutti i servizi</option>
-                {moduli.map((modulo) => (
-                  <option key={modulo.id} value={modulo.id}>
-                    {modulo.name}
+                {servizi.map((servizio) => (
+                  <option key={servizio.id} value={servizio.id}>
+                    {servizio.titolo}
                   </option>
                 ))}
               </Select>
@@ -299,7 +299,7 @@ export function RicercheClient({ moduli }: RicercheClientProps) {
             <tr>
               <th>ID</th>
               <th>Utente</th>
-              <th>Modulo</th>
+              <th>Servizio</th>
               <th>Data</th>
               <th>Protocollo</th>
               <th>Stato</th>

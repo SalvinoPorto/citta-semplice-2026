@@ -46,7 +46,7 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean, ufficioId
   const [nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale] =
     await Promise.all([
       prisma.istanza.count({
-        where: { ...visibilitaFilter, inBozza: false, conclusa: false, respinta: false, workflows: { some: { operatoreId: null, stato: 0 } } },
+        where: { ...visibilitaFilter, inBozza: false, conclusa: false, respinta: false, workflows: { some: { operatoreId: null } } },
       }),
       prisma.$queryRaw<[{ count: bigint }]>`
           SELECT COUNT(DISTINCT i.id) as count
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     case 'nuove':
       whereClause.conclusa = false;
       whereClause.respinta = false;
-      whereClause.workflows = { some: { operatoreId: null, stato: 0 } };
+      whereClause.workflows = { some: { operatoreId: null } };
       break;
     case 'mie':
     case 'altri':
