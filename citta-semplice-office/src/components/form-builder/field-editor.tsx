@@ -48,7 +48,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
     field.type
   );
   const hasOptions = ['select', 'radio'].includes(field.type);
-  const isLayoutField = ['heading', 'paragraph', 'divider'].includes(field.type);
+  const isLayoutField = ['heading', 'section', 'paragraph', 'divider'].includes(field.type);
 
   return (
     <div className="field-editor">
@@ -81,7 +81,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
       {isLayoutField && (
         <div className="mb-3">
           <label className="form-label small fw-bold">
-            {field.type === 'heading' ? 'Testo Titolo' : 'Contenuto'}
+            {field.type === 'heading' ? 'Testo Titolo' : field.type === 'section' ? 'Etichetta Sezione' : 'Contenuto'}
           </label>
           {field.type === 'paragraph' ? (
             <textarea
@@ -371,7 +371,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         const candidateFields = allFields.filter(
           (f) =>
             f.id !== field.id &&
-            !['heading', 'paragraph', 'divider', 'hidden'].includes(f.type)
+            !['heading', 'section', 'paragraph', 'divider', 'hidden'].includes(f.type)
         );
         const hasCondition = !!field.condition;
         const operator = field.condition?.operator ?? 'equals';

@@ -13,6 +13,7 @@ export type FieldType =
   | 'file'
   | 'hidden'
   | 'heading'
+  | 'section'
   | 'paragraph'
   | 'divider';
 
@@ -80,6 +81,7 @@ export const FIELD_TYPES: { type: FieldType; label: string; icon: string; catego
   { type: 'file', label: 'File Upload', icon: '📎', category: 'File' },
   // Layout
   { type: 'heading', label: 'Titolo', icon: 'H', category: 'Layout' },
+  { type: 'section', label: 'Sezione', icon: 'S', category: 'Layout' },
   { type: 'paragraph', label: 'Paragrafo', icon: 'P', category: 'Layout' },
   { type: 'divider', label: 'Separatore', icon: '—', category: 'Layout' },
   // Hidden
@@ -142,7 +144,9 @@ export function createDefaultField(type: FieldType): FormField {
     case 'file':
       return { ...base, name: 'allegato', label: 'Allegato', accept: '.pdf,.doc,.docx,.jpg,.png' };
     case 'heading':
-      return { ...base, name: 'heading', label: 'Sezione' };
+      return { ...base, name: 'heading', label: 'Titolo' };
+    case 'section':
+      return { ...base, name: 'section', label: 'Sezione' };
     case 'paragraph':
       return { ...base, name: 'paragraph', label: 'Testo informativo da mostrare all\'utente.' };
     case 'divider':
