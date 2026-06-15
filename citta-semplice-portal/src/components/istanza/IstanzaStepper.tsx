@@ -9,7 +9,7 @@ import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
 import { isFieldVisible, FieldCondition } from '@/lib/form-condition';
 import { toast } from 'sonner';
 
-const SKIP_FIELD_TYPES = new Set(['heading', 'paragraph', 'divider', 'hidden', 'file']);
+const SKIP_FIELD_TYPES = new Set(['heading', 'section','paragraph', 'divider', 'hidden', 'file']);
 
 type RawField = { name: string; label: string; type?: string; condition?: FieldCondition };
 

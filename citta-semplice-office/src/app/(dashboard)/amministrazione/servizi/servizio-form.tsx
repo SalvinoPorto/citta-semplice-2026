@@ -357,7 +357,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   );
 
   const formFields: { name: string; label: string }[] = (initialFormSchema?.fields ?? [])
-    .filter((f) => f.name && !['heading', 'paragraph', 'divider'].includes(f.type))
+    .filter((f) => f.name && !['heading', 'section', 'paragraph', 'divider'].includes(f.type))
     .map((f) => ({ name: f.name, label: f.label || f.name }));
 
   const { fields, remove, move, insert } = useFieldArray({
@@ -625,7 +625,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="descrizione"
                     render={({ field: { onChange, value } }) => (
-                      <Editor value={value ?? ''} onChange={onChange} />
+                      <Editor value={value ?? ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -636,7 +636,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="comeFare"
                     render={({ field: { onChange, value } }) => (
-                      <Editor value={value ?? ''} onChange={onChange} />
+                      <Editor value={value ?? ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -647,7 +647,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="cosaServe"
                     render={({ field: { onChange, value } }) => (
-                      <Editor value={value ?? ''} onChange={onChange} />
+                      <Editor value={value ?? ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -658,7 +658,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="altreInfo"
                     render={({ field: { onChange, value } }) => (
-                      <Editor value={value ?? ''} onChange={onChange} />
+                      <Editor value={value ?? ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -669,7 +669,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="contatti"
                     render={({ field: { onChange, value } }) => (
-                      <Editor value={value ?? ''} onChange={onChange} />
+                      <Editor value={value ?? ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -910,7 +910,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                           control={control}
                           name="templateDocumentoFinale"
                           render={({ field: { onChange, value } }) => (
-                            <Editor value={value ?? ''} onChange={onChange} />
+                            <Editor value={value ?? ''} onChange={onChange} withLink />
                           )}
                         />
                       </div>
@@ -1484,7 +1484,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.unitaOrganizzativaCompetente"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -1495,7 +1495,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.ufficioCompetente"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -1506,7 +1506,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.responsabileProcedimento"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -1529,7 +1529,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.responsabileProvvedimentoFinale"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -1540,7 +1540,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.personaPotereSostitutivo"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -1551,7 +1551,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.urlServizioWeb"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>
@@ -1562,7 +1562,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     control={control}
                     name="ricevutaArt18.ufficioRicevimento"
                     render={({ field: { value, onChange } }) => (
-                      <Editor value={value || ''} onChange={onChange} />
+                      <Editor value={value || ''} onChange={onChange} withLink />
                     )}
                   />
                 </div>

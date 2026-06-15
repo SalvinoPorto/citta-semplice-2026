@@ -102,6 +102,32 @@
   height: 0;
 }
 
+.tiptap-link-input {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tiptap-link-input input {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #0d6efd;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  width: 220px;
+  outline: none;
+}
+
+.tiptap-link-input button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.ProseMirror a {
+  color: #0d6efd;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Invalid state */
 .tiptap-editor.is-invalid {
   border-color: #dc3545;

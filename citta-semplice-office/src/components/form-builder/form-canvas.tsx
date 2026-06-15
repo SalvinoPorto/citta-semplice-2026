@@ -66,6 +66,9 @@ export function FormCanvas({
     switch (field.type) {
       case 'heading':
         return <h5 className="mb-0">{field.label || 'Titolo'}</h5>;
+      
+      case 'section':
+        return <div className="section-title">{field.label || 'Sezione'}</div>;
 
       case 'paragraph':
         return <p className="mb-0 text-muted">{field.label || 'Testo paragrafo'}</p>;

@@ -47,6 +47,7 @@ interface FormField {
     | 'file'
     | 'hidden'
     | 'heading'
+    | 'section'
     | 'paragraph'
     | 'divider';
   width?: 'full' | 'half' | 'third' | 'twothirds';
@@ -110,7 +111,7 @@ function buildSchema(campi: FormField[]) {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   for (const campo of campi) {
-    if (['heading', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
+    if (['heading', 'section', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
 
     const required = (campo.validation?.required ?? false) && !campo.condition;
 
@@ -204,7 +205,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
       let conditionalValid = true;
       for (const campo of campi) {
         if (!campo.condition || !campo.validation?.required) continue;
-        if (['heading', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
+        if (['heading', 'section', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
 
         if (isFieldVisible(campo, currentValues)) {
           const val = currentValues[campo.name];
@@ -261,10 +262,14 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
     switch (campo.type) {
       case 'heading':
-        //return <h4 className="mt-4 mb-3">{campo.label}</h4>;
-        return <div className="section-title">{campo.label}</div>;
+        return <h4 className="mt-4 mb-3">{campo.label}</h4>;
+        
+      case 'section':
+          return <div className="section-title">{campo.label}</div>;
+      
       case 'paragraph':
         return <p className="text-muted mb-3">{campo.label}</p>;
+
 
       case 'divider':
         return <hr className="my-4" />;
@@ -427,7 +432,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   campiVisibili.forEach((campo) => {
     const fieldWidth = campo.width === 'half' ? 6 : campo.width === 'third' ? 4 : campo.width === 'twothirds' ? 8 : 12;
 
-    if (['heading', 'paragraph', 'divider'].includes(campo.type)) {
+    if (['heading', 'section', 'paragraph', 'divider'].includes(campo.type)) {
       if (currentRow.length > 0) {
         rows.push(currentRow);
         currentRow = [];
