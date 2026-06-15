@@ -49,7 +49,7 @@ interface FormField {
     | 'heading'
     | 'paragraph'
     | 'divider';
-  width?: 'full' | 'half' | 'third';
+  width?: 'full' | 'half' | 'third' | 'twothirds';
   placeholder?: string;
   defaultValue?: string;
   helpText?: string;
@@ -170,6 +170,7 @@ function getWidthClass(width?: string) {
   switch (width) {
     case 'half':  return 'col-md-6';
     case 'third': return 'col-md-4';
+    case 'twothirds': return 'col-md-8';
     default:      return 'col-12';
   }
 }
@@ -260,8 +261,8 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
     switch (campo.type) {
       case 'heading':
-        return <h4 className="mt-4 mb-3">{campo.label}</h4>;
-
+        //return <h4 className="mt-4 mb-3">{campo.label}</h4>;
+        return <div className="section-title">{campo.label}</div>;
       case 'paragraph':
         return <p className="text-muted mb-3">{campo.label}</p>;
 
@@ -406,9 +407,9 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
               {...restReg}
             />
             {campo.helpText && <small className="text-muted">{campo.helpText}</small>}
-            {campo.validation?.pattern && campo.validation?.patternMessage && (
+            {/* {campo.validation?.pattern && campo.validation?.patternMessage && (
               <small className="text-muted d-block">Formato: {campo.validation.patternMessage}</small>
-            )}
+            )} */}
             {errorMsg && <div className="invalid-feedback">{errorMsg}</div>}
           </div>
         );
@@ -424,7 +425,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   let currentWidth = 0;
 
   campiVisibili.forEach((campo) => {
-    const fieldWidth = campo.width === 'half' ? 6 : campo.width === 'third' ? 4 : 12;
+    const fieldWidth = campo.width === 'half' ? 6 : campo.width === 'third' ? 4 : campo.width === 'twothirds' ? 8 : 12;
 
     if (['heading', 'paragraph', 'divider'].includes(campo.type)) {
       if (currentRow.length > 0) {

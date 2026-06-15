@@ -38,6 +38,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
         return 'col-md-6';
       case 'third':
         return 'col-md-4';
+      case 'twothirds':
+        return 'col-md-8';
       default:
         return 'col-12';
     }
@@ -50,8 +52,8 @@ export function FormPreview({ fields }: FormPreviewProps) {
 
     switch (field.type) {
       case 'heading':
-        return <h4 className="mt-4 mb-3">{field.label}</h4>;
-
+        //return <h4 className="mt-4 mb-3">{field.label}</h4>;
+        return <div className="section-title">{field.label}</div>;
       case 'paragraph':
         return <p className="text-muted mb-3">{field.label}</p>;
 
@@ -231,7 +233,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
 
   visibleFields.forEach((field) => {
     const fieldWidth =
-      field.width === 'half' ? 6 : field.width === 'third' ? 4 : 12;
+      field.width === 'half' ? 6 : field.width === 'third' ? 4 : field.width === 'twothirds' ? 8 : 12;
 
     if (['heading', 'paragraph', 'divider'].includes(field.type)) {
       if (currentRow.length > 0) {

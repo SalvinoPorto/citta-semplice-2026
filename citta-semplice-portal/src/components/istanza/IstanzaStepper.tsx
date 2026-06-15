@@ -6,21 +6,32 @@ import { ModuloStep, ModuloStepHandle } from './ModuloStep';
 import { AllegatiStep, AllegatiStepHandle, AllegatoCaricato, AllegatoRichiesto } from './AllegatiStep';
 import { RiepilogoStep } from './RiepilogoStep';
 import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
+import { isFieldVisible, FieldCondition } from '@/lib/form-condition';
 import { toast } from 'sonner';
+
+const SKIP_FIELD_TYPES = new Set(['heading', 'paragraph', 'divider', 'hidden', 'file']);
+
+type RawField = { name: string; label: string; type?: string; condition?: FieldCondition };
 
 function buildDatiConLabel(
   datiModulo: Record<string, unknown>,
   attributi: string | null | undefined,
 ): string {
-  let campi: { fields: Array<{ name: string; label: string }> } = { fields: [] };
+  let fields: RawField[] = [];
   try {
-    if (attributi) campi = JSON.parse(attributi);
-  } catch (e){ console.error('Errore durante il parsing degli attributi', e); }
-  const arricchiti = campi.fields.map(({ name, label }) => ({
-    name,
-    label,
-    value: datiModulo[name] !== undefined ? String(datiModulo[name]) : '',
-  })).filter((campo) => campo.name !== 'paragraph'); // Filtra i campi testo statico
+    if (attributi) {
+      const parsed = JSON.parse(attributi);
+      fields = Array.isArray(parsed) ? parsed : (parsed?.fields ?? []);
+    }
+  } catch { /* ignore */ }
+
+  const arricchiti = fields
+    .filter((f) => !SKIP_FIELD_TYPES.has(f.type ?? '') && isFieldVisible(f, datiModulo))
+    .map(({ name, label }) => ({
+      name,
+      label,
+      value: datiModulo[name] !== undefined ? String(datiModulo[name]) : '',
+    }));
   return JSON.stringify(arricchiti);
 }
 

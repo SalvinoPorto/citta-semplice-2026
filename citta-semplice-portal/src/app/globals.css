@@ -444,3 +444,13 @@ ul.footer-list {
 .form-check [type="checkbox"] + label, .form-check [type="radio"] + label {
   font-size: 1rem;
 }
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    border-bottom: 2px solid #000;
+    padding-bottom: 4px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
