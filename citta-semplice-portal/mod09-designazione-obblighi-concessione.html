@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOD09 – Designazione obblighi concessione cimiteriale</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+    body { font-size: 0.95rem; }
+    .section-title { font-size: 1rem; font-weight: 700; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: .04em; }
+    .discendente-block { border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: #fafafa; }
+    .discendente-block legend { font-size: 0.85rem; font-weight: 600; }
+    .legal-text { font-size: 0.82rem; color: #444; background: #f8f9fa; border-left: 3px solid #6c757d; padding: 0.75rem 1rem; margin-bottom: 1.25rem; }
+    .comunica-box { background: #f0f4ff; border: 1px solid #b3c6ff; border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    .comunica-box p { font-size: 0.9rem; color: #333; margin-bottom: 0.75rem; }
+    .required-mark { color: red; }
+    label { font-weight: 500; }
+  </style>
+</head>
+<body class="container py-4" style="max-width: 860px;">
+
+  <div class="text-end mb-4 text-muted" style="font-style: italic; font-size: 0.9rem;">
+    Al Comune di Catania<br>
+    Direzione Patrimonio<br>
+    Servizi Cimiteriali
+  </div>
+
+  <p class="mb-4">
+    <strong>Oggetto:</strong> Designazione ad assumere gli obblighi inerenti la concessione ai sensi
+    dell'art.&nbsp;28 comma&nbsp;2 del Regolamento Comunale dei Servizi Funebri e Cimiteriali
+  </p>
+
+  <form id="mod09" novalidate>
+
+    <!-- ─── DATI DICHIARANTE ──────────────────────────────────────────── -->
+    <div class="section-title">Dati del dichiarante</div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12">
+        <label class="form-label" for="cognome_nome">Il/la sottoscritt_ (cognome e nome) <span class="required-mark">*</span></label>
+        <input type="text" class="form-control text-uppercase" id="cognome_nome" name="cognome_nome" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label" for="nato_a">Nat_ a <span class="required-mark">*</span></label>
+        <input type="text" class="form-control" id="nato_a" name="nato_a" placeholder="Città di nascita" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="data_nascita">il <span class="required-mark">*</span></label>
+        <input type="date" class="form-control" id="data_nascita" name="data_nascita" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="codice_fiscale">Codice fiscale <span class="required-mark">*</span></label>
+        <input type="text" class="form-control text-uppercase" id="codice_fiscale" name="codice_fiscale" maxlength="16" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label" for="residente_a">Residente a <span class="required-mark">*</span></label>
+        <input type="text" class="form-control" id="residente_a" name="residente_a" placeholder="Città" required>
+      </div>
+      <div class="col-md-7">
+        <label class="form-label" for="indirizzo">via / piazza <span class="required-mark">*</span></label>
+        <input type="text" class="form-control" id="indirizzo" name="indirizzo" placeholder="Indirizzo" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="telefono">Telefono</label>
+        <input type="tel" class="form-control" id="telefono" name="telefono">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="cellulare">Cellulare <span class="required-mark">*</span></label>
+        <input type="tel" class="form-control" id="cellulare" name="cellulare" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="email_pec">Email / PEC <span class="required-mark">*</span></label>
+        <input type="email" class="form-control" id="email_pec" name="email_pec" required>
+      </div>
+    </div>
+
+    <!-- ─── DATI CONCESSIONE ─────────────────────────────────────────── -->
+    <div class="section-title mt-4">Dati della concessione</div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <label class="form-label" for="qualita_dichiarante">nel dichiarare di essere (qualità) <span class="required-mark">*</span></label>
+        <input type="text" class="form-control" id="qualita_dichiarante" name="qualita_dichiarante"
+               placeholder="es. erede, successore…" required>
+        <div class="form-text">della concessione cimiteriale indicata di seguito</div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Tipo concessione <span class="required-mark">*</span></label>
+        <div class="d-flex flex-wrap gap-4">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipo_concessione" id="tipo_terreno" value="terreno" required>
+            <label class="form-check-label" for="tipo_terreno">Terreno</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipo_concessione" id="tipo_loculo" value="loculo">
+            <label class="form-check-label" for="tipo_loculo">Loculo</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipo_concessione" id="tipo_edicola" value="edicola">
+            <label class="form-check-label" for="tipo_edicola">Edicola</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label" for="superficie_mq">di mq</label>
+        <input type="number" class="form-control" id="superficie_mq" name="superficie_mq" min="0" step="0.01">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="riquadro">sito al Riquadro <span class="required-mark">*</span></label>
+        <input type="text" class="form-control" id="riquadro" name="riquadro" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="lato_n">Lato n. <span class="required-mark">*</span></label>
+        <input type="text" class="form-control" id="lato_n" name="lato_n" required>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">del Cimitero di <span class="required-mark">*</span></label>
+        <div class="d-flex flex-wrap gap-4">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cimitero" id="cim_acquicella" value="Acquicella" required>
+            <label class="form-check-label" for="cim_acquicella">Acquicella</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cimitero" id="cim_sgalermo" value="San Giovanni Galermo">
+            <label class="form-check-label" for="cim_sgalermo">San Giovanni Galermo</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label" for="data_rilascio">rilasciata il <span class="required-mark">*</span></label>
+        <input type="date" class="form-control" id="data_rilascio" name="data_rilascio" required>
+      </div>
+      <div class="col-md-9">
+        <label class="form-label" for="rilasciata_al">al (nome del concessionario originario) <span class="required-mark">*</span></label>
+        <input type="text" class="form-control text-uppercase" id="rilasciata_al" name="rilasciata_al" required>
+      </div>
+    </div>
+
+    <!-- ─── TESTO LEGALE ─────────────────────────────────────────────── -->
+    <div class="legal-text mt-3">
+      Consapevole delle sanzioni penali richiamate dall'art.&nbsp;76 del D.P.R. 28.12.2000, n.&nbsp;445
+      in caso di dichiarazioni mendaci e della decadenza dai benefici eventualmente conseguenti al
+      provvedimento emanato sulla base di dichiarazioni non veritiere, di cui all'art.&nbsp;75 del
+      D.P.R. 28.12.2000 n.&nbsp;445; ai sensi e per gli effetti dell'art.&nbsp;47 del citato
+      D.P.R.&nbsp;445/2000
+    </div>
+
+    <!-- ─── COMUNICA ─────────────────────────────────────────────────── -->
+    <div class="comunica-box">
+      <p class="fw-bold text-center">COMUNICA</p>
+      <p>
+        ai sensi dell'art.&nbsp;28 comma&nbsp;2 del Regolamento Comunale dei Servizi Funebri e
+        Cimiteriali di essere stato/a designato/a dai discendenti diretti del concessionario,
+        fino al 6° grado, dell'area posta al
+      </p>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label" for="com_riquadro">Riquadro <span class="required-mark">*</span></label>
+          <input type="text" class="form-control" id="com_riquadro" name="com_riquadro" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="com_lato_n">Lato n. <span class="required-mark">*</span></label>
+          <input type="text" class="form-control" id="com_lato_n" name="com_lato_n" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">del Cimitero di <span class="required-mark">*</span></label>
+          <div class="d-flex flex-wrap gap-4">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="com_cimitero" id="com_cim_acquicella" value="Acquicella" required>
+              <label class="form-check-label" for="com_cim_acquicella">Acquicella</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="com_cimitero" id="com_cim_sgalermo" value="San Giovanni Galermo">
+              <label class="form-check-label" for="com_cim_sgalermo">San Giovanni Galermo</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mt-3 mb-0">ad assumere verso il Comune gli obblighi inerenti la concessione stessa.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <label class="form-label" for="data_firma">Data <span class="required-mark">*</span></label>
+        <input type="date" class="form-control" id="data_firma" name="data_firma" required>
+      </div>
+    </div>
+
+    <!-- ─── DATI DISCENDENTI ─────────────────────────────────────────── -->
+    <div class="section-title mt-4">Dati discendenti viventi del concessionario</div>
+
+    <div id="discendenti-container">
+
+      <!-- Template ripetuto 7 volte -->
+
+      <!-- Discendente 1 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 1</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_1_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_1_nome" name="disc_1_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_1_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_1_nato_a" name="disc_1_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_1_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_1_data_nascita" name="disc_1_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_1_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_1_residente_a" name="disc_1_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_1_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_1_prov" name="disc_1_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_1_via">Via</label>
+            <input type="text" class="form-control" id="disc_1_via" name="disc_1_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_1_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_1_cap" name="disc_1_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_1_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_1_telefono" name="disc_1_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_1_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_1_qualita" name="disc_1_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Discendente 2 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 2</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_2_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_2_nome" name="disc_2_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_2_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_2_nato_a" name="disc_2_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_2_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_2_data_nascita" name="disc_2_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_2_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_2_residente_a" name="disc_2_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_2_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_2_prov" name="disc_2_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_2_via">Via</label>
+            <input type="text" class="form-control" id="disc_2_via" name="disc_2_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_2_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_2_cap" name="disc_2_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_2_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_2_telefono" name="disc_2_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_2_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_2_qualita" name="disc_2_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Discendente 3 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 3</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_3_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_3_nome" name="disc_3_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_3_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_3_nato_a" name="disc_3_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_3_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_3_data_nascita" name="disc_3_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_3_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_3_residente_a" name="disc_3_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_3_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_3_prov" name="disc_3_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_3_via">Via</label>
+            <input type="text" class="form-control" id="disc_3_via" name="disc_3_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_3_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_3_cap" name="disc_3_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_3_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_3_telefono" name="disc_3_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_3_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_3_qualita" name="disc_3_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Discendente 4 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 4</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_4_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_4_nome" name="disc_4_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_4_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_4_nato_a" name="disc_4_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_4_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_4_data_nascita" name="disc_4_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_4_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_4_residente_a" name="disc_4_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_4_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_4_prov" name="disc_4_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_4_via">Via</label>
+            <input type="text" class="form-control" id="disc_4_via" name="disc_4_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_4_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_4_cap" name="disc_4_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_4_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_4_telefono" name="disc_4_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_4_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_4_qualita" name="disc_4_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Discendente 5 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 5</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_5_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_5_nome" name="disc_5_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_5_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_5_nato_a" name="disc_5_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_5_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_5_data_nascita" name="disc_5_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_5_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_5_residente_a" name="disc_5_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_5_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_5_prov" name="disc_5_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_5_via">Via</label>
+            <input type="text" class="form-control" id="disc_5_via" name="disc_5_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_5_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_5_cap" name="disc_5_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_5_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_5_telefono" name="disc_5_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_5_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_5_qualita" name="disc_5_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Discendente 6 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 6</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_6_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_6_nome" name="disc_6_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_6_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_6_nato_a" name="disc_6_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_6_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_6_data_nascita" name="disc_6_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_6_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_6_residente_a" name="disc_6_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_6_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_6_prov" name="disc_6_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_6_via">Via</label>
+            <input type="text" class="form-control" id="disc_6_via" name="disc_6_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_6_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_6_cap" name="disc_6_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_6_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_6_telefono" name="disc_6_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_6_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_6_qualita" name="disc_6_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Discendente 7 -->
+      <fieldset class="discendente-block">
+        <legend>Discendente 7</legend>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="disc_7_nome">Cognome e nome</label>
+            <input type="text" class="form-control text-uppercase" id="disc_7_nome" name="disc_7_nome">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_7_nato_a">Nato/a a</label>
+            <input type="text" class="form-control" id="disc_7_nato_a" name="disc_7_nato_a">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="disc_7_data_nascita">il</label>
+            <input type="date" class="form-control" id="disc_7_data_nascita" name="disc_7_data_nascita">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" for="disc_7_residente_a">Residente a</label>
+            <input type="text" class="form-control" id="disc_7_residente_a" name="disc_7_residente_a">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_7_prov">Prov.</label>
+            <input type="text" class="form-control text-uppercase" id="disc_7_prov" name="disc_7_prov" maxlength="2">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="disc_7_via">Via</label>
+            <input type="text" class="form-control" id="disc_7_via" name="disc_7_via">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label" for="disc_7_cap">CAP</label>
+            <input type="text" class="form-control" id="disc_7_cap" name="disc_7_cap" maxlength="5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="disc_7_telefono">Telefono</label>
+            <input type="tel" class="form-control" id="disc_7_telefono" name="disc_7_telefono">
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="disc_7_qualita">In qualità di (grado di parentela)</label>
+            <input type="text" class="form-control" id="disc_7_qualita" name="disc_7_qualita" placeholder="es. figlio, nipote, pronipote…">
+          </div>
+        </div>
+      </fieldset>
+
+    </div><!-- /discendenti-container -->
+
+    <!-- ─── ALBERO GENEALOGICO ───────────────────────────────────────── -->
+    <div class="section-title mt-4">Albero genealogico</div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-8">
+        <label class="form-label" for="concessionario_originario">Concessionario originario</label>
+        <input type="text" class="form-control text-uppercase" id="concessionario_originario" name="concessionario_originario">
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="albero_genealogico">Allegare albero genealogico (PDF)</label>
+        <input type="file" class="form-control" id="albero_genealogico" name="albero_genealogico" accept=".pdf">
+        <div class="form-text">Allegare documento con l'albero genealogico completo dei discendenti.</div>
+      </div>
+    </div>
+
+    <!-- ─── SUBMIT ────────────────────────────────────────────────────── -->
+    <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+      <button type="reset" class="btn btn-outline-secondary">Azzera</button>
+      <button type="submit" class="btn btn-primary">Invia la richiesta</button>
+    </div>
+
+  </form>
+
+</body>
+</html>

@@ -198,6 +198,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
           >
             <option value="full">Intera riga</option>
             <option value="half">Metà riga</option>
+            <option value="twothirds">Due terzi</option>
             <option value="third">Un terzo</option>
           </select>
         </div>
