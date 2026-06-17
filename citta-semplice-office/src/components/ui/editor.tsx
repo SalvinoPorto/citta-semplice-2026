@@ -26,12 +26,15 @@ const MenuBar = ({ editor, withLink }: { editor: any; withLink?: boolean }) => {
     }
 
     const handleLinkClick = () => {
-        if (editor.isActive('link')) {
-            editor.chain().focus().unsetLink().run();
-        } else {
-            setLinkUrl('');
-            setShowLinkInput(true);
-        }
+        const currentUrl = editor.isActive('link') ? (editor.getAttributes('link').href || '') : '';
+        setLinkUrl(currentUrl);
+        setShowLinkInput(true);
+    };
+
+    const handleLinkRemove = () => {
+        editor.chain().focus().unsetLink().run();
+        setShowLinkInput(false);
+        setLinkUrl('');
     };
 
     const handleLinkConfirm = () => {
@@ -104,7 +107,7 @@ const MenuBar = ({ editor, withLink }: { editor: any; withLink?: boolean }) => {
                         type="button"
                         onClick={handleLinkClick}
                         className={editor.isActive('link') ? 'is-active' : ''}
-                        title={editor.isActive('link') ? 'Rimuovi link' : 'Inserisci link'}
+                        title={editor.isActive('link') ? 'Modifica link' : 'Inserisci link'}
                     >
                         Link
                     </button>
@@ -123,6 +126,9 @@ const MenuBar = ({ editor, withLink }: { editor: any; withLink?: boolean }) => {
                             />
                             <button type="button" onClick={handleLinkConfirm} title="Conferma">✓</button>
                             <button type="button" onClick={handleLinkCancel} title="Annulla">✕</button>
+                            {editor.isActive('link') && (
+                                <button type="button" onClick={handleLinkRemove} title="Rimuovi link">✕ link</button>
+                            )}
                         </div>
                     )}
                 </>
@@ -137,7 +143,10 @@ export default function Editor({ value, onChange, onBlur, placeholder, className
         extensions: [
             StarterKit,
             Underline,
-            ...(withLink ? [Link.configure({ openOnClick: false })] : []),
+            ...(withLink ? [Link.configure({ 
+                openOnClick: false,                 
+                defaultProtocol: 'https',
+                protocols: ['http', 'https'] })] : []),
         ],
         content: value,
         onUpdate: ({ editor: e }: { editor: any }) => {
