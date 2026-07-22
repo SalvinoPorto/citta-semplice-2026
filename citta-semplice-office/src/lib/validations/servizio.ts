@@ -1,10 +1,15 @@
 import { z } from 'zod';
 
+// A7: ogni fase DEVE avere un ufficio (colonna DB NOT NULL). Manteniamo il tipo
+// nullable per lo stato del form ("non ancora scelto"), ma la validazione rifiuta null.
 export const faseSchema = z.object({
   id: z.number().optional(),
   nome: z.string().min(1, 'Il nome è obbligatorio'),
   ordine: z.number().int().min(1),
-  ufficioId: z.number().int().nullable().optional(),
+  ufficioId: z.number({ error: 'Ufficio obbligatorio' }).int().nullable(),
+}).refine((f) => f.ufficioId != null, {
+  message: 'Ogni fase deve avere un ufficio assegnato',
+  path: ['ufficioId'],
 });
 
 export const allegatoRichiestoSchema = z.object({

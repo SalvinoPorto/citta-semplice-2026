@@ -179,10 +179,12 @@ async function main() {
   });
 
   // Create Steps for servizio
+  // `as const` evita che 'E' venga allargato a string: tipoProtocollo è l'enum
+  // Prisma TipoProtocollo ('E' | 'U'), non una stringa libera.
   const steps = [
     { descrizione: 'Presentazione Istanza', ordine: 1, protocollo: true, tipoProtocollo: 'E' },
     { descrizione: 'Chiusura Pratica', ordine: 2, protocollo: false, tipoProtocollo: null },
-  ];
+  ] as const;
 
   for (const step of steps) {
     await prisma.step.create({

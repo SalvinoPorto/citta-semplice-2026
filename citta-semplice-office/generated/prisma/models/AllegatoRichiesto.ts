@@ -41,7 +41,7 @@ export type AllegatoRichiestoMinAggregateOutputType = {
   nomeAllegatoRichiesto: string | null
   obbligatorio: boolean | null
   interno: boolean | null
-  soggetto: string | null
+  soggetto: $Enums.Soggetto | null
   stepId: number | null
 }
 
@@ -50,7 +50,7 @@ export type AllegatoRichiestoMaxAggregateOutputType = {
   nomeAllegatoRichiesto: string | null
   obbligatorio: boolean | null
   interno: boolean | null
-  soggetto: string | null
+  soggetto: $Enums.Soggetto | null
   stepId: number | null
 }
 
@@ -194,7 +194,7 @@ export type AllegatoRichiestoGroupByOutputType = {
   nomeAllegatoRichiesto: string
   obbligatorio: boolean
   interno: boolean
-  soggetto: string | null
+  soggetto: $Enums.Soggetto | null
   stepId: number | null
   _count: AllegatoRichiestoCountAggregateOutputType | null
   _avg: AllegatoRichiestoAvgAggregateOutputType | null
@@ -226,7 +226,7 @@ export type AllegatoRichiestoWhereInput = {
   nomeAllegatoRichiesto?: Prisma.StringFilter<"AllegatoRichiesto"> | string
   obbligatorio?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
   interno?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
-  soggetto?: Prisma.StringNullableFilter<"AllegatoRichiesto"> | string | null
+  soggetto?: Prisma.EnumSoggettoNullableFilter<"AllegatoRichiesto"> | $Enums.Soggetto | null
   stepId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
   step?: Prisma.XOR<Prisma.StepNullableScalarRelationFilter, Prisma.StepWhereInput> | null
 }
@@ -249,7 +249,7 @@ export type AllegatoRichiestoWhereUniqueInput = Prisma.AtLeast<{
   nomeAllegatoRichiesto?: Prisma.StringFilter<"AllegatoRichiesto"> | string
   obbligatorio?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
   interno?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
-  soggetto?: Prisma.StringNullableFilter<"AllegatoRichiesto"> | string | null
+  soggetto?: Prisma.EnumSoggettoNullableFilter<"AllegatoRichiesto"> | $Enums.Soggetto | null
   stepId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
   step?: Prisma.XOR<Prisma.StepNullableScalarRelationFilter, Prisma.StepWhereInput> | null
 }, "id">
@@ -276,7 +276,7 @@ export type AllegatoRichiestoScalarWhereWithAggregatesInput = {
   nomeAllegatoRichiesto?: Prisma.StringWithAggregatesFilter<"AllegatoRichiesto"> | string
   obbligatorio?: Prisma.BoolWithAggregatesFilter<"AllegatoRichiesto"> | boolean
   interno?: Prisma.BoolWithAggregatesFilter<"AllegatoRichiesto"> | boolean
-  soggetto?: Prisma.StringNullableWithAggregatesFilter<"AllegatoRichiesto"> | string | null
+  soggetto?: Prisma.EnumSoggettoNullableWithAggregatesFilter<"AllegatoRichiesto"> | $Enums.Soggetto | null
   stepId?: Prisma.IntNullableWithAggregatesFilter<"AllegatoRichiesto"> | number | null
 }
 
@@ -284,7 +284,7 @@ export type AllegatoRichiestoCreateInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
-  soggetto?: string | null
+  soggetto?: $Enums.Soggetto | null
   step?: Prisma.StepCreateNestedOneWithoutAllegatiRichiestiListInput
 }
 
@@ -293,7 +293,7 @@ export type AllegatoRichiestoUncheckedCreateInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
-  soggetto?: string | null
+  soggetto?: $Enums.Soggetto | null
   stepId?: number | null
 }
 
@@ -301,7 +301,7 @@ export type AllegatoRichiestoUpdateInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
   step?: Prisma.StepUpdateOneWithoutAllegatiRichiestiListNestedInput
 }
 
@@ -310,7 +310,7 @@ export type AllegatoRichiestoUncheckedUpdateInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
   stepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -319,7 +319,7 @@ export type AllegatoRichiestoCreateManyInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
-  soggetto?: string | null
+  soggetto?: $Enums.Soggetto | null
   stepId?: number | null
 }
 
@@ -327,7 +327,7 @@ export type AllegatoRichiestoUpdateManyMutationInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
 }
 
 export type AllegatoRichiestoUncheckedUpdateManyInput = {
@@ -335,7 +335,7 @@ export type AllegatoRichiestoUncheckedUpdateManyInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
   stepId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -428,11 +428,15 @@ export type AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput = {
   deleteMany?: Prisma.AllegatoRichiestoScalarWhereInput | Prisma.AllegatoRichiestoScalarWhereInput[]
 }
 
+export type NullableEnumSoggettoFieldUpdateOperationsInput = {
+  set?: $Enums.Soggetto | null
+}
+
 export type AllegatoRichiestoCreateWithoutStepInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
-  soggetto?: string | null
+  soggetto?: $Enums.Soggetto | null
 }
 
 export type AllegatoRichiestoUncheckedCreateWithoutStepInput = {
@@ -440,7 +444,7 @@ export type AllegatoRichiestoUncheckedCreateWithoutStepInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
-  soggetto?: string | null
+  soggetto?: $Enums.Soggetto | null
 }
 
 export type AllegatoRichiestoCreateOrConnectWithoutStepInput = {
@@ -477,7 +481,7 @@ export type AllegatoRichiestoScalarWhereInput = {
   nomeAllegatoRichiesto?: Prisma.StringFilter<"AllegatoRichiesto"> | string
   obbligatorio?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
   interno?: Prisma.BoolFilter<"AllegatoRichiesto"> | boolean
-  soggetto?: Prisma.StringNullableFilter<"AllegatoRichiesto"> | string | null
+  soggetto?: Prisma.EnumSoggettoNullableFilter<"AllegatoRichiesto"> | $Enums.Soggetto | null
   stepId?: Prisma.IntNullableFilter<"AllegatoRichiesto"> | number | null
 }
 
@@ -486,14 +490,14 @@ export type AllegatoRichiestoCreateManyStepInput = {
   nomeAllegatoRichiesto: string
   obbligatorio?: boolean
   interno?: boolean
-  soggetto?: string | null
+  soggetto?: $Enums.Soggetto | null
 }
 
 export type AllegatoRichiestoUpdateWithoutStepInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
 }
 
 export type AllegatoRichiestoUncheckedUpdateWithoutStepInput = {
@@ -501,7 +505,7 @@ export type AllegatoRichiestoUncheckedUpdateWithoutStepInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
 }
 
 export type AllegatoRichiestoUncheckedUpdateManyWithoutStepInput = {
@@ -509,7 +513,7 @@ export type AllegatoRichiestoUncheckedUpdateManyWithoutStepInput = {
   nomeAllegatoRichiesto?: Prisma.StringFieldUpdateOperationsInput | string
   obbligatorio?: Prisma.BoolFieldUpdateOperationsInput | boolean
   interno?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  soggetto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  soggetto?: Prisma.NullableEnumSoggettoFieldUpdateOperationsInput | $Enums.Soggetto | null
 }
 
 
@@ -574,7 +578,7 @@ export type $AllegatoRichiestoPayload<ExtArgs extends runtime.Types.Extensions.I
     nomeAllegatoRichiesto: string
     obbligatorio: boolean
     interno: boolean
-    soggetto: string | null
+    soggetto: $Enums.Soggetto | null
     stepId: number | null
   }, ExtArgs["result"]["allegatoRichiesto"]>
   composites: {}
@@ -1004,7 +1008,7 @@ export interface AllegatoRichiestoFieldRefs {
   readonly nomeAllegatoRichiesto: Prisma.FieldRef<"AllegatoRichiesto", 'String'>
   readonly obbligatorio: Prisma.FieldRef<"AllegatoRichiesto", 'Boolean'>
   readonly interno: Prisma.FieldRef<"AllegatoRichiesto", 'Boolean'>
-  readonly soggetto: Prisma.FieldRef<"AllegatoRichiesto", 'String'>
+  readonly soggetto: Prisma.FieldRef<"AllegatoRichiesto", 'Soggetto'>
   readonly stepId: Prisma.FieldRef<"AllegatoRichiesto", 'Int'>
 }
     

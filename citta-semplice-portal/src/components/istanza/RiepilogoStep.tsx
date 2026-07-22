@@ -2,7 +2,8 @@
 
 import { useEnte } from '@/contexts/EnteContext';
 import { getCampoValue } from '@/lib/utils';
-import { isFieldVisible, FieldCondition } from '@/lib/form-condition';
+import { isFieldVisible } from '@/lib/form-condition';
+import { parseCampi, splitPages } from '@/lib/form-pages';
 
 interface Servizio {
   titolo: string;
@@ -15,25 +16,21 @@ interface Props {
   allegati: File[];
 }
 
-const SKIP_FIELD_TYPES = new Set(['heading', 'section', 'paragraph', 'divider', 'hidden', 'file']);
-
-type RawField = { name: string; label: string; type?: string; condition?: FieldCondition };
-
-function parseCampi(attributi: string | null | undefined): RawField[] {
-  if (!attributi) return [];
-  try {
-    const parsed = JSON.parse(attributi);
-    return Array.isArray(parsed) ? parsed : (parsed?.fields ?? []);
-  } catch {
-    return [];
-  }
-}
+const SKIP_FIELD_TYPES = new Set(['heading', 'section', 'paragraph', 'divider', 'pagebreak', 'hidden', 'file']);
 
 export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
   const nomeEnte = useEnte();
-  const campi = parseCampi(servizio.attributi).filter(
-    (f) => !SKIP_FIELD_TYPES.has(f.type ?? '') && isFieldVisible(f, datiModulo),
-  );
+  // Il riepilogo rispecchia la suddivisione in pagine del modulo: una sezione
+  // per pagina (una sola se il modulo non usa pagebreak).
+  const pagine = splitPages(parseCampi(servizio.attributi))
+    .map((p) => ({
+      ...p,
+      fields: p.fields.filter(
+        (f) => !SKIP_FIELD_TYPES.has(f.type ?? '') && isFieldVisible(f, datiModulo),
+      ),
+    }))
+    .filter((p) => p.fields.length > 0);
+  const numCampi = pagine.reduce((n, p) => n + p.fields.length, 0);
 
   return (
     <div className="container">
@@ -43,7 +40,7 @@ export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
       </p>
 
       {/* Dati della richiesta */}
-      {campi.length > 0 && (
+      {numCampi > 0 && (
         <section className="mb-5">
           <h2 className="h4 border-bottom pb-2 mb-4">
             <svg className="icon icon-sm me-2" aria-hidden="true">
@@ -52,20 +49,27 @@ export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
             Dati della richiesta
           </h2>
 
-          <div className="card">
-            <div className="card-body p-0">
-              <table className="table table-sm mb-0">
-                <tbody>
-                  {campi.map((campo) => (
-                    <tr key={campo.name}>
-                      <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
-                      <td>{getCampoValue(String(datiModulo[campo.name] ?? ''))}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {pagine.map((pagina, i) => (
+            <div className="card mb-3" key={i}>
+              {pagine.length > 1 && (
+                <div className="card-header py-2 fw-semibold">
+                  {pagina.titolo || `Pagina ${i + 1}`}
+                </div>
+              )}
+              <div className="card-body p-0">
+                <table className="table table-sm mb-0">
+                  <tbody>
+                    {pagina.fields.map((campo) => (
+                      <tr key={campo.name}>
+                        <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
+                        <td>{getCampoValue(String(datiModulo[campo.name] ?? ''))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          ))}
 
           {/* Allegati caricati dal cittadino */}
           {allegati.length > 0 && (

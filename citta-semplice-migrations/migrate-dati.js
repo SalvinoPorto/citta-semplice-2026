@@ -34,6 +34,23 @@ const dstConfig = {
   password: '***REMOVED***',
 };
 
+// ── helper insert transazione-safe ────────────────────────────────────────────
+// Esegue una query di scrittura dentro un SAVEPOINT: se fallisce, fa ROLLBACK
+// solo di quella riga (non avvelena la transazione globale) e RILANCIA l'errore,
+// così i try/catch per-riga esistenti continuano a contare ok/errori correttamente.
+async function q(dst, sql, values) {
+  await dst.query('SAVEPOINT sp');
+  try {
+    const res = await dst.query(sql, values);
+    await dst.query('RELEASE SAVEPOINT sp');
+    return res;
+  } catch (err) {
+    await dst.query('ROLLBACK TO SAVEPOINT sp');
+    await dst.query('RELEASE SAVEPOINT sp');
+    throw err;
+  }
+}
+
 // ── helpers conversione dati ──────────────────────────────────────────────────
 
 function generateId() {
@@ -84,11 +101,21 @@ function convertDati(raw) {
   // Vecchio formato HTML (array di oggetti con type)
   const result = parsed
     .filter(item => item.type !== 'paragraph')
-    .map(item => ({
-      name: item.name,
-      label: item.label || '',
-      value: item.type === 'checkbox' ? findSelected(item.values) : (item.value ?? ''),
-    }));
+    .flatMap(item => {
+      // Checkbox: convertAttributes splitta il gruppo in un campo per valore
+      // (name = slugify(label)). Qui emettiamo un'entry per OGNI valore selezionato
+      // così i name combaciano con lo schema e non si perdono le multi-selezioni.
+      if (item.type === 'checkbox') {
+        return (item.values || [])
+          .filter(v => v.selected)
+          .map(v => ({ name: slugify(v.label), label: v.label, value: true }));
+      }
+      return [{
+        name: item.name,
+        label: item.label || '',
+        value: item.value ?? '',
+      }];
+    });
 
   return JSON.stringify(result);
 }
@@ -202,7 +229,7 @@ async function migrateEnti(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} enti migrati…`);
     } catch (err) {
@@ -269,7 +296,7 @@ async function migrateAree(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} aree migrate…`);
     } catch (err) {
@@ -299,7 +326,7 @@ async function migrateServizi(src, dst) {
     s.titolo || COALESCE(' ' || NULLIF(m.name, ''), '') as titolo,
     s.sottotitolo as sotto_titolo,
     s.corpo as descrizione,
-    --s.come_fare,
+    s.come_fare as come_fare,
     s.requisiti as cosa_serve,
     m.corpo as altre_info,
     s.riferimento as contatti,
@@ -356,7 +383,7 @@ async function migrateServizi(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} servizi migrati…`);
     } catch (err) {
@@ -418,7 +445,7 @@ async function migrateUffici(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} uffici migrati…`);
     } catch (err) {
@@ -488,7 +515,7 @@ async function migrateOperatori(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} operatori migrati…`);
     } catch (err) {
@@ -547,7 +574,7 @@ async function migrateRuoli(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} ruoli migrati…`);
     } catch (err) {
@@ -605,7 +632,7 @@ async function migrateOperatoriRuoli(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} operatori-ruoli migrati…`);
     } catch (err) {
@@ -626,9 +653,19 @@ async function migrateFasi(src, dst) {
 
   await dst.query("DELETE FROM fasi");
 
+  // A7: fasi.ufficio_id è NOT NULL. I servizi senza ufficio ricevono un ufficio
+  // di default (il primo per id) così l'INSERT set-based non fallisce; l'admin
+  // potrà riassegnare. Segnaliamo quanti servizi sono in questa condizione.
+  const { rows: senzaUff } = await dst.query(
+    `SELECT COUNT(*)::int AS n FROM servizi WHERE ufficio_id IS NULL`
+  );
+  if (senzaUff[0].n > 0) {
+    console.warn(`  ⚠ ${senzaUff[0].n} servizi senza ufficio → fase assegnata all'ufficio di default (primo per id)`);
+  }
+
   const result = await dst.query(`
     INSERT INTO fasi (nome, ordine, servizio_id, ufficio_id)
-    SELECT 'Competenza', 1, id, ufficio_id
+    SELECT 'Competenza', 1, id, COALESCE(ufficio_id, (SELECT MIN(id) FROM uffici))
     FROM servizi
     ORDER BY id
     RETURNING id
@@ -716,7 +753,7 @@ async function migrateUtenti(src, dst) {
       return row[c];
     });
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} utenti migrati…`);
     } catch (err) {
@@ -789,7 +826,7 @@ async function migrateSteps(src, dst) {
   for (const row of rows) {
     const values = columns.map(c => row[c]);
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} steps migrati…`);
     } catch (err) {
@@ -825,7 +862,12 @@ async function migrateAllegatiRichiesti(src, dst) {
       ar.nome_allegato_richiesto,
       ar.obbligatorio,
       ar.interno,
-      ar.soggetto,
+      -- Normalizza al dominio enum Soggetto (OP | UT); valori ignoti → NULL
+      CASE
+        WHEN upper(ar.soggetto) IN ('OP', 'OPERATORE') THEN 'OP'
+        WHEN upper(ar.soggetto) IN ('UT', 'UTENTE') THEN 'UT'
+        ELSE NULL
+      END AS soggetto,
       ar.id_step   AS step_id
     FROM allegati_richiesti ar
     INNER JOIN step s ON s.id = ar.id_step
@@ -860,7 +902,7 @@ async function migrateAllegatiRichiesti(src, dst) {
   for (const row of rows) {
     const values = columns.map(col => row[col]);
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} allegati richiesti migrati…`);
     } catch (err) {
@@ -949,11 +991,26 @@ async function migrateIstanze(src, dst) {
 
     const nuovoDati = convertDati(row.dati);
     // Risolvi utente_id: interroga dst per ottenere l'id numerico dal codice fiscale
-    const nuovoUtenteId = await findUtenteId(dst, row.utente_id);
+    let nuovoUtenteId = await findUtenteId(dst, row.utente_id);
     if (!nuovoUtenteId) {
-      console.warn(`  ⚠ utente non trovato per CF="${row.utente_id}", istanza id=${row.id} saltata`);
-      errors++;
-      continue;
+      // Utente non presente in utenti: creiamo un placeholder così NON perdiamo
+      // l'istanza (e i suoi workflow/allegati). Il CF resta tracciabile.
+      const cf = (row.utente_id || '').trim() || `SCONOSCIUTO_${row.id}`;
+      try {
+        const ins = await q(dst,
+          `INSERT INTO utenti (codice_fiscale, nome, cognome)
+           VALUES ($1, 'N/D', 'N/D')
+           ON CONFLICT (codice_fiscale) DO UPDATE SET codice_fiscale = EXCLUDED.codice_fiscale
+           RETURNING id`,
+          [cf]
+        );
+        nuovoUtenteId = ins.rows[0].id;
+        console.warn(`  ⚠ utente CF="${row.utente_id}" non trovato: creato placeholder id=${nuovoUtenteId} per istanza id=${row.id}`);
+      } catch (err) {
+        console.error(`  ✗ impossibile creare utente placeholder per CF="${row.utente_id}", istanza id=${row.id}: ${err.message}`);
+        errors++;
+        continue;
+      }
     }
 
     const values = columns.map(col => {
@@ -963,7 +1020,7 @@ async function migrateIstanze(src, dst) {
     });
 
     try {
-      await dst.query(sql, values);
+      await q(dst, sql, values);
       ok++;
       if (ok % 100 === 0) console.log(`  ${ok}/${rows.length} istanze migrate…`);
     } catch (err) {
@@ -998,15 +1055,21 @@ async function migrateIstanze(src, dst) {
 async function migrateWorkflow(src, dst) {
   console.log('\n── Migrazione workflow ────────────────────────────────────────────────');
 
+  // Il nuovo modello ha stato BINARIO per design (0 = in lavorazione, 1 =
+  // completata; l'esito "respinta" vive su Istanza.respinta, non qui — vedi
+  // office actions.ts STATO_IN_LAVORAZIONE/STATO_COMPLETATA). Mappiamo lo status
+  // legacy id=1 ("presentata/in lavorazione") → 0, ogni altro status → 1
+  // (step chiuso). La granularità multi-status legacy non esiste nel target:
+  // collasso voluto, non perdita dati.
   const { rows } = await src.query(`
-    SELECT 
-    id, 
-    note, 
-    data_variazione, 
-    id_istanza as istanza_id, 
+    SELECT
+    id,
+    note,
+    data_variazione,
+    id_istanza as istanza_id,
     CASE id_status WHEN 1 THEN 0 ELSE 1 END stato,
-    id_step as step_id, 
-    id_operatore as operatore_id 
+    id_step as step_id,
+    id_operatore as operatore_id
     FROM workflow
     WHERE id_step IS NOT null
     ORDER BY id
@@ -1033,7 +1096,7 @@ async function migrateWorkflow(src, dst) {
   await dst.query("DELETE FROM workflows");
   for (const row of rows) {
     try {
-      await dst.query(sql, columns.map(col => row[col]));
+      await q(dst, sql, columns.map(col => row[col]));
       ok++;
       if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} workflow migrati…`);
     } catch (err) {
@@ -1058,18 +1121,30 @@ async function migrateWorkflow(src, dst) {
 async function migrateComunicazioni(src, dst) {
   console.log('\n── Migrazione comunicazioni da workflow ────────────────────────────────────────────────');
 
+  // Preserviamo l'id del workflow-notifica legacy come id della Comunicazione:
+  // serve per agganciare le risposte del cittadino (RispostaComunicazione).
+  // Aggreghiamo per workflow così un notifica con più allegati_richiesti resta
+  // una sola comunicazione (niente duplicati da JOIN 1-a-molti).
   const { rows } = await src.query(`
-    SELECT 
-    data_variazione AS data_creazione, 
-    CASE WHEN note = '' THEN n.descrizione WHEN note IS NULL THEN n.descrizione ELSE note END AS testo,
-    id_operatore as operatore_id, 
-    id_istanza as istanza_id, 
-    CONCAT('[{nome: "',ar.nome_allegato_richiesto,'", obbligatorio: ', CASE ar.obbligatorio WHEN true THEN 'true' ELSE 'false' END, '}]') as allegati_richiesti
+    SELECT
+    w.id AS id,
+    w.data_variazione AS data_creazione,
+    COALESCE(NULLIF(w.note, ''), n.descrizione, '') AS testo,
+    w.id_operatore as operatore_id,
+    w.id_istanza as istanza_id,
+    (COUNT(ar.id) > 0) as richiede_risposta,
+    (json_agg(
+       json_build_object(
+         'nome', ar.nome_allegato_richiesto,
+         'obbligatorio', COALESCE(ar.obbligatorio, false)
+       )
+     ) FILTER (WHERE ar.id IS NOT NULL))::text as allegati_richiesti
     FROM public.workflow w
     LEFT JOIN notifiche n ON n.id=w.id_notifica
     LEFT JOIN allegati_richiesti ar ON n.id=ar.id_notifica
-    where w.id_step is null AND ar.id is not null
-    order by id_istanza;
+    WHERE w.id_step IS NULL
+    GROUP BY w.id, w.data_variazione, w.note, n.descrizione, w.id_operatore, w.id_istanza
+    ORDER BY w.id;
   `);
   console.log(`Workflow di comunicazione trovati: ${rows.length}`);
 
@@ -1093,7 +1168,7 @@ async function migrateComunicazioni(src, dst) {
   await dst.query("DELETE FROM comunicazioni");
   for (const row of rows) {
     try {
-      await dst.query(sql, columns.map(col => row[col]));
+      await q(dst, sql, columns.map(col => row[col]));
       ok++;
       if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} comunicazioni migrati…`);
     } catch (err) {
@@ -1117,17 +1192,22 @@ async function migrateComunicazioni(src, dst) {
 async function migrateAllegati(src, dst) {
   console.log('\n── Migrazione allegati ────────────────────────────────────────────────');
 
+  // Solo allegati legati a workflow-di-step (id_step NOT NULL): quelli sono
+  // migrati nella tabella workflows. Gli allegati su workflow-notifica (id_step
+  // NULL) sono risposte del cittadino → gestiti in migrateRisposteComunicazioni.
   const { rows } = await src.query(`
-    SELECT 
-    id, 
-    nome_file, 
-    nome_hash, 
-    nome_file_richiesto, 
-    mime_type, inv_utente, 
-    visto, data_inserimento, 
-    id_workflow as workflow_id
-    FROM allegati
-    ORDER BY id
+    SELECT
+    a.id,
+    a.nome_file,
+    a.nome_hash,
+    a.nome_file_richiesto,
+    a.mime_type, a.inv_utente,
+    a.visto, a.data_inserimento,
+    a.id_workflow as workflow_id
+    FROM allegati a
+    JOIN workflow w ON w.id = a.id_workflow
+    WHERE w.id_step IS NOT NULL
+    ORDER BY a.id
   `);
   console.log(`Allegati trovati: ${rows.length}`);
 
@@ -1151,7 +1231,7 @@ async function migrateAllegati(src, dst) {
   await dst.query("DELETE FROM allegati");
   for (const row of rows) {
     try {
-      await dst.query(sql, columns.map(col => row[col]));
+      await q(dst, sql, columns.map(col => row[col]));
       ok++;
       if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} allegati migrati…`);
     } catch (err) {
@@ -1170,6 +1250,242 @@ async function migrateAllegati(src, dst) {
   console.log(`Allegati: ${ok} inseriti/esistenti, ${errors} errori`);
 }
 
+// ── migrazione risposte comunicazioni ─────────────────────────────────────────
+// Nel legacy la risposta del cittadino a una notifica = allegati con
+// inv_utente=true sul workflow-notifica (id_step NULL). Nel nuovo modello:
+// RispostaComunicazione (1 per comunicazione) + AllegatoRisposta (N file).
+// La comunicazione ha id = id del workflow-notifica legacy (vedi migrateComunicazioni).
+
+async function migrateRisposteComunicazioni(src, dst) {
+  console.log('\n── Migrazione risposte comunicazioni ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT
+      a.id_workflow AS comunicazione_id,
+      a.nome_file,
+      a.nome_hash,
+      a.mime_type
+    FROM allegati a
+    JOIN workflow w ON w.id = a.id_workflow
+    WHERE w.id_step IS NULL AND a.inv_utente = true
+    ORDER BY a.id_workflow, a.id
+  `);
+  console.log(`Allegati risposta trovati: ${rows.length}`);
+
+  await dst.query("DELETE FROM allegati_risposta");
+  await dst.query("DELETE FROM risposte_comunicazioni");
+
+  if (rows.length === 0) {
+    console.log('Nessuna risposta da migrare.');
+    return;
+  }
+
+  // Raggruppa gli allegati per comunicazione (workflow-notifica)
+  const byComunicazione = new Map();
+  for (const row of rows) {
+    if (!byComunicazione.has(row.comunicazione_id)) byComunicazione.set(row.comunicazione_id, []);
+    byComunicazione.get(row.comunicazione_id).push(row);
+  }
+
+  let risposteOk = 0, allegatiOk = 0, errors = 0;
+  for (const [comunicazioneId, allegati] of byComunicazione) {
+    try {
+      // 1 risposta per comunicazione (FK verso comunicazioni migrate con id preservato)
+      const ins = await q(dst,
+        `INSERT INTO risposte_comunicazioni (comunicazione_id)
+         VALUES ($1)
+         ON CONFLICT (comunicazione_id) DO UPDATE SET comunicazione_id = EXCLUDED.comunicazione_id
+         RETURNING id`,
+        [comunicazioneId]
+      );
+      const rispostaId = ins.rows[0].id;
+      risposteOk++;
+
+      for (const a of allegati) {
+        try {
+          await q(dst,
+            `INSERT INTO allegati_risposta (nome_file, nome_hash, mime_type, risposta_id)
+             VALUES ($1, $2, $3, $4)`,
+            [a.nome_file, a.nome_hash, a.mime_type, rispostaId]
+          );
+          allegatiOk++;
+        } catch (err) {
+          console.error(`  ✗ errore su allegato_risposta (com=${comunicazioneId}): ${err.message}`);
+          errors++;
+        }
+      }
+    } catch (err) {
+      console.error(`  ✗ errore su risposta comunicazione ${comunicazioneId} (comunicazione mancante?): ${err.message}`);
+      errors++;
+    }
+  }
+
+  try {
+    await dst.query(`SELECT setval('risposte_comunicazioni_id_seq', GREATEST((SELECT MAX(id) FROM risposte_comunicazioni), 1))`);
+    await dst.query(`SELECT setval('allegati_risposta_id_seq', GREATEST((SELECT MAX(id) FROM allegati_risposta), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenze risposte: ${err.message}`);
+  }
+
+  console.log(`Risposte: ${risposteOk} risposte, ${allegatiOk} allegati, ${errors} errori`);
+}
+
+// ── migrazione config pagamenti step ──────────────────────────────────────────
+// Config pagamento a livello di step: legacy pagamenti (importo, tributo,
+// obbligatorio, tipologia) → nuovo modello Pagamento (step_id unico).
+
+async function migratePagamenti(src, dst) {
+  console.log('\n── Migrazione config pagamenti ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT
+      p.id,
+      p.importo,
+      COALESCE(p.obbligatorio, false) as obbligatorio,
+      p.tipologia_pagamento::text as tipologia_pagamento,
+      LEFT(ct.codice, 30) as codice_tributo,
+      LEFT(ct.descrizione, 512) as descrizione_tributo,
+      p.id_step as step_id
+    FROM pagamenti p
+    LEFT JOIN codici_tributo ct ON ct.id = p.id_codice_tributo
+    JOIN step s ON s.id = p.id_step
+    LEFT JOIN moduli m ON m.id = s.id_modulo
+    LEFT JOIN servizi se ON se.id = m.id_servizio
+    WHERE se.id_area IN (SELECT id FROM aree WHERE id_ente=1) AND s.attivo = true
+    ORDER BY p.id
+  `);
+  console.log(`Config pagamenti trovate: ${rows.length}`);
+
+  await dst.query("DELETE FROM pagamenti");
+  if (rows.length === 0) {
+    console.log('Nessuna config pagamento da migrare.');
+    return;
+  }
+
+  const columns = Object.keys(rows[0]);
+  const colList = columns.map(c => `"${c}"`).join(', ');
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const updateSet = columns.map(c => `"${c}" = EXCLUDED."${c}"`).join(', ');
+  const sql = `
+    INSERT INTO pagamenti (${colList})
+    VALUES (${placeholders})
+    ON CONFLICT (id) DO UPDATE SET ${updateSet}
+  `;
+
+  let ok = 0, errors = 0;
+  for (const row of rows) {
+    try {
+      await q(dst, sql, columns.map(col => row[col]));
+      ok++;
+    } catch (err) {
+      console.error(`  ✗ errore su pagamento id=${row.id} (step ${row.step_id} già configurato?): ${err.message}`);
+      errors++;
+    }
+  }
+
+  try {
+    await dst.query(`SELECT setval('pagamenti_id_seq', GREATEST((SELECT MAX(id) FROM pagamenti), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza pagamenti: ${err.message}`);
+  }
+
+  console.log(`Config pagamenti: ${ok} OK, ${errors} errori`);
+}
+
+// ── migrazione storico pagamenti ──────────────────────────────────────────────
+// pagamenti_effettuati → pagamenti_attesi. Un record per workflow (il più
+// recente). Solo workflow-di-step migrati (FK verso workflows). Tronca i campi
+// alle lunghezze del nuovo schema per evitare errori di insert.
+
+async function migratePagamentiAttesi(src, dst) {
+  console.log('\n── Migrazione storico pagamenti ────────────────────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT DISTINCT ON (pe.id_workflow)
+      pe.id,
+      LEFT(pe.id_iuv, 100) as iuv,
+      LEFT(pe.numero_documento, 30) as numero_documento,
+      pe.importo_totale,
+      LEFT(pe.stato::text, 3) as stato,
+      pe.data_emissione,
+      pe.data_scadenza,
+      pe.data_operazione,
+      pe.data_richiesta as data_ricevuta,
+      LEFT(pe.pagante, 16) as pagante_codice_fiscale,
+      LEFT(TRIM(CONCAT(pe.pagante_nome, ' ', pe.pagante_cognome)), 50) as pagante,
+      LEFT(pe.email, 50) as pagante_email,
+      LEFT(pe.causale, 100) as causale,
+      pe.id_workflow as workflow_id
+    FROM pagamenti_effettuati pe
+    JOIN workflow w ON w.id = pe.id_workflow AND w.id_step IS NOT NULL
+    WHERE pe.id_workflow IS NOT NULL
+    ORDER BY pe.id_workflow, pe.data_transazione DESC NULLS LAST
+  `);
+  console.log(`Storico pagamenti trovati: ${rows.length}`);
+
+  await dst.query("DELETE FROM pagamenti_attesi");
+
+  let ok = 0, errors = 0;
+  if (rows.length > 0) {
+    const columns = Object.keys(rows[0]);
+    const colList = columns.map(c => `"${c}"`).join(', ');
+    const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+    const sql = `
+      INSERT INTO pagamenti_attesi (${colList})
+      VALUES (${placeholders})
+      ON CONFLICT (workflow_id) DO NOTHING
+    `;
+
+    for (const row of rows) {
+      try {
+        await q(dst, sql, columns.map(col => row[col]));
+        ok++;
+        if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} pagamenti migrati…`);
+      } catch (err) {
+        console.error(`  ✗ errore su pagamento_atteso id=${row.id}: ${err.message}`);
+        errors++;
+      }
+    }
+  }
+
+  // B8: preserva workflow.importo_richiesto (importo richiesto dall'operatore per
+  // pagamenti a importo variabile). Se il pagamento è stato eseguito arriva già da
+  // pagamenti_effettuati; qui recuperiamo i RICHIESTI-ma-non-pagati creando un
+  // PagamentoAtteso pending. ON CONFLICT (workflow_id) → l'effettuato ha precedenza.
+  const { rows: richiesti } = await src.query(`
+    SELECT w.id as workflow_id, w.importo_richiesto as importo_totale
+    FROM workflow w
+    JOIN step s ON s.id = w.id_step AND s.pagamento = true
+    WHERE w.importo_richiesto IS NOT NULL AND w.importo_richiesto > 0
+    ORDER BY w.id
+  `);
+  console.log(`Importi richiesti (non pagati) trovati: ${richiesti.length}`);
+
+  let richiestiOk = 0;
+  const sqlRichiesto = `
+    INSERT INTO pagamenti_attesi (importo_totale, workflow_id)
+    VALUES ($1, $2)
+    ON CONFLICT (workflow_id) DO NOTHING
+  `;
+  for (const row of richiesti) {
+    try {
+      await q(dst, sqlRichiesto, [row.importo_totale, row.workflow_id]);
+      richiestiOk++;
+    } catch (err) {
+      console.error(`  ✗ errore su importo richiesto workflow=${row.workflow_id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  try {
+    await dst.query(`SELECT setval('pagamenti_attesi_id_seq', GREATEST((SELECT MAX(id) FROM pagamenti_attesi), 1))`);
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza pagamenti_attesi: ${err.message}`);
+  }
+
+  console.log(`Storico pagamenti: ${ok} effettuati, ${richiestiOk} richiesti-non-pagati, ${errors} errori`);
+}
+
 // ── main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1183,6 +1499,9 @@ async function main() {
   await dst.connect();
 
   try {
+    // Transazione unica: se un passo fallisce, ROLLBACK totale.
+    // Evita di lasciare il DB destinazione in stato parziale/incoerente.
+    await dst.query('BEGIN');
 
     //  1. Migra enti (nessuna dipendenza)
     await migrateEnti(src, dst);
@@ -1208,6 +1527,9 @@ async function main() {
     //  7b. Migra allegati_richiesti (dipende da steps)
     await migrateAllegatiRichiesti(src, dst);
 
+    //  7c. Migra config pagamenti step (dipende da steps)
+    await migratePagamenti(src, dst);
+
     //  8. Migra operatori (nessuna dipendenza; include ufficio_id da operatori_moduli)
     await migrateOperatori(src, dst);
 
@@ -1222,15 +1544,27 @@ async function main() {
     // 12. Migra workflow (dipende da istanze, steps, operatori)
     await migrateWorkflow(src, dst);
    
-    // 12. Migra Comunicazioni (dipende da istanze, operatori)
+    // 12. Migra Comunicazioni (dipende da istanze, operatori; id = id workflow-notifica legacy)
     await migrateComunicazioni(src, dst);
+
+    // 12b. Migra risposte comunicazioni (dipende da comunicazioni)
+    await migrateRisposteComunicazioni(src, dst);
+
     // 13. Migra workflow_fasi (dipende da istanze, fasi)
     await migrateWorkflowFasi(src, dst);
 
-    // 14. Migra allegati (dipende da workflow)
+    // 14. Migra allegati step-workflow (dipende da workflow)
     await migrateAllegati(src, dst);
 
+    // 15. Migra storico pagamenti (dipende da workflow)
+    await migratePagamentiAttesi(src, dst);
+
+    await dst.query('COMMIT');
     console.log('\n✓ Migrazione completata.');
+  } catch (err) {
+    await dst.query('ROLLBACK').catch(() => {});
+    console.error('\n✗ Migrazione annullata (ROLLBACK):', err.message);
+    throw err;
   } finally {
     await src.end();
     await dst.end();

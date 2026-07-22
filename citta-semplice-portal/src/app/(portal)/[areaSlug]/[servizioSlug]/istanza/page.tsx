@@ -74,7 +74,9 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
   }
 
   // Carica eventuale bozza
-  let bozzaIniziale: { id: number; datiModulo: Record<string, unknown>; activeStep: number } | undefined;
+  let bozzaIniziale:
+    | { id: number; datiModulo: Record<string, unknown>; activeStep: number; paginaModulo: number }
+    | undefined;
 
   if (bozzaIdStr) {
     const bozzaId = Number(bozzaIdStr);
@@ -109,6 +111,7 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
           id: bozza.id,
           datiModulo,
           activeStep: bozza.activeStep ?? 1,
+          paginaModulo: bozza.bozzaPagina ?? 0,
         };
       }
     }

@@ -2817,6 +2817,7 @@ export const IstanzaScalarFieldEnum = {
   respinta: 'respinta',
   inBozza: 'inBozza',
   activeStep: 'activeStep',
+  bozzaPagina: 'bozzaPagina',
   protoNumero: 'protoNumero',
   protoData: 'protoData',
   protoFinaleNumero: 'protoFinaleNumero',
@@ -3124,6 +3125,48 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TipoProtocollo'
+ */
+export type EnumTipoProtocolloFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoProtocollo'>
+    
+
+
+/**
+ * Reference to a field of type 'TipoProtocollo[]'
+ */
+export type ListEnumTipoProtocolloFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoProtocollo[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Soggetto'
+ */
+export type EnumSoggettoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Soggetto'>
+    
+
+
+/**
+ * Reference to a field of type 'Soggetto[]'
+ */
+export type ListEnumSoggettoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Soggetto[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Direzione'
+ */
+export type EnumDirezioneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Direzione'>
+    
+
+
+/**
+ * Reference to a field of type 'Direzione[]'
+ */
+export type ListEnumDirezioneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Direzione[]'>
     
 
 

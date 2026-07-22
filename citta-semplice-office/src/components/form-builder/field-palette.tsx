@@ -36,7 +36,7 @@ export function FieldPalette({ onDragStart, onDragEnd }: FieldPaletteProps) {
         </div>
       ))}
 
-      <style jsx>{`
+      <style>{`
         .palette-item {
           display: flex;
           align-items: center;

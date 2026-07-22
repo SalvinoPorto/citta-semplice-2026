@@ -7,9 +7,10 @@ import { AllegatiStep, AllegatiStepHandle, AllegatoCaricato, AllegatoRichiesto }
 import { RiepilogoStep } from './RiepilogoStep';
 import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
 import { isFieldVisible, FieldCondition } from '@/lib/form-condition';
+import { parseCampi, splitPages } from '@/lib/form-pages';
 import { toast } from 'sonner';
 
-const SKIP_FIELD_TYPES = new Set(['heading', 'section','paragraph', 'divider', 'hidden', 'file']);
+const SKIP_FIELD_TYPES = new Set(['heading', 'section','paragraph', 'divider', 'pagebreak', 'hidden', 'file']);
 
 type RawField = { name: string; label: string; type?: string; condition?: FieldCondition };
 
@@ -54,6 +55,7 @@ interface BozzaIniziale {
   id: number;
   datiModulo: Record<string, unknown>;
   activeStep: number;
+  paginaModulo: number;
 }
 
 interface Props {
@@ -73,6 +75,7 @@ const STEPS: { id: StepId; label: string }[] = [
 
 export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
   const [activeStep, setActiveStep] = useState(bozzaIniziale?.activeStep ?? 0);
+  const [paginaModulo, setPaginaModulo] = useState(bozzaIniziale?.paginaModulo ?? 0);
   const [privacyAccettata, setPrivacyAccettata] = useState(bozzaIniziale ? true : false);
   const [datiModulo, setDatiModulo] = useState<Record<string, unknown>>(bozzaIniziale?.datiModulo ?? {});
   const [allegatiCaricati, setAllegatiCaricati] = useState<AllegatoCaricato[]>([]);
@@ -86,6 +89,9 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
 
   // Gli allegati del primo step destinati al cittadino (non interni, non operatore)
   const allegatiRichiesti: AllegatoRichiesto[] = servizio.steps[0]?.allegatiRichiestiList ?? [];
+
+  // Il modulo può essere spezzato in più pagine tramite i campi `pagebreak`.
+  const numPagineModulo = splitPages(parseCampi(servizio.attributi)).length;
 
   const canGoForward = () => {
     if (activeStep === 0) return privacyAccettata;
@@ -106,6 +112,13 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
     if (activeStep === 1) {
       const valid = await moduloRef.current?.validate();
       if (!valid) return;
+      // Dentro il modulo si avanza di pagina finché ce ne sono; solo dopo
+      // l'ultima si passa allo step successivo dello stepper.
+      if (paginaModulo < numPagineModulo - 1) {
+        setPaginaModulo((p) => p + 1);
+        scrollToStepper();
+        return;
+      }
     }
     if (activeStep === 2) {
       const valid = allegatiRef.current?.validate();
@@ -116,6 +129,13 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
   };
 
   const handleBack = () => {
+    if (activeStep === 1 && paginaModulo > 0) {
+      setPaginaModulo((p) => p - 1);
+      scrollToStepper();
+      return;
+    }
+    // Rientrando nel modulo dagli step successivi si riparte dall'ultima pagina.
+    if (activeStep === 2) setPaginaModulo(numPagineModulo - 1);
     setActiveStep((s) => Math.max(s - 1, 0));
     scrollToStepper();
   };
@@ -128,6 +148,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       formData.append('userId', userId);
       formData.append('dati', buildDatiConLabel(datiModulo, servizio.attributi));
       formData.append('activeStep', String(activeStep));
+      formData.append('paginaModulo', String(paginaModulo));
       if (bozzaId) formData.append('bozzaId', String(bozzaId));
 
       const result = await salvaBozza(formData);
@@ -208,6 +229,11 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
             servizio={servizio}
             dati={datiModulo}
             onChangeDati={setDatiModulo}
+            pagina={paginaModulo}
+            onVaiAPagina={(i) => {
+              setPaginaModulo(i);
+              scrollToStepper();
+            }}
           />
         )}
         {activeStep === 2 && (

@@ -423,6 +423,11 @@ export type UfficioSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type UfficioScalarRelationFilter = {
+  is?: Prisma.UfficioWhereInput
+  isNot?: Prisma.UfficioWhereInput
+}
+
 export type UfficioCreateNestedOneWithoutOperatoriInput = {
   create?: Prisma.XOR<Prisma.UfficioCreateWithoutOperatoriInput, Prisma.UfficioUncheckedCreateWithoutOperatoriInput>
   connectOrCreate?: Prisma.UfficioCreateOrConnectWithoutOperatoriInput
@@ -477,12 +482,10 @@ export type UfficioCreateNestedOneWithoutFasiInput = {
   connect?: Prisma.UfficioWhereUniqueInput
 }
 
-export type UfficioUpdateOneWithoutFasiNestedInput = {
+export type UfficioUpdateOneRequiredWithoutFasiNestedInput = {
   create?: Prisma.XOR<Prisma.UfficioCreateWithoutFasiInput, Prisma.UfficioUncheckedCreateWithoutFasiInput>
   connectOrCreate?: Prisma.UfficioCreateOrConnectWithoutFasiInput
   upsert?: Prisma.UfficioUpsertWithoutFasiInput
-  disconnect?: Prisma.UfficioWhereInput | boolean
-  delete?: Prisma.UfficioWhereInput | boolean
   connect?: Prisma.UfficioWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UfficioUpdateToOneWithWhereWithoutFasiInput, Prisma.UfficioUpdateWithoutFasiInput>, Prisma.UfficioUncheckedUpdateWithoutFasiInput>
 }

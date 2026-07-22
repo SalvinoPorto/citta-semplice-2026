@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pmPayService } from '@/lib/external/pmpay';
+import { syncPendingPayments } from '@/lib/external/pmpay';
 
 /**
  * Cron job to sync payment statuses with PMPay
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     console.log('[CRON] Starting payment sync...');
     const startTime = Date.now();
 
-    const result = await pmPayService.syncPendingPayments();
+    const result = await syncPendingPayments();
 
     const duration = Date.now() - startTime;
     console.log(

@@ -182,6 +182,7 @@ export async function salvaBozza(formData: FormData) {
   const servizioId = Number(formData.get('servizioId'));
   const datiRaw = formData.get('dati');
   const activeStep = Number(formData.get('activeStep') ?? 0);
+  const bozzaPagina = Number(formData.get('paginaModulo') ?? 0);
   const bozzaId = formData.get('bozzaId') ? Number(formData.get('bozzaId')) : null;
 
   if (!servizioId || isNaN(servizioId)) {
@@ -208,6 +209,7 @@ export async function salvaBozza(formData: FormData) {
         data: {
           dati: datiRaw ? String(datiRaw) : null,
           activeStep,
+          bozzaPagina,
         },
       });
       return { success: true, bozzaId };
@@ -223,6 +225,7 @@ export async function salvaBozza(formData: FormData) {
         data: {
           dati: datiRaw ? String(datiRaw) : null,
           activeStep,
+          bozzaPagina,
         },
       });
       return { success: true, bozzaId: bozzaEsistente.id };
@@ -249,6 +252,7 @@ export async function salvaBozza(formData: FormData) {
         dataInvio: new Date(),
         inBozza: true,
         activeStep,
+        bozzaPagina,
         utenteId: utente.id,
         servizioId,
       },
@@ -388,7 +392,7 @@ export async function submitIstanza(formData: FormData) {
         primoStep?.protocollo && primoStep.unitaOrganizzativa
           ? await protocolla({
               istanzaId: bozzaId,
-              servizioTitolo: servizio.titolo,
+              oggetto: servizio.titolo,
               tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
               unitaOrganizzativa: primoStep.unitaOrganizzativa,
               utente: {
@@ -409,6 +413,7 @@ export async function submitIstanza(formData: FormData) {
           dataInvio: new Date(),
           inBozza: false,
           activeStep: null,
+          bozzaPagina: null,
           faseCorrenteId: primoStep?.faseId ?? null,
           ufficioCorrenteId: primoStep?.fase?.ufficioId ?? null,
           lastStepId: primoStep?.id ?? null,
@@ -464,7 +469,7 @@ export async function submitIstanza(formData: FormData) {
       primoStep?.protocollo && primoStep.unitaOrganizzativa
         ? await protocolla({
             istanzaId: null,
-            servizioTitolo: servizio.titolo,
+            oggetto: servizio.titolo,
             tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
             unitaOrganizzativa: primoStep.unitaOrganizzativa,
             utente: {

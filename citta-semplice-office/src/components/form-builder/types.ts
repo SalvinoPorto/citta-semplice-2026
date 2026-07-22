@@ -15,7 +15,8 @@ export type FieldType =
   | 'heading'
   | 'section'
   | 'paragraph'
-  | 'divider';
+  | 'divider'
+  | 'pagebreak';
 
 export interface FieldOption {
   value: string;
@@ -63,6 +64,32 @@ export interface FormSchema {
   version: string;
 }
 
+export interface FormPage {
+  /** Etichetta del pagebreak che apre la pagina (vuota per la prima). */
+  titolo: string;
+  fields: FormField[];
+}
+
+/**
+ * Divide un elenco piatto di campi in pagine usando i campi `pagebreak` come
+ * separatori. Uno schema senza pagebreak produce una sola pagina: i moduli
+ * esistenti continuano a funzionare senza modifiche.
+ */
+export function splitPages(fields: FormField[]): FormPage[] {
+  const pages: FormPage[] = [{ titolo: '', fields: [] }];
+  for (const field of fields) {
+    if (field.type === 'pagebreak') {
+      pages.push({ titolo: field.label, fields: [] });
+    } else {
+      pages[pages.length - 1].fields.push(field);
+    }
+  }
+  // Un pagebreak a inizio/fine schema o due consecutivi non devono generare
+  // pagine vuote; se restano zero pagine si torna a una pagina unica.
+  const piene = pages.filter((p) => p.fields.length > 0);
+  return piene.length > 0 ? piene : [{ titolo: '', fields: [] }];
+}
+
 export const FIELD_TYPES: { type: FieldType; label: string; icon: string; category: string }[] = [
   // Input
   { type: 'text', label: 'Testo', icon: 'T', category: 'Input' },
@@ -84,6 +111,7 @@ export const FIELD_TYPES: { type: FieldType; label: string; icon: string; catego
   { type: 'section', label: 'Sezione', icon: 'S', category: 'Layout' },
   { type: 'paragraph', label: 'Paragrafo', icon: 'P', category: 'Layout' },
   { type: 'divider', label: 'Separatore', icon: '—', category: 'Layout' },
+  { type: 'pagebreak', label: 'Interruzione Pagina', icon: '📄', category: 'Layout' },
   // Hidden
   { type: 'hidden', label: 'Campo Nascosto', icon: '👁', category: 'Altro' },
 ];
@@ -151,6 +179,9 @@ export function createDefaultField(type: FieldType): FormField {
       return { ...base, name: 'paragraph', label: 'Testo informativo da mostrare all\'utente.' };
     case 'divider':
       return { ...base, name: 'divider', label: '' };
+    // L'etichetta di un pagebreak è il titolo della pagina che INIZIA dopo di esso.
+    case 'pagebreak':
+      return { ...base, name: 'pagebreak', label: 'Nuova pagina' };
     case 'hidden':
       return { ...base, name: 'campo_nascosto', label: 'Campo Nascosto', defaultValue: '' };
     default:

@@ -6,7 +6,7 @@ import { FieldPalette } from './field-palette';
 import { FieldEditor } from './field-editor';
 import { FormCanvas } from './form-canvas';
 import { FormPreview } from './form-preview';
-import { FormField, FormSchema, FieldType, createDefaultField } from './types';
+import { FormField, FormSchema, FieldType, createDefaultField, splitPages } from './types';
 
 interface FormBuilderProps {
   initialSchema?: FormSchema;
@@ -21,6 +21,7 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
   const [view, setView] = useState<'builder' | 'preview' | 'json'>('builder');
 
   const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
+  const numPagine = splitPages(fields).length;
 
   const updateSchema = useCallback(
     (newFields: FormField[]) => {
@@ -120,6 +121,7 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
         </div>
         <div className="text-muted small">
           {fields.length} {fields.length === 1 ? 'campo' : 'campi'}
+          {numPagine > 1 && ` · ${numPagine} pagine`}
         </div>
       </div>
 

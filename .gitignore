@@ -1,7 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# dependencies (npm workspaces: unico node_modules alla root)
+node_modules
+
+# lockfile unico alla root: i workspace non ne hanno uno proprio
+citta-semplice-*/package-lock.json
+packages/*/package-lock.json
 /.pnp
 .pnp.*
 .yarn/*
@@ -43,3 +47,6 @@ yarn-error.log*
 next-env.d.ts
 # Added by code-review-graph
 .code-review-graph/
+
+# tooling locale
+.serena/

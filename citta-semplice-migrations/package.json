@@ -1,6 +1,7 @@
 {
   "name": "citta-semplice-migrations",
   "version": "1.0.0",
+  "private": true,
   "description": "Script di migrazione dati Città Semplice",
   "scripts": {
     "migrate-dati": "node migrate-dati.js"

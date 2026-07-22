@@ -960,7 +960,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                             setValueAs: (v) => (v === '' ? null : parseInt(v, 10)),
                           })}
                         >
-                          <option value="">Nessun ufficio</option>
+                          <option value="">— Seleziona ufficio —</option>
                           {uffici.map((u) => (
                             <option key={u.id} value={u.id}>{u.nome}</option>
                           ))}

@@ -48,7 +48,28 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
     field.type
   );
   const hasOptions = ['select', 'radio'].includes(field.type);
-  const isLayoutField = ['heading', 'section', 'paragraph', 'divider'].includes(field.type);
+  const isLayoutField = ['heading', 'section', 'paragraph', 'divider', 'pagebreak'].includes(field.type);
+
+  // Il pagebreak non ha proprietà oltre al titolo della pagina che apre.
+  if (field.type === 'pagebreak') {
+    return (
+      <div className="field-editor">
+        <div className="mb-3">
+          <label className="form-label small fw-bold">Titolo della pagina</label>
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            value={field.label}
+            onChange={(e) => handleChange('label', e.target.value)}
+            placeholder="Es. Dati di residenza"
+          />
+          <small className="text-muted">
+            Mostrato al cittadino come titolo della pagina che inizia da qui.
+          </small>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="field-editor">
@@ -371,7 +392,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         const candidateFields = allFields.filter(
           (f) =>
             f.id !== field.id &&
-            !['heading', 'section', 'paragraph', 'divider', 'hidden'].includes(f.type)
+            !['heading', 'section', 'paragraph', 'divider', 'pagebreak', 'hidden'].includes(f.type)
         );
         const hasCondition = !!field.condition;
         const operator = field.condition?.operator ?? 'equals';
@@ -472,7 +493,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         );
       })()}
 
-      <style jsx>{`
+      <style>{`
         .field-editor {
           font-size: 13px;
         }

@@ -9,7 +9,25 @@
 * 🟢 You can import this file directly.
 */
 
+export const TipoProtocollo = {
+  E: 'E',
+  U: 'U'
+} as const
+
+export type TipoProtocollo = (typeof TipoProtocollo)[keyof typeof TipoProtocollo]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const Soggetto = {
+  OP: 'OP',
+  UT: 'UT'
+} as const
+
+export type Soggetto = (typeof Soggetto)[keyof typeof Soggetto]
+
+
+export const Direzione = {
+  AVANZAMENTO: 'AVANZAMENTO',
+  ROLLBACK: 'ROLLBACK'
+} as const
+
+export type Direzione = (typeof Direzione)[keyof typeof Direzione]

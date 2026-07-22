@@ -188,6 +188,11 @@ export async function POST(request: NextRequest) {
     whereClause.utente = { ...(whereClause.utente || {}), OR: utenteOr };
   }
 
+  const servizioFilter = columnFilters.find((f) => f.key === 'servizio');
+  if (servizioFilter?.value) {
+    whereClause.servizio = { titolo: { contains: servizioFilter.value, mode: 'insensitive' } };
+  }
+
   const datiFilter = columnFilters.find((f) => f.key === 'datiInEvidenza');
   if (datiFilter?.value) {
     whereClause.datiInEvidenza = { contains: datiFilter.value, mode: 'insensitive' };
@@ -284,7 +289,7 @@ export async function POST(request: NextRequest) {
       case 'cognome':
         orderBy = { utente: { cognome: dir } };
         break;
-      case 'modulo':
+      case 'servizio':
         orderBy = { servizio: { titolo: dir } };
         break;
       default:

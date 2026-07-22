@@ -298,6 +298,7 @@ export const IstanzaScalarFieldEnum = {
   respinta: 'respinta',
   inBozza: 'inBozza',
   activeStep: 'activeStep',
+  bozzaPagina: 'bozzaPagina',
   protoNumero: 'protoNumero',
   protoData: 'protoData',
   protoFinaleNumero: 'protoFinaleNumero',

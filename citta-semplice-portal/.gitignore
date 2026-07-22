@@ -32,3 +32,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Copiato da node_modules dal postinstall (scripts/copy-bootstrap-italia.mjs)
+/public/bootstrap-italia/dist/js/
+
+# env locali (mai committare: contengono credenziali)
+.env

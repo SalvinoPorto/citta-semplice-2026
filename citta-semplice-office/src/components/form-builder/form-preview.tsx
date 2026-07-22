@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FormField, FieldCondition } from './types';
+import { FormField, FieldCondition, splitPages } from './types';
 
 interface FormPreviewProps {
   fields: FormField[];
@@ -23,6 +23,7 @@ function evaluateCondition(condition: FieldCondition, values: Record<string, str
 
 export function FormPreview({ fields }: FormPreviewProps) {
   const [values, setValues] = useState<Record<string, string>>({});
+  const [pageIndex, setPageIndex] = useState(0);
 
   const setValue = (name: string, value: string) =>
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -227,8 +228,10 @@ export function FormPreview({ fields }: FormPreviewProps) {
     }
   };
 
-  // Group visible fields by rows based on width
-  const visibleFields = fields.filter(isVisible);
+  // Group visible fields by rows based on width — solo la pagina corrente
+  const pages = splitPages(fields);
+  const currentPage = Math.min(pageIndex, pages.length - 1);
+  const visibleFields = pages[currentPage].fields.filter(isVisible);
 
   const rows: FormField[][] = [];
   let currentRow: FormField[] = [];
@@ -265,6 +268,35 @@ export function FormPreview({ fields }: FormPreviewProps) {
   return (
     <div className="form-preview p-4 bg-white border rounded">
       <div>
+        {pages.length > 1 && (
+          <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div>
+              <span className="badge bg-primary me-2">
+                Pagina {currentPage + 1} di {pages.length}
+              </span>
+              <span className="fw-semibold">{pages[currentPage].titolo}</span>
+            </div>
+            <div className="btn-group btn-group-sm">
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                disabled={currentPage === 0}
+                onClick={() => setPageIndex(currentPage - 1)}
+              >
+                ← Indietro
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                disabled={currentPage === pages.length - 1}
+                onClick={() => setPageIndex(currentPage + 1)}
+              >
+                Avanti →
+              </button>
+            </div>
+          </div>
+        )}
+
         {rows.map((row, rowIndex) => (
           <div key={rowIndex} className="row">
             {row.map((field) => (

@@ -38,7 +38,7 @@ export default async function IstanzePage() {
     <>
       <div className="page-header">
         <h1>Istanze</h1>
-        <p>Gestione delle istanze degli utenti</p>
+        <p>Gestione istanze</p>
       </div>
       <Suspense>
         <IstanzeClient servizi={servizi} uffici={uffici} />

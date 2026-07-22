@@ -11,6 +11,7 @@ import { PagaOnlineButton } from './PagaOnlineButton';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { getCampoValue } from '@/lib/utils';
+import { parseCampi, splitPages } from '@/lib/form-pages';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,6 +21,58 @@ interface CampoDato {
   name: string;
   label: string;
   value: string;
+}
+
+interface GruppoDati {
+  titolo: string;
+  campi: CampoDato[];
+}
+
+/**
+ * I dati dell'istanza sono salvati come elenco piatto [{name,label,value}]: la
+ * suddivisione in pagine vive nello schema del servizio (`attributi`). Qui si
+ * riallineano le due cose per poter mostrare una sezione per pagina.
+ * Ritorna null se il modulo è a pagina unica: in quel caso si mostra la
+ * tabella singola di sempre.
+ */
+function raggruppaPerPagina(dati: CampoDato[], attributi: string | null): GruppoDati[] | null {
+  const pagine = splitPages(parseCampi(attributi));
+  if (pagine.length <= 1) return null;
+
+  const perNome = new Map(dati.map((d) => [d.name, d]));
+  const usati = new Set<string>();
+
+  const gruppi: GruppoDati[] = pagine
+    .map((pagina, i) => {
+      const campi = pagina.fields
+        .map((f) => perNome.get(f.name))
+        .filter((d): d is CampoDato => d !== undefined);
+      campi.forEach((c) => usati.add(c.name));
+      return { titolo: pagina.titolo || `Pagina ${i + 1}`, campi };
+    })
+    .filter((g) => g.campi.length > 0);
+
+  // Dati di istanze vecchie i cui campi non esistono più nello schema attuale
+  // del servizio: vanno comunque mostrati, non persi.
+  const orfani = dati.filter((d) => !usati.has(d.name));
+  if (orfani.length > 0) gruppi.push({ titolo: 'Altri dati', campi: orfani });
+
+  return gruppi.length > 1 ? gruppi : null;
+}
+
+function TabellaDati({ campi }: { campi: CampoDato[] }) {
+  return (
+    <table className="table table-sm mb-0">
+      <tbody>
+        {campi.map((campo) => (
+          <tr key={campo.name}>
+            <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
+            <td>{getCampoValue(campo.value)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }
 
 function parseDati(dati: string | null | undefined): CampoDato[] {
@@ -81,6 +134,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
 
   const stato = getStatoBadge(istanza);
   const dati = parseDati(istanza.dati);
+  const gruppiDati = raggruppaPerPagina(dati, istanza.servizio.attributi);
 
   // Tutti gli allegati caricati dal cittadino (invUtente = true)
   const allegatiUtente = istanza.workflows.flatMap((wf) =>
@@ -228,20 +282,54 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                 Dati della richiesta
               </h2>
 
-              <div className="card">
-                <div className="card-body p-0">
-                  <table className="table table-sm mb-0">
-                    <tbody>
-                      {dati.map((campo) => (
-                        <tr key={campo.name}>
-                          <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
-                          <td>{getCampoValue(campo.value)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {gruppiDati === null ? (
+                <div className="card">
+                  <div className="card-body p-0">
+                    <TabellaDati campi={dati} />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Prima pagina sempre in chiaro, le successive richiudibili */}
+                  <div className="card mb-3">
+                    {/*<div className="card-header py-2 fw-semibold">{gruppiDati[0].titolo}</div>*/}
+                    <div className="card-body p-0">
+                      <TabellaDati campi={gruppiDati[0].campi} />
+                    </div>
+                  </div>
+
+                  <div className="accordion" id="accordion-dati">
+                    {gruppiDati.slice(1).map((gruppo, i) => (
+                      <div key={i} className="accordion-item">
+                        <h3 className="accordion-header" id={`dati-heading-${i}`}>
+                          <button
+                            className="accordion-button collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target={`#dati-pagina-${i}`}
+                            aria-expanded="false"
+                            aria-controls={`dati-pagina-${i}`}
+                          >
+                            {gruppo.titolo}
+                            {/*<span className="badge bg-secondary ms-2">{gruppo.campi.length}</span>*/}
+                          </button>
+                        </h3>
+                        <div
+                          id={`dati-pagina-${i}`}
+                          className="accordion-collapse collapse"
+                          role="region"
+                          aria-labelledby={`dati-heading-${i}`}
+                          data-bs-parent="#accordion-dati"
+                        >
+                          <div className="accordion-body p-0">
+                            <TabellaDati campi={gruppo.campi} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {/* Allegati caricati dal cittadino */}
               {allegatiUtente.length > 0 && (

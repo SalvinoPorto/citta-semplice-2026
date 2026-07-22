@@ -1,0 +1,31 @@
+{
+  "name": "citta-semplice-2026",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo Città Semplice 2026 (office, portal, package integrazioni condivise)",
+  "workspaces": [
+    "packages/*",
+    "citta-semplice-office",
+    "citta-semplice-portal",
+    "citta-semplice-migrations"
+  ],
+  "scripts": {
+    "sync-schema": "./sync-schema.sh",
+    "check-schema-drift": "./check-schema-drift.sh",
+    "dev:office": "npm run dev -w citta-semplice-office",
+    "dev:portal": "npm run dev -w citta-semplice-portal",
+    "build:office": "npm run build -w citta-semplice-office",
+    "build:portal": "npm run build -w citta-semplice-portal",
+    "build": "npm run build:office && npm run build:portal",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:generate": "npm run db:generate -w citta-semplice-office && npm run db:generate -w citta-semplice-portal"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.13",
+    "@types/react-dom": "19.2.3"
+  },
+  "overrides": {
+    "@types/react": "19.2.13",
+    "@types/react-dom": "19.2.3"
+  }
+}

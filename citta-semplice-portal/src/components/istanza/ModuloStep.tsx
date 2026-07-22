@@ -4,63 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useImperativeHandle, forwardRef } from 'react';
-
-interface FieldOption {
-  label: string;
-  value: string;
-}
-
-interface FieldValidation {
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  pattern?: string;
-  patternMessage?: string;
-}
-
-type ConditionOperator = 'equals' | 'not_equals' | 'not_empty' | 'empty';
-
-interface FieldCondition {
-  fieldName: string;
-  operator: ConditionOperator;
-  value?: string;
-}
-
-interface FormField {
-  id: string;
-  name: string;
-  label: string;
-  type:
-    | 'text'
-    | 'textarea'
-    | 'select'
-    | 'date'
-    | 'time'
-    | 'datetime'
-    | 'number'
-    | 'email'
-    | 'tel'
-    | 'checkbox'
-    | 'radio'
-    | 'file'
-    | 'hidden'
-    | 'heading'
-    | 'section'
-    | 'paragraph'
-    | 'divider';
-  width?: 'full' | 'half' | 'third' | 'twothirds';
-  placeholder?: string;
-  defaultValue?: string;
-  helpText?: string;
-  rows?: number;
-  accept?: string;
-  multiple?: boolean;
-  options?: FieldOption[];
-  validation?: FieldValidation;
-  condition?: FieldCondition;
-}
+import { isFieldVisible } from '@/lib/form-condition';
+import { FormField, LAYOUT_FIELD_TYPES, parseCampi, splitPages } from '@/lib/form-pages';
 
 interface Servizio {
   attributi?: string | null;
@@ -68,6 +13,7 @@ interface Servizio {
 }
 
 export interface ModuloStepHandle {
+  /** Valida i soli campi della pagina corrente. */
   validate: () => Promise<boolean>;
 }
 
@@ -75,34 +21,10 @@ interface Props {
   servizio: Servizio;
   dati: Record<string, unknown>;
   onChangeDati: (dati: Record<string, unknown>) => void;
-}
-
-function parseCampi(attributi: string | null | undefined): FormField[] {
-  if (!attributi) return [];
-  try {
-    const parsed = JSON.parse(attributi);
-    if (Array.isArray(parsed)) return parsed;
-    if (parsed && Array.isArray(parsed.fields)) return parsed.fields;
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-function evaluateCondition(condition: FieldCondition, values: Record<string, unknown>): boolean {
-  const raw = values[condition.fieldName];
-  const val = raw === true ? 'true' : raw === false ? 'false' : String(raw ?? '');
-  switch (condition.operator) {
-    case 'equals':     return val === (condition.value ?? '');
-    case 'not_equals': return val !== (condition.value ?? '');
-    case 'not_empty':  return val !== '' && val !== 'undefined';
-    case 'empty':      return val === '' || val === 'undefined';
-  }
-}
-
-function isFieldVisible(campo: FormField, values: Record<string, unknown>): boolean {
-  if (!campo.condition || !campo.condition.fieldName) return true;
-  return evaluateCondition(campo.condition, values);
+  /** Indice (0-based) della pagina del modulo attualmente mostrata. */
+  pagina: number;
+  /** Torna a una pagina già compilata (solo all'indietro). */
+  onVaiAPagina: (indice: number) => void;
 }
 
 // Conditional required fields are made optional in the base schema;
@@ -111,7 +33,7 @@ function buildSchema(campi: FormField[]) {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   for (const campo of campi) {
-    if (['heading', 'section', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
+    if (LAYOUT_FIELD_TYPES.has(campo.type) || campo.type === 'hidden') continue;
 
     const required = (campo.validation?.required ?? false) && !campo.condition;
 
@@ -177,11 +99,14 @@ function getWidthClass(width?: string) {
 }
 
 export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloStep(
-  { servizio, dati, onChangeDati },
+  { servizio, dati, onChangeDati, pagina, onVaiAPagina },
   ref
 ) {
   const campi = parseCampi(servizio.attributi);
   const schema = buildSchema(campi);
+  const pagine = splitPages(campi);
+  const paginaCorrente = Math.min(pagina, pagine.length - 1);
+  const campiPagina = pagine[paginaCorrente].fields;
 
   const {
     register,
@@ -198,14 +123,19 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
   useImperativeHandle(ref, () => ({
     validate: async () => {
-      const baseResult = await trigger();
+      // Si valida solo la pagina corrente: i campi delle pagine successive non
+      // sono ancora stati mostrati e non devono generare errori.
+      const nomiPagina = campiPagina
+        .filter((c) => !LAYOUT_FIELD_TYPES.has(c.type) && c.type !== 'hidden')
+        .map((c) => c.name);
+      const baseResult = nomiPagina.length === 0 ? true : await trigger(nomiPagina);
       const currentValues = watch() as Record<string, unknown>;
 
       // Validate required conditional fields based on current visibility
       let conditionalValid = true;
-      for (const campo of campi) {
+      for (const campo of campiPagina) {
         if (!campo.condition || !campo.validation?.required) continue;
-        if (['heading', 'section', 'paragraph', 'divider', 'hidden'].includes(campo.type)) continue;
+        if (LAYOUT_FIELD_TYPES.has(campo.type) || campo.type === 'hidden') continue;
 
         if (isFieldVisible(campo, currentValues)) {
           const val = currentValues[campo.name];
@@ -423,7 +353,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   };
 
   // Filtra i campi visibili e raggruppa in righe per larghezza
-  const campiVisibili = campi.filter((campo) => isFieldVisible(campo, values as Record<string, unknown>));
+  const campiVisibili = campiPagina.filter((campo) => isFieldVisible(campo, values as Record<string, unknown>));
 
   const rows: FormField[][] = [];
   let currentRow: FormField[] = [];
@@ -458,7 +388,46 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
   return (
     <div className="container">
-      <h3 className="mb-4">Compila il modulo</h3>
+      <h3 className="mb-2">Compila il modulo</h3>
+
+      {pagine.length > 1 && (
+        <div className="mb-4">
+          <div className="d-flex justify-content-between align-items-baseline flex-wrap gap-2">
+            <span className="fw-semibold">
+              {pagine[paginaCorrente].titolo || `Pagina ${paginaCorrente + 1}`}
+            </span>
+            <span className="text-muted small">
+              Pagina {paginaCorrente + 1} di {pagine.length}
+            </span>
+          </div>
+          <div className="progress mt-2" style={{ height: '4px' }}>
+            <div
+              className="progress-bar"
+              role="progressbar"
+              style={{ width: `${((paginaCorrente + 1) / pagine.length) * 100}%` }}
+              aria-valuenow={paginaCorrente + 1}
+              aria-valuemin={1}
+              aria-valuemax={pagine.length}
+            />
+          </div>
+          <div className="d-flex flex-wrap gap-2 mt-2">
+            {pagine.map((p, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`btn btn-xs ${i === paginaCorrente ? 'btn-primary' : 'btn-outline-secondary'}`}
+                style={{ fontSize: '0.75rem', padding: '0.1rem 0.6rem' }}
+                disabled={i > paginaCorrente}
+                onClick={() => onVaiAPagina(i)}
+                title={p.titolo || `Pagina ${i + 1}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="row">
           {row.map((campo) => (

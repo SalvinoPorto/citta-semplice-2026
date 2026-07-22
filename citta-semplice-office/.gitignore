@@ -11,8 +11,8 @@ coverage
 out/
 build
 
-# Production
-dist
+# Production (solo la dist di root: public/**/dist sono asset copiati, vedi sotto)
+/dist
 
 # Misc
 .DS_Store
@@ -38,7 +38,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Prisma
-prisma/migrations
+#prisma/migrations
 
 # IDE
 .idea
@@ -56,3 +56,7 @@ logs
 # Uploads (local dev)
 /data
 /uploads
+
+# Bundle JS di bootstrap-italia: 1 MB rigenerato dal postinstall
+# (scripts/copy-bootstrap-italia.mjs). Gli sprite SVG restano versionati.
+/public/bootstrap-italia/dist/js/

@@ -183,7 +183,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
     }
 
     // Controllo allegati obbligatori per operatore
-    const requiredAttachments = currentStep?.allegatiRichiestiList?.filter(a => a.obbligatorio && a.soggetto === 'operatore') || [];
+    const requiredAttachments = currentStep?.allegatiRichiestiList?.filter(a => a.obbligatorio && a.soggetto === 'OP') || [];
     const providedAttachments = lastWorkflow?.allegati || [];
     const missingAttachments = requiredAttachments.filter(req =>
       !providedAttachments.some(att => att.nomeFileRichiesto === req.nomeAllegatoRichiesto)

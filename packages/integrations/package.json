@@ -1,0 +1,14 @@
+{
+  "name": "@citta/integrations",
+  "version": "1.0.0",
+  "description": "Integrazioni esterne condivise (PmPay, Urbismart) tra office e portal",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./pmpay": "./src/pmpay.ts",
+    "./protocollazione": "./src/protocollazione.ts"
+  },
+  "files": [
+    "src"
+  ]
+}

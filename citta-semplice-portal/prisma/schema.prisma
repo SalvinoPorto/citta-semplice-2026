@@ -1,3 +1,10 @@
+// ============================================================================
+// SCHEMA CANONICO — UNICA FONTE DI VERITÀ (office + portal condividono lo stesso DB)
+// Modifica SOLO questo file, poi esegui:  ./sync-schema.sh
+// Le copie in citta-semplice-{office,portal}/prisma/schema.prisma sono GENERATE:
+// non modificarle a mano (check-schema-drift.sh fallisce se divergono).
+// ============================================================================
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -8,13 +15,32 @@ datasource db {
 }
 
 // ============================================
+// ENUMS (valori tipizzati al posto di stringhe magiche)
+// ============================================
+
+enum TipoProtocollo {
+  E // Entrata
+  U // Uscita
+}
+
+enum Soggetto {
+  OP // Operatore
+  UT // Utente
+}
+
+enum Direzione {
+  AVANZAMENTO
+  ROLLBACK
+}
+
+// ============================================
 // AUTHENTICATION & USERS
 // ============================================
 
 model Operatore {
   id                Int       @id @default(autoincrement())
   email             String    @db.VarChar(100)
-  password          String    @db.VarChar(64)
+  password          String    @db.VarChar(255)
   nome              String    @db.VarChar(100)
   cognome           String    @db.VarChar(100)
   userName          String    @db.VarChar(64) @unique @map("user_name")
@@ -216,11 +242,13 @@ model Step {
   */
   // Protocol
   protocollo                  Boolean   @default(false)
-  tipoProtocollo              String?   @db.VarChar(1) @map("tipo_protocollo") // 'E' = Entrata, 'U' = Uscita
+  tipoProtocollo              TipoProtocollo?   @map("tipo_protocollo") // E = Entrata, U = Uscita
   unitaOrganizzativa          String?   @db.VarChar(512) @map("unita_organizzativa")
   numerazioneInterna          Boolean   @default(false) @map("numerazione_interna")
 
-  // Assignment
+  // Assignment — A7: flag DORMIENTI (nessun uso nel codice). L'ufficio corrente
+  // segue solo l'avanzamento di fase (Fase.ufficioId); non esiste riassegnazione
+  // manuale a ufficio specifico. Riservati per un'eventuale funzione futura.
   assegnabileASpecificoUfficio Boolean  @default(false) @map("assegnabile_a_specifico_ufficio")
   settaAttributo              Boolean   @default(false) @map("setta_attributo")
 
@@ -233,6 +261,7 @@ model Step {
   workflows                   Workflow[]
   allegatiRichiestiList       AllegatoRichiesto[]
   pagamentoConfig             Pagamento?
+  istanzeLastStep             Istanza[]           @relation("IstanzaLastStep")
 
   //@@unique([servizioId, ordine])
   @@map("steps")
@@ -244,7 +273,7 @@ model AllegatoRichiesto {
   nomeAllegatoRichiesto String  @db.VarChar(512) @map("nome_allegato_richiesto")
   obbligatorio        Boolean   @default(false)
   interno             Boolean   @default(false)
-  soggetto            String?   @db.VarChar(2) // OP = Operatore, UT = Utente
+  soggetto            Soggetto? // OP = Operatore, UT = Utente
 
   stepId              Int?      @map("step_id")
   step                Step?     @relation(fields: [stepId], references: [id], onDelete: Cascade)
@@ -288,11 +317,24 @@ model Istanza {
   datiResponso        String?   @map("dati_responso") @db.Text
   municipalita        String?   @db.VarChar(60)
 
-  // Status
+  // Status — MUTUAMENTE ESCLUSIVI: al più uno true (vincolo DB
+  // istanze_stato_esclusivo_chk, migration 20260720120000). Tutti false = "in lavorazione".
+  //   inBozza=true  → bozza (solo portale)
+  //   conclusa=true → conclusa
+  //   respinta=true → respinta
   conclusa            Boolean   @default(false)
   respinta            Boolean   @default(false)
   inBozza             Boolean   @default(false) @map("in_bozza")
+  // Posizione corrente (denormalizzata per lettura). Fonte di verità:
+  //   lastStepId = step corrente; activeStep = SNAPSHOT del suo ordine.
+  //   activeStep è MANTENUTO di proposito (non derivato al volo): gli step possono
+  //   essere soft-deleted/rinumerati all'edit del servizio, lo snapshot resta stabile.
+  //   faseCorrenteId = fase corrente; ufficioCorrenteId = ufficio assegnato
+  //     (di norma = faseCorrente.ufficioId, ma può essere override per-istanza → multi-ufficio)
   activeStep          Int?      @map("active_step")
+  // Solo per le bozze: pagina del modulo (0-based) su cui il cittadino si è
+  // fermato, quando il form è diviso in più pagine tramite campi `pagebreak`.
+  bozzaPagina         Int?      @map("bozza_pagina")
 
   // Protocol
   protoNumero         String    @db.VarChar(50) @map("proto_numero")
@@ -315,7 +357,10 @@ model Istanza {
   servizioId          Int       @map("servizio_id")
   servizio            Servizio  @relation(fields: [servizioId], references: [id])
 
+  // A4: FK verso Step (integrità referenziale). SetNull perché lo step può essere
+  // hard-deleted quando non referenziato da workflow.
   lastStepId          Int?      @map("last_step_id")
+  lastStep            Step?     @relation("IstanzaLastStep", fields: [lastStepId], references: [id], onDelete: SetNull)
 
   faseCorrenteId      Int?      @map("fase_corrente_id")
   faseCorrente        Fase?     @relation("FaseCorrente", fields: [faseCorrenteId], references: [id], onDelete: SetNull)
@@ -350,6 +395,8 @@ model Workflow {
   stepId          Int       @map("step_id")
   step            Step?     @relation(fields: [stepId], references: [id])
 
+  // Binario voluto: 0 = in lavorazione, 1 = completata (usato con aritmetica nel
+  // codice, non convertito a enum). L'esito "respinta" vive su Istanza.respinta.
   stato           Int       @default(0)
   operatoreId     Int?      @map("operatore_id")
   operatore       Operatore? @relation(fields: [operatoreId], references: [id])
@@ -370,8 +417,11 @@ model Fase {
   servizioId  Int      @map("servizio_id")
   servizio    Servizio @relation(fields: [servizioId], references: [id], onDelete: Cascade)
 
-  ufficioId        Int?     @map("ufficio_id")
-  ufficio          Ufficio? @relation(fields: [ufficioId], references: [id], onDelete: SetNull)
+  // A7: ogni fase DEVE avere un ufficio (altrimenti le istanze in quella fase
+  // sarebbero invisibili agli operatori). Restrict: non si può eliminare un
+  // ufficio ancora referenziato da una fase.
+  ufficioId        Int     @map("ufficio_id")
+  ufficio          Ufficio @relation(fields: [ufficioId], references: [id], onDelete: Restrict)
 
   steps                Step[]
   workflowFasi         WorkflowFase[]
@@ -384,7 +434,7 @@ model WorkflowFase {
   id                       Int       @id @default(autoincrement())
   dataInizio               DateTime  @map("data_inizio")
   dataCompletamento        DateTime? @map("data_completamento")
-  direzione                String    @default("AVANZAMENTO") @db.VarChar(20)
+  direzione                Direzione @default(AVANZAMENTO)
 
   istanzaId                Int       @map("istanza_id")
   istanza                  Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)

@@ -227,7 +227,9 @@ async function htmlToPdf(html: string): Promise<Buffer> {
   });
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    // setContent non accetta più networkidle* (puppeteer 24.4x): 'load' attende
+    // comunque il caricamento delle risorse referenziate dall'HTML.
+    await page.setContent(html, { waitUntil: 'load' });
     const pdf = await page.pdf({ format: 'A4', printBackground: true });
     return Buffer.from(pdf);
   } finally {

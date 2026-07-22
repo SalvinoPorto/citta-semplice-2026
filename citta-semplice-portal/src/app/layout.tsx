@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Titillium_Web } from 'next/font/google';
+import Script from 'next/script';
 import 'bootstrap-italia/dist/css/bootstrap-italia.min.css';
 import './globals.css';
 import { Providers } from './providers';
-import BootstrapClient from '@/lib/bootstrap-client';
 import { prisma } from '@/lib/db/prisma';
 
 const titillium = Titillium_Web({
@@ -32,8 +32,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers nomeEnte={nomeEnte}>
           {children}
         </Providers>
-        <BootstrapClient />
       </body>
+      <Script
+        src="/bootstrap-italia/dist/js/bootstrap-italia.bundle.min.js"
+        strategy="afterInteractive"
+      />
     </html>
   );
 }

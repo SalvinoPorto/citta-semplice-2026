@@ -44,7 +44,7 @@ export type WorkflowFaseMinAggregateOutputType = {
   id: number | null
   dataInizio: Date | null
   dataCompletamento: Date | null
-  direzione: string | null
+  direzione: $Enums.Direzione | null
   istanzaId: number | null
   faseId: number | null
   operatoreCompletamentoId: number | null
@@ -54,7 +54,7 @@ export type WorkflowFaseMaxAggregateOutputType = {
   id: number | null
   dataInizio: Date | null
   dataCompletamento: Date | null
-  direzione: string | null
+  direzione: $Enums.Direzione | null
   istanzaId: number | null
   faseId: number | null
   operatoreCompletamentoId: number | null
@@ -207,7 +207,7 @@ export type WorkflowFaseGroupByOutputType = {
   id: number
   dataInizio: Date
   dataCompletamento: Date | null
-  direzione: string
+  direzione: $Enums.Direzione
   istanzaId: number
   faseId: number
   operatoreCompletamentoId: number | null
@@ -240,7 +240,7 @@ export type WorkflowFaseWhereInput = {
   id?: Prisma.IntFilter<"WorkflowFase"> | number
   dataInizio?: Prisma.DateTimeFilter<"WorkflowFase"> | Date | string
   dataCompletamento?: Prisma.DateTimeNullableFilter<"WorkflowFase"> | Date | string | null
-  direzione?: Prisma.StringFilter<"WorkflowFase"> | string
+  direzione?: Prisma.EnumDirezioneFilter<"WorkflowFase"> | $Enums.Direzione
   istanzaId?: Prisma.IntFilter<"WorkflowFase"> | number
   faseId?: Prisma.IntFilter<"WorkflowFase"> | number
   operatoreCompletamentoId?: Prisma.IntNullableFilter<"WorkflowFase"> | number | null
@@ -269,7 +269,7 @@ export type WorkflowFaseWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.WorkflowFaseWhereInput | Prisma.WorkflowFaseWhereInput[]
   dataInizio?: Prisma.DateTimeFilter<"WorkflowFase"> | Date | string
   dataCompletamento?: Prisma.DateTimeNullableFilter<"WorkflowFase"> | Date | string | null
-  direzione?: Prisma.StringFilter<"WorkflowFase"> | string
+  direzione?: Prisma.EnumDirezioneFilter<"WorkflowFase"> | $Enums.Direzione
   istanzaId?: Prisma.IntFilter<"WorkflowFase"> | number
   faseId?: Prisma.IntFilter<"WorkflowFase"> | number
   operatoreCompletamentoId?: Prisma.IntNullableFilter<"WorkflowFase"> | number | null
@@ -300,7 +300,7 @@ export type WorkflowFaseScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"WorkflowFase"> | number
   dataInizio?: Prisma.DateTimeWithAggregatesFilter<"WorkflowFase"> | Date | string
   dataCompletamento?: Prisma.DateTimeNullableWithAggregatesFilter<"WorkflowFase"> | Date | string | null
-  direzione?: Prisma.StringWithAggregatesFilter<"WorkflowFase"> | string
+  direzione?: Prisma.EnumDirezioneWithAggregatesFilter<"WorkflowFase"> | $Enums.Direzione
   istanzaId?: Prisma.IntWithAggregatesFilter<"WorkflowFase"> | number
   faseId?: Prisma.IntWithAggregatesFilter<"WorkflowFase"> | number
   operatoreCompletamentoId?: Prisma.IntNullableWithAggregatesFilter<"WorkflowFase"> | number | null
@@ -309,7 +309,7 @@ export type WorkflowFaseScalarWhereWithAggregatesInput = {
 export type WorkflowFaseCreateInput = {
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowFasiInput
   fase: Prisma.FaseCreateNestedOneWithoutWorkflowFasiInput
   operatoreCompletamento?: Prisma.OperatoreCreateNestedOneWithoutWorkflowFasiCompletatiInput
@@ -319,7 +319,7 @@ export type WorkflowFaseUncheckedCreateInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanzaId: number
   faseId: number
   operatoreCompletamentoId?: number | null
@@ -328,7 +328,7 @@ export type WorkflowFaseUncheckedCreateInput = {
 export type WorkflowFaseUpdateInput = {
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowFasiNestedInput
   fase?: Prisma.FaseUpdateOneRequiredWithoutWorkflowFasiNestedInput
   operatoreCompletamento?: Prisma.OperatoreUpdateOneWithoutWorkflowFasiCompletatiNestedInput
@@ -338,7 +338,7 @@ export type WorkflowFaseUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   faseId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreCompletamentoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -348,7 +348,7 @@ export type WorkflowFaseCreateManyInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanzaId: number
   faseId: number
   operatoreCompletamentoId?: number | null
@@ -357,14 +357,14 @@ export type WorkflowFaseCreateManyInput = {
 export type WorkflowFaseUpdateManyMutationInput = {
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
 }
 
 export type WorkflowFaseUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   faseId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreCompletamentoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -550,10 +550,14 @@ export type WorkflowFaseUncheckedUpdateManyWithoutFaseNestedInput = {
   deleteMany?: Prisma.WorkflowFaseScalarWhereInput | Prisma.WorkflowFaseScalarWhereInput[]
 }
 
+export type EnumDirezioneFieldUpdateOperationsInput = {
+  set?: $Enums.Direzione
+}
+
 export type WorkflowFaseCreateWithoutOperatoreCompletamentoInput = {
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowFasiInput
   fase: Prisma.FaseCreateNestedOneWithoutWorkflowFasiInput
 }
@@ -562,7 +566,7 @@ export type WorkflowFaseUncheckedCreateWithoutOperatoreCompletamentoInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanzaId: number
   faseId: number
 }
@@ -600,7 +604,7 @@ export type WorkflowFaseScalarWhereInput = {
   id?: Prisma.IntFilter<"WorkflowFase"> | number
   dataInizio?: Prisma.DateTimeFilter<"WorkflowFase"> | Date | string
   dataCompletamento?: Prisma.DateTimeNullableFilter<"WorkflowFase"> | Date | string | null
-  direzione?: Prisma.StringFilter<"WorkflowFase"> | string
+  direzione?: Prisma.EnumDirezioneFilter<"WorkflowFase"> | $Enums.Direzione
   istanzaId?: Prisma.IntFilter<"WorkflowFase"> | number
   faseId?: Prisma.IntFilter<"WorkflowFase"> | number
   operatoreCompletamentoId?: Prisma.IntNullableFilter<"WorkflowFase"> | number | null
@@ -609,7 +613,7 @@ export type WorkflowFaseScalarWhereInput = {
 export type WorkflowFaseCreateWithoutIstanzaInput = {
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   fase: Prisma.FaseCreateNestedOneWithoutWorkflowFasiInput
   operatoreCompletamento?: Prisma.OperatoreCreateNestedOneWithoutWorkflowFasiCompletatiInput
 }
@@ -618,7 +622,7 @@ export type WorkflowFaseUncheckedCreateWithoutIstanzaInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   faseId: number
   operatoreCompletamentoId?: number | null
 }
@@ -652,7 +656,7 @@ export type WorkflowFaseUpdateManyWithWhereWithoutIstanzaInput = {
 export type WorkflowFaseCreateWithoutFaseInput = {
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanza: Prisma.IstanzaCreateNestedOneWithoutWorkflowFasiInput
   operatoreCompletamento?: Prisma.OperatoreCreateNestedOneWithoutWorkflowFasiCompletatiInput
 }
@@ -661,7 +665,7 @@ export type WorkflowFaseUncheckedCreateWithoutFaseInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanzaId: number
   operatoreCompletamentoId?: number | null
 }
@@ -696,7 +700,7 @@ export type WorkflowFaseCreateManyOperatoreCompletamentoInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanzaId: number
   faseId: number
 }
@@ -704,7 +708,7 @@ export type WorkflowFaseCreateManyOperatoreCompletamentoInput = {
 export type WorkflowFaseUpdateWithoutOperatoreCompletamentoInput = {
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowFasiNestedInput
   fase?: Prisma.FaseUpdateOneRequiredWithoutWorkflowFasiNestedInput
 }
@@ -713,7 +717,7 @@ export type WorkflowFaseUncheckedUpdateWithoutOperatoreCompletamentoInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   faseId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -722,7 +726,7 @@ export type WorkflowFaseUncheckedUpdateManyWithoutOperatoreCompletamentoInput = 
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   faseId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -731,7 +735,7 @@ export type WorkflowFaseCreateManyIstanzaInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   faseId: number
   operatoreCompletamentoId?: number | null
 }
@@ -739,7 +743,7 @@ export type WorkflowFaseCreateManyIstanzaInput = {
 export type WorkflowFaseUpdateWithoutIstanzaInput = {
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   fase?: Prisma.FaseUpdateOneRequiredWithoutWorkflowFasiNestedInput
   operatoreCompletamento?: Prisma.OperatoreUpdateOneWithoutWorkflowFasiCompletatiNestedInput
 }
@@ -748,7 +752,7 @@ export type WorkflowFaseUncheckedUpdateWithoutIstanzaInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   faseId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreCompletamentoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -757,7 +761,7 @@ export type WorkflowFaseUncheckedUpdateManyWithoutIstanzaInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   faseId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreCompletamentoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -766,7 +770,7 @@ export type WorkflowFaseCreateManyFaseInput = {
   id?: number
   dataInizio: Date | string
   dataCompletamento?: Date | string | null
-  direzione?: string
+  direzione?: $Enums.Direzione
   istanzaId: number
   operatoreCompletamentoId?: number | null
 }
@@ -774,7 +778,7 @@ export type WorkflowFaseCreateManyFaseInput = {
 export type WorkflowFaseUpdateWithoutFaseInput = {
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutWorkflowFasiNestedInput
   operatoreCompletamento?: Prisma.OperatoreUpdateOneWithoutWorkflowFasiCompletatiNestedInput
 }
@@ -783,7 +787,7 @@ export type WorkflowFaseUncheckedUpdateWithoutFaseInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreCompletamentoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -792,7 +796,7 @@ export type WorkflowFaseUncheckedUpdateManyWithoutFaseInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   dataInizio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataCompletamento?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  direzione?: Prisma.StringFieldUpdateOperationsInput | string
+  direzione?: Prisma.EnumDirezioneFieldUpdateOperationsInput | $Enums.Direzione
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreCompletamentoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -876,7 +880,7 @@ export type $WorkflowFasePayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: number
     dataInizio: Date
     dataCompletamento: Date | null
-    direzione: string
+    direzione: $Enums.Direzione
     istanzaId: number
     faseId: number
     operatoreCompletamentoId: number | null
@@ -1309,7 +1313,7 @@ export interface WorkflowFaseFieldRefs {
   readonly id: Prisma.FieldRef<"WorkflowFase", 'Int'>
   readonly dataInizio: Prisma.FieldRef<"WorkflowFase", 'DateTime'>
   readonly dataCompletamento: Prisma.FieldRef<"WorkflowFase", 'DateTime'>
-  readonly direzione: Prisma.FieldRef<"WorkflowFase", 'String'>
+  readonly direzione: Prisma.FieldRef<"WorkflowFase", 'Direzione'>
   readonly istanzaId: Prisma.FieldRef<"WorkflowFase", 'Int'>
   readonly faseId: Prisma.FieldRef<"WorkflowFase", 'Int'>
   readonly operatoreCompletamentoId: Prisma.FieldRef<"WorkflowFase", 'Int'>

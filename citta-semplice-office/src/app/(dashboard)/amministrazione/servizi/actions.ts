@@ -37,7 +37,7 @@ async function upsertFasi(
         data: {
           nome: faseData.nome,
           ordine: i + 1,
-          ufficioId: faseData.ufficioId ?? null,
+          ufficioId: faseData.ufficioId!, // A7: garantito non-null dalla validazione (Fase.ufficioId NOT NULL)
         },
       });
       faseSalvate.push({ ordine: i + 1, id: fase.id });
@@ -47,7 +47,7 @@ async function upsertFasi(
           nome: faseData.nome,
           ordine: i + 1,
           servizioId,
-          ufficioId: faseData.ufficioId ?? null,
+          ufficioId: faseData.ufficioId!, // A7: garantito non-null dalla validazione (Fase.ufficioId NOT NULL)
         },
       });
       faseSalvate.push({ ordine: i + 1, id: fase.id });

@@ -60,10 +60,27 @@ export function FormCanvas({
     return FIELD_TYPES.find((f) => f.type === type);
   };
 
-  const renderFieldPreview = (field: FormField) => {
+  // Pagina (1-based) di ogni campo: il pagebreak appartiene alla pagina che apre.
+  const pageNumbers: number[] = [];
+  let pageCursor = 1;
+  fields.forEach((f) => {
+    if (f.type === 'pagebreak') pageCursor++;
+    pageNumbers.push(pageCursor);
+  });
+  const totalPages = pageCursor;
+
+  const renderFieldPreview = (field: FormField, pageNumber: number) => {
     const typeInfo = getFieldTypeInfo(field.type);
 
     switch (field.type) {
+      case 'pagebreak':
+        return (
+          <div className="pagebreak-banner">
+            <span className="pagebreak-chip">Pagina {pageNumber} di {totalPages}</span>
+            <span className="fw-semibold">{field.label || 'Nuova pagina'}</span>
+          </div>
+        );
+
       case 'heading':
         return <h5 className="mb-0">{field.label || 'Titolo'}</h5>;
       
@@ -194,6 +211,12 @@ export function FormCanvas({
         Rilascia qui
       </div>
 
+      {totalPages > 1 && (
+        <div className="pagebreak-banner mb-2">
+          <span className="pagebreak-chip">Pagina 1 di {totalPages}</span>
+        </div>
+      )}
+
       {fields.length === 0 ? (
         <div className="empty-canvas">
           <div className="text-center text-muted py-5">
@@ -207,9 +230,9 @@ export function FormCanvas({
         fields.map((field, index) => (
           <Fragment key={index}>
             <div
-              className={`field-item ${selectedFieldId === field.id ? 'selected' : ''} ${
-                draggedFieldIndex === index ? 'dragging' : ''
-              }`}
+              className={`field-item ${field.type === 'pagebreak' ? 'is-pagebreak' : ''} ${
+                selectedFieldId === field.id ? 'selected' : ''
+              } ${draggedFieldIndex === index ? 'dragging' : ''}`}
               draggable
               onDragStart={(e) => handleFieldDragStart(e, index)}
               onDragEnd={handleFieldDragEnd}
@@ -244,9 +267,9 @@ export function FormCanvas({
                   </button>
                 </div>
               </div>
-              <div className="field-preview">{renderFieldPreview(field)}</div>
+              <div className="field-preview">{renderFieldPreview(field, pageNumbers[index])}</div>
               <div className="field-footer">
-                {field.name && <code>{field.name}</code>}
+                {field.type !== 'pagebreak' && field.name && <code>{field.name}</code>}
                 {field.condition?.fieldName && (
                   <span className="condition-badge" title={`Visibile se "${field.condition.fieldName}" ${field.condition.operator}${field.condition.value ? ` "${field.condition.value}"` : ''}`}>
                     ◈ condizione
@@ -269,7 +292,7 @@ export function FormCanvas({
         ))
       )}
 
-      <style jsx>{`
+      <style>{`
         .form-canvas {
           min-height: 400px;
           background: #fafafa;
@@ -318,6 +341,27 @@ export function FormCanvas({
         }
         .field-item.dragging {
           opacity: 0.5;
+        }
+        .field-item.is-pagebreak {
+          background: #f0f6ff;
+          border-style: dashed;
+          border-color: #0d6efd;
+        }
+        .pagebreak-banner {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          color: #0d6efd;
+        }
+        .pagebreak-chip {
+          font-size: 11px;
+          font-weight: 600;
+          background: #0d6efd;
+          color: white;
+          padding: 2px 8px;
+          border-radius: 10px;
+          white-space: nowrap;
         }
         .field-header {
           display: flex;

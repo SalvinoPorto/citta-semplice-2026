@@ -37,7 +37,7 @@ export function Header({ user }: HeaderProps) {
             <div className="col-12">
               <div className="it-header-slim-wrapper-content">
                 <span className="d-none d-lg-block navbar-brand">
-                  Reegione Siciliana
+                  {/* Regione Siciliana */}
                 </span>
                 <div className="it-header-slim-right-zone">
                   <div className="dropdown">
@@ -121,7 +121,7 @@ export function Header({ user }: HeaderProps) {
                     <Link href="/">
                       <div className="it-brand-text">
                         <div className="it-brand-title">Citta Semplice</div>
-                        <div className="it-brand-tagline d-none d-md-block">Portale delle istanza di parte</div>
+                        <div className="it-brand-tagline d-none d-md-block">Portale delle istanze di parte</div>
                       </div>
                     </Link>
                   </div>
