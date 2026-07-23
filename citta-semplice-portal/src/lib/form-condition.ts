@@ -51,3 +51,18 @@ export function isFieldVisible(
 ): boolean {
   return condizioniEffettive(campo).every((c) => evaluateCondition(c, values));
 }
+
+/**
+ * Obbligo effettivo di un campo sui valori correnti: obbligatorio sempre
+ * (`required === true`) oppure solo quando `requiredCondition` è vera. Non
+ * tiene conto della visibilità: il chiamante applica l'obbligo ai soli campi
+ * visibili.
+ */
+export function requiredEffettivo(
+  campo: { validation?: { required?: boolean; requiredCondition?: FieldCondition } },
+  values: Record<string, unknown>,
+): boolean {
+  if (campo.validation?.required === true) return true;
+  const rc = campo.validation?.requiredCondition;
+  return rc?.fieldName ? evaluateCondition(rc, values) : false;
+}

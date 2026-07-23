@@ -25,6 +25,8 @@ export interface FieldOption {
 
 export interface FieldValidation {
   required?: boolean;
+  /** Se presente, il campo è obbligatorio solo quando questa condizione è vera. */
+  requiredCondition?: FieldCondition;
   minLength?: number;
   maxLength?: number;
   min?: number;
@@ -85,12 +87,35 @@ export const CONTAINER_TYPE: FieldType = 'section';
 export function risolviRiferimentiCondizioni(fields: FormField[]): FormField[] {
   const nomiPerId = new Map(fields.filter((f) => f?.id).map((f) => [f.id, f.name]));
 
-  return fields.map((field) => {
-    const cond = field.condition;
-    if (!cond?.fieldId) return field;
+  // Risolve una singola condizione: rimappa `fieldName` dal `fieldId` corrente.
+  // `orfana` segnala una sorgente cancellata (condizione da rimuovere).
+  const risolvi = (
+    cond: FieldCondition | undefined,
+  ): { value: FieldCondition | undefined; orfana: boolean } => {
+    if (!cond?.fieldId) return { value: cond, orfana: false };
     const nome = nomiPerId.get(cond.fieldId);
-    if (!nome) return { ...field, condition: undefined };
-    return nome === cond.fieldName ? field : { ...field, condition: { ...cond, fieldName: nome } };
+    if (!nome) return { value: undefined, orfana: true };
+    return { value: nome === cond.fieldName ? cond : { ...cond, fieldName: nome }, orfana: false };
+  };
+
+  return fields.map((field) => {
+    let next = field;
+
+    const vis = risolvi(field.condition);
+    if (vis.orfana) next = { ...next, condition: undefined };
+    else if (vis.value !== field.condition) next = { ...next, condition: vis.value };
+
+    const rc = field.validation?.requiredCondition;
+    if (rc) {
+      const req = risolvi(rc);
+      if (req.orfana) {
+        next = { ...next, validation: { ...next.validation, requiredCondition: undefined } };
+      } else if (req.value !== rc) {
+        next = { ...next, validation: { ...next.validation, requiredCondition: req.value } };
+      }
+    }
+
+    return next;
   });
 }
 
