@@ -199,6 +199,26 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         </div>
       )}
 
+      {/* Valore predefinito per select/radio */}
+      {hasOptions && (
+        <div className="mb-3">
+          <label className="form-label small fw-bold">Valore predefinito</label>
+          <select
+            className="form-select form-select-sm"
+            value={field.defaultValue ?? ''}
+            onChange={(e) => handleChange('defaultValue', e.target.value || undefined)}
+          >
+            <option value="">-- Nessuno --</option>
+            {field.options?.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label || o.value} ({o.value})
+              </option>
+            ))}
+          </select>
+          <small className="text-muted">Opzione preselezionata all'apertura del modulo.</small>
+        </div>
+      )}
+
       {/* File accept */}
       {field.type === 'file' && (
         <div className="mb-3">

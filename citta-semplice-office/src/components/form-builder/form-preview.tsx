@@ -129,7 +129,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
                   name={field.name}
                   id={`${field.id}_${i}`}
                   value={opt.value}
-                  checked={values[field.name] === opt.value}
+                  checked={(values[field.name] ?? field.defaultValue) === opt.value}
                   onChange={() => setValue(field.name, opt.value)}
                   required={field.validation?.required}
                 />
@@ -153,7 +153,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
               className="form-select"
               name={field.name}
               id={field.id}
-              value={values[field.name] ?? ''}
+              value={values[field.name] ?? field.defaultValue ?? ''}
               onChange={(e) => setValue(field.name, e.target.value)}
               required={field.validation?.required}
               multiple={field.multiple}
