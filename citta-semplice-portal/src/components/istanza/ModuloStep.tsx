@@ -119,6 +119,16 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   ref
 ) {
   const campi = parseCampi(servizio.attributi);
+
+  // Valori predefiniti di radio/select dello schema. I dati salvati (bozza)
+  // vincono sempre sul default.
+  const defaultDaSchema = Object.fromEntries(
+    campi
+      .filter((c) => (c.type === 'radio' || c.type === 'select') && c.defaultValue)
+      .map((c) => [c.name, c.defaultValue as string]),
+  );
+  const valoriIniziali = { ...defaultDaSchema, ...dati };
+
   const schema = buildSchema(campi);
   const pagine = splitPages(campi);
   const paginaCorrente = Math.min(pagina, pagine.length - 1);
@@ -133,7 +143,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: dati as Record<string, string | boolean>,
+    defaultValues: valoriIniziali as Record<string, string | boolean>,
     mode: 'onChange',
   });
 
