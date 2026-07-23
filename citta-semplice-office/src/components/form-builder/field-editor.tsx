@@ -4,12 +4,13 @@ import { useState } from 'react';
 import {
   FormField,
   FieldOption,
-  FieldCondition,
+  FieldValidation,
   ConditionOperator,
   CONTAINER_TYPE,
   catenaContenitori,
 } from './types';
 import { Input, Select, Textarea } from '@/components/ui';
+import { ConditionBuilder } from './condition-builder';
 
 const OPERATOR_LABELS: Record<ConditionOperator, string> = {
   equals: 'è uguale a',
@@ -57,6 +58,16 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
       });
     onUpdate({ ...field, options });
   };
+
+  const setValidation = (patch: Partial<FieldValidation>) =>
+    onUpdate({ ...field, validation: { ...field.validation, ...patch } });
+
+  // Campi utilizzabili come sorgente di una condizione (visibilità o obbligo).
+  const candidateFields = allFields.filter(
+    (f) =>
+      f.id !== field.id &&
+      !['heading', 'section', 'paragraph', 'divider', 'pagebreak', 'hidden'].includes(f.type),
+  );
 
   const isInputField = ['text', 'textarea', 'number', 'email', 'tel', 'date', 'time', 'datetime'].includes(
     field.type
@@ -284,17 +295,70 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         <>
           <h6 className="mb-3">Validazione</h6>
 
-          <div className="form-check mb-2">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="required"
-              checked={field.validation?.required || false}
-              onChange={(e) => handleValidationChange('required', e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="required">
-              Campo obbligatorio
-            </label>
+          <div className="mb-3">
+            <label className="form-label small fw-bold d-block">Obbligatorietà</label>
+            {(() => {
+              const mode: 'never' | 'always' | 'conditional' = field.validation?.requiredCondition
+                ? 'conditional'
+                : field.validation?.required
+                  ? 'always'
+                  : 'never';
+              const setMode = (m: 'never' | 'always' | 'conditional') => {
+                if (m === 'never') setValidation({ required: false, requiredCondition: undefined });
+                else if (m === 'always') setValidation({ required: true, requiredCondition: undefined });
+                else
+                  setValidation({
+                    required: false,
+                    requiredCondition: { fieldName: '', operator: 'equals', value: '' },
+                  });
+              };
+              return (
+                <>
+                  <div className="form-check">
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      id="req_never"
+                      name="requiredMode"
+                      checked={mode === 'never'}
+                      onChange={() => setMode('never')}
+                    />
+                    <label className="form-check-label" htmlFor="req_never">Mai</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      id="req_always"
+                      name="requiredMode"
+                      checked={mode === 'always'}
+                      onChange={() => setMode('always')}
+                    />
+                    <label className="form-check-label" htmlFor="req_always">Sempre</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      id="req_conditional"
+                      name="requiredMode"
+                      checked={mode === 'conditional'}
+                      onChange={() => setMode('conditional')}
+                    />
+                    <label className="form-check-label" htmlFor="req_conditional">Solo se…</label>
+                  </div>
+                  {mode === 'conditional' && (
+                    <div className="mt-2 ps-3 border-start">
+                      <ConditionBuilder
+                        condition={field.validation!.requiredCondition!}
+                        candidateFields={candidateFields}
+                        onChange={(c) => setValidation({ requiredCondition: c })}
+                      />
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {isInputField && field.type !== 'date' && field.type !== 'time' && (
@@ -503,39 +567,7 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
 
       {/* Conditional Visibility */}
       {(() => {
-        const candidateFields = allFields.filter(
-          (f) =>
-            f.id !== field.id &&
-            !['heading', 'section', 'paragraph', 'divider', 'pagebreak', 'hidden'].includes(f.type)
-        );
         const hasCondition = !!field.condition;
-        const operator = field.condition?.operator ?? 'equals';
-        const needsValue = operator === 'equals' || operator === 'not_equals';
-
-        // La condizione punta al campo per id; il name viene tenuto allineato
-        // perché a runtime i valori del form sono indicizzati per nome.
-        const sorgente =
-          candidateFields.find((f) => f.id === field.condition?.fieldId) ??
-          // Schemi salvati prima di `fieldId`: si risale dal nome.
-          candidateFields.find((f) => f.name && f.name === field.condition?.fieldName);
-
-        const setCondition = (patch: Partial<NonNullable<FormField['condition']>>) =>
-          onUpdate({
-            ...field,
-            condition: {
-              fieldId: field.condition?.fieldId,
-              fieldName: field.condition?.fieldName ?? '',
-              operator: field.condition?.operator ?? 'equals',
-              value: field.condition?.value,
-              ...patch,
-            },
-          });
-
-        const setSorgente = (id: string) => {
-          const f = candidateFields.find((c) => c.id === id);
-          // Cambiare campo sorgente invalida il valore atteso.
-          setCondition({ fieldId: f?.id, fieldName: f?.name ?? '', value: '' });
-        };
 
         return (
           <>
@@ -568,96 +600,11 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
             </div>
 
             {hasCondition && (
-              <>
-                {candidateFields.length === 0 ? (
-                  <small className="text-muted">
-                    Aggiungi altri campi al form per usare le condizioni.
-                  </small>
-                ) : (
-                  <>
-                    <div className="mb-2">
-                      <label className="form-label small">Campo</label>
-                      <select
-                        className="form-select form-select-sm"
-                        value={sorgente?.id ?? ''}
-                        onChange={(e) => setSorgente(e.target.value)}
-                      >
-                        <option value="">-- Seleziona campo --</option>
-                        {/* Si identifica il campo per name: le etichette possono
-                            ripetersi, il name no. */}
-                        {candidateFields.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.name || `(${f.type} senza nome)`}
-                            {f.label ? ` — ${f.label}` : ''}
-                          </option>
-                        ))}
-                      </select>
-                      {sorgente && !sorgente.name && (
-                        <small className="text-danger">
-                          Il campo selezionato non ha un Nome Campo (ID): assegnaglielo,
-                          altrimenti la condizione non può essere valutata.
-                        </small>
-                      )}
-                    </div>
-
-                    <div className="mb-2">
-                      <label className="form-label small">Condizione</label>
-                      <select
-                        className="form-select form-select-sm"
-                        value={operator}
-                        onChange={(e) =>
-                          setCondition({ operator: e.target.value as ConditionOperator })
-                        }
-                      >
-                        <option value="equals">è uguale a</option>
-                        <option value="not_equals">è diverso da</option>
-                        <option value="not_empty">non è vuoto</option>
-                        <option value="empty">è vuoto</option>
-                      </select>
-                    </div>
-
-                    {needsValue && (
-                      <div className="mb-2">
-                        <label className="form-label small">Valore</label>
-                        {sorgente?.options?.length ? (
-                          // Il confronto avviene sul `value` dell'opzione, non
-                          // sull'etichetta: si sceglie dalla lista per non sbagliarlo.
-                          <select
-                            className="form-select form-select-sm"
-                            value={field.condition?.value ?? ''}
-                            onChange={(e) => setCondition({ value: e.target.value })}
-                          >
-                            <option value="">-- Seleziona valore --</option>
-                            {sorgente.options.map((o) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label || o.value} ({o.value})
-                              </option>
-                            ))}
-                          </select>
-                        ) : sorgente?.type === 'checkbox' ? (
-                          <select
-                            className="form-select form-select-sm"
-                            value={field.condition?.value ?? ''}
-                            onChange={(e) => setCondition({ value: e.target.value })}
-                          >
-                            <option value="">-- Seleziona valore --</option>
-                            <option value="true">Selezionato</option>
-                            <option value="false">Non selezionato</option>
-                          </select>
-                        ) : (
-                          <input
-                            type="text"
-                            className="form-control form-control-sm"
-                            value={field.condition?.value ?? ''}
-                            onChange={(e) => setCondition({ value: e.target.value })}
-                            placeholder="Valore atteso..."
-                          />
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
+              <ConditionBuilder
+                condition={field.condition!}
+                candidateFields={candidateFields}
+                onChange={(c) => onUpdate({ ...field, condition: c })}
+              />
             )}
           </>
         );

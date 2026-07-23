@@ -27,6 +27,12 @@ function evaluateCondition(condition: FieldCondition, values: Record<string, str
   }
 }
 
+function requiredEffettivo(field: FormField, values: Record<string, string>): boolean {
+  if (field.validation?.required === true) return true;
+  const rc = field.validation?.requiredCondition;
+  return rc?.fieldName ? evaluateCondition(rc, values) : false;
+}
+
 export function FormPreview({ fields }: FormPreviewProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [pageIndex, setPageIndex] = useState(0);
@@ -72,7 +78,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
   };
 
   const renderField = (field: FormField) => {
-    const requiredMark = field.validation?.required ? (
+    const requiredMark = requiredEffettivo(field, values) ? (
       <span className="text-danger ms-1">*</span>
     ) : null;
 
