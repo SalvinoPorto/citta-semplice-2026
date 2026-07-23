@@ -1,4 +1,4 @@
-import { isFieldVisible } from './form-condition';
+import { isFieldVisible, requiredEffettivo } from './form-condition';
 import { FormField, LAYOUT_FIELD_TYPES, parseCampi } from './form-pages';
 
 /**
@@ -41,9 +41,9 @@ function parseValori(datiRaw: string | null | undefined): Record<string, string>
   return {};
 }
 
-function validaCampo(campo: FormField, valore: string): string | null {
+function validaCampo(campo: FormField, valore: string, valori: Record<string, string>): string | null {
   const etichetta = campo.label || campo.name;
-  const required = campo.validation?.required ?? false;
+  const required = requiredEffettivo(campo, valori);
 
   if (campo.type === 'checkbox') {
     if (required && valore !== 'true') return `Il campo "${etichetta}" è obbligatorio.`;
@@ -113,7 +113,7 @@ export function validaDatiModulo(
     if (!isFieldVisible(campo, valori)) continue;
 
     const valore = valori[campo.name] ?? '';
-    const errore = validaCampo(campo, valore);
+    const errore = validaCampo(campo, valore, valori);
     if (errore) return { ok: false, errore };
 
     puliti.push({ name: campo.name, label: campo.label, value: valore });

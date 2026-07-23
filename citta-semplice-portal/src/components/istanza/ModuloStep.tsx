@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useImperativeHandle, forwardRef } from 'react';
-import { hasVisibilityRule, isFieldVisible } from '@/lib/form-condition';
+import { hasVisibilityRule, isFieldVisible, requiredEffettivo } from '@/lib/form-condition';
 import { FormField, LAYOUT_FIELD_TYPES, parseCampi, splitPages } from '@/lib/form-pages';
 
 interface Servizio {
@@ -35,7 +35,10 @@ function buildSchema(campi: FormField[]) {
   for (const campo of campi) {
     if (LAYOUT_FIELD_TYPES.has(campo.type) || campo.type === 'hidden') continue;
 
-    const required = (campo.validation?.required ?? false) && !hasVisibilityRule(campo);
+    const required =
+      (campo.validation?.required ?? false) &&
+      !hasVisibilityRule(campo) &&
+      !campo.validation?.requiredCondition;
 
     // Checkbox — il preprocess converte stringhe ("true"/"false"/"") in boolean
     // per gestire valori ripristinati da bozza serializzata con String()
@@ -157,15 +160,24 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
       const baseResult = nomiPagina.length === 0 ? true : await trigger(nomiPagina);
       const currentValues = watch() as Record<string, unknown>;
 
-      // Validate required conditional fields based on current visibility
+      // Valida l'obbligo effettivo (visibilità + requiredCondition) dei campi
+      // che non sono obbligatori "puri" nello schema base.
       let conditionalValid = true;
       for (const campo of campiPagina) {
-        if (!hasVisibilityRule(campo) || !campo.validation?.required) continue;
         if (LAYOUT_FIELD_TYPES.has(campo.type) || campo.type === 'hidden') continue;
+        const dinamico =
+          (hasVisibilityRule(campo) && campo.validation?.required) ||
+          !!campo.validation?.requiredCondition;
+        if (!dinamico) continue;
 
-        if (isFieldVisible(campo, currentValues)) {
+        const richiesto =
+          isFieldVisible(campo, currentValues) && requiredEffettivo(campo, currentValues);
+        if (richiesto) {
           const val = currentValues[campo.name];
-          const isEmpty = val === undefined || val === null || val === '' ||
+          const isEmpty =
+            val === undefined ||
+            val === null ||
+            val === '' ||
             (campo.type === 'checkbox' && val !== true) ||
             (campo.type === 'file' && (!val || (val as FileList).length === 0));
           if (isEmpty) {
@@ -209,7 +221,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   }
 
   const renderField = (campo: FormField) => {
-    const requiredMark = campo.validation?.required ? (
+    const requiredMark = requiredEffettivo(campo, values as Record<string, unknown>) ? (
       <span className="text-danger ms-1">*</span>
     ) : null;
     const errorMsg = errors[campo.name]?.message
