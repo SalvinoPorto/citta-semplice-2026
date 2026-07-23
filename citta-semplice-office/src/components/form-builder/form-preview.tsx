@@ -44,12 +44,28 @@ export function FormPreview({ fields }: FormPreviewProps) {
 
   const getWidthClass = (width?: string) => {
     switch (width) {
-      case 'half':
+      /* case 'half':
         return 'col-md-6';
       case 'third':
         return 'col-md-4';
       case 'twothirds':
+        return 'col-md-8'; */
+      case '1':
+        return 'col-md-1';
+      case '2':
+        return 'col-md-2';
+      case '3':
+        return 'col-md-3';
+      case '4':
+        return 'col-md-4';
+      case '6':
+        return 'col-md-6';
+      case '8':
         return 'col-md-8';
+      case '9':
+        return 'col-md-9';
+      case '10':
+        return 'col-md-10';
       default:
         return 'col-12';
     }
@@ -247,9 +263,10 @@ export function FormPreview({ fields }: FormPreviewProps) {
   let currentWidth = 0;
 
   visibleFields.forEach((field) => {
-    const fieldWidth =
-      field.width === 'half' ? 6 : field.width === 'third' ? 4 : field.width === 'twothirds' ? 8 : 12;
-
+    const fieldWidth = field.width ? parseInt(field.width) : 12;
+    //const fieldWidth =
+      // field.width === 'half' ? 6 : field.width === 'third' ? 4 : field.width === 'twothirds' ? 8 : 12;
+      
     if (['heading', 'section', 'paragraph', 'divider'].includes(field.type)) {
       if (currentRow.length > 0) {
         rows.push(currentRow);

@@ -91,10 +91,26 @@ function buildSchema(campi: FormField[]) {
 
 function getWidthClass(width?: string) {
   switch (width) {
-    case 'half':  return 'col-md-6';
+    /* case 'half':  return 'col-md-6';
     case 'third': return 'col-md-4';
-    case 'twothirds': return 'col-md-8';
-    default:      return 'col-12';
+    case 'twothirds': return 'col-md-8'; */
+    case '1':
+      return 'col-md-1';
+    case '2':
+      return 'col-md-2';
+    case '3':
+      return 'col-md-3';
+    case '4':
+      return 'col-md-4';
+    case '6':
+      return 'col-md-6';
+    case '8':
+      return 'col-md-8';
+    case '9':
+      return 'col-md-9';
+    case '10':
+      return 'col-md-10';
+    default: return 'col-12';
   }
 }
 
@@ -161,7 +177,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
   useEffect(() => {
     onChangeDati(values);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(values)]);
 
   if (campi.length === 0 && servizio.moduloCorpo) {
@@ -193,10 +209,10 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
     switch (campo.type) {
       case 'heading':
         return <h4 className="mt-4 mb-3">{campo.label}</h4>;
-        
+
       case 'section':
-          return <div className="section-title">{campo.label}</div>;
-      
+        return <div className="section-title">{campo.label}</div>;
+
       case 'paragraph':
         return <p className="text-muted mb-3">{campo.label}</p>;
 
@@ -360,8 +376,8 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
   let currentWidth = 0;
 
   campiVisibili.forEach((campo) => {
-    const fieldWidth = campo.width === 'half' ? 6 : campo.width === 'third' ? 4 : campo.width === 'twothirds' ? 8 : 12;
-
+    //const fieldWidth = campo.width === 'half' ? 6 : campo.width === 'third' ? 4 : campo.width === 'twothirds' ? 8 : 12;
+    const fieldWidth = campo.width ? parseInt(campo.width) : 12;
     if (['heading', 'section', 'paragraph', 'divider'].includes(campo.type)) {
       if (currentRow.length > 0) {
         rows.push(currentRow);

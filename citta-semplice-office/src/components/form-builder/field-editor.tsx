@@ -238,10 +238,21 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
             value={field.width || 'full'}
             onChange={(e) => handleChange('width', e.target.value)}
           >
+            {/*  
             <option value="full">Intera riga</option>
             <option value="half">Metà riga</option>
             <option value="twothirds">Due terzi</option>
-            <option value="third">Un terzo</option>
+            <option value="third">Un terzo</option> 
+            */}
+            <option value="12">12 - Intera riga</option>
+            <option value="10">10 colonne</option>
+            <option value="9">9 - Tre quarti</option>
+            <option value="8">8 - Due terzi</option>
+            <option value="6">6 - Metà riga</option>
+            <option value="4">4 - Un terzo</option>
+            <option value="3">3 - Un quarto</option>
+            <option value="2">2 - Due colonne</option>
+            <option value="1">1 - Una colonna</option>            
           </select>
         </div>
       )}

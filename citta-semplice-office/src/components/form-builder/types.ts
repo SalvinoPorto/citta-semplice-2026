@@ -55,7 +55,8 @@ export interface FormField {
   options?: FieldOption[];
   validation?: FieldValidation;
   className?: string;
-  width?: 'full' | 'half' | 'third' | 'twothirds';
+  //width?: 'full' | 'half' | 'third' | 'twothirds';
+  width?: '1' | '2' | '3' | '4' | '6' | '8' | '9' | '10' | '12';
   accept?: string; // per file input
   multiple?: boolean; // per file e select
   rows?: number; // per textarea

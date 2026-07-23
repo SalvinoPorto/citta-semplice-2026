@@ -40,7 +40,8 @@ export interface FormField {
   name: string;
   label: string;
   type: FieldType;
-  width?: 'full' | 'half' | 'third' | 'twothirds';
+  //width?: 'full' | 'half' | 'third' | 'twothirds';
+  width?: '1' | '2' | '3' | '4' | '6' | '8' | '9' | '10' | '12';
   placeholder?: string;
   defaultValue?: string;
   helpText?: string;
