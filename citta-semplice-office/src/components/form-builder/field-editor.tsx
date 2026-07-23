@@ -1,8 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { FormField, FieldOption, FieldCondition, ConditionOperator } from './types';
+import {
+  FormField,
+  FieldOption,
+  FieldCondition,
+  ConditionOperator,
+  CONTAINER_TYPE,
+  catenaContenitori,
+} from './types';
 import { Input, Select, Textarea } from '@/components/ui';
+
+const OPERATOR_LABELS: Record<ConditionOperator, string> = {
+  equals: 'è uguale a',
+  not_equals: 'è diverso da',
+  not_empty: 'non è vuoto',
+  empty: 'è vuoto',
+};
 
 interface FieldEditorProps {
   field: FormField;
@@ -83,7 +97,14 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
           onChange={(e) => handleChange('name', e.target.value.replace(/[^a-zA-Z0-9_]/g, '_'))}
           placeholder="nome_campo"
         />
-        <small className="text-muted">Usato per identificare il campo nel form</small>
+        {allFields.some((f) => f.id !== field.id && f.name && f.name === field.name) ? (
+          <small className="text-danger">
+            Nome già usato da un altro campo: i valori si sovrascrivono e le condizioni
+            diventano ambigue.
+          </small>
+        ) : (
+          <small className="text-muted">Usato per identificare il campo nel form</small>
+        )}
       </div>
 
       {!isLayoutField && field.type !== 'hidden' && (
@@ -387,6 +408,68 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         </>
       )}
 
+      {/* Contenitore */}
+      {(() => {
+        // Un contenitore non può finire dentro se stesso o dentro un proprio discendente.
+        const discendenti = new Set<string>([field.id]);
+        let cresciuto = true;
+        while (cresciuto) {
+          cresciuto = false;
+          for (const f of allFields) {
+            if (f.parentId && discendenti.has(f.parentId) && !discendenti.has(f.id)) {
+              discendenti.add(f.id);
+              cresciuto = true;
+            }
+          }
+        }
+        const sezioni = allFields.filter(
+          (f) => f.type === CONTAINER_TYPE && !discendenti.has(f.id)
+        );
+        const catena = catenaContenitori(field, allFields);
+        const ereditate = catena.filter((c) => c.condition?.fieldName);
+
+        return (
+          <>
+            <hr />
+            <h6 className="mb-3">Contenitore</h6>
+            {sezioni.length === 0 ? (
+              <small className="text-muted">
+                Aggiungi una Sezione al form per poterci inserire questo campo.
+              </small>
+            ) : (
+              <>
+                <Select
+                  label="Appartiene alla sezione"
+                  value={field.parentId ?? ''}
+                  onChange={(e) =>
+                    onUpdate({ ...field, parentId: e.target.value || undefined })
+                  }
+                  options={[
+                    { value: '', label: '-- Nessuna --' },
+                    ...sezioni.map((s) => ({
+                      value: s.id,
+                      label: `${s.name || '(sezione senza nome)'}${s.label ? ` — ${s.label}` : ''}`,
+                    })),
+                  ]}
+                />
+                {ereditate.length > 0 && (
+                  <div className="alert alert-info py-2 px-3 small mt-2 mb-0">
+                    Eredita la visibilità dalla sezione:{' '}
+                    {ereditate
+                      .map(
+                        (c) =>
+                          `"${c.name}" (${c.condition!.fieldName} ${OPERATOR_LABELS[c.condition!.operator]}${c.condition!.value ? ` "${c.condition!.value}"` : ''})`
+                      )
+                      .join(' + ')}
+                    . Non serve ripetere la condizione sul campo.
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        );
+      })()}
+
       {/* Conditional Visibility */}
       {(() => {
         const candidateFields = allFields.filter(
@@ -398,10 +481,18 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
         const operator = field.condition?.operator ?? 'equals';
         const needsValue = operator === 'equals' || operator === 'not_equals';
 
+        // La condizione punta al campo per id; il name viene tenuto allineato
+        // perché a runtime i valori del form sono indicizzati per nome.
+        const sorgente =
+          candidateFields.find((f) => f.id === field.condition?.fieldId) ??
+          // Schemi salvati prima di `fieldId`: si risale dal nome.
+          candidateFields.find((f) => f.name && f.name === field.condition?.fieldName);
+
         const setCondition = (patch: Partial<NonNullable<FormField['condition']>>) =>
           onUpdate({
             ...field,
             condition: {
+              fieldId: field.condition?.fieldId,
               fieldName: field.condition?.fieldName ?? '',
               operator: field.condition?.operator ?? 'equals',
               value: field.condition?.value,
@@ -409,10 +500,22 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
             },
           });
 
+        const setSorgente = (id: string) => {
+          const f = candidateFields.find((c) => c.id === id);
+          // Cambiare campo sorgente invalida il valore atteso.
+          setCondition({ fieldId: f?.id, fieldName: f?.name ?? '', value: '' });
+        };
+
         return (
           <>
             <hr />
             <h6 className="mb-3">Visibilità Condizionale</h6>
+            {field.type === CONTAINER_TYPE && (
+              <p className="text-muted small">
+                La condizione di una sezione si applica anche a tutti i campi che le
+                appartengono.
+              </p>
+            )}
             <div className="form-check mb-3">
               <input
                 type="checkbox"
@@ -445,16 +548,25 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
                       <label className="form-label small">Campo</label>
                       <select
                         className="form-select form-select-sm"
-                        value={field.condition?.fieldName ?? ''}
-                        onChange={(e) => setCondition({ fieldName: e.target.value })}
+                        value={sorgente?.id ?? ''}
+                        onChange={(e) => setSorgente(e.target.value)}
                       >
                         <option value="">-- Seleziona campo --</option>
+                        {/* Si identifica il campo per name: le etichette possono
+                            ripetersi, il name no. */}
                         {candidateFields.map((f) => (
-                          <option key={f.id} value={f.name}>
-                            {f.label || f.name}
+                          <option key={f.id} value={f.id}>
+                            {f.name || `(${f.type} senza nome)`}
+                            {f.label ? ` — ${f.label}` : ''}
                           </option>
                         ))}
                       </select>
+                      {sorgente && !sorgente.name && (
+                        <small className="text-danger">
+                          Il campo selezionato non ha un Nome Campo (ID): assegnaglielo,
+                          altrimenti la condizione non può essere valutata.
+                        </small>
+                      )}
                     </div>
 
                     <div className="mb-2">
@@ -476,13 +588,40 @@ export function FieldEditor({ field, allFields, onUpdate }: FieldEditorProps) {
                     {needsValue && (
                       <div className="mb-2">
                         <label className="form-label small">Valore</label>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          value={field.condition?.value ?? ''}
-                          onChange={(e) => setCondition({ value: e.target.value })}
-                          placeholder="Valore atteso..."
-                        />
+                        {sorgente?.options?.length ? (
+                          // Il confronto avviene sul `value` dell'opzione, non
+                          // sull'etichetta: si sceglie dalla lista per non sbagliarlo.
+                          <select
+                            className="form-select form-select-sm"
+                            value={field.condition?.value ?? ''}
+                            onChange={(e) => setCondition({ value: e.target.value })}
+                          >
+                            <option value="">-- Seleziona valore --</option>
+                            {sorgente.options.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label || o.value} ({o.value})
+                              </option>
+                            ))}
+                          </select>
+                        ) : sorgente?.type === 'checkbox' ? (
+                          <select
+                            className="form-select form-select-sm"
+                            value={field.condition?.value ?? ''}
+                            onChange={(e) => setCondition({ value: e.target.value })}
+                          >
+                            <option value="">-- Seleziona valore --</option>
+                            <option value="true">Selezionato</option>
+                            <option value="false">Non selezionato</option>
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            value={field.condition?.value ?? ''}
+                            onChange={(e) => setCondition({ value: e.target.value })}
+                            placeholder="Valore atteso..."
+                          />
+                        )}
                       </div>
                     )}
                   </>

@@ -8,6 +8,8 @@ import { randomUUID } from 'node:crypto';
 import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
 import { generaProtocolloEmergenza } from '@/lib/services/protocollazione/ProtocolloEmergenzaService';
 import { generaModuloBuffer, generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
+import { validaDatiModulo } from '@/lib/form-validate';
+import { sogliaIstanzeRaggiunta, verificaUnicoInvio, MSG_SOGLIA_DEFAULT } from '@/lib/servizio-regole';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -357,11 +359,8 @@ export async function submitIstanza(formData: FormData) {
     }
   }
 
-  if (servizio.numeroMaxIstanze && servizio.numeroMaxIstanze > 0) {
-    const count = await prisma.istanza.count({ where: { servizioId, inBozza: false } });
-    if (count >= servizio.numeroMaxIstanze) {
-      return { error: servizio.msgSopraSoglia ?? 'Il numero massimo di istanze è stato raggiunto' };
-    }
+  if (await sogliaIstanzeRaggiunta(servizio)) {
+    return { error: servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT };
   }
 
   const datiServizioDoc = { titolo: servizio.titolo, areaNome: servizio.area.nome };
@@ -374,7 +373,12 @@ export async function submitIstanza(formData: FormData) {
       });
       if (!bozza) return { error: 'Bozza non trovata' };
 
-      const datiFinali = datiRaw ? String(datiRaw) : bozza.dati;
+      const validazione = validaDatiModulo(servizio.attributi, datiRaw ? String(datiRaw) : bozza.dati);
+      if (!validazione.ok) return { error: validazione.errore };
+      const datiFinali = validazione.dati;
+
+      const erroreUnicoInvio = await verificaUnicoInvio(servizio, datiFinali);
+      if (erroreUnicoInvio) return { error: erroreUnicoInvio };
 
       // 1. Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
       const ente = await prisma.ente.findFirst();
@@ -451,7 +455,12 @@ export async function submitIstanza(formData: FormData) {
     }
 
     // Nuova istanza: ottieni il protocollo PRIMA di creare il record
-    const datiFinali = datiRaw ? String(datiRaw) : null;
+    const validazione = validaDatiModulo(servizio.attributi, datiRaw ? String(datiRaw) : null);
+    if (!validazione.ok) return { error: validazione.errore };
+    const datiFinali = validazione.dati;
+
+    const erroreUnicoInvio = await verificaUnicoInvio(servizio, datiFinali);
+    if (erroreUnicoInvio) return { error: erroreUnicoInvio };
 
     // 1. Genera il modulo in memoria (id=0 come placeholder: non usato nel contenuto PDF)
     const ente = await prisma.ente.findFirst();

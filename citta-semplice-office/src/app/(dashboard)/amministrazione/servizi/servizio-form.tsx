@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardBody, Button, Input, Select } from '@/components/ui';
+import { Card, CardBody, Button, Input, Select, Textarea } from '@/components/ui';
 import Editor from '@/components/ui/editor';
 import { createServizio, updateServizio, deleteServizio } from './actions';
 import { servizioSchema, type ServizioFormData } from '@/lib/validations/servizio';
@@ -526,7 +526,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     <form onSubmit={handleSubmit(onSubmit, onError)}>
 
       <div className="row">
-        <div className="col-lg-9">
+        <div className="col-lg-10">
           <ul className="nav nav-tabs mb-4">
             <li className="nav-item">
               <button
@@ -792,18 +792,35 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                       <Input
                         label="Numero Max Istanze"
                         type="number"
-                        {...register('numeroMaxIstanze')}
+                        min={0}
+                        {...register('numeroMaxIstanze', {
+                          setValueAs: (v) => {
+                            const n = parseInt(v, 10);
+                            return Number.isNaN(n) ? null : n;
+                          },
+                        })}
+                        error={errors.numeroMaxIstanze?.message}
                       />
                     </div>
-                    <div className="col-md-4 mb-3">
-                      <Input
+                    </div>
+                    <div className="row">
+                    <div className="col-md-12 mb-3">
+                      <Textarea
                         label="Messaggio sopra soglia"
-                        type="text"
+                        maxLength={300}
                         {...register('msgSopraSoglia')}
+                        error={errors.msgSopraSoglia?.message}
                       />
                     </div>
-                    <div className="col-md-4 mb-3">
-                      <Input type="text" label="Messaggio Extra" {...register('msgExtraServizio')} />
+                    </div>
+                    <div className="row">
+                    <div className="col-md-12 mb-3">
+                      <Textarea
+                        label="Messaggio Extra"
+                        maxLength={500}
+                        {...register('msgExtraServizio')}
+                        error={errors.msgExtraServizio?.message}
+                      />
                     </div>
                   </div>
 
@@ -1572,9 +1589,8 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
 
         </div>
 
-        <div className="col-lg-3">
-          <Card className="sticky-top" style={{ top: '1rem' }}>
-            <CardBody>
+        <div className="col-lg-2">
+          <div className="sticky-top" style={{ top: '1rem' }}>
               <h5 className="mb-4">Azioni</h5>
 
               <div className="d-grid gap-2">
@@ -1606,8 +1622,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                   </>
                 )}
               </div>
-            </CardBody>
-          </Card>
+          </div>
         </div>
       </div>
     </form>

@@ -61,7 +61,18 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
   };
 
   const handleFieldUpdate = (updatedField: FormField) => {
-    const newFields = fields.map((f) => (f.id === updatedField.id ? updatedField : f));
+    const precedente = fields.find((f) => f.id === updatedField.id);
+    const rinominato = !!precedente && precedente.name !== updatedField.name;
+
+    const newFields = fields.map((f) => {
+      if (f.id === updatedField.id) return updatedField;
+      // Le condizioni puntano al campo per id: se il campo viene rinominato si
+      // riallinea il `fieldName`, che è la chiave usata a runtime.
+      if (rinominato && f.condition?.fieldId === updatedField.id) {
+        return { ...f, condition: { ...f.condition, fieldName: updatedField.name } };
+      }
+      return f;
+    });
     updateSchema(newFields);
   };
 
@@ -81,7 +92,10 @@ export function FormBuilder({ initialSchema, onChange }: FormBuilderProps) {
   };
 
   const handleFieldDelete = (fieldId: string) => {
-    const newFields = fields.filter((f) => f.id !== fieldId);
+    // I campi contenuti non vengono eliminati: perdono solo il legame con la sezione.
+    const newFields = fields
+      .filter((f) => f.id !== fieldId)
+      .map((f) => (f.parentId === fieldId ? { ...f, parentId: undefined } : f));
     updateSchema(newFields);
     if (selectedFieldId === fieldId) {
       setSelectedFieldId(null);

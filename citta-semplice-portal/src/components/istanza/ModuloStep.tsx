@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useImperativeHandle, forwardRef } from 'react';
-import { isFieldVisible } from '@/lib/form-condition';
+import { hasVisibilityRule, isFieldVisible } from '@/lib/form-condition';
 import { FormField, LAYOUT_FIELD_TYPES, parseCampi, splitPages } from '@/lib/form-pages';
 
 interface Servizio {
@@ -35,7 +35,7 @@ function buildSchema(campi: FormField[]) {
   for (const campo of campi) {
     if (LAYOUT_FIELD_TYPES.has(campo.type) || campo.type === 'hidden') continue;
 
-    const required = (campo.validation?.required ?? false) && !campo.condition;
+    const required = (campo.validation?.required ?? false) && !hasVisibilityRule(campo);
 
     // Checkbox — il preprocess converte stringhe ("true"/"false"/"") in boolean
     // per gestire valori ripristinati da bozza serializzata con String()
@@ -134,7 +134,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
       // Validate required conditional fields based on current visibility
       let conditionalValid = true;
       for (const campo of campiPagina) {
-        if (!campo.condition || !campo.validation?.required) continue;
+        if (!hasVisibilityRule(campo) || !campo.validation?.required) continue;
         if (LAYOUT_FIELD_TYPES.has(campo.type) || campo.type === 'hidden') continue;
 
         if (isFieldVisible(campo, currentValues)) {

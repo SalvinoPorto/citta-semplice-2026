@@ -1,0 +1,101 @@
+{
+    "fields": [
+        {
+            "id": "field_1784741909302_do5qpsfgn",
+            "type": "radio",
+            "name": "scelta_pf_pg",
+            "label": "Dichiarante",
+            "validation": {
+                "required": true
+            },
+            "options": [
+                {
+                    "value": "fisica",
+                    "label": "Persona fisica"
+                },
+                {
+                    "value": "giuridica",
+                    "label": "Persona giuridica"
+                }
+            ]
+        },
+        {
+            "id": "field_1784742087727_4a7rg1s8e",
+            "type": "section",
+            "name": "section_pf",
+            "label": "Persona fisica",
+            "validation": {},
+            "condition": {
+                "fieldName": "scelta_pf_pg",
+                "operator": "equals",
+                "value": "fisica"
+            }
+        },
+        {
+            "id": "field_1784743025151_eavzucxg7",
+            "type": "text",
+            "name": "pf_cognome",
+            "label": "Cognome",
+            "validation": {},
+            "placeholder": "",
+            "parentId": "field_1784742087727_4a7rg1s8e"
+        },
+        {
+            "id": "field_1784743095229_ef7d8rnrt",
+            "type": "text",
+            "name": "pf_nome",
+            "label": "Nome",
+            "validation": {
+                "required": true
+            },
+            "placeholder": "",
+            "parentId": "field_1784742087727_4a7rg1s8e"
+        },
+        {
+            "id": "field_1784743176200_6ar158g7k",
+            "type": "section",
+            "name": "section_pg",
+            "label": "Persona giuridica",
+            "validation": {},
+            "condition": {
+                "fieldId": "field_1784741909302_do5qpsfgn",
+                "fieldName": "scelta_pf_pg",
+                "operator": "equals",
+                "value": "giuridica"
+            }
+        },
+        {
+            "id": "field_1784743228367_df0hs5i1x",
+            "type": "text",
+            "name": "pg_denominazione",
+            "label": "Denominazione",
+            "validation": {
+                "required": true
+            },
+            "placeholder": "",
+            "parentId": "field_1784743176200_6ar158g7k"
+        },
+        {
+            "id": "field_1784743305061_po9ve38al",
+            "type": "text",
+            "name": "pg_piva",
+            "label": "Partita IVA",
+            "validation": {
+                "required": true,
+                "pattern": "^[0-9]{11}$",
+                "patternMessage": "Partita IVA non valida"
+            },
+            "placeholder": "",
+            "parentId": "field_1784743176200_6ar158g7k"
+        },
+        {
+            "id": "field_1784743380724_1ipclxwoq",
+            "type": "text",
+            "name": "campo_testo",
+            "label": "Campo Testo",
+            "validation": {},
+            "placeholder": "Inserisci testo..."
+        }
+    ],
+    "version": "1.0"
+}

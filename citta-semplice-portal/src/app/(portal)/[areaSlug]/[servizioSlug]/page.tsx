@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ServizioIndice } from '@/components/servizi/ServizioIndice';
+import { sogliaIstanzeRaggiunta, MSG_SOGLIA_DEFAULT } from '@/lib/servizio-regole';
 
 interface Props {
   params: Promise<{ areaSlug: string; servizioSlug: string }>;
@@ -50,6 +51,7 @@ export default async function ServizioPage({ params }: Props) {
 
   const ora = new Date();
   const aperto = !servizio.dataInizio || servizio.dataInizio <= ora;
+  const sopraSoglia = aperto && (await sogliaIstanzeRaggiunta(servizio));
 
   return (
     <>
@@ -74,7 +76,11 @@ export default async function ServizioPage({ params }: Props) {
                   {servizio.sottoTitolo && (
                     <p className="subtitle-small mb-3">{servizio.sottoTitolo}</p>
                   )}
-                  {aperto ? (
+                  {sopraSoglia ? (
+                    <div className="alert alert-warning d-inline-block">
+                      {servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT}
+                    </div>
+                  ) : aperto ? (
                     <Link
                       href={`/${areaSlug}/${servizioSlug}/istanza`}
                       className="btn btn-primary fw-bold"
@@ -163,7 +169,11 @@ export default async function ServizioPage({ params }: Props) {
                 <p className="text-paragraph lora mb-4" data-element="service-generic-access">
                   Puoi richiedere il servizio direttamente online tramite identità digitale.
                 </p>
-                {aperto ? (
+                {sopraSoglia ? (
+                  <div className="alert alert-warning">
+                    {servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT}
+                  </div>
+                ) : aperto ? (
                   <Link
                     href={`/${areaSlug}/${servizioSlug}/istanza`}
                     className="btn btn-primary mobile-full"

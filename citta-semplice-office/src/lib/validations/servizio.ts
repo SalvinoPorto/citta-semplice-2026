@@ -77,8 +77,10 @@ export const servizioSchema = z.object({
   unicoInvioPerUtente: z.boolean(),
   campiUnicoInvio: z.string().optional(),
   numeroMaxIstanze: z.number().int().min(0).nullable().optional(),
-  msgSopraSoglia: z.string().optional(),
-  msgExtraServizio: z.string().optional(),
+  // I max riflettono i limiti delle colonne (VarChar 300 / 500): senza, l'errore
+  // arriverebbe grezzo da Prisma al salvataggio invece che dal form.
+  msgSopraSoglia: z.string().max(300).optional(),
+  msgExtraServizio: z.string().max(500).optional(),
 
   // Visualizzazione
   campiInEvidenza: z.string().optional(),

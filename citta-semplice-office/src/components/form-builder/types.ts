@@ -36,6 +36,9 @@ export interface FieldValidation {
 export type ConditionOperator = 'equals' | 'not_equals' | 'not_empty' | 'empty';
 
 export interface FieldCondition {
+  /** Id del campo sorgente: riferimento stabile alla rinomina del campo. */
+  fieldId?: string;
+  /** Nome del campo sorgente: chiave con cui i valori sono indicizzati a runtime. */
   fieldName: string;
   operator: ConditionOperator;
   value?: string;
@@ -57,6 +60,73 @@ export interface FormField {
   multiple?: boolean; // per file e select
   rows?: number; // per textarea
   condition?: FieldCondition;
+  /** Id del campo `section` che contiene questo campo. */
+  parentId?: string;
+  /**
+   * Condizioni ereditate dai contenitori: derivate a runtime da `risolviGerarchia`,
+   * non fanno parte dello schema salvato.
+   */
+  conditions?: FieldCondition[];
+}
+
+/** Solo le sezioni possono contenere altri campi. */
+export const CONTAINER_TYPE: FieldType = 'section';
+
+/**
+ * Propaga la condizione di visibilità dei contenitori ai campi contenuti,
+ * risalendo l'intera catena di `parentId`. Deve restare allineata a
+ * `risolviGerarchia` del portale (`src/lib/form-pages.ts`).
+ */
+/**
+ * Riscrive le condizioni espresse per `fieldId` valorizzandone il `fieldName`
+ * corrente. Deve restare allineata a `risolviRiferimentiCondizioni` del portale.
+ */
+export function risolviRiferimentiCondizioni(fields: FormField[]): FormField[] {
+  const nomiPerId = new Map(fields.filter((f) => f?.id).map((f) => [f.id, f.name]));
+
+  return fields.map((field) => {
+    const cond = field.condition;
+    if (!cond?.fieldId) return field;
+    const nome = nomiPerId.get(cond.fieldId);
+    if (!nome) return { ...field, condition: undefined };
+    return nome === cond.fieldName ? field : { ...field, condition: { ...cond, fieldName: nome } };
+  });
+}
+
+export function risolviGerarchia(fields: FormField[]): FormField[] {
+  const contenitori = new Map(
+    fields.filter((f) => f?.id && f.type === CONTAINER_TYPE).map((f) => [f.id, f]),
+  );
+  if (contenitori.size === 0) return fields;
+
+  return fields.map((field) => {
+    const ereditate: FieldCondition[] = [];
+    const visti = new Set<string>([field.id]);
+    let padre = field.parentId ? contenitori.get(field.parentId) : undefined;
+    // `visti` protegge da cicli in schemi malformati.
+    while (padre && !visti.has(padre.id)) {
+      visti.add(padre.id);
+      if (padre.condition?.fieldName) ereditate.unshift(padre.condition);
+      padre = padre.parentId ? contenitori.get(padre.parentId) : undefined;
+    }
+    return ereditate.length > 0 ? { ...field, conditions: ereditate } : field;
+  });
+}
+
+/** Catena di contenitori di un campo, dal più esterno al più interno. */
+export function catenaContenitori(field: FormField, fields: FormField[]): FormField[] {
+  const contenitori = new Map(
+    fields.filter((f) => f?.id && f.type === CONTAINER_TYPE).map((f) => [f.id, f]),
+  );
+  const catena: FormField[] = [];
+  const visti = new Set<string>([field.id]);
+  let padre = field.parentId ? contenitori.get(field.parentId) : undefined;
+  while (padre && !visti.has(padre.id)) {
+    visti.add(padre.id);
+    catena.unshift(padre);
+    padre = padre.parentId ? contenitori.get(padre.parentId) : undefined;
+  }
+  return catena;
 }
 
 export interface FormSchema {

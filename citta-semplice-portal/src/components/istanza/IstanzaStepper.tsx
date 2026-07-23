@@ -6,27 +6,18 @@ import { ModuloStep, ModuloStepHandle } from './ModuloStep';
 import { AllegatiStep, AllegatiStepHandle, AllegatoCaricato, AllegatoRichiesto } from './AllegatiStep';
 import { RiepilogoStep } from './RiepilogoStep';
 import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
-import { isFieldVisible, FieldCondition } from '@/lib/form-condition';
+import { isFieldVisible } from '@/lib/form-condition';
 import { parseCampi, splitPages } from '@/lib/form-pages';
 import { toast } from 'sonner';
 
 const SKIP_FIELD_TYPES = new Set(['heading', 'section','paragraph', 'divider', 'pagebreak', 'hidden', 'file']);
 
-type RawField = { name: string; label: string; type?: string; condition?: FieldCondition };
-
 function buildDatiConLabel(
   datiModulo: Record<string, unknown>,
   attributi: string | null | undefined,
 ): string {
-  let fields: RawField[] = [];
-  try {
-    if (attributi) {
-      const parsed = JSON.parse(attributi);
-      fields = Array.isArray(parsed) ? parsed : (parsed?.fields ?? []);
-    }
-  } catch { /* ignore */ }
-
-  const arricchiti = fields
+  // parseCampi risolve anche le condizioni ereditate dai contenitori.
+  const arricchiti = parseCampi(attributi)
     .filter((f) => !SKIP_FIELD_TYPES.has(f.type ?? '') && isFieldVisible(f, datiModulo))
     .map(({ name, label }) => ({
       name,

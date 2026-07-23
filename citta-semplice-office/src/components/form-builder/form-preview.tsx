@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { FormField, FieldCondition, splitPages } from './types';
+import {
+  FormField,
+  FieldCondition,
+  risolviGerarchia,
+  risolviRiferimentiCondizioni,
+  splitPages,
+} from './types';
 
 interface FormPreviewProps {
   fields: FormField[];
@@ -29,8 +35,11 @@ export function FormPreview({ fields }: FormPreviewProps) {
     setValues((prev) => ({ ...prev, [name]: value }));
 
   const isVisible = (field: FormField): boolean => {
-    if (!field.condition || !field.condition.fieldName) return true;
-    return evaluateCondition(field.condition, values);
+    const condizioni = [
+      ...(field.conditions ?? []),
+      ...(field.condition?.fieldName ? [field.condition] : []),
+    ].filter((c) => c?.fieldName);
+    return condizioni.every((c) => evaluateCondition(c, values));
   };
 
   const getWidthClass = (width?: string) => {
@@ -229,7 +238,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
   };
 
   // Group visible fields by rows based on width — solo la pagina corrente
-  const pages = splitPages(fields);
+  const pages = splitPages(risolviGerarchia(risolviRiferimentiCondizioni(fields)));
   const currentPage = Math.min(pageIndex, pages.length - 1);
   const visibleFields = pages[currentPage].fields.filter(isVisible);
 

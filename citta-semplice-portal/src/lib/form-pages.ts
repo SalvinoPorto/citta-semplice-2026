@@ -50,6 +50,13 @@ export interface FormField {
   options?: FieldOption[];
   validation?: FieldValidation;
   condition?: FieldCondition;
+  /** Id del campo `section` che contiene questo campo. */
+  parentId?: string;
+  /**
+   * Condizioni ereditate dai contenitori. Derivate a runtime da `risolviGerarchia`,
+   * non presenti nello schema salvato.
+   */
+  conditions?: FieldCondition[];
 }
 
 export interface FormPage {
@@ -67,12 +74,60 @@ export const LAYOUT_FIELD_TYPES = new Set<string>([
   'pagebreak',
 ]);
 
+/**
+ * Propaga la condizione di visibilità dei contenitori (`section`) ai campi che
+ * vi appartengono tramite `parentId`, risalendo l'intera catena di contenitori.
+ * Le condizioni ereditate si sommano in AND a quella propria del campo: un
+ * campo dentro una sezione nascosta resta nascosto.
+ */
+/**
+ * Riscrive le condizioni che puntano al campo sorgente per `fieldId`,
+ * valorizzandone il `fieldName` corrente: a runtime i valori del form sono
+ * indicizzati per nome. Le condizioni dei moduli più vecchi, prive di
+ * `fieldId`, restano invariate.
+ */
+export function risolviRiferimentiCondizioni(campi: FormField[]): FormField[] {
+  const nomiPerId = new Map(campi.filter((c) => c?.id).map((c) => [c.id, c.name]));
+
+  return campi.map((campo) => {
+    const cond = campo.condition;
+    if (!cond?.fieldId) return campo;
+    const nome = nomiPerId.get(cond.fieldId);
+    // Sorgente cancellata: la condizione diventa inapplicabile e viene ignorata.
+    if (!nome) return { ...campo, condition: undefined };
+    return nome === cond.fieldName ? campo : { ...campo, condition: { ...cond, fieldName: nome } };
+  });
+}
+
+export function risolviGerarchia(campi: FormField[]): FormField[] {
+  const contenitori = new Map(
+    campi.filter((c) => c?.id && c.type === 'section').map((c) => [c.id, c]),
+  );
+  if (contenitori.size === 0) return campi;
+
+  return campi.map((campo) => {
+    const ereditate: FieldCondition[] = [];
+    const visti = new Set<string>([campo.id]);
+    let padre = campo.parentId ? contenitori.get(campo.parentId) : undefined;
+    // `visti` protegge da cicli in schemi malformati (A dentro B dentro A).
+    while (padre && !visti.has(padre.id)) {
+      visti.add(padre.id);
+      if (padre.condition?.fieldName) ereditate.unshift(padre.condition);
+      padre = padre.parentId ? contenitori.get(padre.parentId) : undefined;
+    }
+    return ereditate.length > 0 ? { ...campo, conditions: ereditate } : campo;
+  });
+}
+
 export function parseCampi(attributi: string | null | undefined): FormField[] {
   if (!attributi) return [];
   try {
     const parsed = JSON.parse(attributi);
-    if (Array.isArray(parsed)) return parsed;
-    if (parsed && Array.isArray(parsed.fields)) return parsed.fields;
+    // Prima i riferimenti (fieldId → fieldName), poi la propagazione ai contenuti:
+    // così le condizioni ereditate sono già risolte.
+    if (Array.isArray(parsed)) return risolviGerarchia(risolviRiferimentiCondizioni(parsed));
+    if (parsed && Array.isArray(parsed.fields))
+      return risolviGerarchia(risolviRiferimentiCondizioni(parsed.fields));
     return [];
   } catch {
     return [];

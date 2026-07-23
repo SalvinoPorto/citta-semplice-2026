@@ -111,38 +111,42 @@ async function upsertPagamentoForStep(stepId: number, step: ServizioFormData['st
   });
 }
 
+// I campi opzionali svuotati dall'operatore vanno scritti come `null`, non come
+// `undefined`: in un update Prisma ignora le chiavi `undefined`, quindi il valore
+// precedente resterebbe in DB e il campo risulterebbe impossibile da svuotare.
+// Fa eccezione `slug`, colonna NOT NULL: se vuoto si mantiene quello esistente.
 function buildServizioData(validated: ServizioFormData) {
   return {
     titolo: validated.titolo,
-    sottoTitolo: validated.sottoTitolo || undefined,
-    descrizione: validated.descrizione || undefined,
-    comeFare: validated.comeFare || undefined,
-    cosaServe: validated.cosaServe || undefined,
-    altreInfo: validated.altreInfo || undefined,
-    contatti: validated.contatti || undefined,
+    sottoTitolo: validated.sottoTitolo || null,
+    descrizione: validated.descrizione || null,
+    comeFare: validated.comeFare || null,
+    cosaServe: validated.cosaServe || null,
+    altreInfo: validated.altreInfo || null,
+    contatti: validated.contatti || null,
     slug: validated.slug || undefined,
-    icona: validated.icona || undefined,
+    icona: validated.icona || null,
     ordine: validated.ordine,
     attivo: validated.attivo,
     areaId: validated.areaId,
-    ufficioId: validated.ufficioId || undefined,
-    dataInizio: validated.dataInizio ? new Date(validated.dataInizio) : undefined,
-    dataFine: validated.dataFine ? new Date(validated.dataFine) : undefined,
+    ufficioId: validated.ufficioId ?? null,
+    dataInizio: validated.dataInizio ? new Date(validated.dataInizio) : null,
+    dataFine: validated.dataFine ? new Date(validated.dataFine) : null,
     unicoInvio: validated.unicoInvio,
     unicoInvioPerUtente: validated.unicoInvioPerUtente,
-    campiUnicoInvio: validated.campiUnicoInvio || undefined,
-    numeroMaxIstanze: validated.numeroMaxIstanze || undefined,
-    msgSopraSoglia: validated.msgSopraSoglia || undefined,
-    msgExtraServizio: validated.msgExtraServizio || undefined,
-    campiInEvidenza: validated.campiInEvidenza || undefined,
-    campiDaEsportare: validated.campiDaEsportare || undefined,
+    campiUnicoInvio: validated.campiUnicoInvio || null,
+    numeroMaxIstanze: validated.numeroMaxIstanze ?? null,
+    msgSopraSoglia: validated.msgSopraSoglia || null,
+    msgExtraServizio: validated.msgExtraServizio || null,
+    campiInEvidenza: validated.campiInEvidenza || null,
+    campiDaEsportare: validated.campiDaEsportare || null,
     // prevedeDocumentoFinale: validated.prevedeDocumentoFinale,
     // templateDocumentoFinale: validated.templateDocumentoFinale || null,
     // nomeDocumentoFinale: validated.nomeDocumentoFinale || null,
-    attributi: validated.attributi || undefined,
+    attributi: validated.attributi || null,
     postFormValidation: validated.postFormValidation,
-    postFormValidationAPI: validated.postFormValidationAPI || undefined,
-    postFormValidationFields: validated.postFormValidationFields || undefined,
+    postFormValidationAPI: validated.postFormValidationAPI || null,
+    postFormValidationFields: validated.postFormValidationFields || null,
   };
 }
 

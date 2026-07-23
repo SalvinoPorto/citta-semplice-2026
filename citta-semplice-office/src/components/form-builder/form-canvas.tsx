@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Fragment } from 'react';
-import { FormField, FieldType, FIELD_TYPES } from './types';
+import { FormField, FieldType, FIELD_TYPES, catenaContenitori } from './types';
 
 interface FormCanvasProps {
   fields: FormField[];
@@ -227,9 +227,14 @@ export function FormCanvas({
           </div>
         </div>
       ) : (
-        fields.map((field, index) => (
+        fields.map((field, index) => {
+          const catena = catenaContenitori(field, fields);
+          const contenitore = catena[catena.length - 1];
+          const ereditate = catena.filter((c) => c.condition?.fieldName);
+          return (
           <Fragment key={index}>
             <div
+              style={catena.length > 0 ? { marginLeft: `${catena.length * 16}px` } : undefined}
               className={`field-item ${field.type === 'pagebreak' ? 'is-pagebreak' : ''} ${
                 selectedFieldId === field.id ? 'selected' : ''
               } ${draggedFieldIndex === index ? 'dragging' : ''}`}
@@ -275,6 +280,27 @@ export function FormCanvas({
                     ◈ condizione
                   </span>
                 )}
+                {contenitore && (
+                  <span
+                    className="parent-badge"
+                    title={`Appartiene alla sezione "${contenitore.name}"${contenitore.label ? ` — ${contenitore.label}` : ''}`}
+                  >
+                    ⤷ {contenitore.name}
+                  </span>
+                )}
+                {ereditate.length > 0 && (
+                  <span
+                    className="condition-badge inherited"
+                    title={ereditate
+                      .map(
+                        (c) =>
+                          `Visibile se "${c.condition!.fieldName}" ${c.condition!.operator}${c.condition!.value ? ` "${c.condition!.value}"` : ''} (da "${c.name}")`
+                      )
+                      .join(' + ')}
+                  >
+                    ◈ condizione ereditata
+                  </span>
+                )}
               </div>
             </div>
 
@@ -289,7 +315,8 @@ export function FormCanvas({
               Rilascia qui
             </div>
           </Fragment>
-        ))
+          );
+        })
       )}
 
       <style>{`
@@ -405,6 +432,17 @@ export function FormCanvas({
           font-size: 10px;
           color: #0d6efd;
           background: #e7f1ff;
+          padding: 1px 6px;
+          border-radius: 10px;
+        }
+        .condition-badge.inherited {
+          color: #6c757d;
+          background: #eceef0;
+        }
+        .parent-badge {
+          font-size: 10px;
+          color: #6c757d;
+          background: #f1f3f5;
           padding: 1px 6px;
           border-radius: 10px;
         }
