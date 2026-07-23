@@ -21,9 +21,9 @@ function evaluateCondition(condition: FieldCondition, values: Record<string, str
     case 'not_equals':
       return val !== (condition.value ?? '');
     case 'not_empty':
-      return val !== '';
+      return val !== '' && val !== 'undefined';
     case 'empty':
-      return val === '';
+      return val === '' || val === 'undefined';
   }
 }
 
