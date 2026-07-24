@@ -50,3 +50,6 @@ next-env.d.ts
 
 # tooling locale
 .serena/
+
+.vscode/
+.claude/

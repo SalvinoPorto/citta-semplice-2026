@@ -9,7 +9,7 @@
       "command": "npm run dev",
       "serverReadyAction": {
         "action": "startDebugging",
-        "pattern": "- Local:.+(https?://.+)",
+        "pattern": "- Local:.+:3000",
         "name": "Office: client"
       }
     },
@@ -21,7 +21,7 @@
       "command": "npm run dev",
       "serverReadyAction": {
         "action": "startDebugging",
-        "pattern": "- Local:.+(https?://.+)",
+        "pattern": "- Local:.+:3001",
         "name": "Portal: client"
       }
     },
@@ -44,22 +44,20 @@
       "sourceMapPathOverrides": {
         "webpack://_N_E/*": "${workspaceFolder}/citta-semplice-portal/*"
       }
-    },
-    {
-      "name": "Office: attach to running dev",
-      "type": "node",
-      "request": "attach",
-      "port": 9229,
-      "cwd": "${workspaceFolder}/citta-semplice-office",
-      "skipFiles": ["<node_internals>/**"]
     }
   ],
   "compounds": [
     {
       "name": "Office + Portal (full stack)",
-      "configurations": ["Office: server (3000)", "Portal: server (3001)"],
+      "configurations": [
+        "Office: server (3000)",
+        "Portal: server (3001)"
+      ],
       "stopAll": true,
-      "presentation": { "group": "app", "order": 1 }
+      "presentation": {
+        "group": "app",
+        "order": 1
+      }
     }
   ]
 }

@@ -6,7 +6,13 @@
       "PowerShell(npm view prisma@7.7.0 dist.files 2>&1)",
       "PowerShell(npm pack prisma@7.7.0 --dry-run 2>&1)",
       "PowerShell($pkg = Get-Content \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\package.json\" | ConvertFrom-Json; $pkg.version; npm pack prisma@7.8.0 --dry-run 2>&1 | Select-String \"build/index.js\")",
-      "PowerShell($v = \\(Get-Content \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\package.json\" | ConvertFrom-Json\\).version; \"Installed: $v\"; \"build/index.js exists: $\\(Test-Path 'e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\build\\\\index.js'\\)\")"
+      "PowerShell($v = \\(Get-Content \"e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\package.json\" | ConvertFrom-Json\\).version; \"Installed: $v\"; \"build/index.js exists: $\\(Test-Path 'e:\\\\workspaces\\\\citta-semplice-2026\\\\citta-semplice-office\\\\node_modules\\\\prisma\\\\build\\\\index.js'\\)\")",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'docs: piano implementazione valore predefinito e obbligo condizionato *)",
+      "Bash(cd c:/workspaces/citta-semplice-2026 && echo \"=== ledger ===\" && cat \"$\\(git rev-parse --show-toplevel\\)/.superpowers/sdd/progress.md\" 2>/dev/null || echo \"\\(nessun ledger\\)\"; echo \"=== branch ===\" && git branch --show-current; echo \"=== HEAD ===\" && git rev-parse --short HEAD; echo \"=== scripts ===\" && ls \"C:/Users/salvino/.claude/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/subagent-driven-development/scripts/\" 2>/dev/null)",
+      "Read(//c/Users/salvino/.claude/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/subagent-driven-development/scripts/**)"
     ]
   },
   "hooks": {
