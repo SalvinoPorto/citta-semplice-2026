@@ -247,7 +247,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
       case 'checkbox':
         return (
-          <div className="mb-3">
+          <div className="mb-4">
             <div className="form-check">
               <input
                 type="checkbox"
@@ -267,11 +267,11 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
       case 'radio':
         return (
-          <div className="mb-3">
-            <label className="form-label">
+          <fieldset className="mb-3">
+            <legend>
               {campo.label}
               {requiredMark}
-            </label>
+            </legend>
             {campo.options?.map((opt, i) => (
               <div key={i} className="form-check">
                 <input
@@ -288,7 +288,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
             ))}
             {campo.helpText && <small className="text-muted">{campo.helpText}</small>}
             {errorMsg && <div className="invalid-feedback d-block">{errorMsg}</div>}
-          </div>
+          </fieldset>
         );
 
       case 'select':
@@ -316,8 +316,8 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
       case 'textarea':
         return (
-          <div className="mb-3">
-            <label className="form-label" htmlFor={campo.id}>
+          <div className="form-group">
+            <label className="active" htmlFor={campo.id}>
               {campo.label}
               {requiredMark}
             </label>
@@ -363,8 +363,8 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
         const isText = campo.type === 'text';
         const { onChange: rhfOnChange, ...restReg } = register(campo.name);
         return (
-          <div className="mb-3">
-            <label className="form-label" htmlFor={campo.id}>
+          <div className="form-group">
+            <label className="active" htmlFor={campo.id}>
               {campo.label}
               {requiredMark}
             </label>
