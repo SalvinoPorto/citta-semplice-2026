@@ -323,14 +323,14 @@ export async function submitIstanza(formData: FormData) {
     },
   });
 
+  if (!servizio) {
+    return { error: 'Servizio non trovato o non disponibile' };
+  }
+
   // Valida tutti i file prima di procedere
   for (const file of files) {
     const errore = validaFile(file);
     if (errore) return { error: errore };
-  }
-
-  if (!servizio) {
-    return { error: 'Servizio non trovato o non disponibile' };
   }
 
   const ora = new Date();

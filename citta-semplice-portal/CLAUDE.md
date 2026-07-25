@@ -20,7 +20,7 @@ Consente ai cittadini di compilare e inviare istanze digitali, monitorarne lo st
 | bootstrap-italia | ^2.12 (tema comuni) |
 | sonner | toast notifications |
 | date-fns | formatting date (locale `it`) |
-| puppeteer | generazione PDF moduli |
+| @react-pdf/renderer | generazione PDF moduli |
 
 ---
 
@@ -138,8 +138,9 @@ Singleton in `src/lib/db/prisma.ts`.
 - Variabili: `PMPAY_URL`, `PMPAY_USERNAME`, `PMPAY_PASSWORD`, `PMPAY_ENTE_ID`, `PMPAY_URL_OK`, `PMPAY_URL_KO`, `PMPAY_URL_CANCEL`
 
 ### Generazione PDF
-- File: `src/lib/services/documenti/DocumentiService.ts`
-- Usa Puppeteer per generare il PDF del modulo compilato
+- File: `src/lib/services/documenti/DocumentiService.tsx`
+- Usa `@react-pdf/renderer` (nessun browser headless): i template sono componenti React (`PaginaModulo`, `PaginaRicevuta`)
+- Attenzione: `lineHeight` moltiplica l'altezza completa del font, non la sola em — `1` equivale a `line-height: 1.45` in CSS
 - Upload su filesystem; path configurato da `UPLOAD_DIR` (default `/tmp/allegati`)
 
 ---

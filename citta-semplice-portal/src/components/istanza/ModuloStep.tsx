@@ -230,13 +230,13 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
     switch (campo.type) {
       case 'heading':
-        return <h4 className="mt-4 mb-3">{campo.label}</h4>;
+        return <h4 className="mt-4 mb-4">{campo.label}</h4>;
 
       case 'section':
         return <div className="section-title">{campo.label}</div>;
 
       case 'paragraph':
-        return <p className="text-muted mb-3">{campo.label}</p>;
+        return <p className="text-muted mb-4">{campo.label}</p>;
 
 
       case 'divider':
