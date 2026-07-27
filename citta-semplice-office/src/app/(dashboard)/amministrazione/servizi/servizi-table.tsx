@@ -16,6 +16,7 @@ const PAGE_SIZE = 10;
 interface Servizio {
   id: number;
   titolo: string;
+  sottoTitolo: string;
   descrizione: string | null;
   attivo: boolean;
   area: { nome: string };
@@ -154,6 +155,7 @@ export function ServiziTable({ areaId, aree }: Props) {
                         <Link href={`/amministrazione/servizi/${servizio.id}`} className="fw-bold">
                           {servizio.titolo}
                         </Link>
+                        <div className="small">{servizio.sottoTitolo}</div>
                         {servizio.descrizione && (
                           <div className="small text-muted">
                             {servizio.descrizione.substring(0, 60)}

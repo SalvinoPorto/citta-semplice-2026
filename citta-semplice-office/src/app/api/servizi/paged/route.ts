@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         titolo: true,
+        sottoTitolo: true,
         descrizione: true,
         attivo: true,
         dataFine: true,
