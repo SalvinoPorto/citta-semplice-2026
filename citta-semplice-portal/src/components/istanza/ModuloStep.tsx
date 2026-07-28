@@ -267,7 +267,7 @@ export const ModuloStep = forwardRef<ModuloStepHandle, Props>(function ModuloSte
 
       case 'radio':
         return (
-          <fieldset className="mb-3">
+          <fieldset className="mb-4">
             <legend>
               {campo.label}
               {requiredMark}

@@ -24,13 +24,13 @@ export function PrivacyStep({ accepted, onAccept }: Props) {
         <p className="mb-3">
           Il conferimento dei dati è obbligatorio per procedere con la richiesta del servizio.
         </p>
-        <p className="mb-0">
+        {/* <p className="mb-0">
           Per informazioni complete sull&apos;informativa sulla privacy, consulta la{' '}
           <a href="/privacy" target="_blank" rel="noopener noreferrer">
             Privacy Policy del portale
           </a>
           .
-        </p>
+        </p> */}
       </div>
 
       <div className="form-check">

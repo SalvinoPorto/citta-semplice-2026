@@ -129,7 +129,7 @@ export default async function HomePage() {
                     </Link>
                   </h3>
                   {area.descrizione && (
-                    <p className="card-text text-paragraph small">{area.descrizione}</p>
+                    <p className="text-paragraph small">{area.descrizione}</p>
                   )}
                   {area.servizi.length > 0 && (
                     <ul className="list-unstyled mt-2 mb-0">
