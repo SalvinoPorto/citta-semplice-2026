@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Card, CardBody, Badge, Button, Input, Select } from '@/components/ui';
 import { THeadGroup, THead, Paginatore, TFilterHead, TFilterHeadGroup } from '@/components/shared';
 import type { Order, Filter } from '@/lib/models/table';
+import { getStatoIstanza } from '@/lib/models/stato-istanza';
 
 const PAGE_SIZE = 10;
 const PRIMO_ANNO = 2020;
@@ -43,7 +44,7 @@ interface Istanza {
     nome: string;
     ufficio: { id: number; nome: string } | null;
   } | null;
-  ufficioCorrente: { id: number; nome: string } | null;
+  risposteNuove: number;
 }
 
 interface Servizio {
@@ -201,14 +202,12 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
   }
 
   const getStatusBadge = (istanza: Istanza) => {
-    const lastWorkflow = istanza.workflows[0];
-    if (lastWorkflow?.operatoreId === null) {
-      return <Badge variant="secondary" className="w-100">In Attesa</Badge>;
-    }
-    if (lastWorkflow?.stato === 1) {
-      return <Badge variant="success" className="w-100">Completata</Badge>;
-    }
-    return <Badge variant="primary" className="w-100">In Lavorazione</Badge>;
+    const stato = getStatoIstanza({
+      conclusa: istanza.conclusa,
+      respinta: istanza.respinta,
+      ultimoWorkflow: istanza.workflows[0] ?? null,
+    });
+    return <Badge variant={stato.variant} className="w-100">{stato.label}</Badge>;
   };
 
   const formatEvidenza = (evidenza: string | null) => {
@@ -375,9 +374,16 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
                   </TFilterHeadGroup>
                   <tbody>
                     {istanze.map((istanza) => (
-                      <tr key={istanza.id}>
+                      <tr key={istanza.id} className={istanza.risposteNuove > 0 ? 'table-warning' : undefined}>
                         <td>
                           {istanza.protoNumero || <span className="text-muted">-</span>}
+                          {istanza.risposteNuove > 0 && (
+                            <Badge variant="danger" className="d-block mt-1">
+                              {istanza.risposteNuove === 1
+                                ? 'Nuova risposta'
+                                : `${istanza.risposteNuove} nuove risposte`}
+                            </Badge>
+                          )}
                         </td>
                         <td>{new Date(istanza.dataInvio).toLocaleDateString('it-IT')}</td>
                         <td>

@@ -317,7 +317,6 @@ export async function submitIstanza(formData: FormData) {
         orderBy: { ordine: 'asc' },
         include: {
           allegatiRichiestiList: { where: { interno: false } },
-          fase: { select: { id: true, ufficioId: true } },
         },
       },
     },
@@ -419,8 +418,6 @@ export async function submitIstanza(formData: FormData) {
           activeStep: null,
           bozzaPagina: null,
           faseCorrenteId: primoStep?.faseId ?? null,
-          ufficioCorrenteId: primoStep?.fase?.ufficioId ?? null,
-          lastStepId: primoStep?.id ?? null,
           protoNumero: protoResult.numero,
           protoData: protoResult.data,
         },
@@ -502,8 +499,6 @@ export async function submitIstanza(formData: FormData) {
         utenteId: utente.id,
         servizioId,
         faseCorrenteId: primoStep?.faseId ?? null,
-        ufficioCorrenteId: primoStep?.fase?.ufficioId ?? null,
-        lastStepId: primoStep?.id ?? null,
         workflows: primoStep
           ? {
               create: {

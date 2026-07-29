@@ -698,7 +698,7 @@ export function IstanzaActions({
           </div>
 
           <div className="mb-2">
-            <label className="form-label small fw-semibold">Allegati richiesti</label>
+            <label className="form-label small fw-semibold me-3">Allegati richiesti</label>
             {allegatiComunicazione.length > 0 && (
               <div className="mb-2">
                 {allegatiComunicazione.map((a, i) => (

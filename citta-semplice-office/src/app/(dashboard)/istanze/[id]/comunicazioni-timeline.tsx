@@ -22,6 +22,8 @@ interface Comunicazione {
 
 interface ComunicazioniTimelineProps {
   comunicazioni: Comunicazione[];
+  /** id delle comunicazioni la cui risposta non era ancora stata aperta */
+  risposteNuove?: number[];
 }
 
 function formatDateTime(date: Date) {
@@ -34,10 +36,12 @@ function formatDateTime(date: Date) {
   });
 }
 
-export function ComunicazioniTimeline({ comunicazioni }: ComunicazioniTimelineProps) {
+export function ComunicazioniTimeline({ comunicazioni, risposteNuove = [] }: ComunicazioniTimelineProps) {
   if (comunicazioni.length === 0) {
     return <p className="text-muted small">Nessuna comunicazione</p>;
   }
+
+  const nuove = new Set(risposteNuove);
 
   return (
     <div className="d-flex flex-column gap-3">
@@ -45,7 +49,8 @@ export function ComunicazioniTimeline({ comunicazioni }: ComunicazioniTimelinePr
         const allegatiRichiesti: AllegatoComunicazione[] = com.allegatiRichiesti
           ? JSON.parse(com.allegatiRichiesti)
           : [];
-        const attesaRisposta = com.richiedeRisposta && !com.risposta;
+        // Anche una comunicazione con soli allegati richiesti attende una risposta
+        const attesaRisposta = (com.richiedeRisposta || allegatiRichiesti.length > 0) && !com.risposta;
 
         return (
           <div key={com.id}>
@@ -56,7 +61,7 @@ export function ComunicazioniTimeline({ comunicazioni }: ComunicazioniTimelinePr
             >
               <div className="d-flex gap-1 flex-wrap mb-1">
                 <span className="badge bg-info">Comunicazione</span>
-                {com.richiedeRisposta && (
+                {(com.richiedeRisposta || allegatiRichiesti.length > 0) && (
                   com.risposta
                     ? <span className="badge bg-success">Risposta ricevuta</span>
                     : <span className="badge bg-warning">In attesa di risposta</span>
@@ -96,6 +101,7 @@ export function ComunicazioniTimeline({ comunicazioni }: ComunicazioniTimelinePr
               >
                 <div className="d-flex gap-1 flex-wrap mb-1">
                   <span className="badge bg-success">Risposta cittadino</span>
+                  {nuove.has(com.id) && <span className="badge bg-danger">Nuova</span>}
                   <span className="text-muted" style={{ fontSize: '0.8em' }}>
                     {formatDateTime(com.risposta.createdAt)}
                   </span>
@@ -110,7 +116,9 @@ export function ComunicazioniTimeline({ comunicazioni }: ComunicazioniTimelinePr
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          📎 {a.nomeFile}
+                          📎 
+                             {a.nomeFile.substring(0, 30)}
+                             {a.nomeFile.length > 30 && '...'}
                         </a>
                       </li>
                     ))}

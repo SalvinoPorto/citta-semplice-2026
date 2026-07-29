@@ -140,7 +140,10 @@ export function RispostaComunicazioneForm({
       const formData = new FormData();
       formData.append('comunicazioneId', String(comunicazioneId));
       formData.append('testo', testo);
-      files.forEach(({ file }) => formData.append('allegati', file));
+      files.forEach(({ nome, file }) => {
+        formData.append('allegati', file);
+        formData.append('nomiAllegati', nome);
+      });
 
       const result = await rispondiComunicazione(formData);
       if (result.error) {

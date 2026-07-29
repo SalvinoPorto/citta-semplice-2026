@@ -329,7 +329,6 @@ export type StepWhereInput = {
   workflows?: Prisma.WorkflowListRelationFilter
   allegatiRichiestiList?: Prisma.AllegatoRichiestoListRelationFilter
   pagamentoConfig?: Prisma.XOR<Prisma.PagamentoNullableScalarRelationFilter, Prisma.PagamentoWhereInput> | null
-  istanzeLastStep?: Prisma.IstanzaListRelationFilter
 }
 
 export type StepOrderByWithRelationInput = {
@@ -355,7 +354,6 @@ export type StepOrderByWithRelationInput = {
   workflows?: Prisma.WorkflowOrderByRelationAggregateInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoOrderByRelationAggregateInput
   pagamentoConfig?: Prisma.PagamentoOrderByWithRelationInput
-  istanzeLastStep?: Prisma.IstanzaOrderByRelationAggregateInput
 }
 
 export type StepWhereUniqueInput = Prisma.AtLeast<{
@@ -384,7 +382,6 @@ export type StepWhereUniqueInput = Prisma.AtLeast<{
   workflows?: Prisma.WorkflowListRelationFilter
   allegatiRichiestiList?: Prisma.AllegatoRichiestoListRelationFilter
   pagamentoConfig?: Prisma.XOR<Prisma.PagamentoNullableScalarRelationFilter, Prisma.PagamentoWhereInput> | null
-  istanzeLastStep?: Prisma.IstanzaListRelationFilter
 }, "id">
 
 export type StepOrderByWithAggregationInput = {
@@ -455,7 +452,6 @@ export type StepCreateInput = {
   workflows?: Prisma.WorkflowCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUncheckedCreateInput = {
@@ -479,7 +475,6 @@ export type StepUncheckedCreateInput = {
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoUncheckedCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUpdateInput = {
@@ -502,7 +497,6 @@ export type StepUpdateInput = {
   workflows?: Prisma.WorkflowUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateInput = {
@@ -526,7 +520,6 @@ export type StepUncheckedUpdateInput = {
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUncheckedUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepCreateManyInput = {
@@ -742,22 +735,6 @@ export type StepUpdateOneWithoutAllegatiRichiestiListNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.StepUpdateToOneWithWhereWithoutAllegatiRichiestiListInput, Prisma.StepUpdateWithoutAllegatiRichiestiListInput>, Prisma.StepUncheckedUpdateWithoutAllegatiRichiestiListInput>
 }
 
-export type StepCreateNestedOneWithoutIstanzeLastStepInput = {
-  create?: Prisma.XOR<Prisma.StepCreateWithoutIstanzeLastStepInput, Prisma.StepUncheckedCreateWithoutIstanzeLastStepInput>
-  connectOrCreate?: Prisma.StepCreateOrConnectWithoutIstanzeLastStepInput
-  connect?: Prisma.StepWhereUniqueInput
-}
-
-export type StepUpdateOneWithoutIstanzeLastStepNestedInput = {
-  create?: Prisma.XOR<Prisma.StepCreateWithoutIstanzeLastStepInput, Prisma.StepUncheckedCreateWithoutIstanzeLastStepInput>
-  connectOrCreate?: Prisma.StepCreateOrConnectWithoutIstanzeLastStepInput
-  upsert?: Prisma.StepUpsertWithoutIstanzeLastStepInput
-  disconnect?: Prisma.StepWhereInput | boolean
-  delete?: Prisma.StepWhereInput | boolean
-  connect?: Prisma.StepWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.StepUpdateToOneWithWhereWithoutIstanzeLastStepInput, Prisma.StepUpdateWithoutIstanzeLastStepInput>, Prisma.StepUncheckedUpdateWithoutIstanzeLastStepInput>
-}
-
 export type StepCreateNestedOneWithoutWorkflowsInput = {
   create?: Prisma.XOR<Prisma.StepCreateWithoutWorkflowsInput, Prisma.StepUncheckedCreateWithoutWorkflowsInput>
   connectOrCreate?: Prisma.StepCreateOrConnectWithoutWorkflowsInput
@@ -849,7 +826,6 @@ export type StepCreateWithoutServizioInput = {
   workflows?: Prisma.WorkflowCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUncheckedCreateWithoutServizioInput = {
@@ -872,7 +848,6 @@ export type StepUncheckedCreateWithoutServizioInput = {
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoUncheckedCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedCreateNestedManyWithoutLastStepInput
 }
 
 export type StepCreateOrConnectWithoutServizioInput = {
@@ -943,7 +918,6 @@ export type StepCreateWithoutAllegatiRichiestiListInput = {
   fase?: Prisma.FaseCreateNestedOneWithoutStepsInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUncheckedCreateWithoutAllegatiRichiestiListInput = {
@@ -966,7 +940,6 @@ export type StepUncheckedCreateWithoutAllegatiRichiestiListInput = {
   faseId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoUncheckedCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedCreateNestedManyWithoutLastStepInput
 }
 
 export type StepCreateOrConnectWithoutAllegatiRichiestiListInput = {
@@ -1004,7 +977,6 @@ export type StepUpdateWithoutAllegatiRichiestiListInput = {
   fase?: Prisma.FaseUpdateOneWithoutStepsNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateWithoutAllegatiRichiestiListInput = {
@@ -1027,113 +999,6 @@ export type StepUncheckedUpdateWithoutAllegatiRichiestiListInput = {
   faseId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUncheckedUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedUpdateManyWithoutLastStepNestedInput
-}
-
-export type StepCreateWithoutIstanzeLastStepInput = {
-  descrizione: string
-  ordine: number
-  attivo?: boolean
-  pagamento?: boolean
-  allegati?: boolean
-  allegatiOp?: boolean
-  allegatiRequired?: boolean
-  allegatiOpRequired?: boolean
-  protocollo?: boolean
-  tipoProtocollo?: $Enums.TipoProtocollo | null
-  unitaOrganizzativa?: string | null
-  numerazioneInterna?: boolean
-  assegnabileASpecificoUfficio?: boolean
-  settaAttributo?: boolean
-  servizio: Prisma.ServizioCreateNestedOneWithoutStepsInput
-  fase?: Prisma.FaseCreateNestedOneWithoutStepsInput
-  workflows?: Prisma.WorkflowCreateNestedManyWithoutStepInput
-  allegatiRichiestiList?: Prisma.AllegatoRichiestoCreateNestedManyWithoutStepInput
-  pagamentoConfig?: Prisma.PagamentoCreateNestedOneWithoutStepInput
-}
-
-export type StepUncheckedCreateWithoutIstanzeLastStepInput = {
-  id?: number
-  descrizione: string
-  ordine: number
-  attivo?: boolean
-  pagamento?: boolean
-  allegati?: boolean
-  allegatiOp?: boolean
-  allegatiRequired?: boolean
-  allegatiOpRequired?: boolean
-  protocollo?: boolean
-  tipoProtocollo?: $Enums.TipoProtocollo | null
-  unitaOrganizzativa?: string | null
-  numerazioneInterna?: boolean
-  assegnabileASpecificoUfficio?: boolean
-  settaAttributo?: boolean
-  servizioId: number
-  faseId?: number | null
-  workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutStepInput
-  allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedCreateNestedManyWithoutStepInput
-  pagamentoConfig?: Prisma.PagamentoUncheckedCreateNestedOneWithoutStepInput
-}
-
-export type StepCreateOrConnectWithoutIstanzeLastStepInput = {
-  where: Prisma.StepWhereUniqueInput
-  create: Prisma.XOR<Prisma.StepCreateWithoutIstanzeLastStepInput, Prisma.StepUncheckedCreateWithoutIstanzeLastStepInput>
-}
-
-export type StepUpsertWithoutIstanzeLastStepInput = {
-  update: Prisma.XOR<Prisma.StepUpdateWithoutIstanzeLastStepInput, Prisma.StepUncheckedUpdateWithoutIstanzeLastStepInput>
-  create: Prisma.XOR<Prisma.StepCreateWithoutIstanzeLastStepInput, Prisma.StepUncheckedCreateWithoutIstanzeLastStepInput>
-  where?: Prisma.StepWhereInput
-}
-
-export type StepUpdateToOneWithWhereWithoutIstanzeLastStepInput = {
-  where?: Prisma.StepWhereInput
-  data: Prisma.XOR<Prisma.StepUpdateWithoutIstanzeLastStepInput, Prisma.StepUncheckedUpdateWithoutIstanzeLastStepInput>
-}
-
-export type StepUpdateWithoutIstanzeLastStepInput = {
-  descrizione?: Prisma.StringFieldUpdateOperationsInput | string
-  ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  pagamento?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegati?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tipoProtocollo?: Prisma.NullableEnumTipoProtocolloFieldUpdateOperationsInput | $Enums.TipoProtocollo | null
-  unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  numerazioneInterna?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assegnabileASpecificoUfficio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  settaAttributo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  servizio?: Prisma.ServizioUpdateOneRequiredWithoutStepsNestedInput
-  fase?: Prisma.FaseUpdateOneWithoutStepsNestedInput
-  workflows?: Prisma.WorkflowUpdateManyWithoutStepNestedInput
-  allegatiRichiestiList?: Prisma.AllegatoRichiestoUpdateManyWithoutStepNestedInput
-  pagamentoConfig?: Prisma.PagamentoUpdateOneWithoutStepNestedInput
-}
-
-export type StepUncheckedUpdateWithoutIstanzeLastStepInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  descrizione?: Prisma.StringFieldUpdateOperationsInput | string
-  ordine?: Prisma.IntFieldUpdateOperationsInput | number
-  attivo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  pagamento?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegati?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiOp?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  allegatiOpRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  protocollo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tipoProtocollo?: Prisma.NullableEnumTipoProtocolloFieldUpdateOperationsInput | $Enums.TipoProtocollo | null
-  unitaOrganizzativa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  numerazioneInterna?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assegnabileASpecificoUfficio?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  settaAttributo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  servizioId?: Prisma.IntFieldUpdateOperationsInput | number
-  faseId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutStepNestedInput
-  allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput
-  pagamentoConfig?: Prisma.PagamentoUncheckedUpdateOneWithoutStepNestedInput
 }
 
 export type StepCreateWithoutWorkflowsInput = {
@@ -1155,7 +1020,6 @@ export type StepCreateWithoutWorkflowsInput = {
   fase?: Prisma.FaseCreateNestedOneWithoutStepsInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUncheckedCreateWithoutWorkflowsInput = {
@@ -1178,7 +1042,6 @@ export type StepUncheckedCreateWithoutWorkflowsInput = {
   faseId?: number | null
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoUncheckedCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedCreateNestedManyWithoutLastStepInput
 }
 
 export type StepCreateOrConnectWithoutWorkflowsInput = {
@@ -1216,7 +1079,6 @@ export type StepUpdateWithoutWorkflowsInput = {
   fase?: Prisma.FaseUpdateOneWithoutStepsNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateWithoutWorkflowsInput = {
@@ -1239,7 +1101,6 @@ export type StepUncheckedUpdateWithoutWorkflowsInput = {
   faseId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUncheckedUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepCreateWithoutFaseInput = {
@@ -1261,7 +1122,6 @@ export type StepCreateWithoutFaseInput = {
   workflows?: Prisma.WorkflowCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUncheckedCreateWithoutFaseInput = {
@@ -1284,7 +1144,6 @@ export type StepUncheckedCreateWithoutFaseInput = {
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedCreateNestedManyWithoutStepInput
   pagamentoConfig?: Prisma.PagamentoUncheckedCreateNestedOneWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedCreateNestedManyWithoutLastStepInput
 }
 
 export type StepCreateOrConnectWithoutFaseInput = {
@@ -1332,7 +1191,6 @@ export type StepCreateWithoutPagamentoConfigInput = {
   fase?: Prisma.FaseCreateNestedOneWithoutStepsInput
   workflows?: Prisma.WorkflowCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoCreateNestedManyWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaCreateNestedManyWithoutLastStepInput
 }
 
 export type StepUncheckedCreateWithoutPagamentoConfigInput = {
@@ -1355,7 +1213,6 @@ export type StepUncheckedCreateWithoutPagamentoConfigInput = {
   faseId?: number | null
   workflows?: Prisma.WorkflowUncheckedCreateNestedManyWithoutStepInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedCreateNestedManyWithoutStepInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedCreateNestedManyWithoutLastStepInput
 }
 
 export type StepCreateOrConnectWithoutPagamentoConfigInput = {
@@ -1393,7 +1250,6 @@ export type StepUpdateWithoutPagamentoConfigInput = {
   fase?: Prisma.FaseUpdateOneWithoutStepsNestedInput
   workflows?: Prisma.WorkflowUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUpdateManyWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateWithoutPagamentoConfigInput = {
@@ -1416,7 +1272,6 @@ export type StepUncheckedUpdateWithoutPagamentoConfigInput = {
   faseId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepCreateManyServizioInput = {
@@ -1457,7 +1312,6 @@ export type StepUpdateWithoutServizioInput = {
   workflows?: Prisma.WorkflowUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateWithoutServizioInput = {
@@ -1480,7 +1334,6 @@ export type StepUncheckedUpdateWithoutServizioInput = {
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUncheckedUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateManyWithoutServizioInput = {
@@ -1540,7 +1393,6 @@ export type StepUpdateWithoutFaseInput = {
   workflows?: Prisma.WorkflowUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateWithoutFaseInput = {
@@ -1563,7 +1415,6 @@ export type StepUncheckedUpdateWithoutFaseInput = {
   workflows?: Prisma.WorkflowUncheckedUpdateManyWithoutStepNestedInput
   allegatiRichiestiList?: Prisma.AllegatoRichiestoUncheckedUpdateManyWithoutStepNestedInput
   pagamentoConfig?: Prisma.PagamentoUncheckedUpdateOneWithoutStepNestedInput
-  istanzeLastStep?: Prisma.IstanzaUncheckedUpdateManyWithoutLastStepNestedInput
 }
 
 export type StepUncheckedUpdateManyWithoutFaseInput = {
@@ -1593,13 +1444,11 @@ export type StepUncheckedUpdateManyWithoutFaseInput = {
 export type StepCountOutputType = {
   workflows: number
   allegatiRichiestiList: number
-  istanzeLastStep: number
 }
 
 export type StepCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workflows?: boolean | StepCountOutputTypeCountWorkflowsArgs
   allegatiRichiestiList?: boolean | StepCountOutputTypeCountAllegatiRichiestiListArgs
-  istanzeLastStep?: boolean | StepCountOutputTypeCountIstanzeLastStepArgs
 }
 
 /**
@@ -1626,13 +1475,6 @@ export type StepCountOutputTypeCountAllegatiRichiestiListArgs<ExtArgs extends ru
   where?: Prisma.AllegatoRichiestoWhereInput
 }
 
-/**
- * StepCountOutputType without action
- */
-export type StepCountOutputTypeCountIstanzeLastStepArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.IstanzaWhereInput
-}
-
 
 export type StepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1657,7 +1499,6 @@ export type StepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   workflows?: boolean | Prisma.Step$workflowsArgs<ExtArgs>
   allegatiRichiestiList?: boolean | Prisma.Step$allegatiRichiestiListArgs<ExtArgs>
   pagamentoConfig?: boolean | Prisma.Step$pagamentoConfigArgs<ExtArgs>
-  istanzeLastStep?: boolean | Prisma.Step$istanzeLastStepArgs<ExtArgs>
   _count?: boolean | Prisma.StepCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["step"]>
 
@@ -1732,7 +1573,6 @@ export type StepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   workflows?: boolean | Prisma.Step$workflowsArgs<ExtArgs>
   allegatiRichiestiList?: boolean | Prisma.Step$allegatiRichiestiListArgs<ExtArgs>
   pagamentoConfig?: boolean | Prisma.Step$pagamentoConfigArgs<ExtArgs>
-  istanzeLastStep?: boolean | Prisma.Step$istanzeLastStepArgs<ExtArgs>
   _count?: boolean | Prisma.StepCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StepIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1752,7 +1592,6 @@ export type $StepPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     workflows: Prisma.$WorkflowPayload<ExtArgs>[]
     allegatiRichiestiList: Prisma.$AllegatoRichiestoPayload<ExtArgs>[]
     pagamentoConfig: Prisma.$PagamentoPayload<ExtArgs> | null
-    istanzeLastStep: Prisma.$IstanzaPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2175,7 +2014,6 @@ export interface Prisma__StepClient<T, Null = never, ExtArgs extends runtime.Typ
   workflows<T extends Prisma.Step$workflowsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Step$workflowsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   allegatiRichiestiList<T extends Prisma.Step$allegatiRichiestiListArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Step$allegatiRichiestiListArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AllegatoRichiestoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   pagamentoConfig<T extends Prisma.Step$pagamentoConfigArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Step$pagamentoConfigArgs<ExtArgs>>): Prisma.Prisma__PagamentoClient<runtime.Types.Result.GetResult<Prisma.$PagamentoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  istanzeLastStep<T extends Prisma.Step$istanzeLastStepArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Step$istanzeLastStepArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IstanzaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2706,30 +2544,6 @@ export type Step$pagamentoConfigArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.PagamentoInclude<ExtArgs> | null
   where?: Prisma.PagamentoWhereInput
-}
-
-/**
- * Step.istanzeLastStep
- */
-export type Step$istanzeLastStepArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Istanza
-   */
-  select?: Prisma.IstanzaSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Istanza
-   */
-  omit?: Prisma.IstanzaOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.IstanzaInclude<ExtArgs> | null
-  where?: Prisma.IstanzaWhereInput
-  orderBy?: Prisma.IstanzaOrderByWithRelationInput | Prisma.IstanzaOrderByWithRelationInput[]
-  cursor?: Prisma.IstanzaWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.IstanzaScalarFieldEnum | Prisma.IstanzaScalarFieldEnum[]
 }
 
 /**

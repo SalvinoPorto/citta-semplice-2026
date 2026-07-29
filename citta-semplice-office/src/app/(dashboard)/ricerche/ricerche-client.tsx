@@ -106,7 +106,6 @@ export function RicercheClient({ servizi }: RicercheClientProps) {
                 onChange={(e) =>
                   setFilters({ ...filters, codiceFiscale: e.target.value.toUpperCase() })
                 }
-                placeholder="RSSMRA80A01H501..."
                 maxLength={16}
               />
             </div>
@@ -119,7 +118,6 @@ export function RicercheClient({ servizi }: RicercheClientProps) {
                 onChange={(e) =>
                   setFilters({ ...filters, protocollo: e.target.value })
                 }
-                placeholder="2024/..."
               />
             </div>
 
@@ -191,7 +189,6 @@ export function RicercheClient({ servizi }: RicercheClientProps) {
                 onChange={(e) =>
                   setFilters({ ...filters, codiceFiscale: e.target.value.toUpperCase() })
                 }
-                placeholder="RSSMRA80A01H501..."
                 maxLength={16}
               />
             </div>
@@ -241,7 +238,6 @@ export function RicercheClient({ servizi }: RicercheClientProps) {
                 onChange={(e) =>
                   setFilters({ ...filters, codiceFiscale: e.target.value.toUpperCase() })
                 }
-                placeholder="RSSMRA80A01H501..."
                 maxLength={16}
               />
             </div>

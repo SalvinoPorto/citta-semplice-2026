@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +20,14 @@ interface Ufficio {
   nome: string;
 }
 
+export interface ServizioOption {
+  id: number;
+  titolo: string;
+  areaNome: string | null;
+  /** uffici che lavorano il servizio (fasi + ufficio del servizio) */
+  ufficioIds: number[];
+}
+
 interface OperatoreData {
   id: number;
   email: string;
@@ -30,19 +38,23 @@ interface OperatoreData {
   attivo: boolean;
   ruoliIds: number[];
   ufficioId?: number | null;
+  servizioIds?: number[];
 }
 
 interface OperatoreFormProps {
   operatore?: OperatoreData;
   ruoli: Ruolo[];
   uffici: Ufficio[];
+  servizi: ServizioOption[];
   isNew?: boolean;
 }
 
-export function OperatoreForm({ operatore, ruoli, uffici, isNew }: OperatoreFormProps) {
+export function OperatoreForm({ operatore, ruoli, uffici, servizi, isNew }: OperatoreFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [cercaServizio, setCercaServizio] = useState('');
+  const [soloUfficio, setSoloUfficio] = useState(true);
 
   const {
     register,
@@ -62,10 +74,13 @@ export function OperatoreForm({ operatore, ruoli, uffici, isNew }: OperatoreForm
       attivo: true,
       ruoliIds: [],
       ufficioId: null,
+      servizioIds: [],
     },
   });
 
   const selectedRuoli = watch('ruoliIds') || [];
+  const selectedServizi = watch('servizioIds') || [];
+  const ufficioSelezionato = watch('ufficioId') ?? null;
 
   const toggleRuolo = (id: number) => {
     const current = watch('ruoliIds') || [];
@@ -75,6 +90,30 @@ export function OperatoreForm({ operatore, ruoli, uffici, isNew }: OperatoreForm
       setValue('ruoliIds', [...current, id]);
     }
   };
+
+  const toggleServizio = (id: number) => {
+    const current = watch('servizioIds') || [];
+    setValue(
+      'servizioIds',
+      current.includes(id) ? current.filter((v) => v !== id) : [...current, id]
+    );
+  };
+
+  // Servizi mostrati: filtrati per ufficio dell'operatore (opzionale) e per testo.
+  // I servizi già selezionati restano sempre visibili, anche fuori filtro.
+  const serviziVisibili = useMemo(() => {
+    const q = cercaServizio.trim().toLowerCase();
+    return servizi.filter((s) => {
+      if (selectedServizi.includes(s.id)) return true;
+      if (soloUfficio && ufficioSelezionato !== null && !s.ufficioIds.includes(ufficioSelezionato)) {
+        return false;
+      }
+      if (q && !s.titolo.toLowerCase().includes(q) && !(s.areaNome ?? '').toLowerCase().includes(q)) {
+        return false;
+      }
+      return true;
+    });
+  }, [servizi, selectedServizi, soloUfficio, ufficioSelezionato, cercaServizio]);
 
   const onSubmit = (data: OperatoreFormData) => {
     setError(null);
@@ -201,6 +240,79 @@ export function OperatoreForm({ operatore, ruoli, uffici, isNew }: OperatoreForm
               </select>
               <div className="form-text">
                 L&apos;operatore vedrà le istanze assegnate all&apos;ufficio selezionato.
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="mb-4">
+            <CardBody>
+              <div className="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h5 className="mb-1">Servizi visibili</h5>
+                  <div className="form-text mt-0">
+                    Nessun servizio selezionato = <strong>tutti</strong> i servizi dell&apos;ufficio.
+                    Selezionandone uno o più, l&apos;operatore vedrà solo le istanze di quei servizi.
+                  </div>
+                </div>
+                <span className="badge bg-primary align-self-center">
+                  {selectedServizi.length === 0 ? 'Tutti' : `${selectedServizi.length} selezionati`}
+                </span>
+              </div>
+
+              <div className="d-flex flex-wrap gap-3 align-items-center mb-3">
+                <input
+                  type="search"
+                  className="form-control"
+                  style={{ maxWidth: '20rem' }}
+                  placeholder="Cerca servizio..."
+                  value={cercaServizio}
+                  onChange={(e) => setCercaServizio(e.target.value)}
+                />
+                {ufficioSelezionato !== null && (
+                  <div className="form-check mb-0">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="solo-ufficio"
+                      checked={soloUfficio}
+                      onChange={(e) => setSoloUfficio(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="solo-ufficio">
+                      Solo servizi dell&apos;ufficio selezionato
+                    </label>
+                  </div>
+                )}
+                {selectedServizi.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={() => setValue('servizioIds', [])}
+                  >
+                    Deseleziona tutti
+                  </button>
+                )}
+              </div>
+
+              <div style={{ maxHeight: '18rem', overflowY: 'auto' }}>
+                {serviziVisibili.length === 0 ? (
+                  <p className="text-muted mb-0">Nessun servizio trovato</p>
+                ) : (
+                  serviziVisibili.map((s) => (
+                    <div key={s.id} className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id={`servizio-${s.id}`}
+                        checked={selectedServizi.includes(s.id)}
+                        onChange={() => toggleServizio(s.id)}
+                      />
+                      <label className="form-check-label" htmlFor={`servizio-${s.id}`}>
+                        {s.titolo}
+                        {s.areaNome && <span className="small text-muted"> · {s.areaNome}</span>}
+                      </label>
+                    </div>
+                  ))
+                )}
               </div>
             </CardBody>
           </Card>

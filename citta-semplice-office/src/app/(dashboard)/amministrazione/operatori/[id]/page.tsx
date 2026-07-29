@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/db/prisma';
 import { OperatoreForm } from '../operatore-form';
+import { getOperatoreFormData } from '../form-data';
 import Link from 'next/link';
 
 async function getOperatore(id: number) {
@@ -8,20 +9,9 @@ async function getOperatore(id: number) {
     where: { id },
     include: {
       ruoli: { select: { ruoloId: true } },
+      servizi: { select: { servizioId: true } },
     },
   });
-}
-
-async function getFormData() {
-  const [ruoli, uffici] = await Promise.all([
-    prisma.ruolo.findMany({ orderBy: { nome: 'asc' } }),
-    prisma.ufficio.findMany({
-      where: { attivo: true },
-      select: { id: true, nome: true },
-      orderBy: { nome: 'asc' },
-    }),
-  ]);
-  return { ruoli, uffici };
 }
 
 interface PageProps {
@@ -34,9 +24,9 @@ export default async function ModificaOperatorePage({ params }: PageProps) {
 
   if (isNaN(operatoreId)) notFound();
 
-  const [operatore, { ruoli, uffici }] = await Promise.all([
+  const [operatore, { ruoli, uffici, servizi }] = await Promise.all([
     getOperatore(operatoreId),
-    getFormData(),
+    getOperatoreFormData(),
   ]);
 
   if (!operatore) notFound();
@@ -64,9 +54,11 @@ export default async function ModificaOperatorePage({ params }: PageProps) {
           attivo: operatore.attivo,
           ruoliIds: operatore.ruoli.map((r) => r.ruoloId),
           ufficioId: operatore.ufficioId,
+          servizioIds: operatore.servizi.map((s) => s.servizioId),
         }}
         ruoli={ruoli}
         uffici={uffici}
+        servizi={servizi}
       />
     </div>
   );

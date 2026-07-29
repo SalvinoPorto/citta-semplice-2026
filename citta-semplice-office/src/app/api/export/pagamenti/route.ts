@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
+import { getVisibilitaOperatore, istanzaVisibilityWhere } from '@/lib/auth/visibilita';
 
 function escapeCSV(value: string | null | undefined): string {
   if (value === null || value === undefined) return '';
@@ -24,8 +25,12 @@ export async function GET(request: NextRequest) {
   const dataFine = searchParams.get('dataFine');
   const stato = searchParams.get('stato');
 
-  // Build where clause
-  const where: Record<string, unknown> = {};
+  const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
+
+  // Build where clause — limitato alle istanze visibili all'operatore
+  const where: Record<string, unknown> = {
+    workflow: { istanza: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] } },
+  };
 
   if (iuv) {
     where.iuv = {

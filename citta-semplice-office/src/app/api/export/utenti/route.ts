@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
+import {
+  getVisibilitaOperatore,
+  istanzaVisibilityWhere,
+  isVisibilitaTotale,
+} from '@/lib/auth/visibilita';
 
 function escapeCSV(value: string | null | undefined): string {
   if (value === null || value === undefined) return '';
@@ -22,8 +27,16 @@ export async function GET(request: NextRequest) {
   const cognome = searchParams.get('cognome');
   const email = searchParams.get('email');
 
+  const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
+  const istanzeVisibili = { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] };
+
   // Build where clause
   const where: Record<string, unknown> = {};
+
+  // L'operatore esporta solo i cittadini con almeno un'istanza di sua competenza
+  if (!isVisibilitaTotale(visibilita)) {
+    where.istanze = { some: istanzeVisibili };
+  }
 
   if (codiceFiscale) {
     where.codiceFiscale = {
@@ -50,7 +63,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         _count: {
-          select: { istanze: true },
+          select: { istanze: { where: istanzeVisibili } },
         },
       },
       orderBy: { cognome: 'asc' },

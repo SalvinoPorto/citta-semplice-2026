@@ -1,17 +1,37 @@
 import Link from 'next/link';
 import prisma from '@/lib/db/prisma';
+import { requireAuth } from '@/lib/auth/session';
+import {
+  getVisibilitaOperatore,
+  istanzaVisibilityWhere,
+  istanzaVisibilitySql,
+  type VisibilitaOperatore,
+} from '@/lib/auth/visibilita';
 import { Card, CardBody, CardTitle } from '@/components/ui';
 
 interface SearchParams {
   periodo?: string;
 }
 
-async function getStatistiche(giorni: number) {
+interface AndamentoRow {
+  data: Date;
+  inviate: number;
+  concluse: number;
+  respinte: number;
+}
+
+async function getStatistiche(giorni: number, visibilita: VisibilitaOperatore) {
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - giorni);
   startDate.setHours(0, 0, 0, 0);
+
+  // Conteggi istanze limitati a ufficio + servizi assegnati.
+  // L'andamento giornaliero e i pagamenti sono calcolati live sulle istanze
+  // visibili: le tabelle aggregate (statisticheGiornaliere/statistichePagamenti)
+  // sono a livello di ente e mostrerebbero all'operatore dati non suoi.
+  const v = istanzaVisibilityWhere(visibilita);
 
   const [
     totalIstanze,
@@ -19,37 +39,51 @@ async function getStatistiche(giorni: number) {
     istanzeConcluse,
     istanzeRespinte,
     istanzePeriodo,
-    statisticheGiornaliere,
-    statistichePagamenti,
+    andamentoGiornaliero,
+    pagamentiPeriodo,
     istanzePerServizio,
     istanzePerStato,
   ] = await Promise.all([
-    prisma.istanza.count(),
-    prisma.istanza.count({ where: { conclusa: false, respinta: false } }),
-    prisma.istanza.count({ where: { conclusa: true } }),
-    prisma.istanza.count({ where: { respinta: true } }),
+    prisma.istanza.count({ where: { AND: [v] } }),
+    prisma.istanza.count({ where: { conclusa: false, respinta: false, AND: [v] } }),
+    prisma.istanza.count({ where: { conclusa: true, AND: [v] } }),
+    prisma.istanza.count({ where: { respinta: true, AND: [v] } }),
     prisma.istanza.count({
-      where: { dataInvio: { gte: startDate, lte: today } },
+      where: { dataInvio: { gte: startDate, lte: today }, AND: [v] },
     }),
-    prisma.statisticheGiornaliere.findMany({
-      where: { data: { gte: startDate } },
-      orderBy: { data: 'asc' },
-    }),
-    prisma.statistichePagamenti.findMany({
-      where: { data: { gte: startDate } },
-      orderBy: { data: 'asc' },
+    prisma.$queryRaw<AndamentoRow[]>`
+      SELECT DATE(i.data_invio) AS data,
+             COUNT(*)::int AS inviate,
+             COUNT(*) FILTER (WHERE i.conclusa)::int AS concluse,
+             COUNT(*) FILTER (WHERE i.respinta)::int AS respinte
+      FROM istanze i
+      WHERE i.in_bozza = false
+        AND i.data_invio >= ${startDate}
+        AND i.data_invio <= ${today}
+        ${istanzaVisibilitySql(visibilita, 'i')}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `,
+    prisma.pagamentoAtteso.aggregate({
+      where: {
+        stato: 'CON',
+        dataRicevuta: { gte: startDate, lte: today },
+        workflow: { istanza: { AND: [v] } },
+      },
+      _count: true,
+      _sum: { importoTotale: true },
     }),
     prisma.istanza.groupBy({
       by: ['servizioId'],
       _count: true,
-      where: { dataInvio: { gte: startDate, lte: today } },
+      where: { dataInvio: { gte: startDate, lte: today }, AND: [v] },
       orderBy: { _count: { servizioId: 'desc' } },
       take: 10,
     }),
     prisma.istanza.groupBy({
       by: ['conclusa', 'respinta'],
       _count: true,
-      where: { dataInvio: { gte: startDate, lte: today } },
+      where: { dataInvio: { gte: startDate, lte: today }, AND: [v] },
     }),
   ]);
 
@@ -84,8 +118,9 @@ async function getStatistiche(giorni: number) {
     istanzeConcluse,
     istanzeRespinte,
     istanzePeriodo,
-    statisticheGiornaliere,
-    statistichePagamenti,
+    andamentoGiornaliero,
+    totalePagamenti: pagamentiPeriodo._sum.importoTotale ?? 0,
+    numeroTransazioni: pagamentiPeriodo._count,
     istanzePerServizio: istanzePerServizio.map((i) => ({
       servizioId: i.servizioId,
       servizioName: servizioMap[i.servizioId] || 'Sconosciuto',
@@ -103,16 +138,11 @@ export default async function StatistichePage({
 }) {
   const params = await searchParams;
   const giorni = params.periodo ? parseInt(params.periodo) : 30;
-  const stats = await getStatistiche(giorni);
+  const user = await requireAuth();
+  const visibilita = await getVisibilitaOperatore(parseInt(user.id), user.ruoli);
+  const stats = await getStatistiche(giorni, visibilita);
 
-  const totalePagamenti = stats.statistichePagamenti.reduce(
-    (acc, s) => acc + s.importoTotale,
-    0
-  );
-  const numeroTransazioni = stats.statistichePagamenti.reduce(
-    (acc, s) => acc + s.numeroTransazioni,
-    0
-  );
+  const { totalePagamenti, numeroTransazioni } = stats;
 
   const periodi = [
     { label: '7 giorni', value: 7 },
@@ -336,7 +366,7 @@ export default async function StatistichePage({
       {/* Daily Chart */}
       <Card>
         <CardBody>
-          <CardTitle>Andamento Giornaliero</CardTitle>
+          <CardTitle>Andamento Giornaliero (per data di invio)</CardTitle>
           <div className="table-responsive">
             <table className="table table-sm">
               <thead>
@@ -348,18 +378,18 @@ export default async function StatistichePage({
                 </tr>
               </thead>
               <tbody>
-                {stats.statisticheGiornaliere.slice(-15).reverse().map((giorno) => (
-                  <tr key={giorno.id}>
+                {stats.andamentoGiornaliero.slice(-15).reverse().map((giorno) => (
+                  <tr key={String(giorno.data)}>
                     <td>{new Date(giorno.data).toLocaleDateString('it-IT')}</td>
-                    <td className="text-end">{giorno.istanzeInviate}</td>
-                    <td className="text-end text-success">{giorno.istanzeConcluse}</td>
-                    <td className="text-end text-danger">{giorno.istanzeRespinte}</td>
+                    <td className="text-end">{giorno.inviate}</td>
+                    <td className="text-end text-success">{giorno.concluse}</td>
+                    <td className="text-end text-danger">{giorno.respinte}</td>
                   </tr>
                 ))}
-                {stats.statisticheGiornaliere.length === 0 && (
+                {stats.andamentoGiornaliero.length === 0 && (
                   <tr>
                     <td colSpan={4} className="text-center text-muted">
-                      Nessun dato disponibile. I dati vengono generati dal job schedulato.
+                      Nessuna istanza nel periodo selezionato
                     </td>
                   </tr>
                 )}

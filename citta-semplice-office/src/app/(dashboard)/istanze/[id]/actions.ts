@@ -8,7 +8,12 @@ import { sendFaseTransitionEmail } from '@/lib/services/faseTransitionEmail';
 import { pmPayService } from '@/lib/external/pmpay';
 import { getStorage } from '@/lib/storage';
 import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
-import { ROLES } from '@/lib/auth/roles';
+import {
+  getVisibilitaOperatore,
+  istanzaVisibilityWhere,
+  puoVedereIstanza,
+  puoOperareSuIstanza,
+} from '@/lib/auth/visibilita';
 
 // stato: -1 → Indefinito/In attesa (non ancora preso in carico), 0 → In lavorazione, 1 → Completata
 const STATO_INDEFINITO = -1;
@@ -17,64 +22,41 @@ const STATO_COMPLETATA = 1;
 
 /**
  * Controlla se un operatore può accedere a un'istanza.
- * Regola: tutti gli uffici che condividono un servizio vedono l'istanza,
- * ma possono operare solo nella fase di loro competenza.
+ * Regola: tutti gli uffici che condividono un servizio vedono l'istanza (purché il
+ * servizio sia fra quelli assegnati all'operatore), ma possono operare solo nella
+ * fase di loro competenza.
  */
 async function checkUfficioAccess(istanzaId: number, operatoreId: number, ruoli: string[]): Promise<boolean> {
-  if (ruoli.includes(ROLES.ADMIN)) return true;
-  const operatore = await prisma.operatore.findUnique({
-    where: { id: operatoreId },
-    select: { ufficioId: true },
-  });
-  // Nessun ufficio assegnato → accesso libero
-  if (!operatore?.ufficioId) return true;
+  const visibilita = await getVisibilitaOperatore(operatoreId, ruoli);
+  if (visibilita.isAdmin) return true;
   const istanza = await prisma.istanza.findUnique({
     where: { id: istanzaId },
     select: {
-      ufficioCorrenteId: true,
-      faseCorrente: { select: { ufficioId: true } },
+      servizioId: true,
       servizio: { select: { ufficioId: true, fasi: { select: { ufficioId: true } } } }
     },
   });
   if (!istanza) return false;
-
-  // Costruisci lista di tutti gli uffici che condividono questo servizio
-  const ufficiDelServizio: number[] = [];
-  if (istanza.servizio.ufficioId) ufficiDelServizio.push(istanza.servizio.ufficioId);
-  istanza.servizio.fasi.forEach(f => { if (f.ufficioId) ufficiDelServizio.push(f.ufficioId); });
-
-  // Se l'ufficio dell'operatore non è tra quelli del servizio → nessun accesso
-  if (!ufficiDelServizio.includes(operatore.ufficioId)) return false;
-
-  // Ufficio dell'operatore presente → può vedere l'istanza
-  return true;
+  return puoVedereIstanza(visibilita, istanza);
 }
 
 /**
  * Controlla se un operatore può operare (scrivere) su un'istanza.
- * Permette operazioni solo se l'ufficio corrisponde alla fase corrente.
+ * Permette operazioni solo se il servizio gli è assegnato e l'ufficio corrisponde
+ * alla fase corrente.
  */
 async function checkUfficioWriteAccess(istanzaId: number, operatoreId: number, ruoli: string[]): Promise<boolean> {
-  if (ruoli.includes(ROLES.ADMIN)) return true;
-  const operatore = await prisma.operatore.findUnique({
-    where: { id: operatoreId },
-    select: { ufficioId: true },
-  });
-  // Nessun ufficio assegnato → può operare
-  if (!operatore?.ufficioId) return true;
+  const visibilita = await getVisibilitaOperatore(operatoreId, ruoli);
+  if (visibilita.isAdmin) return true;
   const istanza = await prisma.istanza.findUnique({
     where: { id: istanzaId },
     select: {
-      ufficioCorrenteId: true,
+      servizioId: true,
       faseCorrente: { select: { ufficioId: true } }
     },
   });
   if (!istanza) return false;
-  const ufficioCorrente = istanza.ufficioCorrenteId ?? istanza.faseCorrente?.ufficioId ?? null;
-  // Nessun ufficio corrente → può operare
-  if (ufficioCorrente === null) return true;
-  // Può operare solo se è il suo ufficio
-  return ufficioCorrente === operatore.ufficioId;
+  return puoOperareSuIstanza(visibilita, istanza);
 }
 
 function formatDate(date: Date): string {
@@ -270,10 +252,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             operatoreId,
           },
         });
-        await tx.istanza.update({
-          where: { id: istanzaId },
-          data: { lastStepId: nextStepSameFase.id, activeStep: nextStepSameFase.ordine },
-        });
+        // Nessun update su istanza: lo step corrente è quello dell'ultimo workflow
         resultMessage = `Avanzato allo step: ${nextStepSameFase.descrizione}`;
       } else {
         const allFasi = await tx.fase.findMany({
@@ -317,12 +296,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
 
           await tx.istanza.update({
             where: { id: istanza.id },
-            data: {
-              faseCorrenteId: nextFase.id,
-              ufficioCorrenteId: nextFase.ufficioId ?? null,
-              lastStepId: firstStepNextFase.id,
-              activeStep: firstStepNextFase.ordine,
-            },
+            data: { faseCorrenteId: nextFase.id },
           });
 
           await tx.workflow.create({
@@ -462,13 +436,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
         },
       });
 
-      await tx.istanza.update({
-        where: { id: istanzaId },
-        data: {
-          lastStepId: prevStep.id,
-          activeStep: prevStep.ordine,
-        },
-      });
+      // Nessun update su istanza: la retrocessione resta dentro la stessa fase
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -781,19 +749,13 @@ export async function takeCharge(istanzaId: number) {
       });
     }
 
-    await prisma.istanza.update({
-      where: { id: istanzaId },
-      data: {
-        lastStepId: firstStep.id,
-        // Fallback: set faseCorrente/ufficioCorrente if not already set (istanze pre-fix)
-        ...(istanza.faseCorrenteId === null && firstStep.faseId
-          ? {
-              faseCorrenteId: firstStep.faseId,
-              ufficioCorrenteId: firstStep.fase?.ufficioId ?? null,
-            }
-          : {}),
-      },
-    });
+    // Fallback: imposta la fase corrente se mancante (istanze migrate)
+    if (istanza.faseCorrenteId === null && firstStep.faseId) {
+      await prisma.istanza.update({
+        where: { id: istanzaId },
+        data: { faseCorrenteId: firstStep.faseId },
+      });
+    }
 
     revalidatePath(`/istanze/${istanzaId}`);
     revalidatePath('/istanze');
@@ -904,10 +866,14 @@ export async function getIstanzeUtente(codiceFiscale: string) {
       return { success: false, data: [] as IstanzaUtenteItem[], message: 'Non autorizzato' };
     }
 
+    const visibilita = await getVisibilitaOperatore(parseInt(user.id), user.ruoli);
+
     const utente = await prisma.utente.findUnique({
       where: { codiceFiscale },
       include: {
         istanze: {
+          // Solo le istanze che l'operatore può vedere (ufficio + servizi assegnati)
+          where: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] },
           orderBy: { dataInvio: 'desc' },
           take: 50,
           include: {
@@ -1225,8 +1191,6 @@ export async function rollbackFase(params: {
   const now = new Date();
   const operatoreId = parseInt(operatore.id);
 
-  const rollbackUfficioCorrenteId = fasePrecedente.ufficioId ?? null;
-
   await prisma.$transaction(async (tx) => {
     await tx.workflowFase.updateMany({
       where: { istanzaId: istanza.id, faseId: istanza.faseCorrente!.id, dataCompletamento: null },
@@ -1258,12 +1222,7 @@ export async function rollbackFase(params: {
 
     await tx.istanza.update({
       where: { id: istanza.id },
-      data: {
-        faseCorrenteId: fasePrecedente.id,
-        ufficioCorrenteId: rollbackUfficioCorrenteId,
-        lastStepId: lastStepFasePrecedente.id,
-        activeStep: lastStepFasePrecedente.ordine,
-      },
+      data: { faseCorrenteId: fasePrecedente.id },
     });
   });
 

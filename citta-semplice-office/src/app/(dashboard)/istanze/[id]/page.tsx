@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation';
 import { BackButton } from './back-button';
 import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
-import { ROLES } from '@/lib/auth/roles';
+import { getVisibilitaOperatore, puoVedereIstanza, puoOperareSuIstanza } from '@/lib/auth/visibilita';
+import { getStatoIstanza } from '@/lib/models/stato-istanza';
 import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
 import { WorkflowTimeline } from './workflow-timeline';
 import { ComunicazioniTimeline } from './comunicazioni-timeline';
@@ -19,7 +20,6 @@ async function getIstanza(id: number) {
       faseCorrente: {
         include: { ufficio: true },
       },
-      ufficioCorrente: true,
       workflowFasi: {
         include: {
           fase: { include: { ufficio: true } },
@@ -60,7 +60,14 @@ async function getIstanza(id: number) {
           operatore: { select: { nome: true, cognome: true } },
           risposta: {
             include: {
-              allegati: { select: { id: true, nomeFile: true } },
+              allegati: {
+                select: {
+                  id: true,
+                  nomeFile: true,
+                  nomeFileRichiesto: true,
+                  mimeType: true,
+                },
+              },
             },
           },
         },
@@ -96,29 +103,30 @@ export default async function IstanzaDetailPage({
     notFound();
   }
 
-  const isAdmin = (user.ruoli ?? []).includes(ROLES.ADMIN);
-  let canOperateFase = isAdmin;
+  const visibilita = await getVisibilitaOperatore(operatoreId, user.ruoli);
+  let canOperateFase = visibilita.isAdmin;
 
-  if (!isAdmin) {
-    const operatoreDb = await prisma.operatore.findUnique({
-      where: { id: operatoreId },
-      select: { ufficioId: true },
-    });
-    if (operatoreDb?.ufficioId) {
-      // Costruisci lista di tutti gli uffici che condividono questo servizio
-      const ufficiDelServizio: number[] = [];
-      if (istanza.servizio.ufficioId) ufficiDelServizio.push(istanza.servizio.ufficioId);
-      istanza.servizio.fasi.forEach(f => { if (f.ufficioId) ufficiDelServizio.push(f.ufficioId); });
-
-      // Se l'ufficio dell'operatore non è tra quelli del servizio → nessun accesso
-      if (!ufficiDelServizio.includes(operatoreDb.ufficioId)) {
-        notFound();
-      }
-
-      // Può operare solo se l'ufficio corrente corrisponde al suo
-      const ufficioCorrente = istanza.ufficioCorrenteId ?? istanza.faseCorrente?.ufficioId ?? null;
-      canOperateFase = ufficioCorrente === null || ufficioCorrente === operatoreDb.ufficioId;
+  if (!visibilita.isAdmin) {
+    // Servizio non assegnato o ufficio estraneo al servizio → istanza invisibile
+    if (!puoVedereIstanza(visibilita, istanza)) {
+      notFound();
     }
+    // Può operare solo se l'ufficio corrente corrisponde al suo
+    canOperateFase = puoOperareSuIstanza(visibilita, istanza);
+  }
+
+  // Le risposte del cittadino restano evidenziate finché un operatore non apre
+  // l'istanza: qui sono ancora "nuove", subito dopo diventano lette.
+  const risposteNuove = new Set(
+    istanza.comunicazioni
+      .filter((com) => com.risposta && !com.risposta.lettaDaOperatore)
+      .map((com) => com.id),
+  );
+  if (risposteNuove.size > 0) {
+    await prisma.rispostaComunicazione.updateMany({
+      where: { comunicazioneId: { in: [...risposteNuove] } },
+      data: { lettaDaOperatore: true },
+    });
   }
 
   const lastWorkflow = istanza.workflows[0];
@@ -138,6 +146,13 @@ export default async function IstanzaDetailPage({
   const nextFase = faseCorrente
     ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine + 1) ?? null
     : null;
+
+  // Ufficio che sta lavorando l'istanza: quello della fase corrente. Per le istanze
+  // chiuse (nessuna fase corrente) si elencano gli uffici che lavorano il servizio.
+  const ufficioCompetente = faseCorrente?.ufficio?.nome
+    ?? (Array.from(new Set(
+          istanza.servizio.fasi.map(f => f.ufficio?.nome).filter((n): n is string => !!n)
+        )).join(', ') || null);
 
   interface CampoDato { name: string; label: string; value: string; }
   function parseDati(raw: string | null | undefined): CampoDato[] {
@@ -167,16 +182,12 @@ export default async function IstanzaDetailPage({
   const ufficiDisponibili: { id: number; nome: string }[] = [];
 
   const getStatusBadge = () => {
-    if (istanza.conclusa) {
-      return <Badge variant="success">Conclusa</Badge>;
-    }
-    if (istanza.respinta) {
-      return <Badge variant="danger">Respinta</Badge>;
-    }
-    if (assignedTo === ASSIGNEDTO.NOONE) {
-      return <Badge variant='warning'>In Attesa</Badge>;
-    }
-    return <Badge variant="warning">In Lavorazione</Badge>;
+    const stato = getStatoIstanza({
+      conclusa: istanza.conclusa,
+      respinta: istanza.respinta,
+      ultimoWorkflow: lastWorkflow ?? null,
+    });
+    return <Badge variant={stato.variant}>{stato.label}</Badge>;
   };
 
   const pmpayUrl = `${process.env.PMPAY_URL}/ente/${process.env.PMPAY_ENTE_ID}/pagamento`;
@@ -285,12 +296,13 @@ export default async function IstanzaDetailPage({
                   <strong>Municipalità:</strong>
                   <div>{istanza.municipalita || '-'}</div>
                 </div>
-                {istanza.servizio.ufficio && (
-                  <div className="col-md-6">
-                    <strong>Ufficio di competenza:</strong>
-                    <div>{istanza.servizio.ufficio.nome}</div>
-                  </div>
-                )}
+                <div className="col-md-6">
+                  <strong>Ufficio di competenza:</strong>
+                  {/* Ufficio che lavora l'istanza ORA = ufficio della fase corrente.
+                      Le istanze chiuse non hanno fase corrente: si mostrano gli
+                      uffici che hanno lavorato il servizio. */}
+                  <div>{ufficioCompetente ?? '-'}</div>
+                </div>
                 {istanza.datiInEvidenza && (
                   <div className="col-12">
                     <strong>Dati in Evidenza:</strong>
@@ -374,7 +386,10 @@ export default async function IstanzaDetailPage({
           <Card className="mb-4">
             <CardBody>
               <CardTitle>Allegati</CardTitle>
-              <AllegatiList workflows={istanza.workflows} />
+              <AllegatiList
+                workflows={istanza.workflows}
+                comunicazioni={istanza.comunicazioni}
+              />
             </CardBody>
           </Card>
         </div>
@@ -405,6 +420,7 @@ export default async function IstanzaDetailPage({
               <CardTitle>Storico Comunicazioni</CardTitle>
               <ComunicazioniTimeline
                 comunicazioni={istanza.comunicazioni}
+                risposteNuove={[...risposteNuove]}
               />
             </CardBody>
           </Card>

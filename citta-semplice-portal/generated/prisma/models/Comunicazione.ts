@@ -44,6 +44,7 @@ export type ComunicazioneMinAggregateOutputType = {
   richiedeRisposta: boolean | null
   allegatiRichiesti: string | null
   dataCreazione: Date | null
+  lettaDaCittadino: boolean | null
   istanzaId: number | null
   operatoreId: number | null
 }
@@ -54,6 +55,7 @@ export type ComunicazioneMaxAggregateOutputType = {
   richiedeRisposta: boolean | null
   allegatiRichiesti: string | null
   dataCreazione: Date | null
+  lettaDaCittadino: boolean | null
   istanzaId: number | null
   operatoreId: number | null
 }
@@ -64,6 +66,7 @@ export type ComunicazioneCountAggregateOutputType = {
   richiedeRisposta: number
   allegatiRichiesti: number
   dataCreazione: number
+  lettaDaCittadino: number
   istanzaId: number
   operatoreId: number
   _all: number
@@ -88,6 +91,7 @@ export type ComunicazioneMinAggregateInputType = {
   richiedeRisposta?: true
   allegatiRichiesti?: true
   dataCreazione?: true
+  lettaDaCittadino?: true
   istanzaId?: true
   operatoreId?: true
 }
@@ -98,6 +102,7 @@ export type ComunicazioneMaxAggregateInputType = {
   richiedeRisposta?: true
   allegatiRichiesti?: true
   dataCreazione?: true
+  lettaDaCittadino?: true
   istanzaId?: true
   operatoreId?: true
 }
@@ -108,6 +113,7 @@ export type ComunicazioneCountAggregateInputType = {
   richiedeRisposta?: true
   allegatiRichiesti?: true
   dataCreazione?: true
+  lettaDaCittadino?: true
   istanzaId?: true
   operatoreId?: true
   _all?: true
@@ -205,6 +211,7 @@ export type ComunicazioneGroupByOutputType = {
   richiedeRisposta: boolean
   allegatiRichiesti: string | null
   dataCreazione: Date
+  lettaDaCittadino: boolean
   istanzaId: number
   operatoreId: number | null
   _count: ComunicazioneCountAggregateOutputType | null
@@ -238,6 +245,7 @@ export type ComunicazioneWhereInput = {
   richiedeRisposta?: Prisma.BoolFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableFilter<"Comunicazione"> | string | null
   dataCreazione?: Prisma.DateTimeFilter<"Comunicazione"> | Date | string
+  lettaDaCittadino?: Prisma.BoolFilter<"Comunicazione"> | boolean
   istanzaId?: Prisma.IntFilter<"Comunicazione"> | number
   operatoreId?: Prisma.IntNullableFilter<"Comunicazione"> | number | null
   istanza?: Prisma.XOR<Prisma.IstanzaScalarRelationFilter, Prisma.IstanzaWhereInput>
@@ -251,6 +259,7 @@ export type ComunicazioneOrderByWithRelationInput = {
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
   dataCreazione?: Prisma.SortOrder
+  lettaDaCittadino?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrderInput | Prisma.SortOrder
   istanza?: Prisma.IstanzaOrderByWithRelationInput
@@ -267,6 +276,7 @@ export type ComunicazioneWhereUniqueInput = Prisma.AtLeast<{
   richiedeRisposta?: Prisma.BoolFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableFilter<"Comunicazione"> | string | null
   dataCreazione?: Prisma.DateTimeFilter<"Comunicazione"> | Date | string
+  lettaDaCittadino?: Prisma.BoolFilter<"Comunicazione"> | boolean
   istanzaId?: Prisma.IntFilter<"Comunicazione"> | number
   operatoreId?: Prisma.IntNullableFilter<"Comunicazione"> | number | null
   istanza?: Prisma.XOR<Prisma.IstanzaScalarRelationFilter, Prisma.IstanzaWhereInput>
@@ -280,6 +290,7 @@ export type ComunicazioneOrderByWithAggregationInput = {
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrderInput | Prisma.SortOrder
   dataCreazione?: Prisma.SortOrder
+  lettaDaCittadino?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ComunicazioneCountOrderByAggregateInput
@@ -298,6 +309,7 @@ export type ComunicazioneScalarWhereWithAggregatesInput = {
   richiedeRisposta?: Prisma.BoolWithAggregatesFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableWithAggregatesFilter<"Comunicazione"> | string | null
   dataCreazione?: Prisma.DateTimeWithAggregatesFilter<"Comunicazione"> | Date | string
+  lettaDaCittadino?: Prisma.BoolWithAggregatesFilter<"Comunicazione"> | boolean
   istanzaId?: Prisma.IntWithAggregatesFilter<"Comunicazione"> | number
   operatoreId?: Prisma.IntNullableWithAggregatesFilter<"Comunicazione"> | number | null
 }
@@ -307,6 +319,7 @@ export type ComunicazioneCreateInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanza: Prisma.IstanzaCreateNestedOneWithoutComunicazioniInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutComunicazioniInput
   risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
@@ -318,6 +331,7 @@ export type ComunicazioneUncheckedCreateInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanzaId: number
   operatoreId?: number | null
   risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
@@ -328,6 +342,7 @@ export type ComunicazioneUpdateInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutComunicazioniNestedInput
   risposta?: Prisma.RispostaComunicazioneUpdateOneWithoutComunicazioneNestedInput
@@ -339,6 +354,7 @@ export type ComunicazioneUncheckedUpdateInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   risposta?: Prisma.RispostaComunicazioneUncheckedUpdateOneWithoutComunicazioneNestedInput
@@ -350,6 +366,7 @@ export type ComunicazioneCreateManyInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanzaId: number
   operatoreId?: number | null
 }
@@ -359,6 +376,7 @@ export type ComunicazioneUpdateManyMutationInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ComunicazioneUncheckedUpdateManyInput = {
@@ -367,6 +385,7 @@ export type ComunicazioneUncheckedUpdateManyInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -387,6 +406,7 @@ export type ComunicazioneCountOrderByAggregateInput = {
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrder
   dataCreazione?: Prisma.SortOrder
+  lettaDaCittadino?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -403,6 +423,7 @@ export type ComunicazioneMaxOrderByAggregateInput = {
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrder
   dataCreazione?: Prisma.SortOrder
+  lettaDaCittadino?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -413,6 +434,7 @@ export type ComunicazioneMinOrderByAggregateInput = {
   richiedeRisposta?: Prisma.SortOrder
   allegatiRichiesti?: Prisma.SortOrder
   dataCreazione?: Prisma.SortOrder
+  lettaDaCittadino?: Prisma.SortOrder
   istanzaId?: Prisma.SortOrder
   operatoreId?: Prisma.SortOrder
 }
@@ -531,6 +553,7 @@ export type ComunicazioneCreateWithoutOperatoreInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanza: Prisma.IstanzaCreateNestedOneWithoutComunicazioniInput
   risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
 }
@@ -541,6 +564,7 @@ export type ComunicazioneUncheckedCreateWithoutOperatoreInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanzaId: number
   risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
 }
@@ -580,6 +604,7 @@ export type ComunicazioneScalarWhereInput = {
   richiedeRisposta?: Prisma.BoolFilter<"Comunicazione"> | boolean
   allegatiRichiesti?: Prisma.StringNullableFilter<"Comunicazione"> | string | null
   dataCreazione?: Prisma.DateTimeFilter<"Comunicazione"> | Date | string
+  lettaDaCittadino?: Prisma.BoolFilter<"Comunicazione"> | boolean
   istanzaId?: Prisma.IntFilter<"Comunicazione"> | number
   operatoreId?: Prisma.IntNullableFilter<"Comunicazione"> | number | null
 }
@@ -589,6 +614,7 @@ export type ComunicazioneCreateWithoutIstanzaInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   operatore?: Prisma.OperatoreCreateNestedOneWithoutComunicazioniInput
   risposta?: Prisma.RispostaComunicazioneCreateNestedOneWithoutComunicazioneInput
 }
@@ -599,6 +625,7 @@ export type ComunicazioneUncheckedCreateWithoutIstanzaInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   operatoreId?: number | null
   risposta?: Prisma.RispostaComunicazioneUncheckedCreateNestedOneWithoutComunicazioneInput
 }
@@ -634,6 +661,7 @@ export type ComunicazioneCreateWithoutRispostaInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanza: Prisma.IstanzaCreateNestedOneWithoutComunicazioniInput
   operatore?: Prisma.OperatoreCreateNestedOneWithoutComunicazioniInput
 }
@@ -644,6 +672,7 @@ export type ComunicazioneUncheckedCreateWithoutRispostaInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanzaId: number
   operatoreId?: number | null
 }
@@ -669,6 +698,7 @@ export type ComunicazioneUpdateWithoutRispostaInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput
   operatore?: Prisma.OperatoreUpdateOneWithoutComunicazioniNestedInput
 }
@@ -679,6 +709,7 @@ export type ComunicazioneUncheckedUpdateWithoutRispostaInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -689,6 +720,7 @@ export type ComunicazioneCreateManyOperatoreInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   istanzaId: number
 }
 
@@ -697,6 +729,7 @@ export type ComunicazioneUpdateWithoutOperatoreInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanza?: Prisma.IstanzaUpdateOneRequiredWithoutComunicazioniNestedInput
   risposta?: Prisma.RispostaComunicazioneUpdateOneWithoutComunicazioneNestedInput
 }
@@ -707,6 +740,7 @@ export type ComunicazioneUncheckedUpdateWithoutOperatoreInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
   risposta?: Prisma.RispostaComunicazioneUncheckedUpdateOneWithoutComunicazioneNestedInput
 }
@@ -717,6 +751,7 @@ export type ComunicazioneUncheckedUpdateManyWithoutOperatoreInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   istanzaId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -726,6 +761,7 @@ export type ComunicazioneCreateManyIstanzaInput = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: string | null
   dataCreazione?: Date | string
+  lettaDaCittadino?: boolean
   operatoreId?: number | null
 }
 
@@ -734,6 +770,7 @@ export type ComunicazioneUpdateWithoutIstanzaInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   operatore?: Prisma.OperatoreUpdateOneWithoutComunicazioniNestedInput
   risposta?: Prisma.RispostaComunicazioneUpdateOneWithoutComunicazioneNestedInput
 }
@@ -744,6 +781,7 @@ export type ComunicazioneUncheckedUpdateWithoutIstanzaInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   risposta?: Prisma.RispostaComunicazioneUncheckedUpdateOneWithoutComunicazioneNestedInput
 }
@@ -754,6 +792,7 @@ export type ComunicazioneUncheckedUpdateManyWithoutIstanzaInput = {
   richiedeRisposta?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allegatiRichiesti?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dataCreazione?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lettaDaCittadino?: Prisma.BoolFieldUpdateOperationsInput | boolean
   operatoreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -765,6 +804,7 @@ export type ComunicazioneSelect<ExtArgs extends runtime.Types.Extensions.Interna
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
   dataCreazione?: boolean
+  lettaDaCittadino?: boolean
   istanzaId?: boolean
   operatoreId?: boolean
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
@@ -778,6 +818,7 @@ export type ComunicazioneSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
   dataCreazione?: boolean
+  lettaDaCittadino?: boolean
   istanzaId?: boolean
   operatoreId?: boolean
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
@@ -790,6 +831,7 @@ export type ComunicazioneSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
   dataCreazione?: boolean
+  lettaDaCittadino?: boolean
   istanzaId?: boolean
   operatoreId?: boolean
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
@@ -802,11 +844,12 @@ export type ComunicazioneSelectScalar = {
   richiedeRisposta?: boolean
   allegatiRichiesti?: boolean
   dataCreazione?: boolean
+  lettaDaCittadino?: boolean
   istanzaId?: boolean
   operatoreId?: boolean
 }
 
-export type ComunicazioneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "testo" | "richiedeRisposta" | "allegatiRichiesti" | "dataCreazione" | "istanzaId" | "operatoreId", ExtArgs["result"]["comunicazione"]>
+export type ComunicazioneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "testo" | "richiedeRisposta" | "allegatiRichiesti" | "dataCreazione" | "lettaDaCittadino" | "istanzaId" | "operatoreId", ExtArgs["result"]["comunicazione"]>
 export type ComunicazioneInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   istanza?: boolean | Prisma.IstanzaDefaultArgs<ExtArgs>
   operatore?: boolean | Prisma.Comunicazione$operatoreArgs<ExtArgs>
@@ -834,6 +877,7 @@ export type $ComunicazionePayload<ExtArgs extends runtime.Types.Extensions.Inter
     richiedeRisposta: boolean
     allegatiRichiesti: string | null
     dataCreazione: Date
+    lettaDaCittadino: boolean
     istanzaId: number
     operatoreId: number | null
   }, ExtArgs["result"]["comunicazione"]>
@@ -1267,6 +1311,7 @@ export interface ComunicazioneFieldRefs {
   readonly richiedeRisposta: Prisma.FieldRef<"Comunicazione", 'Boolean'>
   readonly allegatiRichiesti: Prisma.FieldRef<"Comunicazione", 'String'>
   readonly dataCreazione: Prisma.FieldRef<"Comunicazione", 'DateTime'>
+  readonly lettaDaCittadino: Prisma.FieldRef<"Comunicazione", 'Boolean'>
   readonly istanzaId: Prisma.FieldRef<"Comunicazione", 'Int'>
   readonly operatoreId: Prisma.FieldRef<"Comunicazione", 'Int'>
 }

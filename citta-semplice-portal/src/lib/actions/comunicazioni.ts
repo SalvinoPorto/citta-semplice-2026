@@ -39,9 +39,17 @@ export async function rispondiComunicazione(formData: FormData) {
 
   const comunicazioneId = Number(formData.get('comunicazioneId'));
   const testo = formData.get('testo')?.toString().trim() ?? '';
-  const files = formData.getAll('allegati').filter(
-    (f): f is File => f instanceof File && f.size > 0,
-  );
+  // I file arrivano appaiati al nome dell'allegato richiesto che li giustifica
+  // (`__libero_*` per gli allegati liberi): serve per validare gli obbligatori.
+  const nomiAllegati = formData.getAll('nomiAllegati').map(String);
+  const caricati = formData
+    .getAll('allegati')
+    .map((f, i) => ({ file: f, nome: nomiAllegati[i] ?? '' }))
+    .filter(
+      (c): c is { file: File; nome: string } =>
+        c.file instanceof File && c.file.size > 0,
+    );
+  const files = caricati.map((c) => c.file);
 
   if (!comunicazioneId || isNaN(comunicazioneId)) {
     return { error: 'Comunicazione non valida' };
@@ -65,28 +73,28 @@ export async function rispondiComunicazione(formData: FormData) {
   if (comunicazione.istanza.utenteId !== utente.id) {
     return { error: 'Accesso negato' };
   }
-  if (!comunicazione.richiedeRisposta) {
+  // Verifica allegati obbligatori dichiarati nella comunicazione
+  let richiesti: Array<{ nome: string; obbligatorio: boolean }> = [];
+  if (comunicazione.allegatiRichiesti) {
+    try {
+      richiesti = JSON.parse(comunicazione.allegatiRichiesti);
+    } catch {
+      // allegatiRichiesti non è JSON valido, ignora
+    }
+  }
+
+  // L'operatore può chiedere solo allegati, senza spuntare "richiede risposta":
+  // anche in quel caso il cittadino deve poter rispondere.
+  if (!comunicazione.richiedeRisposta && richiesti.length === 0) {
     return { error: 'Questa comunicazione non richiede risposta' };
   }
   if (comunicazione.risposta) {
     return { error: 'Hai già risposto a questa comunicazione' };
   }
 
-  // Verifica allegati obbligatori dichiarati nella comunicazione
-  if (comunicazione.allegatiRichiesti) {
-    try {
-      const richiesti = JSON.parse(comunicazione.allegatiRichiesti) as Array<{
-        nome: string;
-        obbligatorio: boolean;
-      }>;
-      const nomiCaricati = files.map((f) => normalizzaNomeFile(f.name).toLowerCase());
-      for (const r of richiesti) {
-        if (r.obbligatorio && !nomiCaricati.length) {
-          return { error: `L'allegato "${r.nome}" è obbligatorio.` };
-        }
-      }
-    } catch {
-      // allegatiRichiesti non è JSON valido, ignora
+  for (const r of richiesti) {
+    if (r.obbligatorio && !caricati.some((c) => c.nome === r.nome)) {
+      return { error: `L'allegato "${r.nome}" è obbligatorio.` };
     }
   }
 
@@ -118,7 +126,7 @@ export async function rispondiComunicazione(formData: FormData) {
       const absDir = join(UPLOAD_DIR, relDir);
       await mkdir(absDir, { recursive: true });
 
-      for (const file of files) {
+      for (const { file, nome } of caricati) {
         const uuid = randomUUID();
         const nomeHash = join(relDir, uuid);
         const bytes = await file.arrayBuffer();
@@ -128,6 +136,8 @@ export async function rispondiComunicazione(formData: FormData) {
           data: {
             nomeFile: normalizzaNomeFile(file.name),
             nomeHash,
+            // gli allegati liberi non corrispondono a nessuna richiesta
+            nomeFileRichiesto: nome.startsWith('__libero_') ? null : nome || null,
             mimeType: 'application/pdf',
             rispostaId: risposta.id,
           },

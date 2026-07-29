@@ -20,17 +20,58 @@ interface Workflow {
   allegati: Allegato[];
 }
 
-interface AllegatiListProps {
-  workflows: Workflow[];
+interface AllegatoRisposta {
+  id: number;
+  nomeFile: string;
+  nomeFileRichiesto: string | null;
+  mimeType: string | null;
 }
 
-export function AllegatiList({ workflows }: AllegatiListProps) {
-  const allAllegati = workflows.flatMap((wf) =>
+interface Comunicazione {
+  risposta: {
+    createdAt: Date;
+    lettaDaOperatore: boolean;
+    allegati: AllegatoRisposta[];
+  } | null;
+}
+
+interface AllegatiListProps {
+  workflows: Workflow[];
+  comunicazioni: Comunicazione[];
+}
+
+export function AllegatiList({ workflows, comunicazioni }: AllegatiListProps) {
+  const allegatiWorkflow = workflows.flatMap((wf) =>
     wf.allegati.map((a) => ({
-      ...a,
+      key: `wf-${a.id}`,
+      nomeFile: a.nomeFile,
+      nomeFileRichiesto: a.nomeFileRichiesto,
+      mimeType: a.mimeType,
+      invUtente: a.invUtente,
+      visto: a.visto,
+      data: a.dataInserimento,
       step: wf.step?.descrizione || '-',
+      url: `/api/download/${a.id}`,
     }))
   );
+
+  // Gli allegati caricati dal cittadino in risposta a una comunicazione
+  // compaiono anche qui, oltre che nella timeline delle comunicazioni.
+  const allegatiRisposta = comunicazioni.flatMap((c) =>
+    (c.risposta?.allegati ?? []).map((a) => ({
+      key: `risposta-${a.id}`,
+      nomeFile: a.nomeFile,
+      nomeFileRichiesto: a.nomeFileRichiesto,
+      mimeType: a.mimeType,
+      invUtente: true,
+      visto: c.risposta!.lettaDaOperatore,
+      data: c.risposta!.createdAt,
+      step: 'Comunicazione',
+      url: `/api/risposta-allegati/${a.id}`,
+    }))
+  );
+
+  const allAllegati = [...allegatiWorkflow, ...allegatiRisposta];
 
   if (allAllegati.length === 0) {
     return <p className="text-muted">Nessun allegato presente</p>;
@@ -73,7 +114,7 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
         <tbody>
           {allAllegati.map((allegato) => (
             <tr
-              key={allegato.id}
+              key={allegato.key}
               className={allegato.invUtente ? 'table-info' : 'table-warning'}
             >
               <td>{getFileIcon(allegato.mimeType)}</td>
@@ -88,8 +129,8 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
               </td>
               <td>
                 <small>
-                  {allegato.dataInserimento
-                    ? new Date(allegato.dataInserimento).toLocaleDateString('it-IT')
+                  {allegato.data
+                    ? new Date(allegato.data).toLocaleDateString('it-IT')
                     : '-'}
                 </small>
               </td>
@@ -110,7 +151,7 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
                 <div className="d-flex gap-1">
                   {isViewable(allegato.mimeType, allegato.nomeFile) && (
                     <a
-                      href={`/api/download/${allegato.id}`}
+                      href={allegato.url}
                       className="btn btn-sm btn-outline-secondary"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -120,7 +161,7 @@ export function AllegatiList({ workflows }: AllegatiListProps) {
                     </a>
                   )}
                   <a
-                    href={`/api/download/${allegato.id}`}
+                    href={allegato.url}
                     className="btn btn-sm btn-outline-primary"
                     download={allegato.nomeFile}
                     title="Scarica"

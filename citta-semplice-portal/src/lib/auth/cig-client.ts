@@ -177,6 +177,12 @@ function extractXmlTag(xml: string, tag: string): string {
   return '';
 }
 
+/** Come extractXmlTag ma ignora il case del tag: l'SSO CIG usa <eMail>, non <EMail>. */
+function extractXmlTagCI(xml: string, tag: string): string {
+  const match = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'i').exec(xml);
+  return match ? match[1] : '';
+}
+
 // --------------------------------------------------------------------------
 // PS2S result codes (mirrors SCBase constants)
 // --------------------------------------------------------------------------
@@ -401,7 +407,7 @@ export function parseUserXml(xml: string): CigUserData | null {
     codiceFiscale,
     nome: extractXmlTag(persona, 'Nome').trim(),
     cognome: extractXmlTag(persona, 'Cognome').trim(),
-    email: extractXmlTag(xml, 'EMail').trim() || null,
+    email: extractXmlTagCI(xml, 'eMail').trim() || null,
     dataNascita: extractXmlTag(persona, 'DataNascita').trim() || null,
     luogoNascita: extractXmlTag(persona, 'LuogoNascita').trim() || null,
     sesso: extractXmlTag(persona, 'Sesso').trim() || null,

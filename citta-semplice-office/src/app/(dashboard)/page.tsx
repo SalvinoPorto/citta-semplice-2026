@@ -1,32 +1,31 @@
-import { getCurrentUser } from '@/lib/auth/session';
+import { requireAuth } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
-import { Card, CardBody, CardTitle } from '@/components/ui';
+import {
+  getVisibilitaOperatore,
+  istanzaVisibilityWhere,
+  type VisibilitaOperatore,
+} from '@/lib/auth/visibilita';
+import { getStatoIstanza } from '@/lib/models/stato-istanza';
+import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
 import Link from 'next/link';
 
-async function getDashboardStats() {
+async function getDashboardStats(visibilita: VisibilitaOperatore) {
+  const v = istanzaVisibilityWhere(visibilita);
   const [
     totalIstanze,
     istanzeAperte,
     istanzeConcluse,
     istanzeRespinte,
-    serviziAttivi,
-    operatoriAttivi,
   ] = await Promise.all([
-    prisma.istanza.count({ where: { inBozza: false } }),
+    prisma.istanza.count({ where: { inBozza: false, AND: [v] } }),
     prisma.istanza.count({
-      where: { inBozza: false, conclusa: false, respinta: false },
-    }),
-    prisma.istanza.count({
-      where: { inBozza: false, conclusa: true },
+      where: { inBozza: false, conclusa: false, respinta: false, AND: [v] },
     }),
     prisma.istanza.count({
-      where: { inBozza: false, respinta: true },
+      where: { inBozza: false, conclusa: true, AND: [v] },
     }),
-    prisma.servizio.count({
-      where: { attivo: true },
-    }),
-    prisma.operatore.count({
-      where: { attivo: true },
+    prisma.istanza.count({
+      where: { inBozza: false, respinta: true, AND: [v] },
     }),
   ]);
 
@@ -35,16 +34,24 @@ async function getDashboardStats() {
     istanzeAperte,
     istanzeConcluse,
     istanzeRespinte,
-    serviziAttivi,
-    operatoriAttivi,
   };
 }
 
-async function getRecentIstanze() {
+/** Card di governo (servizi/operatori): solo per gli amministratori. */
+async function getAdminStats() {
+  const [serviziAttivi, operatoriAttivi] = await Promise.all([
+    prisma.servizio.count({ where: { attivo: true } }),
+    prisma.operatore.count({ where: { attivo: true } }),
+  ]);
+
+  return { serviziAttivi, operatoriAttivi };
+}
+
+async function getRecentIstanze(visibilita: VisibilitaOperatore) {
   return prisma.istanza.findMany({
     take: 10,
     orderBy: { dataInvio: 'desc' },
-    where: { inBozza: false },
+    where: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] },
     include: {
       utente: {
         select: { nome: true, cognome: true, codiceFiscale: true },
@@ -52,14 +59,22 @@ async function getRecentIstanze() {
       servizio: {
         select: { titolo: true },
       },
+      // serve per lo stato: stesso criterio della lista istanze
+      workflows: {
+        orderBy: { dataVariazione: 'desc' },
+        take: 1,
+        select: { operatoreId: true, stato: true },
+      },
     },
   });
 }
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
-  const stats = await getDashboardStats();
-  const recentIstanze = await getRecentIstanze();
+  const user = await requireAuth();
+  const visibilita = await getVisibilitaOperatore(parseInt(user.id), user.ruoli);
+  const stats = await getDashboardStats(visibilita);
+  const adminStats = visibilita.isAdmin ? await getAdminStats() : null;
+  const recentIstanze = await getRecentIstanze(visibilita);
 
   return (
     <div>
@@ -104,35 +119,37 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Links */}
-      <div className="row g-4 mb-4">
-        <div className="col-12 col-md-6">
-          <Card>
-            <CardBody>
-              <CardTitle>Servizi Attivi</CardTitle>
-              <p className="text-muted mb-3">
-                {stats.serviziAttivi} servizi disponibili
-              </p>
-              <Link href="/amministrazione/servizi" className="btn btn-outline-primary btn-sm">
-                Gestisci servizi
-              </Link>
-            </CardBody>
-          </Card>
+      {/* Quick Links - solo admin */}
+      {adminStats && (
+        <div className="row g-4 mb-4">
+          <div className="col-12 col-md-6">
+            <Card>
+              <CardBody>
+                <CardTitle>Servizi Attivi</CardTitle>
+                <p className="text-muted mb-3">
+                  {adminStats.serviziAttivi} servizi disponibili
+                </p>
+                <Link href="/amministrazione/servizi" className="btn btn-outline-primary btn-sm">
+                  Gestisci servizi
+                </Link>
+              </CardBody>
+            </Card>
+          </div>
+          <div className="col-12 col-md-6">
+            <Card>
+              <CardBody>
+                <CardTitle>Operatori</CardTitle>
+                <p className="text-muted mb-3">
+                  {adminStats.operatoriAttivi} operatori attivi
+                </p>
+                <Link href="/amministrazione/operatori" className="btn btn-outline-primary btn-sm">
+                  Gestisci Operatori
+                </Link>
+              </CardBody>
+            </Card>
+          </div>
         </div>
-        <div className="col-12 col-md-6">
-          <Card>
-            <CardBody>
-              <CardTitle>Operatori</CardTitle>
-              <p className="text-muted mb-3">
-                {stats.operatoriAttivi} operatori attivi
-              </p>
-              <Link href="/amministrazione/operatori" className="btn btn-outline-primary btn-sm">
-                Gestisci Operatori
-              </Link>
-            </CardBody>
-          </Card>
-        </div>
-      </div>
+      )}
 
       {/* Recent Istanze */}
       <Card>
@@ -172,15 +189,14 @@ export default async function DashboardPage() {
                       </td>
                       <td>{istanza.servizio.titolo}</td>
                       <td>
-                        {istanza.conclusa ? (
-                          <span className="badge bg-success">Conclusa</span>
-                        ) : istanza.respinta ? (
-                          <span className="badge bg-danger">Respinta</span>
-                        ) : (
-                          <span className="badge bg-warning">
-                            In Lavorazione
-                          </span>
-                        )}
+                        {(() => {
+                          const stato = getStatoIstanza({
+                            conclusa: istanza.conclusa,
+                            respinta: istanza.respinta,
+                            ultimoWorkflow: istanza.workflows[0] ?? null,
+                          });
+                          return <Badge variant={stato.variant}>{stato.label}</Badge>;
+                        })()}
                       </td>
                     </tr>
                   ))}

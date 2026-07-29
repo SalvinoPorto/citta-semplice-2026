@@ -1,16 +1,20 @@
 import prisma from '@/lib/db/prisma';
+import { requireAuth } from '@/lib/auth/session';
+import { getVisibilitaOperatore, servizioVisibilityWhere, type VisibilitaOperatore } from '@/lib/auth/visibilita';
 import { RicercheClient } from './ricerche-client';
 
-async function getServizi() {
+async function getServizi(visibilita: VisibilitaOperatore) {
   return prisma.servizio.findMany({
-    where: { attivo: true },
+    where: { attivo: true, AND: [servizioVisibilityWhere(visibilita)] },
     orderBy: { titolo: 'asc' },
     select: { id: true, titolo: true },
   });
 }
 
 export default async function RicerchePage() {
-  const servizi = await getServizi();
+  const user = await requireAuth();
+  const visibilita = await getVisibilitaOperatore(parseInt(user.id), user.ruoli);
+  const servizi = await getServizi(visibilita);
 
   return (
     <div>

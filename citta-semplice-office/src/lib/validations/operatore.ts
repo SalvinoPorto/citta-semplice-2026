@@ -10,6 +10,9 @@ export const operatoreSchema = z.object({
   attivo: z.boolean(),
   ruoliIds: z.array(z.number()).min(1, 'Seleziona almeno un ruolo'),
   ufficioId: z.number().nullable().optional(),
+  // Servizi visibili all'operatore dentro il suo ufficio.
+  // Array vuoto = tutti i servizi dell'ufficio (nessuna restrizione).
+  servizioIds: z.array(z.number()).optional().default([]),
 });
 
 export const operatoreCreateSchema = operatoreSchema.extend({
@@ -26,6 +29,7 @@ export type OperatoreFormData = {
   attivo: boolean;
   ruoliIds: number[];
   ufficioId?: number | null;
+  servizioIds?: number[];
 };
 
 export type OperatoreCreateFormData = OperatoreFormData & {

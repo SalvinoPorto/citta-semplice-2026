@@ -33,6 +33,11 @@ export type Ruolo = Prisma.RuoloModel
  */
 export type OperatoreRuolo = Prisma.OperatoreRuoloModel
 /**
+ * Model OperatoreServizio
+ * 
+ */
+export type OperatoreServizio = Prisma.OperatoreServizioModel
+/**
  * Model RuoloUser
  * 
  */

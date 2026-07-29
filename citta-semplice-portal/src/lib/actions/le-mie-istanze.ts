@@ -16,6 +16,8 @@ export type IstanzaRow = {
   respinta: boolean;
   faseAttuale: string | null;
   stato: number; // -1 = in attesa, 0 = in lavorazione, 1 = conclusa
+  comunicazioniNuove: number;   // comunicazioni dell'ufficio mai aperte
+  azioneRichiesta: boolean;     // comunicazione che attende risposta/documenti
 };
 
 export type IstanzePageResult = {
@@ -23,6 +25,15 @@ export type IstanzePageResult = {
   total: number;
   pages: number;
 };
+
+function haAllegatiRichiesti(json: string | null): boolean {
+  if (!json) return false;
+  try {
+    return (JSON.parse(json) as unknown[]).length > 0;
+  } catch {
+    return false;
+  }
+}
 
 export async function getIstanzePage(
   utenteId: number,
@@ -44,6 +55,14 @@ export async function getIstanzePage(
           orderBy: { dataVariazione: 'desc' },
           take: 1,
         },
+        comunicazioni: {
+          select: {
+            lettaDaCittadino: true,
+            richiedeRisposta: true,
+            allegatiRichiesti: true,
+            risposta: { select: { id: true } },
+          },
+        },
       },
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
@@ -62,6 +81,10 @@ export async function getIstanzePage(
       respinta: i.respinta,
       faseAttuale: i.workflows[0]?.step?.descrizione ?? null,
       stato: i.workflows[0]?.operatoreId === null ? -1 : (i.workflows[0]?.stato ?? 0),
+      comunicazioniNuove: i.comunicazioni.filter((c) => !c.lettaDaCittadino).length,
+      azioneRichiesta: i.comunicazioni.some(
+        (c) => !c.risposta && (c.richiedeRisposta || haAllegatiRichiesti(c.allegatiRichiesti)),
+      ),
     })),
     total,
     pages: Math.ceil(total / PAGE_SIZE),

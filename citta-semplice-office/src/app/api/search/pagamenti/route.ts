@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
+import { getVisibilitaOperatore, istanzaVisibilityWhere } from '@/lib/auth/visibilita';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
 
   const searchParams = request.nextUrl.searchParams;
   const iuv = searchParams.get('iuv');
@@ -17,8 +20,10 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '50');
 
-  // Build where clause
-  const where: Record<string, unknown> = {};
+  // Build where clause — limitato alle istanze visibili all'operatore
+  const where: Record<string, unknown> = {
+    workflow: { istanza: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] } },
+  };
 
   if (iuv) {
     where.iuv = {

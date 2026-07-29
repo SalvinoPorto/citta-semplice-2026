@@ -40,6 +40,7 @@ export type AllegatoRispostaMinAggregateOutputType = {
   id: number | null
   nomeFile: string | null
   nomeHash: string | null
+  nomeFileRichiesto: string | null
   mimeType: string | null
   rispostaId: number | null
 }
@@ -48,6 +49,7 @@ export type AllegatoRispostaMaxAggregateOutputType = {
   id: number | null
   nomeFile: string | null
   nomeHash: string | null
+  nomeFileRichiesto: string | null
   mimeType: string | null
   rispostaId: number | null
 }
@@ -56,6 +58,7 @@ export type AllegatoRispostaCountAggregateOutputType = {
   id: number
   nomeFile: number
   nomeHash: number
+  nomeFileRichiesto: number
   mimeType: number
   rispostaId: number
   _all: number
@@ -76,6 +79,7 @@ export type AllegatoRispostaMinAggregateInputType = {
   id?: true
   nomeFile?: true
   nomeHash?: true
+  nomeFileRichiesto?: true
   mimeType?: true
   rispostaId?: true
 }
@@ -84,6 +88,7 @@ export type AllegatoRispostaMaxAggregateInputType = {
   id?: true
   nomeFile?: true
   nomeHash?: true
+  nomeFileRichiesto?: true
   mimeType?: true
   rispostaId?: true
 }
@@ -92,6 +97,7 @@ export type AllegatoRispostaCountAggregateInputType = {
   id?: true
   nomeFile?: true
   nomeHash?: true
+  nomeFileRichiesto?: true
   mimeType?: true
   rispostaId?: true
   _all?: true
@@ -187,6 +193,7 @@ export type AllegatoRispostaGroupByOutputType = {
   id: number
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto: string | null
   mimeType: string | null
   rispostaId: number
   _count: AllegatoRispostaCountAggregateOutputType | null
@@ -218,6 +225,7 @@ export type AllegatoRispostaWhereInput = {
   id?: Prisma.IntFilter<"AllegatoRisposta"> | number
   nomeFile?: Prisma.StringFilter<"AllegatoRisposta"> | string
   nomeHash?: Prisma.StringFilter<"AllegatoRisposta"> | string
+  nomeFileRichiesto?: Prisma.StringNullableFilter<"AllegatoRisposta"> | string | null
   mimeType?: Prisma.StringNullableFilter<"AllegatoRisposta"> | string | null
   rispostaId?: Prisma.IntFilter<"AllegatoRisposta"> | number
   risposta?: Prisma.XOR<Prisma.RispostaComunicazioneScalarRelationFilter, Prisma.RispostaComunicazioneWhereInput>
@@ -227,6 +235,7 @@ export type AllegatoRispostaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   nomeFile?: Prisma.SortOrder
   nomeHash?: Prisma.SortOrder
+  nomeFileRichiesto?: Prisma.SortOrderInput | Prisma.SortOrder
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder
   rispostaId?: Prisma.SortOrder
   risposta?: Prisma.RispostaComunicazioneOrderByWithRelationInput
@@ -239,6 +248,7 @@ export type AllegatoRispostaWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AllegatoRispostaWhereInput | Prisma.AllegatoRispostaWhereInput[]
   nomeFile?: Prisma.StringFilter<"AllegatoRisposta"> | string
   nomeHash?: Prisma.StringFilter<"AllegatoRisposta"> | string
+  nomeFileRichiesto?: Prisma.StringNullableFilter<"AllegatoRisposta"> | string | null
   mimeType?: Prisma.StringNullableFilter<"AllegatoRisposta"> | string | null
   rispostaId?: Prisma.IntFilter<"AllegatoRisposta"> | number
   risposta?: Prisma.XOR<Prisma.RispostaComunicazioneScalarRelationFilter, Prisma.RispostaComunicazioneWhereInput>
@@ -248,6 +258,7 @@ export type AllegatoRispostaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   nomeFile?: Prisma.SortOrder
   nomeHash?: Prisma.SortOrder
+  nomeFileRichiesto?: Prisma.SortOrderInput | Prisma.SortOrder
   mimeType?: Prisma.SortOrderInput | Prisma.SortOrder
   rispostaId?: Prisma.SortOrder
   _count?: Prisma.AllegatoRispostaCountOrderByAggregateInput
@@ -264,6 +275,7 @@ export type AllegatoRispostaScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"AllegatoRisposta"> | number
   nomeFile?: Prisma.StringWithAggregatesFilter<"AllegatoRisposta"> | string
   nomeHash?: Prisma.StringWithAggregatesFilter<"AllegatoRisposta"> | string
+  nomeFileRichiesto?: Prisma.StringNullableWithAggregatesFilter<"AllegatoRisposta"> | string | null
   mimeType?: Prisma.StringNullableWithAggregatesFilter<"AllegatoRisposta"> | string | null
   rispostaId?: Prisma.IntWithAggregatesFilter<"AllegatoRisposta"> | number
 }
@@ -271,6 +283,7 @@ export type AllegatoRispostaScalarWhereWithAggregatesInput = {
 export type AllegatoRispostaCreateInput = {
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto?: string | null
   mimeType?: string | null
   risposta: Prisma.RispostaComunicazioneCreateNestedOneWithoutAllegatiInput
 }
@@ -279,6 +292,7 @@ export type AllegatoRispostaUncheckedCreateInput = {
   id?: number
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto?: string | null
   mimeType?: string | null
   rispostaId: number
 }
@@ -286,6 +300,7 @@ export type AllegatoRispostaUncheckedCreateInput = {
 export type AllegatoRispostaUpdateInput = {
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   risposta?: Prisma.RispostaComunicazioneUpdateOneRequiredWithoutAllegatiNestedInput
 }
@@ -294,6 +309,7 @@ export type AllegatoRispostaUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rispostaId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -302,6 +318,7 @@ export type AllegatoRispostaCreateManyInput = {
   id?: number
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto?: string | null
   mimeType?: string | null
   rispostaId: number
 }
@@ -309,6 +326,7 @@ export type AllegatoRispostaCreateManyInput = {
 export type AllegatoRispostaUpdateManyMutationInput = {
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -316,6 +334,7 @@ export type AllegatoRispostaUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rispostaId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -334,6 +353,7 @@ export type AllegatoRispostaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nomeFile?: Prisma.SortOrder
   nomeHash?: Prisma.SortOrder
+  nomeFileRichiesto?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   rispostaId?: Prisma.SortOrder
 }
@@ -347,6 +367,7 @@ export type AllegatoRispostaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nomeFile?: Prisma.SortOrder
   nomeHash?: Prisma.SortOrder
+  nomeFileRichiesto?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   rispostaId?: Prisma.SortOrder
 }
@@ -355,6 +376,7 @@ export type AllegatoRispostaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nomeFile?: Prisma.SortOrder
   nomeHash?: Prisma.SortOrder
+  nomeFileRichiesto?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   rispostaId?: Prisma.SortOrder
 }
@@ -409,6 +431,7 @@ export type AllegatoRispostaUncheckedUpdateManyWithoutRispostaNestedInput = {
 export type AllegatoRispostaCreateWithoutRispostaInput = {
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto?: string | null
   mimeType?: string | null
 }
 
@@ -416,6 +439,7 @@ export type AllegatoRispostaUncheckedCreateWithoutRispostaInput = {
   id?: number
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto?: string | null
   mimeType?: string | null
 }
 
@@ -452,6 +476,7 @@ export type AllegatoRispostaScalarWhereInput = {
   id?: Prisma.IntFilter<"AllegatoRisposta"> | number
   nomeFile?: Prisma.StringFilter<"AllegatoRisposta"> | string
   nomeHash?: Prisma.StringFilter<"AllegatoRisposta"> | string
+  nomeFileRichiesto?: Prisma.StringNullableFilter<"AllegatoRisposta"> | string | null
   mimeType?: Prisma.StringNullableFilter<"AllegatoRisposta"> | string | null
   rispostaId?: Prisma.IntFilter<"AllegatoRisposta"> | number
 }
@@ -460,12 +485,14 @@ export type AllegatoRispostaCreateManyRispostaInput = {
   id?: number
   nomeFile: string
   nomeHash: string
+  nomeFileRichiesto?: string | null
   mimeType?: string | null
 }
 
 export type AllegatoRispostaUpdateWithoutRispostaInput = {
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -473,6 +500,7 @@ export type AllegatoRispostaUncheckedUpdateWithoutRispostaInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -480,6 +508,7 @@ export type AllegatoRispostaUncheckedUpdateManyWithoutRispostaInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nomeFile?: Prisma.StringFieldUpdateOperationsInput | string
   nomeHash?: Prisma.StringFieldUpdateOperationsInput | string
+  nomeFileRichiesto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -489,6 +518,7 @@ export type AllegatoRispostaSelect<ExtArgs extends runtime.Types.Extensions.Inte
   id?: boolean
   nomeFile?: boolean
   nomeHash?: boolean
+  nomeFileRichiesto?: boolean
   mimeType?: boolean
   rispostaId?: boolean
   risposta?: boolean | Prisma.RispostaComunicazioneDefaultArgs<ExtArgs>
@@ -498,6 +528,7 @@ export type AllegatoRispostaSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   id?: boolean
   nomeFile?: boolean
   nomeHash?: boolean
+  nomeFileRichiesto?: boolean
   mimeType?: boolean
   rispostaId?: boolean
   risposta?: boolean | Prisma.RispostaComunicazioneDefaultArgs<ExtArgs>
@@ -507,6 +538,7 @@ export type AllegatoRispostaSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   id?: boolean
   nomeFile?: boolean
   nomeHash?: boolean
+  nomeFileRichiesto?: boolean
   mimeType?: boolean
   rispostaId?: boolean
   risposta?: boolean | Prisma.RispostaComunicazioneDefaultArgs<ExtArgs>
@@ -516,11 +548,12 @@ export type AllegatoRispostaSelectScalar = {
   id?: boolean
   nomeFile?: boolean
   nomeHash?: boolean
+  nomeFileRichiesto?: boolean
   mimeType?: boolean
   rispostaId?: boolean
 }
 
-export type AllegatoRispostaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nomeFile" | "nomeHash" | "mimeType" | "rispostaId", ExtArgs["result"]["allegatoRisposta"]>
+export type AllegatoRispostaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nomeFile" | "nomeHash" | "nomeFileRichiesto" | "mimeType" | "rispostaId", ExtArgs["result"]["allegatoRisposta"]>
 export type AllegatoRispostaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   risposta?: boolean | Prisma.RispostaComunicazioneDefaultArgs<ExtArgs>
 }
@@ -540,6 +573,7 @@ export type $AllegatoRispostaPayload<ExtArgs extends runtime.Types.Extensions.In
     id: number
     nomeFile: string
     nomeHash: string
+    nomeFileRichiesto: string | null
     mimeType: string | null
     rispostaId: number
   }, ExtArgs["result"]["allegatoRisposta"]>
@@ -969,6 +1003,7 @@ export interface AllegatoRispostaFieldRefs {
   readonly id: Prisma.FieldRef<"AllegatoRisposta", 'Int'>
   readonly nomeFile: Prisma.FieldRef<"AllegatoRisposta", 'String'>
   readonly nomeHash: Prisma.FieldRef<"AllegatoRisposta", 'String'>
+  readonly nomeFileRichiesto: Prisma.FieldRef<"AllegatoRisposta", 'String'>
   readonly mimeType: Prisma.FieldRef<"AllegatoRisposta", 'String'>
   readonly rispostaId: Prisma.FieldRef<"AllegatoRisposta", 'Int'>
 }

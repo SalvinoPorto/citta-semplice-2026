@@ -1,21 +1,9 @@
-import prisma from '@/lib/db/prisma';
 import { OperatoreForm } from '../operatore-form';
+import { getOperatoreFormData } from '../form-data';
 import Link from 'next/link';
 
-async function getFormData() {
-  const [ruoli, uffici] = await Promise.all([
-    prisma.ruolo.findMany({ orderBy: { nome: 'asc' } }),
-    prisma.ufficio.findMany({
-      where: { attivo: true },
-      select: { id: true, nome: true },
-      orderBy: { nome: 'asc' },
-    }),
-  ]);
-  return { ruoli, uffici };
-}
-
 export default async function NuovoOperatorePage() {
-  const { ruoli, uffici } = await getFormData();
+  const { ruoli, uffici, servizi } = await getOperatoreFormData();
 
   return (
     <div>
@@ -30,6 +18,7 @@ export default async function NuovoOperatorePage() {
       <OperatoreForm
         ruoli={ruoli}
         uffici={uffici}
+        servizi={servizi}
         isNew={true}
       />
     </div>

@@ -950,7 +950,6 @@ async function migrateIstanze(src, dst) {
       i.conclusa,
       i.respinta,
       i.dati_responso,
-      i.id_last_step    AS last_step_id,
       i.dati_in_evidenza
     FROM istanze i
     LEFT JOIN moduli m ON m.id = i.id_modulo
@@ -1036,10 +1035,16 @@ async function migrateIstanze(src, dst) {
     console.error(`  ⚠ errore nell'aggiornamento sequenza istanze: ${err.message}`);
   }
 
+  // Posizione di partenza: prima fase del servizio (per ORDINE, non la prima che
+  // capita). È solo un valore iniziale: la fase reale dipende dai workflow, che a
+  // questo punto non sono ancora stati migrati → riallineaFaseCorrente() gira dopo
+  // migrateWorkflow e corregge. L'ufficio corrente non è denormalizzato: si deriva
+  // da fasi.ufficio_id.
   await dst.query(`
     UPDATE istanze SET
-      fase_corrente_id = (SELECT id FROM fasi WHERE servizio_id = istanze.servizio_id LIMIT 1),
-      ufficio_corrente_id = (SELECT ufficio_id FROM fasi WHERE servizio_id = istanze.servizio_id LIMIT 1)
+      fase_corrente_id = (
+        SELECT id FROM fasi WHERE servizio_id = istanze.servizio_id ORDER BY ordine LIMIT 1
+      )
     WHERE NOT conclusa AND NOT respinta
   `);
 
@@ -1048,6 +1053,40 @@ async function migrateIstanze(src, dst) {
     ` (${nonConvertiti} dati non convertiti perché non HTML)` +
     `, ${errors} errori`
   );
+}
+
+// ── riallineamento posizione istanze ─────────────────────────────────────────
+
+// La fase corrente di un'istanza è quella dello step del suo ultimo workflow.
+// migrateIstanze() non può saperlo (gira prima dei workflow) e imposta la prima
+// fase del servizio: per i servizi multi-fase ogni istanza già lavorata in fase
+// 2+ resterebbe puntata alla fase 1, quindi visibile all'ufficio sbagliato —
+// la visibilità operatore si basa su fasi.ufficio_id via fase_corrente_id.
+// Stessa logica di sql/01-riallinea-fase-corrente.sql, idempotente.
+async function riallineaFaseCorrente(dst) {
+  console.log('\n── Riallineamento fase corrente istanze ──────────────────────────────');
+
+  const res = await dst.query(`
+    UPDATE istanze i
+    SET fase_corrente_id = lw.fase_id
+    FROM (
+      SELECT DISTINCT ON (w.istanza_id) w.istanza_id, s.fase_id
+      FROM workflows w
+      JOIN steps s ON s.id = w.step_id
+      ORDER BY w.istanza_id, w.data_variazione DESC, w.id DESC
+    ) lw
+    WHERE lw.istanza_id = i.id
+      AND NOT i.conclusa AND NOT i.respinta AND NOT i.in_bozza
+      AND i.fase_corrente_id IS DISTINCT FROM lw.fase_id
+  `);
+
+  // Le istanze chiuse non hanno fase corrente
+  const chiuse = await dst.query(`
+    UPDATE istanze SET fase_corrente_id = NULL
+    WHERE (conclusa OR respinta) AND fase_corrente_id IS NOT NULL
+  `);
+
+  console.log(`Fase corrente riallineata su ${res.rowCount} istanze aperte; azzerata su ${chiuse.rowCount} chiuse.`);
 }
 
 // ── migrazione workflow ─────────────────────────────────────────────────────────
@@ -1543,6 +1582,10 @@ async function main() {
     await migrateIstanze(src, dst);
     // 12. Migra workflow (dipende da istanze, steps, operatori)
     await migrateWorkflow(src, dst);
+
+    // 12a. Riallinea fase_corrente_id delle istanze allo step dell'ultimo workflow
+    //      (deve girare DOPO i workflow: è da lì che si ricava la fase reale)
+    await riallineaFaseCorrente(dst);
    
     // 12. Migra Comunicazioni (dipende da istanze, operatori; id = id workflow-notifica legacy)
     await migrateComunicazioni(src, dst);

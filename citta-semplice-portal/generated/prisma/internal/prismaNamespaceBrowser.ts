@@ -54,6 +54,7 @@ export const ModelName = {
   Operatore: 'Operatore',
   Ruolo: 'Ruolo',
   OperatoreRuolo: 'OperatoreRuolo',
+  OperatoreServizio: 'OperatoreServizio',
   RuoloUser: 'RuoloUser',
   Ente: 'Ente',
   Area: 'Area',
@@ -131,6 +132,14 @@ export const OperatoreRuoloScalarFieldEnum = {
 } as const
 
 export type OperatoreRuoloScalarFieldEnum = (typeof OperatoreRuoloScalarFieldEnum)[keyof typeof OperatoreRuoloScalarFieldEnum]
+
+
+export const OperatoreServizioScalarFieldEnum = {
+  operatoreId: 'operatoreId',
+  servizioId: 'servizioId'
+} as const
+
+export type OperatoreServizioScalarFieldEnum = (typeof OperatoreServizioScalarFieldEnum)[keyof typeof OperatoreServizioScalarFieldEnum]
 
 
 export const RuoloUserScalarFieldEnum = {
@@ -307,9 +316,7 @@ export const IstanzaScalarFieldEnum = {
   createdAt: 'createdAt',
   utenteId: 'utenteId',
   servizioId: 'servizioId',
-  lastStepId: 'lastStepId',
-  faseCorrenteId: 'faseCorrenteId',
-  ufficioCorrenteId: 'ufficioCorrenteId'
+  faseCorrenteId: 'faseCorrenteId'
 } as const
 
 export type IstanzaScalarFieldEnum = (typeof IstanzaScalarFieldEnum)[keyof typeof IstanzaScalarFieldEnum]
@@ -358,6 +365,7 @@ export const ComunicazioneScalarFieldEnum = {
   richiedeRisposta: 'richiedeRisposta',
   allegatiRichiesti: 'allegatiRichiesti',
   dataCreazione: 'dataCreazione',
+  lettaDaCittadino: 'lettaDaCittadino',
   istanzaId: 'istanzaId',
   operatoreId: 'operatoreId'
 } as const
@@ -369,6 +377,7 @@ export const RispostaComunicazioneScalarFieldEnum = {
   id: 'id',
   testo: 'testo',
   createdAt: 'createdAt',
+  lettaDaOperatore: 'lettaDaOperatore',
   comunicazioneId: 'comunicazioneId'
 } as const
 
@@ -379,6 +388,7 @@ export const AllegatoRispostaScalarFieldEnum = {
   id: 'id',
   nomeFile: 'nomeFile',
   nomeHash: 'nomeHash',
+  nomeFileRichiesto: 'nomeFileRichiesto',
   mimeType: 'mimeType',
   rispostaId: 'rispostaId'
 } as const

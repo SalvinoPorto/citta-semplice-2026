@@ -32,6 +32,9 @@ export async function createOperatore(data: OperatoreCreateFormData) {
       ruoli: {
         create: validated.ruoliIds.map((ruoloId) => ({ ruoloId })),
       },
+      servizi: {
+        create: (validated.servizioIds ?? []).map((servizioId) => ({ servizioId })),
+      },
     },
   });
 
@@ -66,6 +69,7 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
 
   await prisma.$transaction(async (tx) => {
     await tx.operatoreRuolo.deleteMany({ where: { operatoreId: id } });
+    await tx.operatoreServizio.deleteMany({ where: { operatoreId: id } });
 
     await tx.operatore.update({
       where: { id },
@@ -73,6 +77,9 @@ export async function updateOperatore(id: number, data: OperatoreFormData) {
         ...updateData,
         ruoli: {
           create: validated.ruoliIds.map((ruoloId) => ({ ruoloId })),
+        },
+        servizi: {
+          create: (validated.servizioIds ?? []).map((servizioId) => ({ servizioId })),
         },
       },
     });

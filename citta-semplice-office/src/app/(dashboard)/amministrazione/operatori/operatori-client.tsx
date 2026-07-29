@@ -17,6 +17,7 @@ interface OperatoreRow {
   attivo: boolean;
   ruoli: { ruoloId: number; ruolo: Ruolo }[];
   ufficio: Ufficio | null;
+  servizi: { servizioId: number; servizio: { titolo: string } }[];
 }
 
 const PAGE_SIZE = 15;
@@ -73,6 +74,7 @@ export function OperatoriClient({ operatori }: { operatori: OperatoreRow[] }) {
               <THead field="email">Email</THead>
               <THead field="">Ruoli</THead>
               <THead field="ufficio">Ufficio</THead>
+              <THead field="">Servizi</THead>
               <THead field="attivo">Stato</THead>
               <THead field=""></THead>
             </THeadGroup>
@@ -83,11 +85,12 @@ export function OperatoriClient({ operatori }: { operatori: OperatoreRow[] }) {
               <TFilterHead />
               <TFilterHead />
               <TFilterHead />
+              <TFilterHead />
             </TFilterHeadGroup>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-4 text-muted">
+                  <td colSpan={7} className="text-center py-4 text-muted">
                     Nessun operatore trovato
                   </td>
                 </tr>
@@ -109,6 +112,17 @@ export function OperatoriClient({ operatori }: { operatori: OperatoreRow[] }) {
                       </div>
                     </td>
                     <td>{operatore.ufficio?.nome ?? <span className="text-muted">—</span>}</td>
+                    <td>
+                      {operatore.servizi.length === 0 ? (
+                        <span className="text-muted">Tutti dell&apos;ufficio</span>
+                      ) : (
+                        <div className="d-flex gap-1 flex-wrap">
+                          {operatore.servizi.map((s) => (
+                            <Badge key={s.servizioId} variant="primary">{s.servizio.titolo}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </td>
                     <td>
                       {operatore.attivo
                         ? <Badge variant="success">Attivo</Badge>

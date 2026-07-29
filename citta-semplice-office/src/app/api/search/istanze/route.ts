@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
+import { getVisibilitaOperatore, istanzaVisibilityWhere } from '@/lib/auth/visibilita';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
-  if (!session) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Visibilità operatore: ufficio + servizi assegnati
+  const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
 
   const searchParams = request.nextUrl.searchParams;
   const codiceFiscale = searchParams.get('codiceFiscale');
@@ -19,7 +23,7 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '50');
 
   // Build where clause
-  const where: Record<string, unknown> = { inBozza: false };
+  const where: Record<string, unknown> = { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] };
 
   if (codiceFiscale) {
     where.utente = {

@@ -11,6 +11,7 @@
 export type * from './models/Operatore'
 export type * from './models/Ruolo'
 export type * from './models/OperatoreRuolo'
+export type * from './models/OperatoreServizio'
 export type * from './models/RuoloUser'
 export type * from './models/Ente'
 export type * from './models/Area'

@@ -92,11 +92,25 @@ export function IstanzeTable({ utenteId }: Props) {
               result.data.map((istanza) => {
                 const stato = getStatoBadge(istanza);
                 return (
-                  <tr key={istanza.id}>
+                  <tr key={istanza.id} className={istanza.azioneRichiesta ? 'table-warning' : undefined}>
                     <td>
                       <Link href={`/le-mie-istanze/${istanza.id}`} className="text-decoration-none">
                         {istanza.servizioTitolo}
                       </Link>
+                      {(istanza.comunicazioniNuove > 0 || istanza.azioneRichiesta) && (
+                        <div className="d-flex flex-wrap gap-1 mt-1">
+                          {istanza.comunicazioniNuove > 0 && (
+                            <span className="badge bg-danger">
+                              {istanza.comunicazioniNuove === 1
+                                ? 'Nuova comunicazione'
+                                : `${istanza.comunicazioniNuove} nuove comunicazioni`}
+                            </span>
+                          )}
+                          {istanza.azioneRichiesta && (
+                            <span className="badge bg-warning text-dark">Richiede una tua risposta</span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td>
                       {istanza.dataInvio

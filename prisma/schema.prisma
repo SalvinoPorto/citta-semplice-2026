@@ -54,6 +54,10 @@ model Operatore {
 
   // Relations
   ruoli             OperatoreRuolo[]
+  // Visibilità granulare: sottoinsieme di servizi visibili all'operatore
+  // dentro il suo ufficio. Lista VUOTA = tutti i servizi dell'ufficio
+  // (comportamento storico, retrocompatibile).
+  servizi           OperatoreServizio[]
   workflows         Workflow[]
   comunicazioni     Comunicazione[]
   workflowFasiCompletati  WorkflowFase[]
@@ -82,6 +86,20 @@ model OperatoreRuolo {
 
   @@id([operatoreId, ruoloId])
   @@map("operatori_ruoli")
+}
+
+// Assegnazione operatore → servizio: rende la visibilità più granulare
+// dell'ufficio. Vedi Operatore.servizi per la semantica della lista vuota.
+model OperatoreServizio {
+  operatoreId Int       @map("operatore_id")
+  servizioId  Int       @map("servizio_id")
+
+  operatore   Operatore @relation(fields: [operatoreId], references: [id], onDelete: Cascade)
+  servizio    Servizio  @relation(fields: [servizioId], references: [id], onDelete: Cascade)
+
+  @@id([operatoreId, servizioId])
+  @@index([servizioId])
+  @@map("operatori_servizi")
 }
 
 model RuoloUser {
@@ -187,6 +205,7 @@ model Servizio {
   ricevuta              Ricevuta?
   ruoli                 ServizioRuoloUser[]
   fasi                  Fase[]
+  operatori             OperatoreServizio[]
 
   @@map("servizi")
 }
@@ -203,7 +222,6 @@ model Ufficio {
   servizi              Servizio[]
   fasi                 Fase[]
   operatori            Operatore[]
-  istanzeUfficioCorrente Istanza[] @relation("UfficioCorrente")
 
   @@map("uffici")
 }
@@ -261,7 +279,6 @@ model Step {
   workflows                   Workflow[]
   allegatiRichiestiList       AllegatoRichiesto[]
   pagamentoConfig             Pagamento?
-  istanzeLastStep             Istanza[]           @relation("IstanzaLastStep")
 
   //@@unique([servizioId, ordine])
   @@map("steps")
@@ -325,12 +342,20 @@ model Istanza {
   conclusa            Boolean   @default(false)
   respinta            Boolean   @default(false)
   inBozza             Boolean   @default(false) @map("in_bozza")
-  // Posizione corrente (denormalizzata per lettura). Fonte di verità:
-  //   lastStepId = step corrente; activeStep = SNAPSHOT del suo ordine.
-  //   activeStep è MANTENUTO di proposito (non derivato al volo): gli step possono
-  //   essere soft-deleted/rinumerati all'edit del servizio, lo snapshot resta stabile.
-  //   faseCorrenteId = fase corrente; ufficioCorrenteId = ufficio assegnato
-  //     (di norma = faseCorrente.ufficioId, ma può essere override per-istanza → multi-ufficio)
+  // Posizione corrente:
+  //   - STEP corrente → step dell'ultimo Workflow (per dataVariazione desc). Non
+  //     è denormalizzato: `last_step_id` esisteva ma nessuno lo leggeva ed era già
+  //     andato fuori sincrono, quindi è stato eliminato.
+  //   - FASE corrente → faseCorrenteId, denormalizzata perché serve nelle `where`
+  //     (visibilità per ufficio): "fase dello step dell'ultimo workflow" non è
+  //     esprimibile in un filtro Prisma. Va tenuta allineata a ogni avanzamento.
+  //   - UFFICIO corrente → derivato da faseCorrente.ufficio. Non esiste più una
+  //     colonna `ufficio_corrente_id`: era sempre uguale a faseCorrente.ufficioId
+  //     e l'override per-istanza non è mai stato implementato, ma poteva divergere
+  //     e rendere invisibili le istanze all'ufficio giusto.
+  //
+  // activeStep: SOLO per le bozze del portale — indice del wizard di compilazione
+  // (0=Privacy, 1=Modulo, 2=Allegati, 3=Riepilogo). Azzerato all'invio.
   activeStep          Int?      @map("active_step")
   // Solo per le bozze: pagina del modulo (0-based) su cui il cittadino si è
   // fermato, quando il form è diviso in più pagine tramite campi `pagebreak`.
@@ -357,16 +382,8 @@ model Istanza {
   servizioId          Int       @map("servizio_id")
   servizio            Servizio  @relation(fields: [servizioId], references: [id])
 
-  // A4: FK verso Step (integrità referenziale). SetNull perché lo step può essere
-  // hard-deleted quando non referenziato da workflow.
-  lastStepId          Int?      @map("last_step_id")
-  lastStep            Step?     @relation("IstanzaLastStep", fields: [lastStepId], references: [id], onDelete: SetNull)
-
   faseCorrenteId      Int?      @map("fase_corrente_id")
   faseCorrente        Fase?     @relation("FaseCorrente", fields: [faseCorrenteId], references: [id], onDelete: SetNull)
-
-  ufficioCorrenteId   Int?      @map("ufficio_corrente_id")
-  ufficioCorrente     Ufficio?  @relation("UfficioCorrente", fields: [ufficioCorrenteId], references: [id], onDelete: SetNull)
 
   workflows           Workflow[]
   comunicazioni       Comunicazione[]
@@ -455,6 +472,7 @@ model Comunicazione {
   richiedeRisposta  Boolean   @default(false) @map("richiede_risposta")
   allegatiRichiesti String?   @db.Text @map("allegati_richiesti") // JSON: [{nome: string, obbligatorio: boolean}]
   dataCreazione     DateTime  @default(now()) @map("data_creazione")
+  lettaDaCittadino  Boolean   @default(false) @map("letta_da_cittadino")
 
   istanzaId         Int       @map("istanza_id")
   istanza           Istanza   @relation(fields: [istanzaId], references: [id], onDelete: Cascade)
@@ -472,7 +490,8 @@ model RispostaComunicazione {
   id              Int       @id @default(autoincrement())
   testo           String?   @db.Text
   createdAt       DateTime  @default(now()) @map("created_at")
- 
+  lettaDaOperatore Boolean  @default(false) @map("letta_da_operatore")
+
   comunicazioneId Int       @unique @map("comunicazione_id")
   comunicazione   Comunicazione @relation(fields: [comunicazioneId], references: [id], onDelete: Cascade)
 
@@ -485,6 +504,7 @@ model AllegatoRisposta {
   id          Int       @id @default(autoincrement())
   nomeFile    String    @db.VarChar(512) @map("nome_file")
   nomeHash    String    @db.VarChar(512) @map("nome_hash")
+  nomeFileRichiesto String? @db.VarChar(512) @map("nome_file_richiesto")
   mimeType    String?   @db.VarChar(50) @map("mime_type")
 
   rispostaId  Int       @map("risposta_id")

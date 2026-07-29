@@ -162,8 +162,23 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
       try {
         if (com.allegatiRichiesti) allegatiRichiesti = JSON.parse(com.allegatiRichiesti);
       } catch { /* ignore */ }
-      return { ...com, allegatiRichiesti };
+      // L'ufficio può chiedere solo allegati senza spuntare "richiede risposta":
+      // in entrambi i casi il cittadino deve poter rispondere.
+      const rispondibile = com.richiedeRisposta || allegatiRichiesti.length > 0;
+      return { ...com, allegatiRichiesti, rispondibile };
     });
+
+  // Le comunicazioni mai aperte restano evidenziate finché il cittadino non
+  // visita questa pagina: qui sono ancora "nuove", subito dopo diventano lette.
+  const nuove = new Set(
+    comunicazioni.filter((com) => !com.lettaDaCittadino).map((com) => com.id),
+  );
+  if (nuove.size > 0) {
+    await prisma.comunicazione.updateMany({
+      where: { id: { in: [...nuove] } },
+      data: { lettaDaCittadino: true },
+    });
+  }
 
   return (
     <>
@@ -465,21 +480,26 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
 
                 <div className="d-flex flex-column gap-3">
                   {comunicazioni.map((com) => (
-                    <div key={com.id} className={`card ${com.richiedeRisposta ? 'border-warning' : 'border-info'}`}>
+                    <div key={com.id} className={`card ${com.rispondibile ? 'border-warning' : 'border-info'}`}>
                       <div className="card-body">
                         <div className="d-flex align-items-center gap-2 mb-2">
-                          <svg className={`icon icon-sm ${com.richiedeRisposta ? 'text-warning' : 'text-info'}`} aria-hidden="true">
-                            <use href={`/bootstrap-italia/dist/svg/sprites.svg#${com.richiedeRisposta ? 'it-warning-circle' : 'it-info-circle'}`} />
+                          <svg className={`icon icon-sm ${com.rispondibile ? 'text-warning' : 'text-info'}`} aria-hidden="true">
+                            <use href={`/bootstrap-italia/dist/svg/sprites.svg#${com.rispondibile ? 'it-warning-circle' : 'it-info-circle'}`} />
                           </svg>
                           <small className="text-muted">
                             {format(com.dataCreazione, 'dd MMMM yyyy, HH:mm', { locale: it })}
                           </small>
-                          {com.richiedeRisposta && (
-                            <span className="badge bg-warning text-dark ms-auto">Richiede risposta</span>
+                          {nuove.has(com.id) && (
+                            <span className="badge bg-danger">Nuova</span>
+                          )}
+                          {com.rispondibile && !com.risposta && (
+                            <span className="badge bg-warning text-dark ms-auto">
+                              {com.richiedeRisposta ? 'Richiede risposta' : 'Richiede documenti'}
+                            </span>
                           )}
                         </div>
                         <p className="mb-0">{com.testo}</p>
-                        {com.richiedeRisposta && (
+                        {com.rispondibile && (
                           <RispostaComunicazioneForm
                             comunicazioneId={com.id}
                             allegatiRichiesti={com.allegatiRichiesti}

@@ -9,6 +9,7 @@ async function getOperatori() {
     include: {
       ruoli: { include: { ruolo: true } },
       ufficio: { select: { id: true, nome: true } },
+      servizi: { include: { servizio: { select: { titolo: true } } } },
     },
   });
 }

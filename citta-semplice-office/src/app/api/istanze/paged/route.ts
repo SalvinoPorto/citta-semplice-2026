@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
-import { ROLES } from '@/lib/auth/roles';
+import {
+  getVisibilitaOperatore,
+  istanzaVisibilityWhere,
+  istanzaVisibilitySql,
+  isVisibilitaTotale,
+  type VisibilitaOperatore,
+} from '@/lib/auth/visibilita';
 
 interface SortState {
   field: string;
@@ -30,24 +36,26 @@ interface SearchBody {
   columnFilters: Filter[];
 }
 
-function buildUfficioFilter(ufficioId: number) {
-  return {
-    OR: [
-      { ufficioCorrenteId: ufficioId },
-      { ufficioCorrenteId: null, faseCorrente: { ufficioId } },
-    ],
-  };
-}
-
-async function getIstanzeCounts(operatoreId: number, isAdmin: boolean, ufficioId: number | null) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const visibilitaFilter: any = isAdmin || !ufficioId ? {} : buildUfficioFilter(ufficioId);
+async function getIstanzeCounts(visibilita: VisibilitaOperatore) {
+  const operatoreId = visibilita.operatoreId;
+  const visibilitaFilter = istanzaVisibilityWhere(visibilita);
+  const visibilitaSql = istanzaVisibilitySql(visibilita, 'i');
 
   const [nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale] =
     await Promise.all([
-      prisma.istanza.count({
-        where: { ...visibilitaFilter, inBozza: false, conclusa: false, respinta: false, workflows: { some: { operatoreId: null } } },
-      }),
+      // "Nuove" = istanze il cui ULTIMO workflow non è assegnato a nessuno.
+      // (Prima: `workflows: some(operatoreId null)`, che contava anche le istanze
+      // già prese in carico da altri se un qualsiasi step passato era non assegnato:
+      // nuove + mie + altri superava il totale delle istanze aperte.)
+      prisma.$queryRaw<[{ count: bigint }]>`
+          SELECT COUNT(DISTINCT i.id) as count
+          FROM istanze i
+          INNER JOIN workflows w ON w.istanza_id = i.id
+          WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
+          AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+          AND w.operatore_id IS NULL
+          ${visibilitaSql}
+        `.then((r) => Number(r[0]?.count || 0)),
       prisma.$queryRaw<[{ count: bigint }]>`
           SELECT COUNT(DISTINCT i.id) as count
           FROM istanze i
@@ -55,6 +63,7 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean, ufficioId
           WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
           AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
           AND w.operatore_id = ${operatoreId}
+          ${visibilitaSql}
         `.then((r) => Number(r[0]?.count || 0)),
       prisma.$queryRaw<[{ count: bigint }]>`
           SELECT COUNT(DISTINCT i.id) as count
@@ -63,10 +72,11 @@ async function getIstanzeCounts(operatoreId: number, isAdmin: boolean, ufficioId
           WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
           AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
           AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
+          ${visibilitaSql}
         `.then((r) => Number(r[0]?.count || 0)),
-      prisma.istanza.count({ where: { ...visibilitaFilter, inBozza: false, respinta: true } }),
-      prisma.istanza.count({ where: { ...visibilitaFilter, inBozza: false, conclusa: true } }),
-      prisma.istanza.count({ where: { ...visibilitaFilter, inBozza: false } }),
+      prisma.istanza.count({ where: { AND: [visibilitaFilter], inBozza: false, respinta: true } }),
+      prisma.istanza.count({ where: { AND: [visibilitaFilter], inBozza: false, conclusa: true } }),
+      prisma.istanza.count({ where: { AND: [visibilitaFilter], inBozza: false } }),
     ]);
 
   return { nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale };
@@ -79,13 +89,7 @@ export async function POST(request: NextRequest) {
   }
 
   const operatoreId = parseInt(session.user.id);
-  const isAdmin = (session.user.ruoli ?? []).includes(ROLES.ADMIN);
-
-  const operatoreDb = isAdmin ? null : await prisma.operatore.findUnique({
-    where: { id: operatoreId },
-    select: { ufficioId: true },
-  });
-  const ufficioId = operatoreDb?.ufficioId ?? null;
+  const visibilita = await getVisibilitaOperatore(operatoreId, session.user.ruoli);
 
   let body: SearchBody;
   try {
@@ -105,11 +109,6 @@ export async function POST(request: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereClause: any = { inBozza: false };
-
-  if (!isAdmin && ufficioId) {
-    const f = buildUfficioFilter(ufficioId);
-    whereClause.OR = f.OR;
-  }
 
   if (formFilters.modulo) {
     whereClause.servizioId = parseInt(formFilters.modulo);
@@ -140,10 +139,11 @@ export async function POST(request: NextRequest) {
 
   if (formFilters.ufficioId) {
     const uid = parseInt(formFilters.ufficioId, 10);
-    // Copre sia fase con ufficio fisso che ufficio variabile scelto dall'operatore
+    // Come il filtro di visibilità: ufficio della fase corrente, con fallback
+    // sugli uffici del servizio per le istanze chiuse (senza fase corrente)
     const ufficioConditions = [
       { faseCorrente: { ufficioId: uid } },
-      { ufficioCorrenteId: uid },
+      { faseCorrenteId: null, servizio: { fasi: { some: { ufficioId: uid } } } },
     ];
     if (whereClause.AND) {
       whereClause.AND = [...whereClause.AND, { OR: ufficioConditions }];
@@ -203,7 +203,7 @@ export async function POST(request: NextRequest) {
     case 'nuove':
       whereClause.conclusa = false;
       whereClause.respinta = false;
-      whereClause.workflows = { some: { operatoreId: null } };
+      // il vincolo "ultimo workflow non assegnato" è risolto sotto via raw SQL
       break;
     case 'mie':
     case 'altri':
@@ -223,12 +223,25 @@ export async function POST(request: NextRequest) {
   // and intersected into the where clause at DB level
   const idConstraints: number[][] = [];
 
-  if (tab === 'mie') {
+  // il set di id è già ristretto alla visibilità per non gonfiare la clausola IN
+  const visibilitaSql = istanzaVisibilitySql(visibilita, 'i');
+
+  if (tab === 'nuove') {
+    const rows = await prisma.$queryRaw<{ id: number }[]>`
+      SELECT DISTINCT i.id FROM istanze i
+      INNER JOIN workflows w ON w.istanza_id = i.id
+      WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
+      AND w.operatore_id IS NULL
+      ${visibilitaSql}
+    `;
+    idConstraints.push(rows.map((r) => Number(r.id)));
+  } else if (tab === 'mie') {
     const rows = await prisma.$queryRaw<{ id: number }[]>`
       SELECT DISTINCT i.id FROM istanze i
       INNER JOIN workflows w ON w.istanza_id = i.id
       WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
       AND w.operatore_id = ${operatoreId}
+      ${visibilitaSql}
     `;
     idConstraints.push(rows.map((r) => Number(r.id)));
   } else if (tab === 'altri') {
@@ -237,6 +250,7 @@ export async function POST(request: NextRequest) {
         INNER JOIN workflows w ON w.istanza_id = i.id
         WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
         AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
+        ${visibilitaSql}
       `;
     idConstraints.push(rows.map((r) => Number(r.id)));
   }
@@ -297,6 +311,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Visibilità operatore (ufficio + servizi assegnati): applicata per ultima, in AND
+  // con tutti i filtri di ricerca, così nessuna condizione OR può aggirarla.
+  if (!isVisibilitaTotale(visibilita)) {
+    const visibilitaFilter = istanzaVisibilityWhere(visibilita);
+    whereClause.AND = whereClause.AND ? [...whereClause.AND, visibilitaFilter] : [visibilitaFilter];
+  }
+
   const safePageSize = Math.max(1, pageSize);
   const safePage = Math.max(1, page);
 
@@ -322,19 +343,28 @@ export async function POST(request: NextRequest) {
         faseCorrente: {
           include: { ufficio: true },
         },
-        ufficioCorrente: true,
+        comunicazioni: {
+          select: { risposta: { select: { lettaDaOperatore: true } } },
+        },
       },
       orderBy,
       skip: (safePage - 1) * safePageSize,
       take: safePageSize,
     }),
-    getIstanzeCounts(operatoreId, isAdmin, ufficioId),
+    getIstanzeCounts(visibilita),
   ]);
 
   const totalPages = Math.ceil(total / safePageSize) || 1;
 
+  // Risposte del cittadino non ancora aperte da nessun operatore: vanno
+  // evidenziate in lista, altrimenti restano invisibili fino all'apertura.
+  const data = istanze.map(({ comunicazioni, ...istanza }) => ({
+    ...istanza,
+    risposteNuove: comunicazioni.filter((c) => c.risposta && !c.risposta.lettaDaOperatore).length,
+  }));
+
   return NextResponse.json({
-    data: istanze,
+    data,
     total,
     page: safePage,
     totalPages,

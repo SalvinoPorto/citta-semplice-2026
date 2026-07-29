@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { ROLES } from '@/lib/auth/roles';
+import { getVisibilitaOperatore, puoVedereIstanza } from '@/lib/auth/visibilita';
 import prisma from '@/lib/db/prisma';
 import { getStorage } from '@/lib/storage';
 
@@ -31,6 +31,7 @@ export async function GET(
           include: {
             istanza: {
               select: {
+                servizioId: true,
                 servizio: {
                   select: {
                     ufficioId: true,
@@ -48,24 +49,11 @@ export async function GET(
       return NextResponse.json({ error: 'Allegato non trovato' }, { status: 404 });
     }
 
-    // IDOR check: verify the operator's office has access to this istanza
-    const isAdmin = (session.user.ruoli ?? []).includes(ROLES.ADMIN);
-    if (!isAdmin) {
-      const operatoreId = parseInt(session.user.id);
-      const operatore = await prisma.operatore.findUnique({
-        where: { id: operatoreId },
-        select: { ufficioId: true },
-      });
-      if (operatore?.ufficioId) {
-        const { istanza } = allegato.workflow;
-        const ufficiServizio = [
-          istanza.servizio.ufficioId,
-          ...istanza.servizio.fasi.map((f) => f.ufficioId),
-        ].filter((uid): uid is number => uid !== null);
-        if (ufficiServizio.length > 0 && !ufficiServizio.includes(operatore.ufficioId)) {
-          return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-        }
-      }
+    // IDOR check: l'ufficio dell'operatore deve partecipare al servizio e il
+    // servizio deve essergli assegnato
+    const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
+    if (!puoVedereIstanza(visibilita, allegato.workflow.istanza)) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
     await prisma.allegato.update({

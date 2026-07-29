@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
+import {
+  getVisibilitaOperatore,
+  istanzaVisibilityWhere,
+  isVisibilitaTotale,
+} from '@/lib/auth/visibilita';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
+  const istanzeVisibili = { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] };
 
   const searchParams = request.nextUrl.searchParams;
   const codiceFiscale = searchParams.get('codiceFiscale');
@@ -17,6 +25,11 @@ export async function GET(request: NextRequest) {
 
   // Build where clause
   const where: Record<string, unknown> = {};
+
+  // L'operatore vede solo i cittadini con almeno un'istanza di sua competenza
+  if (!isVisibilitaTotale(visibilita)) {
+    where.istanze = { some: istanzeVisibili };
+  }
 
   if (codiceFiscale) {
     where.codiceFiscale = {
@@ -45,7 +58,7 @@ export async function GET(request: NextRequest) {
         where,
         include: {
           _count: {
-            select: { istanze: true },
+            select: { istanze: { where: istanzeVisibili } },
           },
         },
         orderBy: { cognome: 'asc' },
