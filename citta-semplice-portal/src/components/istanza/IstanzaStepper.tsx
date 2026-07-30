@@ -1,5 +1,5 @@
 'use client';
-
+import React from "react";
 import { useState, useRef } from 'react';
 import { PrivacyStep } from './PrivacyStep';
 import { ModuloStep, ModuloStepHandle } from './ModuloStep';

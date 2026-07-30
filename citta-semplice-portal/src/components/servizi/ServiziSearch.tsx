@@ -1,11 +1,13 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 
 type Servizio = {
   id: number;
   titolo: string;
+  sottoTitolo: string | null;
   slug: string | null;
   area: { id: number; nome: string; slug: string | null };
 };
@@ -94,7 +96,7 @@ export function ServiziSearch() {
               href={`/${s.area.slug ?? s.area.id}/${s.slug ?? s.id}`}
               className="fw-semibold text-decoration-none"
             >
-              {s.titolo}
+              {s.titolo} { s.sottoTitolo && <> - {s.sottoTitolo}</> }
             </Link>
           </div>
         ))}

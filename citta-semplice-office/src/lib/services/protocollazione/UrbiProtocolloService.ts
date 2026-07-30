@@ -9,9 +9,14 @@ export type {
   ProtocolloInput,
   ProtocolloResult,
   UfficioUrbi,
+  ElencoUfficiResult,
   ProtocolloEmergenzaStore,
 } from '@citta/integrations/protocollazione';
-export { getElencoUffici, getUrbiProductName } from '@citta/integrations/protocollazione';
+export {
+  getElencoUffici,
+  getElencoUfficiResult,
+  getUrbiProductName,
+} from '@citta/integrations/protocollazione';
 
 const store: urbi.ProtocolloEmergenzaStore = {
   async nextProgressivo(anno) {

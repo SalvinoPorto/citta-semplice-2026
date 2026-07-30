@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/session';
-import { getElencoUffici } from '@/lib/services/protocollazione/UrbiProtocolloService';
+import { getElencoUfficiResult } from '@/lib/services/protocollazione/UrbiProtocolloService';
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -8,6 +8,6 @@ export async function GET() {
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
 
-  const uffici = await getElencoUffici();
-  return NextResponse.json({ uffici });
+  const { uffici, disponibile, errore } = await getElencoUfficiResult();
+  return NextResponse.json({ uffici, disponibile, errore });
 }

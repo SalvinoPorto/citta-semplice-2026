@@ -1,5 +1,5 @@
 // export const dynamic = 'force-dynamic';
-
+import React from 'react';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/config';
@@ -140,7 +140,7 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
-            <h3 className="title-xxlarge mb-4">{servizio.titolo}</h3>
+            <h3 className="title-xxlarge mb-4">{servizio.titolo} {servizio.sottoTitolo && <> - {servizio.sottoTitolo}</>}</h3>
             {bozzaIniziale && (
               <div className="alert alert-info d-flex align-items-center mb-4" role="alert">
                 {/* <svg className="icon icon-sm me-2" aria-hidden="true">

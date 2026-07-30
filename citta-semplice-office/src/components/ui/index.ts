@@ -7,6 +7,9 @@ export type { InputProps } from './input';
 export { Select } from './select';
 export type { SelectProps, SelectOption } from './select';
 
+export { Combobox } from './combobox';
+export type { ComboboxProps, ComboboxOption } from './combobox';
+
 export { Textarea } from './textarea';
 export type { TextareaProps } from './textarea';
 

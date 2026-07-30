@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardBody, Button, Input, Select, Textarea } from '@/components/ui';
+import { Card, CardBody, Button, Combobox, Input, Select, Textarea } from '@/components/ui';
 import Editor from '@/components/ui/editor';
 import { createServizio, updateServizio, deleteServizio } from './actions';
 import { servizioSchema, type ServizioFormData } from '@/lib/validations/servizio';
@@ -208,9 +208,12 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'informazioni' | 'configurazione' | 'workflow' | 'modulo' | 'art18'>('informazioni');
 
-  // Uffici Urbi SMART — caricati dinamicamente al primo uso del protocollo
+  // Uffici Urbi SMART — caricati dinamicamente al primo uso del protocollo.
+  // `ufficiDisponibili === false` = API non raggiungibile: l'elenco resta vuoto
+  // ma il codice già configurato non va perso (vedi Combobox).
   const [urbiUffici, setUrbiUffici] = useState<{ codice: string; descrizione: string }[] | null>(null);
   const [ufficiLoading, setUfficiLoading] = useState(false);
+  const [ufficiDisponibili, setUfficiDisponibili] = useState(true);
 
   // PmPay servizi (tributi) — caricati una volta al primo uso del pagamento
   const [pmPayServizi, setPmPayServizi] = useState<{ codiceServizio: string; descrizione?: string }[] | null>(null);
@@ -223,16 +226,25 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
       const res = await fetch('/api/urbi/uffici');
       if (res.ok) {
         const data = await res.json();
-        setUrbiUffici(data.uffici ?? []);
+        const disponibile = data.disponibile !== false;
+        setUfficiDisponibili(disponibile);
+        // in caso di API non disponibile non si memorizza l'elenco vuoto:
+        // il prossimo tentativo può riprovare
+        setUrbiUffici(disponibile ? (data.uffici ?? []) : null);
       } else {
-        setUrbiUffici([]);
+        setUfficiDisponibili(false);
       }
     } catch {
-      setUrbiUffici([]);
+      setUfficiDisponibili(false);
     } finally {
       setUfficiLoading(false);
     }
   }, [urbiUffici, ufficiLoading]);
+
+  const urbiUfficiOptions = useMemo(
+    () => (urbiUffici ?? []).map((uo) => ({ value: uo.codice, label: uo.descrizione || uo.codice })),
+    [urbiUffici],
+  );
 
   const loadPmPayServizi = useCallback(async () => {
     if (pmPayServizi !== null || pmPayLoading) return;
@@ -802,8 +814,8 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                         error={errors.numeroMaxIstanze?.message}
                       />
                     </div>
-                    </div>
-                    <div className="row">
+                  </div>
+                  <div className="row">
                     <div className="col-md-12 mb-3">
                       <Textarea
                         label="Messaggio sopra soglia"
@@ -812,8 +824,8 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                         error={errors.msgSopraSoglia?.message}
                       />
                     </div>
-                    </div>
-                    <div className="row">
+                  </div>
+                  <div className="row">
                     <div className="col-md-12 mb-3">
                       <Textarea
                         label="Messaggio Extra"
@@ -1153,6 +1165,24 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                                       <input
                                         type="radio"
                                         className="form-check-input"
+                                        id={`step-${index}-proto-interno`}
+                                        checked={protoMode === 'interno'}
+                                        onChange={() => setProtoMode('interno')}
+                                      />
+                                      <label className="form-check-label small" htmlFor={`step-${index}-proto-interno`}>
+                                        Numerazione progressiva interna (prefisso <code>PE_</code>)
+                                      </label>
+                                      {protoMode === 'interno' && (
+                                        <p className="ms-4 mt-1 mb-0 text-muted small">
+                                          Verrà assegnato un numero progressivo interno con prefisso <code>PE_</code>.
+                                          Questo vale anche come protocollo di emergenza quando l&apos;API esterna non è disponibile.
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="form-check">
+                                      <input
+                                        type="radio"
+                                        className="form-check-input"
                                         id={`step-${index}-proto-esterno`}
                                         checked={protoMode === 'esterno'}
                                         onChange={() => setProtoMode('esterno')}
@@ -1161,39 +1191,28 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                                         Protocollazione esterna ({isFirst ? 'Entrata' : 'Uscita'}) — API protocollo
                                       </label>
                                     </div>
-                                    <div className="form-check">
-                                      <input
-                                        type="radio"
-                                        className="form-check-input"
-                                        id={`step-${index}-proto-interno`}
-                                        checked={protoMode === 'interno'}
-                                        onChange={() => setProtoMode('interno')}
-                                      />
-                                      <label className="form-check-label small" htmlFor={`step-${index}-proto-interno`}>
-                                        Numerazione progressiva interna (prefisso <code>PE_</code>)
-                                      </label>
-                                    </div>
                                   </div>
                                   {protoMode === 'esterno' && (
                                     <div className="ms-4 mt-2">
-                                      <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
-                                        <option value="">
-                                          {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
-                                        </option>
-                                        {(urbiUffici ?? []).map((uo) => (
-                                          <option key={uo.codice} value={uo.codice}>
-                                            {uo.descrizione || uo.codice}
-                                          </option>
-                                        ))}
-                                      </Select>
+                                      <Controller
+                                        control={control}
+                                        name={`steps.${index}.unitaOrganizzativa`}
+                                        render={({ field: { value, onChange } }) => (
+                                          <Combobox
+                                            label="Unità Organizzativa"
+                                            id={`step-${index}-uo`}
+                                            value={value ?? ''}
+                                            onChange={onChange}
+                                            options={urbiUfficiOptions}
+                                            loading={ufficiLoading}
+                                            unavailable={!ufficiDisponibili}
+                                            allowCustomValue={!ufficiDisponibili}
+                                          />
+                                        )}
+                                      />
                                     </div>
                                   )}
-                                  {protoMode === 'interno' && (
-                                    <p className="ms-4 mt-1 mb-0 text-muted small">
-                                      Verrà assegnato un numero progressivo interno con prefisso <code>PE_</code>.
-                                      Questo vale anche come protocollo di emergenza quando l&apos;API esterna non è disponibile.
-                                    </p>
-                                  )}
+
                                 </div>
                               )}
 
@@ -1251,16 +1270,22 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                                           />
                                         </div>
                                         <div className="col-md-8 mb-2">
-                                          <Select label="Unità Organizzativa" {...register(`steps.${index}.unitaOrganizzativa`)}>
-                                            <option value="">
-                                              {ufficiLoading ? 'Caricamento...' : 'Nessuna selezione'}
-                                            </option>
-                                            {(urbiUffici ?? []).map((uo) => (
-                                              <option key={uo.codice} value={uo.codice}>
-                                                {uo.descrizione || uo.codice}
-                                              </option>
-                                            ))}
-                                          </Select>
+                                          <Controller
+                                            control={control}
+                                            name={`steps.${index}.unitaOrganizzativa`}
+                                            render={({ field: { value, onChange } }) => (
+                                              <Combobox
+                                                label="Unità Organizzativa"
+                                                id={`step-${index}-uo`}
+                                                value={value ?? ''}
+                                                onChange={onChange}
+                                                options={urbiUfficiOptions}
+                                                loading={ufficiLoading}
+                                                unavailable={!ufficiDisponibili}
+                                                allowCustomValue={!ufficiDisponibili}
+                                              />
+                                            )}
+                                          />
                                         </div>
                                       </div>
                                     </div>
@@ -1591,37 +1616,37 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
 
         <div className="col-lg-2">
           <div className="sticky-top" style={{ top: '1rem' }}>
-              <h5 className="mb-4">Azioni</h5>
+            <h5 className="mb-4">Azioni</h5>
 
-              <div className="d-grid gap-2">
-                <Button type="submit" variant="primary" loading={loading} disabled={deleteLoading}>
-                  {isNew ? 'Crea Servizio' : 'Salva Modifiche'}
-                </Button>
+            <div className="d-grid gap-2">
+              <Button type="submit" variant="primary" loading={loading} disabled={deleteLoading}>
+                {isNew ? 'Crea Servizio' : 'Salva Modifiche'}
+              </Button>
 
-                <Button
-                  type="button"
-                  variant="outline-secondary"
-                  onClick={() => router.push('/amministrazione/servizi')}
-                  disabled={loading || deleteLoading}
-                >
-                  Annulla
-                </Button>
+              <Button
+                type="button"
+                variant="outline-secondary"
+                onClick={() => router.push('/amministrazione/servizi')}
+                disabled={loading || deleteLoading}
+              >
+                Annulla
+              </Button>
 
-                {!isNew && servizio && (
-                  <>
-                    <hr />
-                    <Button
-                      type="button"
-                      variant="outline-danger"
-                      onClick={handleDelete}
-                      loading={deleteLoading}
-                      disabled={loading}
-                    >
-                      Elimina Servizio
-                    </Button>
-                  </>
-                )}
-              </div>
+              {!isNew && servizio && (
+                <>
+                  <hr />
+                  <Button
+                    type="button"
+                    variant="outline-danger"
+                    onClick={handleDelete}
+                    loading={deleteLoading}
+                    disabled={loading}
+                  >
+                    Elimina Servizio
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

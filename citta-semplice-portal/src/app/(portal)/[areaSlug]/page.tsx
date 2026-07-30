@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic';
-
+import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { AreaServiziSearch } from '@/components/servizi/AreaServiziSearch';
 
 interface Props {
   params: Promise<{ areaSlug: string }>;
@@ -82,51 +82,16 @@ export default async function AreaPage({ params }: Props) {
         <div className="container">
           <div className="row">
             <div className="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
-              <div className="cmp-input-search mb-4">
-                <div className="form-group mb-0">
-                  <div className="input-group">
-                    <label htmlFor="search-servizi" className="visually-hidden">
-                      Cerca una parola chiave
-                    </label>
-                    <input
-                      type="search"
-                      className="form-control"
-                      placeholder="Cerca una parola chiave"
-                      id="search-servizi"
-                    />
-                    <span className="input-group-text" aria-hidden="true">
-                      <svg className="icon icon-sm icon-primary">
-                        <use href="/bootstrap-italia/dist/svg/sprites.svg#it-search" />
-                      </svg>
-                    </span>
-                  </div>
-                  <p className="mt-2 mt-lg-3 mb-4">
-                    <strong>{area.servizi.length} </strong>servizi trovati in ordine alfabetico
-                  </p>
-                </div>
-              </div>
-
-              {area.servizi.map((servizio) => (
-                <div key={servizio.id} className="cmp-card-latest-messages mb-3 mb-30">
-                  <div className="card shadow-sm px-4 pt-4 pb-4 rounded">
-                    <div className="card-header border-0 p-0" />
-                    <div className="card-body p-0 my-2">
-                      <h3 className="green-title-big t-primary mb-8">
-                        <Link
-                          href={`/${areaSlug}/${servizio.slug}`}
-                          className="text-decoration-none"
-                          data-element="service-link"
-                        >
-                          {servizio.titolo}
-                        </Link>
-                      </h3>
-                      {servizio.sottoTitolo && (
-                        <p className="text-paragraph">{servizio.sottoTitolo}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <AreaServiziSearch
+                areaSlug={areaSlug}
+                servizi={area.servizi.map((s) => ({
+                  id: s.id,
+                  titolo: s.titolo,
+                  sottoTitolo: s.sottoTitolo,
+                  descrizione: s.descrizione,
+                  slug: s.slug,
+                }))}
+              />
             </div>
 
             {/* Sidebar uffici */}

@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-
+import React from 'react';
 import Link from 'next/link';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
@@ -39,7 +39,7 @@ async function getAree() {
           attivo: true,
           OR: [{ dataFine: null }, { dataFine: { gte: new Date() } }],
         },
-        select: { id: true, titolo: true, slug: true },
+        select: { id: true, titolo: true, sottoTitolo: true, slug: true },
         orderBy: { ordine: 'asc' },
         take: 3,
       },
@@ -139,7 +139,7 @@ export default async function HomePage() {
                             href={`/${area.slug}/${s.slug}`}
                             className="small text-primary"
                           >
-                            {s.titolo}
+                            {s.titolo} { s.sottoTitolo && <> - {s.sottoTitolo}</> }
                           </Link>
                         </li>
                       ))}

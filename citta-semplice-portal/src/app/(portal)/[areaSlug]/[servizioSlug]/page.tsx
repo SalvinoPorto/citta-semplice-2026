@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-
+import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -72,9 +72,9 @@ export default async function ServizioPage({ params }: Props) {
             <div className="cmp-heading pb-3 pb-lg-4">
               <div className="row">
                 <div className="col-lg-12">
-                  <h1 className="title-xxlarge" data-element="service-title">{servizio.titolo}</h1>
+                  <h1 className="title" data-element="service-title">{servizio.titolo}</h1>
                   {servizio.sottoTitolo && (
-                    <p className="subtitle-small mb-3">{servizio.sottoTitolo}</p>
+                    <p className="subtitle mb-3">{servizio.sottoTitolo}</p>
                   )}
                   {sopraSoglia ? (
                     <div className="alert alert-warning d-inline-block">

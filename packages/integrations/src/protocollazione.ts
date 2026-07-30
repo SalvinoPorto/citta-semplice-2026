@@ -65,6 +65,13 @@ export interface UfficioUrbi {
   descrizione: string;
 }
 
+export interface ElencoUfficiResult {
+  uffici: UfficioUrbi[];
+  /** false se l'API non è raggiungibile o non è configurata */
+  disponibile: boolean;
+  errore?: string;
+}
+
 /**
  * Astrazione DB per la numerazione di emergenza. Iniettata dall'app col suo Prisma.
  */
@@ -201,12 +208,18 @@ export function getUrbiProductName(): string {
 // ---------------------------------------------------------------------------
 // Elenco Uffici
 // ---------------------------------------------------------------------------
-export async function getElencoUffici(): Promise<UfficioUrbi[]> {
+/**
+ * Elenco uffici con esito esplicito: permette a chi chiama di distinguere
+ * «API non disponibile» da «API raggiungibile ma elenco vuoto». Senza questa
+ * distinzione l'UI non può sapere se una unità organizzativa già configurata
+ * è stata rimossa o solo non è caricabile in questo momento.
+ */
+export async function getElencoUfficiResult(): Promise<ElencoUfficiResult> {
   const config = getConfig();
 
   if (!config.baseUrl || !config.username || !config.password) {
     console.warn('[Protocollo] getElencoUffici: configurazione mancante');
-    return [];
+    return { uffici: [], disponibile: false, errore: 'configurazione mancante' };
   }
 
   const auth = buildAuthHeader(config.username, config.password);
@@ -216,17 +229,23 @@ export async function getElencoUffici(): Promise<UfficioUrbi[]> {
   try {
     res = await urbiRequest(url, { method: 'GET', headers: { Authorization: auth } }, config.timeoutMs);
   } catch (err) {
-    console.error(`[Protocollo] getElencoUffici: errore di rete — ${err instanceof Error ? err.message : String(err)}`);
-    return [];
+    const errore = err instanceof Error ? err.message : String(err);
+    console.error(`[Protocollo] getElencoUffici: errore di rete — ${errore}`);
+    return { uffici: [], disponibile: false, errore: `errore di rete: ${errore}` };
   }
 
   if (!res.ok) {
     console.error(`[Protocollo] getElencoUffici: HTTP ${res.status}`);
-    return [];
+    return { uffici: [], disponibile: false, errore: `HTTP ${res.status}` };
   }
 
   const body = await res.text();
-  return parseElencoUffici(body);
+  return { uffici: parseElencoUffici(body), disponibile: true };
+}
+
+export async function getElencoUffici(): Promise<UfficioUrbi[]> {
+  const { uffici } = await getElencoUfficiResult();
+  return uffici;
 }
 
 function parseElencoUffici(xml: string): UfficioUrbi[] {

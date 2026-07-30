@@ -65,15 +65,20 @@ body {
 
 @media (min-width: 576px) {
     h1.title {
-        font-size: 2rem;
+        font-size: 2.125rem;
         line-height: 3.5rem;
     }
 }
 
 h1.title {
     letter-spacing: -1px;
-    font-size: 2rem;
+    font-size: 3rem;
     line-height: 3rem;
+}
+
+p.subtitle {
+    font-size: 2.125rem;
+    line-height: 2.75rem;
 }
 
 .it-hero-text-wrapper h1 {

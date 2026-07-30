@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         titolo: true,
+        sottoTitolo: true,
         slug: true,
         area: { select: { nome: true, slug: true, id: true } },
       },
