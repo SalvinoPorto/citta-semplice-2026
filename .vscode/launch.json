@@ -30,6 +30,9 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",
+      "outFiles": [
+        "${workspaceFolder}/citta-semplice-office/.next/**/*.js"
+      ],
       "webRoot": "${workspaceFolder}/citta-semplice-office",
       "sourceMapPathOverrides": {
         "webpack://_N_E/*": "${workspaceFolder}/citta-semplice-office/*"
@@ -40,6 +43,9 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3001",
+      "outFiles": [
+        "${workspaceFolder}/citta-semplice-portal/.next/**/*.js"
+      ],
       "webRoot": "${workspaceFolder}/citta-semplice-portal",
       "sourceMapPathOverrides": {
         "webpack://_N_E/*": "${workspaceFolder}/citta-semplice-portal/*"
