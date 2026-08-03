@@ -1,5 +1,5 @@
 'use client';
-
+import React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Badge, Card, CardBody } from '@/components/ui';
@@ -155,7 +155,7 @@ export function ServiziTable({ areaId, aree }: Props) {
                         <Link href={`/amministrazione/servizi/${servizio.id}`} className="fw-bold">
                           {servizio.titolo}
                         </Link>
-                        <div className="small">{servizio.sottoTitolo}</div>
+                        <div className="small fw-bold">{servizio.sottoTitolo}</div>
                         {servizio.descrizione && (
                           <div className="small text-muted">
                             {servizio.descrizione.substring(0, 60)}

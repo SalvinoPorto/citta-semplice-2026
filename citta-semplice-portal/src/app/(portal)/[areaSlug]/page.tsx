@@ -62,18 +62,16 @@ export default async function AreaPage({ params }: Props) {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
-            <div className="cmp-hero">
-              <section className="it-hero-wrapper bg-white align-items-start">
-                <div className="it-hero-text-wrapper pt-0 ps-0 pb-4 pb-lg-60">
-                  <h1 className="text-black" data-element="page-name">{area.nome}</h1>
-                  {area.descrizione && (
-                    <div className="hero-text">
-                      <p>{area.descrizione}</p>
-                    </div>
-                  )}
-                </div>
-              </section>
-            </div>
+            <section className="bg-white align-items-start">
+              <div className="pt-0 ps-0 pb-4 pb-lg-60">
+                <h1 className="text-black" data-element="page-name">{area.nome}</h1>
+                {area.descrizione && (
+                  <div className="hero-text">
+                    <p>{area.descrizione}</p>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
         </div>
       </div>

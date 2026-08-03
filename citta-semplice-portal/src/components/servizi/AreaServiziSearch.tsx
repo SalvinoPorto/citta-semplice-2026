@@ -77,7 +77,7 @@ export function AreaServiziSearch({ areaSlug, servizi }: Props) {
                 </Link>
               </h3>
               {servizio.sottoTitolo && (
-                <p className="text-paragraph">{servizio.sottoTitolo}</p>
+                <h4>{servizio.sottoTitolo}</h4>
               )}
             </div>
           </div>

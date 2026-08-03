@@ -1,3 +1,4 @@
+import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/db/prisma';
 import { ServizioForm } from '../servizio-form';
@@ -65,6 +66,7 @@ export default async function ModificaServizioPage({ params }: PageProps) {
         </div>
         <h1>Modifica Servizio</h1>
         <p>{servizio.titolo}</p>
+        <p className="text-muted small">{servizio.sottoTitolo}</p>
       </div>
 
       <ServizioForm
