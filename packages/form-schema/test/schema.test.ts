@@ -29,6 +29,32 @@ describe('parseCampi', () => {
     expect(parseCampi('{non json')).toEqual([]);
     expect(parseCampi(JSON.stringify({ altro: 1 }))).toEqual([]);
   });
+
+  it('compone risolviRiferimentiCondizioni e risolviGerarchia: un campo dentro una sezione condizionata eredita la condizione gia rimappata per fieldName', () => {
+    // Prova che parseCampi non si limiti a parsare il JSON, ma esegua
+    // davvero entrambi i passaggi di risoluzione in sequenza (schema.ts:97).
+    // Se uno dei due venisse saltato, il figlio non avrebbe `conditions`
+    // popolate, oppure le avrebbe con un `fieldName` non aggiornato.
+    const schema = JSON.stringify({
+      fields: [
+        campo({ id: 'src', name: 'nome_nuovo' }),
+        campo({
+          id: 'sez',
+          name: 'sezione',
+          type: 'section',
+          condition: { fieldId: 'src', fieldName: 'nome_vecchio', operator: 'not_empty' },
+        }),
+        campo({ id: 'figlio', name: 'figlio', parentId: 'sez' }),
+      ],
+    });
+
+    const risultato = parseCampi(schema);
+    const figlio = risultato.find((c) => c.id === 'figlio');
+
+    expect(figlio?.conditions).toEqual([
+      { fieldId: 'src', fieldName: 'nome_nuovo', operator: 'not_empty' },
+    ]);
+  });
 });
 
 describe('risolviRiferimentiCondizioni', () => {
@@ -60,6 +86,35 @@ describe('risolviRiferimentiCondizioni', () => {
     const cond = { fieldName: 'legacy', operator: 'equals' as const, value: '1' };
     const campi = [campo({ id: 'a', name: 'a', condition: cond })];
     expect(risolviRiferimentiCondizioni(campi)[0].condition).toBe(cond);
+  });
+
+  it('riallinea il fieldName di validation.requiredCondition al nome corrente del campo puntato da fieldId', () => {
+    const campi = [
+      campo({ id: 'src', name: 'tipo_nuovo' }),
+      campo({
+        id: 'dst',
+        name: 'dipendente',
+        validation: {
+          requiredCondition: { fieldId: 'src', fieldName: 'tipo_vecchio', operator: 'equals', value: 'azienda' },
+        },
+      }),
+    ];
+    const out = risolviRiferimentiCondizioni(campi);
+    expect(out[1].validation?.requiredCondition?.fieldName).toBe('tipo_nuovo');
+  });
+
+  it('azzera validation.requiredCondition quando il campo sorgente non esiste piu', () => {
+    const campi = [
+      campo({
+        id: 'dst',
+        name: 'dipendente',
+        validation: {
+          requiredCondition: { fieldId: 'cancellato', fieldName: 'x', operator: 'equals', value: '1' },
+        },
+      }),
+    ];
+    const out = risolviRiferimentiCondizioni(campi);
+    expect(out[0].validation?.requiredCondition).toBeUndefined();
   });
 });
 

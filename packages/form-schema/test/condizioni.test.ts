@@ -66,7 +66,17 @@ describe('isFieldVisible', () => {
 
 describe('requiredEffettivo', () => {
   it('e obbligatorio quando required e true, senza valutare la condizione', () => {
-    expect(requiredEffettivo({ validation: { required: true } }, {})).toBe(true);
+    // requiredCondition qui sarebbe FALSA sui valori dati (tipo: 'privato' !=
+    // 'azienda'): se requiredEffettivo la valutasse comunque, il risultato
+    // sarebbe false. Il risultato atteso true dimostra lo short-circuit su
+    // `required: true`.
+    const campo = {
+      validation: {
+        required: true,
+        requiredCondition: { fieldName: 'tipo', operator: 'equals' as const, value: 'azienda' },
+      },
+    };
+    expect(requiredEffettivo(campo, { tipo: 'privato' })).toBe(true);
   });
 
   it('e obbligatorio solo se la requiredCondition e soddisfatta', () => {

@@ -8,7 +8,15 @@ export default defineConfig({
           name: 'unit',
           root: '.',
           environment: 'node',
-          include: ['packages/*/test/**/*.test.ts'],
+          // Copre sia i package condivisi (packages/*) sia il codice applicativo
+          // delle due app (citta-semplice-office, citta-semplice-portal): chi
+          // vorrà testare per esempio citta-semplice-portal/src/lib/form-validate.ts
+          // può aggiungere citta-semplice-portal/test/**/*.test.ts senza dover
+          // toccare questa configurazione. Nessun `passWithNoTests` qui né alla
+          // radice: se uno di questi glob si rompe (typo, cartella spostata) e
+          // smette di trovare file, la suite fallisce con "No test files found"
+          // invece di uscire verde avendone eseguiti zero.
+          include: ['packages/*/test/**/*.test.ts', 'citta-semplice-*/test/**/*.test.ts'],
         },
       },
       {
@@ -28,9 +36,8 @@ export default defineConfig({
   },
 });
 
-// Nota: `test/integration/**` non esiste ancora — la crea il Task 3 dello stesso
-// piano. Fino ad allora `npm run test:integration` fallisce legittimamente con
-// "No test files found" (exit 1): è uno stato transitorio atteso, non una
-// rottura. Non abbiamo aggiunto `passWithNoTests` per non indebolire la
+// Nota: `test/integration/**` esiste (vedi test/integration/postgres.ts e
+// test/integration/schema.test.ts) e richiede Docker attivo per girare. Non
+// abbiamo aggiunto `passWithNoTests` da nessuna parte per non indebolire la
 // garanzia che conta davvero — che `npm test` e `npm run test:unit` non
 // possano MAI uscire con successo avendo eseguito zero test.
