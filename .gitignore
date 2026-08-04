@@ -53,3 +53,8 @@ next-env.d.ts
 
 .vscode/
 .claude/
+
+# client Prisma generato: si rigenera con `npm run db:generate -w @citta/db`
+packages/db/generated
+citta-semplice-office/generated
+citta-semplice-portal/generated

@@ -5,18 +5,15 @@ import { avviaPostgres, fermaPostgres, applicaSchema, type UrlDatabase } from '.
 
 let url: UrlDatabase;
 
-// Lo schema canonico in prisma/schema.prisma (radice) non ha una cartella
-// migrations/ adiacente: le uniche migrazioni del repo vivono sotto
-// citta-semplice-office/prisma/migrations/ (5 cartelle + migration_lock.toml).
-// applicaSchema ora usa `migrate deploy`, che richiede una storia di
-// migrazioni da applicare: puntiamo quindi allo schema di office. Il Task 4
-// sposta schema e migrazioni in packages/db/prisma/: quando succede, questo
-// percorso va aggiornato di conseguenza.
-const percorsoSchemaOffice = resolve(process.cwd(), 'citta-semplice-office/prisma/schema.prisma');
+// Lo schema canonico e le sue migrazioni vivono in packages/db/prisma/
+// (5 cartelle + migration_lock.toml), consumato da office e portal tramite
+// il package @citta/db. applicaSchema usa `migrate deploy`, che richiede
+// una storia di migrazioni da applicare.
+const percorsoSchema = resolve(process.cwd(), 'packages/db/prisma/schema.prisma');
 
 beforeAll(async () => {
   url = await avviaPostgres();
-  applicaSchema(url, percorsoSchemaOffice);
+  applicaSchema(url, percorsoSchema);
 }, 120_000);
 
 afterAll(async () => {
@@ -45,7 +42,7 @@ describe('schema Prisma', () => {
   it('impedisce a una istanza di essere insieme conclusa e respinta', async () => {
     // Test di comportamento, non di metadati: il vincolo CHECK
     // istanze_stato_esclusivo_chk viene creato dalla migrazione 0_init
-    // (citta-semplice-office/prisma/migrations/0_init/migration.sql:611-612),
+    // (packages/db/prisma/migrations/0_init/migration.sql:611-612),
     // applicata da `migrate deploy` in beforeAll. Qui non rileggiamo il nome
     // del vincolo da pg_constraint: proviamo davvero a violarlo, cosi il test
     // fallisce se il vincolo sparisce o cambia semantica — non solo se cambia

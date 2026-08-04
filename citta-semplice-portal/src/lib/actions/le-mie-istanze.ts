@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/db/prisma';
 import type { Filter, Order } from '@/lib/models/table';
-import type { Prisma } from '../../../generated/prisma/client';
+import type { Prisma } from '@citta/db';
 
 const PAGE_SIZE = 10;
 

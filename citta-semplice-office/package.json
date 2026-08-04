@@ -8,15 +8,11 @@
     "build": "next build",
     "start": "next start -p 3000",
     "postinstall": "node scripts/copy-bootstrap-italia.mjs",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:migrater": "prisma migrate reset",
-    "db:studio": "prisma studio",
     "db:seed": "tsx --env-file .env prisma/seed.ts",
     "db:hash": "tsx --env-file .env prisma/hashpwd.ts"
   },
   "dependencies": {
+    "@citta/db": "*",
     "@citta/form-schema": "*",
     "@citta/integrations": "*",
     "@auth/prisma-adapter": "^2.7.4",

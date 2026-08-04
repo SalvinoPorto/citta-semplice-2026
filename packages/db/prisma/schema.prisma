@@ -1,8 +1,7 @@
 // ============================================================================
-// SCHEMA CANONICO — UNICA FONTE DI VERITÀ (office + portal condividono lo stesso DB)
-// Modifica SOLO questo file, poi esegui:  ./sync-schema.sh
-// Le copie in citta-semplice-{office,portal}/prisma/schema.prisma sono GENERATE:
-// non modificarle a mano (check-schema-drift.sh fallisce se divergono).
+// SCHEMA CANONICO — UNICA FONTE DI VERITÀ
+// office e portal consumano questo schema tramite il package @citta/db.
+// Non esistono più copie da sincronizzare.
 // ============================================================================
 
 generator client {
