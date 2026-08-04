@@ -56,5 +56,12 @@ next-env.d.ts
 
 # client Prisma generato: si rigenera con `npm run db:generate -w @citta/db`
 packages/db/generated
+# Cartelle non piu' generate da nessuno script (lo schema vive ora in
+# packages/db): tenute in blacklist per proteggere da un `npx prisma
+# generate` lanciato per errore dentro office/portal invece che nel
+# package @citta/db.
 citta-semplice-office/generated
 citta-semplice-portal/generated
+
+# credenziali locali per gli script db:* di @citta/db (vedi packages/db/.env.example)
+packages/db/.env
