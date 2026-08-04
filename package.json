@@ -18,7 +18,11 @@
     "build:portal": "npm run build -w citta-semplice-portal",
     "build": "npm run build:office && npm run build:portal",
     "lint": "npm run lint --workspaces --if-present",
-    "db:generate": "npm run db:generate -w citta-semplice-office && npm run db:generate -w citta-semplice-portal"
+    "db:generate": "npm run db:generate -w citta-semplice-office && npm run db:generate -w citta-semplice-portal",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@types/react": "19.2.13",
@@ -26,7 +30,8 @@
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.8.0",
-    "typescript-eslint": "^8.65.0"
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^3.2.7"
   },
   "overrides": {
     "@types/react": "19.2.13",
