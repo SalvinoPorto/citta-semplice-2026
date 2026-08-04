@@ -9,8 +9,15 @@ let container: StartedPostgreSqlContainer | undefined;
 
 /**
  * Avvia un Postgres effimero e restituisce la sua connection string.
- * Il container e condiviso da tutti i test di integrazione: `fileParallelism`
- * e disattivato in vitest.config.ts perche i test non si calpestino.
+ * Il container e condiviso solo fra i test dello STESSO file: con il pool di
+ * default di Vitest 3 (`forks`, `isolate: true`) ogni file di test ottiene un
+ * registry di moduli nuovo, quindi la variabile `container` a livello di
+ * modulo non sopravvive fra file — ogni file di integrazione avvia il
+ * proprio container. `fileParallelism: false` (in vitest.config.ts) serve
+ * solo a non far girare in parallelo più container Postgres insieme, non a
+ * farli condividere. Una condivisione reale fra file richiederebbe
+ * `globalSetup` + `provide`/`inject`: non implementata qui, e' lavoro del
+ * piano 2 quando aggiungerà un secondo file di test di integrazione.
  */
 export async function avviaPostgres(): Promise<UrlDatabase> {
   if (!container) {
@@ -53,15 +60,10 @@ export async function fermaPostgres(): Promise<void> {
  *   directory diversa (qui la radice del repo): va indicato esplicitamente
  *   con `--config`. Per convenzione in questo repo un `prisma.config.ts` sta
  *   nella cartella progetto, un livello sopra `prisma/schema.prisma` (vedi
- *   `citta-semplice-office/prisma.config.ts` e
- *   `citta-semplice-portal/prisma.config.ts`): se esiste in quella
- *   posizione relativa a `percorsoSchema` lo usiamo, altrimenti si prosegue
- *   senza (caso in cui lo schema stesso definisce l'URL, o non serve).
- *
- * Nota per il Task 4: quando schema e migrazioni si sposteranno in
- * `packages/db/prisma/`, questa convenzione (`prisma.config.ts` un livello
- * sopra `prisma/schema.prisma`) deve continuare a valere, oppure va
- * aggiornata qui.
+ *   `packages/db/prisma.config.ts`, un livello sopra
+ *   `packages/db/prisma/schema.prisma`): se esiste in quella posizione
+ *   relativa a `percorsoSchema` lo usiamo, altrimenti si prosegue senza
+ *   (caso in cui lo schema stesso definisce l'URL, o non serve).
  */
 export async function applicaSchema(url: UrlDatabase, percorsoSchema: string): Promise<void> {
   const args = ['prisma', 'migrate', 'deploy', '--schema', percorsoSchema];
@@ -71,9 +73,19 @@ export async function applicaSchema(url: UrlDatabase, percorsoSchema: string): P
     args.push('--config', percorsoConfig);
   }
 
-  execFileSync('npx', args, {
-    env: { ...process.env, DATABASE_URL: url },
-    stdio: 'pipe',
-    shell: process.platform === 'win32',
-  });
+  try {
+    execFileSync('npx', args, {
+      env: { ...process.env, DATABASE_URL: url },
+      stdio: 'pipe',
+      shell: process.platform === 'win32',
+    });
+  } catch (err) {
+    // Con stdio: 'pipe', un fallimento arriva a Vitest come "Command failed"
+    // senza lo stderr di Prisma (che spiega il vero motivo): resta solo su
+    // `err.stderr`. Lo includiamo esplicitamente nel messaggio, altrimenti
+    // ogni fallimento di `migrate deploy` è illeggibile per chi userà questo
+    // helper nei piani 2-4.
+    const stderr = err && typeof err === 'object' && 'stderr' in err ? String((err as { stderr: unknown }).stderr) : '';
+    throw new Error(`prisma migrate deploy fallito:\n${stderr}`, { cause: err });
+  }
 }
