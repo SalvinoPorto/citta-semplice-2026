@@ -1,5 +1,7 @@
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 export type UrlDatabase = string;
 
@@ -27,25 +29,51 @@ export async function fermaPostgres(): Promise<void> {
 }
 
 /**
- * Applica lo schema Prisma al database indicato con `prisma db push`.
- * Si usa `db push` e non `migrate deploy` perche i test partono sempre da un
- * database vuoto: interessa lo stato finale dello schema, non la storia.
+ * Applica lo schema al database indicato eseguendo `prisma migrate deploy`,
+ * NON `prisma db push`.
  *
- * Note su Prisma 7.7.0 (verificate con `npx prisma db push --help` e con
- * un'esecuzione manuale contro un container usa-e-getta):
- * - il flag `--skip-generate` non esiste piu, ma non serve: in questa
- *   versione `db push` non rigenera il client da solo (nessuna cartella
- *   `generated/prisma` compare in radice dopo l'esecuzione);
- * - lo schema canonico (`prisma/schema.prisma:13-15`) non ha un
- *   `url = env("DATABASE_URL")` nel blocco datasource ne un
- *   `prisma.config.ts` accanto (quelli esistono solo per office/portal),
- *   quindi il solo env `DATABASE_URL` non basta piu: serve passare `--url`
- *   esplicitamente. Nessuna delle due note tocca la firma della funzione.
+ * Il motivo e il DSL di Prisma: non esprime CHECK constraint, trigger ne
+ * indici GIN. `db push` costruisce il database leggendo solo il modello
+ * dichiarativo, quindi qualunque oggetto esista soltanto come SQL grezzo in
+ * una migrazione (vincoli CHECK oggi, trigger e indici GIN nei prossimi
+ * piani) semplicemente non verrebbe creato: i test passerebbero contro un
+ * database piu "povero" di quello di produzione, mascherando differenze di
+ * comportamento reali. `migrate deploy` applica invece la storia delle
+ * migrazioni cosi come e stata scritta, quindi il database di test
+ * corrisponde a quello di produzione, oggetti in SQL grezzo inclusi.
+ *
+ * Dettagli di invocazione (Prisma 7.7.0, verificati con
+ * `npx prisma migrate deploy --help` e con esecuzioni manuali contro
+ * container usa-e-getta):
+ * - `migrate deploy` non ha un flag `--url`: l'URL puo arrivare solo da
+ *   `DATABASE_URL` letto dentro un file di configurazione Prisma
+ *   (`prisma.config.ts`), non da env puro senza config;
+ * - il file di configurazione NON viene individuato automaticamente in base
+ *   alla posizione di `--schema` quando il processo gira da una working
+ *   directory diversa (qui la radice del repo): va indicato esplicitamente
+ *   con `--config`. Per convenzione in questo repo un `prisma.config.ts` sta
+ *   nella cartella progetto, un livello sopra `prisma/schema.prisma` (vedi
+ *   `citta-semplice-office/prisma.config.ts` e
+ *   `citta-semplice-portal/prisma.config.ts`): se esiste in quella
+ *   posizione relativa a `percorsoSchema` lo usiamo, altrimenti si prosegue
+ *   senza (caso in cui lo schema stesso definisce l'URL, o non serve).
+ *
+ * Nota per il Task 4: quando schema e migrazioni si sposteranno in
+ * `packages/db/prisma/`, questa convenzione (`prisma.config.ts` un livello
+ * sopra `prisma/schema.prisma`) deve continuare a valere, oppure va
+ * aggiornata qui.
  */
 export async function applicaSchema(url: UrlDatabase, percorsoSchema: string): Promise<void> {
-  execFileSync(
-    'npx',
-    ['prisma', 'db', 'push', '--schema', percorsoSchema, '--url', url, '--accept-data-loss'],
-    { env: { ...process.env, DATABASE_URL: url }, stdio: 'pipe', shell: process.platform === 'win32' },
-  );
+  const args = ['prisma', 'migrate', 'deploy', '--schema', percorsoSchema];
+
+  const percorsoConfig = resolve(dirname(percorsoSchema), '..', 'prisma.config.ts');
+  if (existsSync(percorsoConfig)) {
+    args.push('--config', percorsoConfig);
+  }
+
+  execFileSync('npx', args, {
+    env: { ...process.env, DATABASE_URL: url },
+    stdio: 'pipe',
+    shell: process.platform === 'win32',
+  });
 }

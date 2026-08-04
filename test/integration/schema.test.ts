@@ -5,26 +5,18 @@ import { avviaPostgres, fermaPostgres, applicaSchema, type UrlDatabase } from '.
 
 let url: UrlDatabase;
 
+// Lo schema canonico in prisma/schema.prisma (radice) non ha una cartella
+// migrations/ adiacente: le uniche migrazioni del repo vivono sotto
+// citta-semplice-office/prisma/migrations/ (5 cartelle + migration_lock.toml).
+// applicaSchema ora usa `migrate deploy`, che richiede una storia di
+// migrazioni da applicare: puntiamo quindi allo schema di office. Il Task 4
+// sposta schema e migrazioni in packages/db/prisma/: quando succede, questo
+// percorso va aggiornato di conseguenza.
+const percorsoSchemaOffice = resolve(process.cwd(), 'citta-semplice-office/prisma/schema.prisma');
+
 beforeAll(async () => {
   url = await avviaPostgres();
-  applicaSchema(url, resolve(process.cwd(), 'prisma/schema.prisma'));
-
-  // Il vincolo CHECK istanze_stato_esclusivo_chk e volutamente fuori dal
-  // modello dichiarativo Prisma (vedi il commento "Vincolo non modellabile in
-  // Prisma" in citta-semplice-office/prisma/migrations/0_init/migration.sql
-  // righe 608-612): `db push` sincronizza solo cio che e in schema.prisma,
-  // quindi non lo crea. Lo applichiamo qui, localmente a questo test di
-  // caratterizzazione, cosi `applicaSchema` resta generico per i piani 2/3/4
-  // (che sostituiranno proprio questo vincolo con StatoIstanza).
-  const setup = new Client({ connectionString: url });
-  await setup.connect();
-  try {
-    await setup.query(
-      `ALTER TABLE "istanze" ADD CONSTRAINT "istanze_stato_esclusivo_chk" CHECK (("conclusa"::int + "respinta"::int + "in_bozza"::int) <= 1)`,
-    );
-  } finally {
-    await setup.end();
-  }
+  applicaSchema(url, percorsoSchemaOffice);
 }, 120_000);
 
 afterAll(async () => {
@@ -51,14 +43,37 @@ describe('schema Prisma', () => {
   });
 
   it('impedisce a una istanza di essere insieme conclusa e respinta', async () => {
-    // Caratterizza il vincolo CHECK che il piano 2 sostituira con StatoIstanza.
+    // Test di comportamento, non di metadati: il vincolo CHECK
+    // istanze_stato_esclusivo_chk viene creato dalla migrazione 0_init
+    // (citta-semplice-office/prisma/migrations/0_init/migration.sql:611-612),
+    // applicata da `migrate deploy` in beforeAll. Qui non rileggiamo il nome
+    // del vincolo da pg_constraint: proviamo davvero a violarlo, cosi il test
+    // fallisce se il vincolo sparisce o cambia semantica — non solo se cambia
+    // nome. Il piano 2 sostituira questo vincolo con StatoIstanza.
     const client = new Client({ connectionString: url });
     await client.connect();
     try {
-      const { rows } = await client.query<{ conname: string }>(
-        `SELECT conname FROM pg_constraint WHERE conrelid = 'istanze'::regclass AND contype = 'c'`,
+      const area = await client.query<{ id: number }>(
+        `INSERT INTO aree (nome) VALUES ('Area di test') RETURNING id`,
       );
-      expect(rows.map((r) => r.conname)).toContain('istanze_stato_esclusivo_chk');
+      const servizio = await client.query<{ id: number }>(
+        `INSERT INTO servizi (titolo, area_id) VALUES ('Servizio di test', $1) RETURNING id`,
+        [area.rows[0].id],
+      );
+      const utente = await client.query<{ id: number }>(
+        `INSERT INTO utenti (codice_fiscale, nome, cognome) VALUES ('TSTTST00A00A000A', 'Test', 'Test') RETURNING id`,
+      );
+
+      const inserimentoIncoerente = client.query(
+        `INSERT INTO istanze (proto_numero, data_invio, utente_id, servizio_id, conclusa, respinta)
+         VALUES ('TEST-0001', now(), $1, $2, true, true)`,
+        [utente.rows[0].id, servizio.rows[0].id],
+      );
+
+      await expect(inserimentoIncoerente).rejects.toMatchObject({
+        code: '23514', // check_violation
+        constraint: 'istanze_stato_esclusivo_chk',
+      });
     } finally {
       await client.end();
     }
