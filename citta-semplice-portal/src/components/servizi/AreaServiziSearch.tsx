@@ -28,14 +28,14 @@ export function AreaServiziSearch({ areaSlug, servizi }: Props) {
 
   const risultati = query
     ? servizi.filter((s) =>
-        [s.titolo, s.sottoTitolo].some((campo) =>
-          campo?.toLowerCase().includes(query)
-        )
+      [s.titolo, s.sottoTitolo].some((campo) =>
+        campo?.toLowerCase().includes(query)
       )
-      : servizi;
-     
-    return (
-      <>
+    )
+    : servizi;
+
+  return (
+    <>
       <div className="cmp-input-search mb-4">
         <div className="form-group mb-0">
           <div className="input-group">

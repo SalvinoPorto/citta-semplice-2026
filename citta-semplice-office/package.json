@@ -17,6 +17,7 @@
     "db:hash": "tsx --env-file .env prisma/hashpwd.ts"
   },
   "dependencies": {
+    "@citta/form-schema": "*",
     "@citta/integrations": "*",
     "@auth/prisma-adapter": "^2.7.4",
     "@hookform/resolvers": "^5.2.2",

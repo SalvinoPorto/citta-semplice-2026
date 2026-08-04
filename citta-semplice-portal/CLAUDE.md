@@ -21,6 +21,7 @@ Consente ai cittadini di compilare e inviare istanze digitali, monitorarne lo st
 | sonner | toast notifications |
 | date-fns | formatting date (locale `it`) |
 | @react-pdf/renderer | generazione PDF moduli |
+| @citta/form-schema | schema dei moduli dinamici (tipi, condizioni, pagine, riepilogo), condiviso con office |
 
 ---
 

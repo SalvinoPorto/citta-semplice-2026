@@ -9,6 +9,7 @@ const PAGE_SIZE = 10;
 export type IstanzaRow = {
   id: number;
   servizioTitolo: string;
+  servizioSottoTitolo: string | null;
   dataInvio: string | null;
   protoNumero: string | null;
   protoData: string | null;
@@ -49,7 +50,7 @@ export async function getIstanzePage(
     prisma.istanza.findMany({
       where,
       include: {
-        servizio: { select: { titolo: true } },
+        servizio: { select: { titolo: true, sottoTitolo: true } },
         workflows: {
           include: { step: { select: { descrizione: true } } },
           orderBy: { dataVariazione: 'desc' },
@@ -74,6 +75,7 @@ export async function getIstanzePage(
     data: items.map((i) => ({
       id: i.id,
       servizioTitolo: i.servizio.titolo,
+      servizioSottoTitolo: i.servizio.sottoTitolo,
       dataInvio: i.dataInvio?.toISOString() ?? null,
       protoNumero: i.protoNumero ?? null,
       protoData: i.protoData?.toISOString() ?? null,
@@ -117,7 +119,7 @@ function buildOrderBy(order: Order): Prisma.IstanzaOrderByWithRelationInput {
   const dir = order.direction === 1 ? 'asc' : ('desc' as const);
   switch (order.field) {
     case 'id':       return { id: dir };
-    case 'servizio': return { servizio: { titolo: dir } };
+    case 'servizio': return { servizio: { titolo: dir, sottoTitolo: dir } };
     case 'dataInvio': return { dataInvio: dir };
     case 'protoNumero': return { protoNumero: dir };
     default: return { dataInvio: 'desc' };

@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: process.env.STANDALONE_BUILD === 'true' ? 'standalone' : undefined,
-  transpilePackages: ['@citta/integrations'],
+  transpilePackages: ['@citta/integrations', '@citta/form-schema'],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

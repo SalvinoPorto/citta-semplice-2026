@@ -119,6 +119,12 @@ I filtri della lista istanze (`tab`, `page`, sort, filtri form) vengono serializ
 
 Parametri URL usati: `tab`, `page`, `sf` (sort field), `sd` (sort direction), `protocollo`, `modulo`, `anno`, `cerca`.
 
+### Schema dei moduli condiviso
+Tipi, condizioni di visibilità, suddivisione in pagine e costruzione del riepilogo stanno nel package
+`@citta/form-schema` (`packages/form-schema`), usato sia da office che dal portale: non vanno
+duplicati qui. In `form-builder/types.ts` restano solo i metadati UI della palette
+(`FIELD_TYPES`, `createDefaultField`).
+
 ### Bozze non visibili agli operatori
 Tutte le query lato office filtrano `inBozza: false`. Le bozze sono visibili solo al cittadino nel portale.
 

@@ -6,11 +6,8 @@ import { ModuloStep, ModuloStepHandle } from './ModuloStep';
 import { AllegatiStep, AllegatiStepHandle, AllegatoCaricato, AllegatoRichiesto } from './AllegatiStep';
 import { RiepilogoStep } from './RiepilogoStep';
 import { submitIstanza, salvaBozza } from '@/lib/actions/istanza';
-import { isFieldVisible } from '@/lib/form-condition';
-import { parseCampi, splitPages } from '@/lib/form-pages';
+import { SKIP_FIELD_TYPES, isFieldVisible, parseCampi, splitPages } from '@citta/form-schema';
 import { toast } from 'sonner';
-
-const SKIP_FIELD_TYPES = new Set(['heading', 'section','paragraph', 'divider', 'pagebreak', 'hidden', 'file']);
 
 function buildDatiConLabel(
   datiModulo: Record<string, unknown>,

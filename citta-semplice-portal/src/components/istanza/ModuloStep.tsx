@@ -4,8 +4,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useImperativeHandle, forwardRef } from 'react';
-import { hasVisibilityRule, isFieldVisible, requiredEffettivo } from '@/lib/form-condition';
-import { FormField, LAYOUT_FIELD_TYPES, parseCampi, splitPages } from '@/lib/form-pages';
+import {
+  FormField,
+  LAYOUT_FIELD_TYPES,
+  hasVisibilityRule,
+  isFieldVisible,
+  parseCampi,
+  requiredEffettivo,
+  splitPages,
+} from '@citta/form-schema';
 
 interface Servizio {
   attributi?: string | null;

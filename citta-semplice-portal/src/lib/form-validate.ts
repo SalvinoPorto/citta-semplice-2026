@@ -1,12 +1,10 @@
-import { isFieldVisible, requiredEffettivo } from './form-condition';
-import { FormField, LAYOUT_FIELD_TYPES, parseCampi } from './form-pages';
-
-/**
- * Tipi esclusi dai dati salvati: layout (nessun valore), hidden e file
- * (gli allegati hanno un flusso proprio). Deve restare allineato a
- * `SKIP_FIELD_TYPES` di IstanzaStepper.
- */
-const SKIP_FIELD_TYPES = new Set<string>([...LAYOUT_FIELD_TYPES, 'hidden', 'file']);
+import {
+  FormField,
+  SKIP_FIELD_TYPES,
+  isFieldVisible,
+  parseCampi,
+  requiredEffettivo,
+} from '@citta/form-schema';
 
 type DatoConLabel = { name: string; label: string; value: string };
 

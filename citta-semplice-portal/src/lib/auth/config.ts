@@ -19,37 +19,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   providers: [
-    // ── Provider 1: codice fiscale + password (backoffice / testing) ──────
-    CredentialsProvider({
-      id: 'credentials',
-      name: 'Credenziali',
-      credentials: {
-        codiceFiscale: { label: 'Codice Fiscale', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.codiceFiscale) return null;
-
-        const utente = await prisma.utente.findUnique({
-          where: { codiceFiscale: String(credentials.codiceFiscale).toUpperCase() },
-        });
-
-        if (!utente) return null;
-
-        return {
-          id: String(utente.id),
-          name: `${utente.nome} ${utente.cognome}`,
-          email: utente.email ?? undefined,
-          codiceFiscale: utente.codiceFiscale,
-        };
-      },
-    }),
-
-    // ── Provider 2: CIG SSO (SPID / CIE) ─────────────────────────────────
+    // ── CIG SSO (SPID / CIE): unico provider ─────────────────────────────
     // The callback route validates the CIG TID, upserts the user, then
     // issues a short-lived signed token that is passed here for final
     // session creation. This avoids any server-side state between the
     // callback and the next-auth session.
+    //
+    // NB: non aggiungere un provider "codice fiscale + password" per
+    // testing. Ne esisteva uno che dichiarava il campo `password` ma non lo
+    // verificava mai: bastava un codice fiscale per impersonare qualunque
+    // cittadino. L'identità del cittadino si stabilisce solo via SPID/CIE.
     CredentialsProvider({
       id: 'cig-sso',
       name: 'SPID / CIE',

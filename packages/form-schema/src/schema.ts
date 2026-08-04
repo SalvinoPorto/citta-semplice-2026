@@ -1,88 +1,5 @@
-import { FieldCondition } from './form-condition';
+import { CONTAINER_TYPE, type FieldCondition, type FormField, type FormPage } from './types';
 
-export interface FieldOption {
-  label: string;
-  value: string;
-}
-
-export interface FieldValidation {
-  required?: boolean;
-  /** Se presente, il campo è obbligatorio solo quando questa condizione è vera. */
-  requiredCondition?: FieldCondition;
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  pattern?: string;
-  patternMessage?: string;
-}
-
-export type FieldType =
-  | 'text'
-  | 'textarea'
-  | 'select'
-  | 'date'
-  | 'time'
-  | 'datetime'
-  | 'number'
-  | 'email'
-  | 'tel'
-  | 'checkbox'
-  | 'radio'
-  | 'file'
-  | 'hidden'
-  | 'heading'
-  | 'section'
-  | 'paragraph'
-  | 'divider'
-  | 'pagebreak';
-
-export interface FormField {
-  id: string;
-  name: string;
-  label: string;
-  type: FieldType;
-  //width?: 'full' | 'half' | 'third' | 'twothirds';
-  width?: '1' | '2' | '3' | '4' | '6' | '8' | '9' | '10' | '12';
-  placeholder?: string;
-  defaultValue?: string;
-  helpText?: string;
-  rows?: number;
-  accept?: string;
-  multiple?: boolean;
-  options?: FieldOption[];
-  validation?: FieldValidation;
-  condition?: FieldCondition;
-  /** Id del campo `section` che contiene questo campo. */
-  parentId?: string;
-  /**
-   * Condizioni ereditate dai contenitori. Derivate a runtime da `risolviGerarchia`,
-   * non presenti nello schema salvato.
-   */
-  conditions?: FieldCondition[];
-}
-
-export interface FormPage {
-  /** Etichetta del pagebreak che apre la pagina (vuota per la prima). */
-  titolo: string;
-  fields: FormField[];
-}
-
-/** Tipi puramente presentazionali: nessun valore da validare o riepilogare. */
-export const LAYOUT_FIELD_TYPES = new Set<string>([
-  'heading',
-  'section',
-  'paragraph',
-  'divider',
-  'pagebreak',
-]);
-
-/**
- * Propaga la condizione di visibilità dei contenitori (`section`) ai campi che
- * vi appartengono tramite `parentId`, risalendo l'intera catena di contenitori.
- * Le condizioni ereditate si sommano in AND a quella propria del campo: un
- * campo dentro una sezione nascosta resta nascosto.
- */
 /**
  * Riscrive le condizioni che puntano al campo sorgente per `fieldId`,
  * valorizzandone il `fieldName` corrente: a runtime i valori del form sono
@@ -92,6 +9,8 @@ export const LAYOUT_FIELD_TYPES = new Set<string>([
 export function risolviRiferimentiCondizioni(campi: FormField[]): FormField[] {
   const nomiPerId = new Map(campi.filter((c) => c?.id).map((c) => [c.id, c.name]));
 
+  // Risolve una singola condizione: rimappa `fieldName` dal `fieldId` corrente.
+  // `orfana` segnala una sorgente cancellata (condizione da rimuovere).
   const risolvi = (
     cond: FieldCondition | undefined,
   ): { value: FieldCondition | undefined; orfana: boolean } => {
@@ -122,9 +41,15 @@ export function risolviRiferimentiCondizioni(campi: FormField[]): FormField[] {
   });
 }
 
+/**
+ * Propaga la condizione di visibilità dei contenitori (`section`) ai campi che
+ * vi appartengono tramite `parentId`, risalendo l'intera catena di contenitori.
+ * Le condizioni ereditate si sommano in AND a quella propria del campo: un
+ * campo dentro una sezione nascosta resta nascosto.
+ */
 export function risolviGerarchia(campi: FormField[]): FormField[] {
   const contenitori = new Map(
-    campi.filter((c) => c?.id && c.type === 'section').map((c) => [c.id, c]),
+    campi.filter((c) => c?.id && c.type === CONTAINER_TYPE).map((c) => [c.id, c]),
   );
   if (contenitori.size === 0) return campi;
 
@@ -142,25 +67,43 @@ export function risolviGerarchia(campi: FormField[]): FormField[] {
   });
 }
 
+/** Catena di contenitori di un campo, dal più esterno al più interno. */
+export function catenaContenitori(campo: FormField, campi: FormField[]): FormField[] {
+  const contenitori = new Map(
+    campi.filter((c) => c?.id && c.type === CONTAINER_TYPE).map((c) => [c.id, c]),
+  );
+  const catena: FormField[] = [];
+  const visti = new Set<string>([campo.id]);
+  let padre = campo.parentId ? contenitori.get(campo.parentId) : undefined;
+  while (padre && !visti.has(padre.id)) {
+    visti.add(padre.id);
+    catena.unshift(padre);
+    padre = padre.parentId ? contenitori.get(padre.parentId) : undefined;
+  }
+  return catena;
+}
+
+/**
+ * Campi dello schema di un servizio, sia in formato `{fields:[...]}` che array
+ * piatto. Prima i riferimenti (fieldId → fieldName), poi la propagazione ai
+ * contenuti: così le condizioni ereditate sono già risolte.
+ */
 export function parseCampi(attributi: string | null | undefined): FormField[] {
   if (!attributi) return [];
   try {
     const parsed = JSON.parse(attributi);
-    // Prima i riferimenti (fieldId → fieldName), poi la propagazione ai contenuti:
-    // così le condizioni ereditate sono già risolte.
-    if (Array.isArray(parsed)) return risolviGerarchia(risolviRiferimentiCondizioni(parsed));
-    if (parsed && Array.isArray(parsed.fields))
-      return risolviGerarchia(risolviRiferimentiCondizioni(parsed.fields));
-    return [];
+    const campi = Array.isArray(parsed) ? parsed : parsed?.fields;
+    if (!Array.isArray(campi)) return [];
+    return risolviGerarchia(risolviRiferimentiCondizioni(campi as FormField[]));
   } catch {
     return [];
   }
 }
 
 /**
- * Divide i campi in pagine usando i `pagebreak` come separatori. Uno schema
- * senza pagebreak produce una sola pagina, quindi i moduli già pubblicati
- * continuano a comportarsi come prima.
+ * Divide un elenco piatto di campi in pagine usando i campi `pagebreak` come
+ * separatori. Uno schema senza pagebreak produce una sola pagina: i moduli
+ * esistenti continuano a funzionare senza modifiche.
  */
 export function splitPages(campi: FormField[]): FormPage[] {
   const pages: FormPage[] = [{ titolo: '', fields: [] }];
@@ -171,6 +114,8 @@ export function splitPages(campi: FormField[]): FormPage[] {
       pages[pages.length - 1].fields.push(campo);
     }
   }
+  // Un pagebreak a inizio/fine schema o due consecutivi non devono generare
+  // pagine vuote; se restano zero pagine si torna a una pagina unica.
   const piene = pages.filter((p) => p.fields.length > 0);
   return piene.length > 0 ? piene : [{ titolo: '', fields: [] }];
 }

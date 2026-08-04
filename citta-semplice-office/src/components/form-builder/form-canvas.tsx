@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, Fragment } from 'react';
-import { FormField, FieldType, FIELD_TYPES, catenaContenitori } from './types';
+import { FormField, FieldType, catenaContenitori } from '@citta/form-schema';
+import { FIELD_TYPES } from './types';
 
 interface FormCanvasProps {
   fields: FormField[];

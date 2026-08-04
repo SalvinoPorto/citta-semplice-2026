@@ -1,6 +1,7 @@
 'use client';
 
-import { FIELD_TYPES, FieldType } from './types';
+import type { FieldType } from '@citta/form-schema';
+import { FIELD_TYPES } from './types';
 
 interface FieldPaletteProps {
   onDragStart: (type: FieldType) => void;

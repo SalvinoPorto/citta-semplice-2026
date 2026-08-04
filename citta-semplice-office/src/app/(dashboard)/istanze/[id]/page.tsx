@@ -11,6 +11,7 @@ import { AllegatiList } from './allegati-list';
 import { IstanzaActions } from './istanza-actions';
 import { AltreIstanzeModal } from './altre-istanze-modal';
 import { ASSIGNEDTO } from '@/lib/models/assigned-to';
+import { costruisciRiepilogo, parseCampi, type VoceRiepilogo } from '@citta/form-schema';
 
 async function getIstanza(id: number) {
   const istanza = await prisma.istanza.findUnique({
@@ -164,6 +165,24 @@ export default async function IstanzaDetailPage({
     } catch { return []; }
   }
   const dati = parseDati(istanza.dati);
+
+  // I dati salvati sono un elenco piatto: i titoli di sezione stanno nello schema
+  // del servizio e vengono reinseriti qui. I campi non più presenti nello schema
+  // (istanze di versioni precedenti) restano in coda, non si perdono.
+  const perNome = new Map(dati.map((d) => [d.name, d]));
+  const usati = new Set<string>();
+  const vociDati: VoceRiepilogo[] = [
+    ...costruisciRiepilogo(parseCampi(istanza.servizio.attributi), (campo) => {
+      const dato = perNome.get(campo.name);
+      if (!dato) return null;
+      usati.add(dato.name);
+      // La label salvata è quella vista dal cittadino al momento dell'invio.
+      return { label: dato.label || campo.label, value: dato.value };
+    }),
+    ...dati
+      .filter((d) => !usati.has(d.name))
+      .map((d) => ({ kind: 'campo' as const, name: d.name, label: d.label, value: d.value })),
+  ];
 
   // Informazioni sullo step corrente
   const currentStep = lastWorkflow?.step ?? null;
@@ -367,12 +386,20 @@ export default async function IstanzaDetailPage({
                 <div className="table-responsive">
                   <table className="table table-sm">
                     <tbody>
-                      {dati.map((campo) => (
-                        <tr key={campo.name}>
-                          <th style={{ width: '30%' }}>{campo.label}</th>
-                          <td>{campo.value || '-'}</td>
-                        </tr>
-                      ))}
+                      {vociDati.map((voce, i) =>
+                        voce.kind === 'titolo' ? (
+                          <tr key={`t-${i}`} className="table-light">
+                            <th colSpan={2} className="text-uppercase small fw-bold text-muted">
+                              {voce.label}
+                            </th>
+                          </tr>
+                        ) : (
+                          <tr key={`c-${voce.name}-${i}`}>
+                            <th style={{ width: '30%' }}>{voce.label}</th>
+                            <td>{voce.value || '-'}</td>
+                          </tr>
+                        ),
+                      )}
                     </tbody>
                   </table>
                 </div>

@@ -8,7 +8,7 @@ import {
   ConditionOperator,
   CONTAINER_TYPE,
   catenaContenitori,
-} from './types';
+} from '@citta/form-schema';
 import { Input, Select, Textarea } from '@/components/ui';
 import { ConditionBuilder } from './condition-builder';
 

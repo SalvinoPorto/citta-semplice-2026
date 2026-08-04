@@ -42,7 +42,10 @@ export async function POST(request: NextRequest) {
   // Column filter: titolo
   const titoloFilter = filters.find((f) => f.key === 'titolo');
   if (titoloFilter?.value) {
-    whereClause.titolo = { contains: String(titoloFilter.value), mode: 'insensitive' };
+    whereClause.OR = [
+      { titolo: { contains: String(titoloFilter.value), mode: 'insensitive' } },
+      { sottoTitolo: { contains: String(titoloFilter.value), mode: 'insensitive' } }
+    ];
   }
 
   // Column filter: area (by nome)
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
     const dir = order.direction === 1 ? 'asc' : 'desc';
     switch (order.field) {
       case 'titolo':
-        orderBy = { titolo: dir };
+        orderBy = [{ titolo: dir }, { sottoTitolo: dir }];
         break;
       case 'area':
         orderBy = { area: { nome:dir } };

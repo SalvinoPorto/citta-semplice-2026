@@ -2,8 +2,7 @@
 
 import { useEnte } from '@/contexts/EnteContext';
 import { getCampoValue } from '@/lib/utils';
-import { isFieldVisible } from '@/lib/form-condition';
-import { parseCampi, splitPages } from '@/lib/form-pages';
+import { costruisciRiepilogo, isFieldVisible, parseCampi, splitPages } from '@citta/form-schema';
 
 interface Servizio {
   titolo: string;
@@ -16,21 +15,22 @@ interface Props {
   allegati: File[];
 }
 
-const SKIP_FIELD_TYPES = new Set(['heading', 'section', 'paragraph', 'divider', 'pagebreak', 'hidden', 'file']);
-
 export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
   const nomeEnte = useEnte();
   // Il riepilogo rispecchia la suddivisione in pagine del modulo: una sezione
-  // per pagina (una sola se il modulo non usa pagebreak).
+  // per pagina (una sola se il modulo non usa pagebreak). Dentro ogni pagina i
+  // titoli dello schema fanno da intestazione ai campi che introducono.
   const pagine = splitPages(parseCampi(servizio.attributi))
     .map((p) => ({
-      ...p,
-      fields: p.fields.filter(
-        (f) => !SKIP_FIELD_TYPES.has(f.type ?? '') && isFieldVisible(f, datiModulo),
+      titolo: p.titolo,
+      voci: costruisciRiepilogo(p.fields, (campo) =>
+        isFieldVisible(campo, datiModulo)
+          ? { label: campo.label, value: String(datiModulo[campo.name] ?? '') }
+          : null,
       ),
     }))
-    .filter((p) => p.fields.length > 0);
-  const numCampi = pagine.reduce((n, p) => n + p.fields.length, 0);
+    .filter((p) => p.voci.some((v) => v.kind === 'campo'));
+  const numCampi = pagine.reduce((n, p) => n + p.voci.length, 0);
 
   return (
     <div className="container">
@@ -59,12 +59,20 @@ export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
               <div className="card-body p-0">
                 <table className="table table-sm mb-0">
                   <tbody>
-                    {pagina.fields.map((campo) => (
-                      <tr key={campo.name}>
-                        <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
-                        <td>{getCampoValue(String(datiModulo[campo.name] ?? ''))}</td>
-                      </tr>
-                    ))}
+                    {pagina.voci.map((voce, j) =>
+                      voce.kind === 'titolo' ? (
+                        <tr key={`t-${j}`} className="table-light">
+                          <th colSpan={2} className="ps-3 text-uppercase small fw-bold text-muted">
+                            {voce.label}
+                          </th>
+                        </tr>
+                      ) : (
+                        <tr key={`c-${voce.name}-${j}`}>
+                          <th style={{ width: '30%' }} className="ps-3">{voce.label}</th>
+                          <td>{getCampoValue(voce.value)}</td>
+                        </tr>
+                      ),
+                    )}
                   </tbody>
                 </table>
               </div>

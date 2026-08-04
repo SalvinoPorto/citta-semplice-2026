@@ -156,12 +156,12 @@ export function ServiziTable({ areaId, aree }: Props) {
                           {servizio.titolo}
                         </Link>
                         <div className="small fw-bold">{servizio.sottoTitolo}</div>
-                        {servizio.descrizione && (
+                        {/* {servizio.descrizione && (
                           <div className="small text-muted">
                             {servizio.descrizione.substring(0, 60)}
                             {servizio.descrizione.length > 60 && '...'}
                           </div>
-                        )}
+                        )} */}
                       </td>
                       <td>{servizio.area.nome}</td>
                       <td>{servizio._count.steps}</td>

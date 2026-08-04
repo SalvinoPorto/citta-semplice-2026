@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -95,7 +96,7 @@ export function IstanzeTable({ utenteId }: Props) {
                   <tr key={istanza.id} className={istanza.azioneRichiesta ? 'table-warning' : undefined}>
                     <td>
                       <Link href={`/le-mie-istanze/${istanza.id}`} className="text-decoration-none">
-                        {istanza.servizioTitolo}
+                        {istanza.servizioTitolo}<br />{istanza.servizioSottoTitolo}
                       </Link>
                       {(istanza.comunicazioniNuove > 0 || istanza.azioneRichiesta) && (
                         <div className="d-flex flex-wrap gap-1 mt-1">

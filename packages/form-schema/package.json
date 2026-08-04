@@ -1,0 +1,13 @@
+{
+  "name": "@citta/form-schema",
+  "version": "1.0.0",
+  "description": "Schema dei moduli dinamici (tipi, condizioni, pagine, riepilogo) condiviso tra office e portal",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ]
+}

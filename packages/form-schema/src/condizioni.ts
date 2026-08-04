@@ -1,20 +1,4 @@
-type ConditionOperator = 'equals' | 'not_equals' | 'not_empty' | 'empty';
-
-export interface FieldCondition {
-  /**
-   * Id del campo sorgente: riferimento stabile, non si rompe se l'operatore
-   * rinomina il campo. `parseCampi` lo risolve in `fieldName`.
-   */
-  fieldId?: string;
-  /**
-   * Nome del campo sorgente: è la chiave con cui i valori sono indicizzati a
-   * runtime. Negli schemi salvati prima dell'introduzione di `fieldId` è
-   * l'unico riferimento disponibile.
-   */
-  fieldName: string;
-  operator: ConditionOperator;
-  value?: string;
-}
+import type { FieldCondition } from './types';
 
 export function evaluateCondition(condition: FieldCondition, values: Record<string, unknown>): boolean {
   const raw = values[condition.fieldName];

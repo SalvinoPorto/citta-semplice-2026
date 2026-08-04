@@ -6,7 +6,8 @@ import { FieldPalette } from './field-palette';
 import { FieldEditor } from './field-editor';
 import { FormCanvas } from './form-canvas';
 import { FormPreview } from './form-preview';
-import { FormField, FormSchema, FieldType, createDefaultField, splitPages } from './types';
+import { FormField, FormSchema, FieldType, splitPages } from '@citta/form-schema';
+import { createDefaultField } from './types';
 
 interface FormBuilderProps {
   initialSchema?: FormSchema;

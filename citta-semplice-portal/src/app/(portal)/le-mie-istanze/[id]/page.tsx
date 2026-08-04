@@ -11,7 +11,7 @@ import { PagaOnlineButton } from './PagaOnlineButton';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { getCampoValue } from '@/lib/utils';
-import { parseCampi, splitPages } from '@/lib/form-pages';
+import { costruisciRiepilogo, parseCampi, splitPages, type FormField, type VoceRiepilogo } from '@citta/form-schema';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -25,7 +25,35 @@ interface CampoDato {
 
 interface GruppoDati {
   titolo: string;
-  campi: CampoDato[];
+  voci: VoceRiepilogo[];
+}
+
+/**
+ * Allinea i campi dello schema ai valori salvati: i titoli di sezione del
+ * modulo restano al loro posto e fanno da intestazione ai campi che seguono.
+ */
+function vociDaSchema(
+  campi: FormField[],
+  perNome: Map<string, CampoDato>,
+  usati: Set<string>,
+): VoceRiepilogo[] {
+  return costruisciRiepilogo(campi, (campo) => {
+    const dato = perNome.get(campo.name);
+    if (!dato) return null;
+    usati.add(dato.name);
+    // La label salvata è quella vista dal cittadino al momento dell'invio.
+    return { label: dato.label || campo.label, value: dato.value };
+  });
+}
+
+/**
+ * Dati di istanze vecchie i cui campi non esistono più nello schema attuale
+ * del servizio: vanno comunque mostrati, non persi.
+ */
+function vociOrfane(dati: CampoDato[], usati: Set<string>): VoceRiepilogo[] {
+  return dati
+    .filter((d) => !usati.has(d.name))
+    .map((d) => ({ kind: 'campo' as const, name: d.name, label: d.label, value: d.value }));
 }
 
 /**
@@ -43,33 +71,44 @@ function raggruppaPerPagina(dati: CampoDato[], attributi: string | null): Gruppo
   const usati = new Set<string>();
 
   const gruppi: GruppoDati[] = pagine
-    .map((pagina, i) => {
-      const campi = pagina.fields
-        .map((f) => perNome.get(f.name))
-        .filter((d): d is CampoDato => d !== undefined);
-      campi.forEach((c) => usati.add(c.name));
-      return { titolo: pagina.titolo || `Pagina ${i + 1}`, campi };
-    })
-    .filter((g) => g.campi.length > 0);
+    .map((pagina, i) => ({
+      titolo: pagina.titolo || `Pagina ${i + 1}`,
+      voci: vociDaSchema(pagina.fields, perNome, usati),
+    }))
+    .filter((g) => g.voci.some((v) => v.kind === 'campo'));
 
-  // Dati di istanze vecchie i cui campi non esistono più nello schema attuale
-  // del servizio: vanno comunque mostrati, non persi.
-  const orfani = dati.filter((d) => !usati.has(d.name));
-  if (orfani.length > 0) gruppi.push({ titolo: 'Altri dati', campi: orfani });
+  const orfani = vociOrfane(dati, usati);
+  if (orfani.length > 0) gruppi.push({ titolo: 'Altri dati', voci: orfani });
 
   return gruppi.length > 1 ? gruppi : null;
 }
 
-function TabellaDati({ campi }: { campi: CampoDato[] }) {
+/** Modulo a pagina unica (o schema non più disponibile): elenco unico di voci. */
+function vociPiatte(dati: CampoDato[], attributi: string | null): VoceRiepilogo[] {
+  const perNome = new Map(dati.map((d) => [d.name, d]));
+  const usati = new Set<string>();
+  const voci = vociDaSchema(parseCampi(attributi), perNome, usati);
+  return [...voci, ...vociOrfane(dati, usati)];
+}
+
+function TabellaDati({ voci }: { voci: VoceRiepilogo[] }) {
   return (
     <table className="table table-sm mb-0">
       <tbody>
-        {campi.map((campo) => (
-          <tr key={campo.name}>
-            <th style={{ width: '30%' }} className="ps-3">{campo.label}</th>
-            <td>{getCampoValue(campo.value)}</td>
-          </tr>
-        ))}
+        {voci.map((voce, i) =>
+          voce.kind === 'titolo' ? (
+            <tr key={`t-${i}`} className="table-light">
+              <th colSpan={2} className="ps-3 text-uppercase small fw-bold text-muted">
+                {voce.label}
+              </th>
+            </tr>
+          ) : (
+            <tr key={`c-${voce.name}-${i}`}>
+              <th style={{ width: '30%' }} className="ps-3">{voce.label}</th>
+              <td>{getCampoValue(voce.value)}</td>
+            </tr>
+          ),
+        )}
       </tbody>
     </table>
   );
@@ -135,6 +174,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
   const stato = getStatoBadge(istanza);
   const dati = parseDati(istanza.dati);
   const gruppiDati = raggruppaPerPagina(dati, istanza.servizio.attributi);
+  const vociDati = gruppiDati === null ? vociPiatte(dati, istanza.servizio.attributi) : null;
 
   // Tutti gli allegati caricati dal cittadino (invUtente = true)
   const allegatiUtente = istanza.workflows.flatMap((wf) =>
@@ -300,7 +340,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
               {gruppiDati === null ? (
                 <div className="card">
                   <div className="card-body p-0">
-                    <TabellaDati campi={dati} />
+                    <TabellaDati voci={vociDati ?? []} />
                   </div>
                 </div>
               ) : (
@@ -309,7 +349,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                   <div className="card mb-3">
                     {/*<div className="card-header py-2 fw-semibold">{gruppiDati[0].titolo}</div>*/}
                     <div className="card-body p-0">
-                      <TabellaDati campi={gruppiDati[0].campi} />
+                      <TabellaDati voci={gruppiDati[0].voci} />
                     </div>
                   </div>
 
@@ -326,7 +366,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                             aria-controls={`dati-pagina-${i}`}
                           >
                             {gruppo.titolo}
-                            {/*<span className="badge bg-secondary ms-2">{gruppo.campi.length}</span>*/}
+                            {/*<span className="badge bg-secondary ms-2">{gruppo.voci.length}</span>*/}
                           </button>
                         </h3>
                         <div
@@ -337,7 +377,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                           data-bs-parent="#accordion-dati"
                         >
                           <div className="accordion-body p-0">
-                            <TabellaDati campi={gruppo.campi} />
+                            <TabellaDati voci={gruppo.voci} />
                           </div>
                         </div>
                       </div>

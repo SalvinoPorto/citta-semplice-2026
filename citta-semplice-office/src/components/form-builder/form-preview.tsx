@@ -3,34 +3,15 @@
 import { useState } from 'react';
 import {
   FormField,
-  FieldCondition,
+  isFieldVisible,
+  requiredEffettivo,
   risolviGerarchia,
   risolviRiferimentiCondizioni,
   splitPages,
-} from './types';
+} from '@citta/form-schema';
 
 interface FormPreviewProps {
   fields: FormField[];
-}
-
-function evaluateCondition(condition: FieldCondition, values: Record<string, string>): boolean {
-  const val = values[condition.fieldName] ?? '';
-  switch (condition.operator) {
-    case 'equals':
-      return val === (condition.value ?? '');
-    case 'not_equals':
-      return val !== (condition.value ?? '');
-    case 'not_empty':
-      return val !== '' && val !== 'undefined';
-    case 'empty':
-      return val === '' || val === 'undefined';
-  }
-}
-
-function requiredEffettivo(field: FormField, values: Record<string, string>): boolean {
-  if (field.validation?.required === true) return true;
-  const rc = field.validation?.requiredCondition;
-  return rc?.fieldName ? evaluateCondition(rc, values) : false;
 }
 
 export function FormPreview({ fields }: FormPreviewProps) {
@@ -40,13 +21,7 @@ export function FormPreview({ fields }: FormPreviewProps) {
   const setValue = (name: string, value: string) =>
     setValues((prev) => ({ ...prev, [name]: value }));
 
-  const isVisible = (field: FormField): boolean => {
-    const condizioni = [
-      ...(field.conditions ?? []),
-      ...(field.condition?.fieldName ? [field.condition] : []),
-    ].filter((c) => c?.fieldName);
-    return condizioni.every((c) => evaluateCondition(c, values));
-  };
+  const isVisible = (field: FormField): boolean => isFieldVisible(field, values);
 
   const getWidthClass = (width?: string) => {
     switch (width) {

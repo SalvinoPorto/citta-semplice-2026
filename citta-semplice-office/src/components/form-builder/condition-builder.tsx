@@ -1,6 +1,6 @@
 'use client';
 
-import { FormField, FieldCondition, ConditionOperator } from './types';
+import { FormField, FieldCondition, ConditionOperator } from '@citta/form-schema';
 
 interface ConditionBuilderProps {
   condition: FieldCondition;

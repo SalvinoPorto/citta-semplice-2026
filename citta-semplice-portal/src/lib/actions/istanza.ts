@@ -130,7 +130,7 @@ function estraiDatiInEvidenza(
 
 type DatiDocumenti = {
   istanza: { id: number; protoNumero: string | null; protoData: Date | null; dataInvio: Date | null; municipalita: string | null };
-  servizio: { titolo: string; areaNome: string };
+  servizio: { titolo: string; areaNome: string; attributi?: string | null };
   ricevuta: { 
     id: number;
     servizioId: number;
@@ -362,7 +362,11 @@ export async function submitIstanza(formData: FormData) {
     return { error: servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT };
   }
 
-  const datiServizioDoc = { titolo: servizio.titolo, areaNome: servizio.area.nome };
+  const datiServizioDoc = {
+    titolo: servizio.titolo,
+    areaNome: servizio.area.nome,
+    attributi: servizio.attributi,
+  };
 
   const primoStep = servizio.steps[0];
   try {
