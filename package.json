@@ -10,23 +10,31 @@
     "citta-semplice-migrations"
   ],
   "scripts": {
-    "sync-schema": "./sync-schema.sh",
-    "check-schema-drift": "./check-schema-drift.sh",
     "dev:office": "npm run dev -w citta-semplice-office",
     "dev:portal": "npm run dev -w citta-semplice-portal",
     "build:office": "npm run build -w citta-semplice-office",
     "build:portal": "npm run build -w citta-semplice-portal",
     "build": "npm run build:office && npm run build:portal",
     "lint": "npm run lint --workspaces --if-present",
-    "db:generate": "npm run db:generate -w citta-semplice-office && npm run db:generate -w citta-semplice-portal"
+    "db:generate": "npm run db:generate -w @citta/db",
+    "db:push": "npm run db:push -w @citta/db",
+    "db:migrate": "npm run db:migrate -w @citta/db",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:watch": "vitest"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^10.28.0",
+    "@types/pg": "^8.20.3",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.8.0",
-    "typescript-eslint": "^8.65.0"
+    "pg": "^8.22.0",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^3.2.7"
   },
   "overrides": {
     "@types/react": "19.2.13",

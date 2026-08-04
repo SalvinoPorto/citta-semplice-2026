@@ -12,7 +12,7 @@ Consente ai cittadini di compilare e inviare istanze digitali, monitorarne lo st
 | Next.js | ^16.2.3 (Turbopack in dev) |
 | React | 19 |
 | TypeScript | ^5.7 |
-| Prisma | ^7.7 (client generato in `generated/prisma`) |
+| Prisma | ^7.7 (schema e client generato in `@citta/db`, package condiviso con office) |
 | PostgreSQL | via `@prisma/adapter-pg` |
 | next-auth | v5 beta (JWT strategy) |
 | react-hook-form | ^7 + `@hookform/resolvers` |
@@ -120,8 +120,10 @@ src/components/
 | `Ricevuta` | Dati ricevuta Art. 18-bis L. 241/1990 |
 | `CustomerSatisfaction` | Contatori feedback per servizio |
 
-Il client Prisma è generato in `generated/prisma/` (non in `node_modules`).
-Singleton in `src/lib/db/prisma.ts`.
+Schema e client Prisma vivono nel package `@citta/db` (`packages/db`), condiviso con
+`citta-semplice-office`: il client generato sta in `packages/db/generated/prisma/`
+(non in `node_modules`). `src/lib/db/prisma.ts` si limita a ri-esportare il singleton
+da `@citta/db`.
 
 ---
 

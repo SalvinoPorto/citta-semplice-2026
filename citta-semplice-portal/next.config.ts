@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: process.env.STANDALONE_BUILD === 'true' ? 'standalone' : undefined,
   serverExternalPackages: ['@react-pdf/renderer'],
-  transpilePackages: ['@citta/integrations', '@citta/form-schema'],
+  transpilePackages: ['@citta/integrations', '@citta/form-schema', '@citta/db'],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

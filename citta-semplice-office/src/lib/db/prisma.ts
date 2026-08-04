@@ -1,14 +1,3 @@
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../../generated/prisma/client';
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-
-const prisma = globalForPrisma.prisma || new PrismaClient({ adapter });
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-
-export default prisma;
+// Il client vive in @citta/db: qui resta solo il re-export, così gli import
+// esistenti (`@/lib/db/prisma`) continuano a funzionare senza modifiche.
+export { prisma, prisma as default } from '@citta/db';

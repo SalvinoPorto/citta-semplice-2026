@@ -1,4 +1,4 @@
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma } from '@citta/db';
 import prisma from '@/lib/db/prisma';
 import { ROLES } from './roles';
 

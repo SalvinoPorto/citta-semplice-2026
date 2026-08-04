@@ -8,7 +8,7 @@ import { CloneServizioButton } from './clone-button';
 import type { Order, Filter } from '@/lib/models/table';
 import { ServiziRequest } from '@/lib/models/requests';
 import { useRouter } from 'next/navigation';
-import { Area } from '../../../../../generated/prisma/client';
+import type { Area } from '@citta/db';
 //import { Area } from '@prisma/client';
 
 const PAGE_SIZE = 10;
