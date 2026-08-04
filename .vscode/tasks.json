@@ -11,7 +11,7 @@
     {
       "label": "sync schema prisma",
       "type": "shell",
-      "command": "./sync-schema.sh && npm run db:generate",
+      "command": "npm run db:generate",
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     },

@@ -75,14 +75,18 @@ NEXTAUTH_SECRET="your-super-secret-key"
 
 ### 4. Setup Database
 
+Lo schema Prisma e il client generato vivono nel package `@citta/db` (`packages/db`),
+condiviso con `citta-semplice-portal`: gli script `db:generate` e `db:push` si lanciano
+dalla radice del monorepo, non da qui.
+
 ```bash
-# Genera il client Prisma
+# Dalla radice del monorepo: genera il client Prisma
 npm run db:generate
 
-# Applica le migrazioni
+# Dalla radice del monorepo: applica le migrazioni
 npm run db:push
 
-# Popola il database con dati iniziali
+# Popola il database con dati iniziali (script applicativo di office)
 npm run db:seed
 ```
 
