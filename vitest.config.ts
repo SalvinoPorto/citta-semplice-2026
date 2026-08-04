@@ -2,10 +2,6 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // A livello di root: il progetto "integration" non ha ancora file (arriveranno
-    // nel Task 3) e senza questo flag `vitest run --project integration` fallirebbe
-    // con "No test files found" pur non essendoci nulla di rotto.
-    passWithNoTests: true,
     projects: [
       {
         test: {
@@ -26,9 +22,15 @@ export default defineConfig({
           hookTimeout: 120_000,
           // Un solo container condiviso: i test di integrazione non girano in parallelo.
           fileParallelism: false,
-          passWithNoTests: true,
         },
       },
     ],
   },
 });
+
+// Nota: `test/integration/**` non esiste ancora — la crea il Task 3 dello stesso
+// piano. Fino ad allora `npm run test:integration` fallisce legittimamente con
+// "No test files found" (exit 1): è uno stato transitorio atteso, non una
+// rottura. Non abbiamo aggiunto `passWithNoTests` per non indebolire la
+// garanzia che conta davvero — che `npm test` e `npm run test:unit` non
+// possano MAI uscire con successo avendo eseguito zero test.
