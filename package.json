@@ -25,11 +25,14 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^10.28.0",
+    "@types/pg": "^8.20.3",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.8.0",
+    "pg": "^8.22.0",
     "typescript-eslint": "^8.65.0",
     "vitest": "^3.2.7"
   },
