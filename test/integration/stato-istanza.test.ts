@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Client } from 'pg';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { avviaPostgres, fermaPostgres, applicaSchema, type UrlDatabase } from './postgres';
 
@@ -100,16 +101,31 @@ describe('enum StatoIstanza', () => {
     // `in_bozza=true` ma `stato` ancora al DEFAULT `IN_LAVORAZIONE`.
     //
     // La migrazione gira su un database vuoto (questo harness applica tutta
-    // la storia delle migrazioni prima di ogni test), quindi non c'è nulla
-    // da osservare a posteriori sull'effetto reale del backfill. Qui
-    // ricreiamo temporaneamente i booleani per simulare lo stato del
-    // database subito PRIMA di questa migrazione, e riproduciamo la stessa,
-    // identica espressione SQL: se il testo diverge da quello in
-    // packages/db/prisma/migrations/20260805110000_stato_istanza_contrazione/migration.sql
-    // il test verifica sé stesso, non la migrazione.
-    await client.query(`ALTER TABLE istanze ADD COLUMN in_bozza boolean NOT NULL DEFAULT false`);
-    await client.query(`ALTER TABLE istanze ADD COLUMN conclusa boolean NOT NULL DEFAULT false`);
-    await client.query(`ALTER TABLE istanze ADD COLUMN respinta boolean NOT NULL DEFAULT false`);
+    // la storia delle migrazioni in beforeAll), quindi non c'è nulla da
+    // osservare a posteriori sull'effetto reale del backfill. Per non
+    // verificare sé stesso invece della migrazione, questo test NON
+    // ridigita l'espressione SQL: legge il file di migrazione reale da
+    // disco e lo esegue per intero contro una riga costruita apposta per
+    // simulare la divergenza. Se qualcuno rimuovesse o alterasse l'UPDATE di
+    // riallineamento nel file, questo test lo scoprirebbe — una copia
+    // manuale nel test non l'avrebbe fatto.
+    const percorsoMigrazione = resolve(
+      process.cwd(),
+      'packages/db/prisma/migrations/20260805110000_stato_istanza_contrazione/migration.sql',
+    );
+    const sqlMigrazione = readFileSync(percorsoMigrazione, 'utf-8');
+
+    // Il file esegue anche i DROP COLUMN: li ricreiamo qui per simulare lo
+    // stato del database subito PRIMA di questa migrazione. Un solo
+    // ALTER TABLE con tre ADD COLUMN è atomico — se una clausola fallisse
+    // nessuna delle tre resterebbe applicata, quindi non c'è uno stato
+    // parziale da ripulire in caso di errore qui.
+    await client.query(`
+      ALTER TABLE istanze
+        ADD COLUMN in_bozza boolean NOT NULL DEFAULT false,
+        ADD COLUMN conclusa boolean NOT NULL DEFAULT false,
+        ADD COLUMN respinta boolean NOT NULL DEFAULT false
+    `);
 
     try {
       const { servizioId, utenteId } = await creaDipendenze('divergente');
@@ -120,15 +136,12 @@ describe('enum StatoIstanza', () => {
       );
       const id = inserimento.rows[0].id;
 
-      // Espressione identica a quella della migrazione di contrazione.
-      await client.query(`
-        UPDATE "istanze" SET "stato" = CASE
-          WHEN "in_bozza"  THEN 'BOZZA'::"StatoIstanza"
-          WHEN "conclusa"  THEN 'CONCLUSA'::"StatoIstanza"
-          WHEN "respinta"  THEN 'RESPINTA'::"StatoIstanza"
-          ELSE 'IN_LAVORAZIONE'::"StatoIstanza"
-        END;
-      `);
+      // Esegue il file di migrazione REALE (non una copia): contiene sia
+      // l'UPDATE di riallineamento sia i tre DROP COLUMN finali, quindi
+      // eseguirlo qui rimette anche il database nello stato "colonne
+      // sparite" atteso dal resto della suite — il `finally` sotto non deve
+      // ripetere quei DROP nel percorso di successo.
+      await client.query(sqlMigrazione);
 
       const { rows } = await client.query<{ stato: string }>(
         `SELECT stato FROM istanze WHERE id = $1`,
@@ -136,9 +149,17 @@ describe('enum StatoIstanza', () => {
       );
       expect(rows[0].stato).toBe('BOZZA');
     } finally {
-      await client.query(`ALTER TABLE istanze DROP COLUMN in_bozza`);
-      await client.query(`ALTER TABLE istanze DROP COLUMN conclusa`);
-      await client.query(`ALTER TABLE istanze DROP COLUMN respinta`);
+      // Rete di sicurezza solo per il percorso di fallimento: se qualcosa è
+      // andato storto prima che `sqlMigrazione` arrivasse ai suoi DROP
+      // COLUMN, non lasciamo le colonne booleane fantasma per i test
+      // successivi. Nel percorso di successo sono già sparite: IF EXISTS
+      // rende l'operazione un no-op.
+      await client.query(`
+        ALTER TABLE istanze
+          DROP COLUMN IF EXISTS in_bozza,
+          DROP COLUMN IF EXISTS conclusa,
+          DROP COLUMN IF EXISTS respinta
+      `);
     }
   });
 });
