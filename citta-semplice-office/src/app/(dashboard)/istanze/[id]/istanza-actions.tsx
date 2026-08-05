@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import type { StatoIstanzaValore } from '@citta/db';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Textarea, Input, Select } from '@/components/ui';
 import {
   advanceWorkflow,
@@ -54,8 +55,7 @@ interface FasePrecedente {
 interface IstanzaActionsProps {
   istanza: {
     id: number;
-    conclusa: boolean;
-    respinta: boolean;
+    stato: StatoIstanzaValore;
     protoNumero: string | null;
     protoData: Date | null;
     attributoId: number | null;
@@ -397,7 +397,7 @@ export function IstanzaActions({
     }
   };
 
-  if (istanza.conclusa) {
+  if (istanza.stato === 'CONCLUSA') {
     return (
       <div className="action-buttons">
         <span className="badge bg-success fs-6">Istanza Conclusa</span>
@@ -405,7 +405,7 @@ export function IstanzaActions({
     );
   }
 
-  if (istanza.respinta) {
+  if (istanza.stato === 'RESPINTA') {
     return (
       <div className="action-buttons">
         <Button

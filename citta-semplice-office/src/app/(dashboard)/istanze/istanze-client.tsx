@@ -8,6 +8,7 @@ import { Card, CardBody, Badge, Button, Input, Select } from '@/components/ui';
 import { THeadGroup, THead, Paginatore, TFilterHead, TFilterHeadGroup } from '@/components/shared';
 import type { Order, Filter } from '@/lib/models/table';
 import { getStatoIstanza } from '@/lib/models/stato-istanza';
+import type { StatoIstanzaValore } from '@citta/db';
 
 const PAGE_SIZE = 10;
 const PRIMO_ANNO = 2020;
@@ -20,8 +21,7 @@ interface Istanza {
   id: number;
   protoNumero: string | null;
   dataInvio: Date;
-  conclusa: boolean;
-  respinta: boolean;
+  stato: StatoIstanzaValore;
   datiInEvidenza: string | null;
   utente: {
     nome: string;
@@ -195,16 +195,15 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
 
 
   const getFaseBadge = (istanza: Istanza) => {
-    if (istanza.conclusa) return <Badge variant="success" className="w-100">Conclusa</Badge>;
-    if (istanza.respinta) return <Badge variant="danger" className="w-100">Respinta</Badge>;
+    if (istanza.stato === 'CONCLUSA') return <Badge variant="success" className="w-100">Conclusa</Badge>;
+    if (istanza.stato === 'RESPINTA') return <Badge variant="danger" className="w-100">Respinta</Badge>;
     const lastWorkflow = istanza.workflows[0];
     return <Badge variant="primary" className="w-100">{lastWorkflow?.step.descrizione}</Badge>;
   }
 
   const getStatusBadge = (istanza: Istanza) => {
     const stato = getStatoIstanza({
-      conclusa: istanza.conclusa,
-      respinta: istanza.respinta,
+      stato: istanza.stato,
       ultimoWorkflow: istanza.workflows[0] ?? null,
     });
     return <Badge variant={stato.variant} className="w-100">{stato.label}</Badge>;

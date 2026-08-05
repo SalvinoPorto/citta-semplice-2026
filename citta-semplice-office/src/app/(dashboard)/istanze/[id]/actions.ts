@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db/prisma';
+import { whereVisibileAgliOperatori, datiStato, type StatoIstanzaValore } from '@citta/db';
 import { getCurrentUser, requireAuth } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
 import { sendFaseTransitionEmail } from '@/lib/services/faseTransitionEmail';
@@ -143,7 +144,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    if (istanza.conclusa || istanza.respinta) {
+    if (istanza.stato === 'CONCLUSA' || istanza.stato === 'RESPINTA') {
       return { success: false, message: 'Istanza già conclusa o respinta' };
     }
 
@@ -269,7 +270,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         if (!nextFase) {
           await tx.istanza.update({
             where: { id: istanza.id },
-            data: { conclusa: true },
+            data: datiStato('CONCLUSA'),
           });
           resultMessage = 'Istanza conclusa con successo';
         } else {
@@ -386,7 +387,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    if (istanza.conclusa || istanza.respinta) {
+    if (istanza.stato === 'CONCLUSA' || istanza.stato === 'RESPINTA') {
       return { success: false, message: 'Impossibile retrocedere: istanza già conclusa o respinta' };
     }
 
@@ -479,7 +480,7 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    if (istanza.conclusa) {
+    if (istanza.stato === 'CONCLUSA') {
       return { success: false, message: 'Istanza già conclusa' };
     }
 
@@ -502,7 +503,7 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
     // Mark istanza as rejected
     await prisma.istanza.update({
       where: { id: istanzaId },
-      data: { respinta: true },
+      data: datiStato('RESPINTA'),
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -545,7 +546,7 @@ export async function reopenIstanza(istanzaId: number) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    if (!istanza.respinta) {
+    if (istanza.stato !== 'RESPINTA') {
       return { success: false, message: 'L\'istanza non è respinta' };
     }
 
@@ -568,7 +569,7 @@ export async function reopenIstanza(istanzaId: number) {
     // Mark istanza as not rejected
     await prisma.istanza.update({
       where: { id: istanzaId },
-      data: { respinta: false },
+      data: datiStato('IN_LAVORAZIONE'),
     });
 
     revalidatePath(`/istanze/${istanzaId}`);
@@ -712,7 +713,7 @@ export async function takeCharge(istanzaId: number) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    if (istanza.conclusa || istanza.respinta) {
+    if (istanza.stato === 'CONCLUSA' || istanza.stato === 'RESPINTA') {
       return { success: false, message: 'Impossibile prendere in carico un\'istanza conclusa o respinta' };
     }
 
@@ -852,8 +853,7 @@ export interface IstanzaUtenteItem {
   modulo: string;
   dataInvio: Date;
   protoNumero: string | null;
-  conclusa: boolean;
-  respinta: boolean;
+  stato: StatoIstanzaValore;
   step: string;
   status: string;
   dataVariazione: Date | null;
@@ -873,7 +873,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
       include: {
         istanze: {
           // Solo le istanze che l'operatore può vedere (ufficio + servizi assegnati)
-          where: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] },
+          where: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] },
           orderBy: { dataInvio: 'desc' },
           take: 50,
           include: {
@@ -897,8 +897,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
       modulo: i.servizio.titolo,
       dataInvio: i.dataInvio,
       protoNumero: i.protoNumero,
-      conclusa: i.conclusa,
-      respinta: i.respinta,
+      stato: i.stato,
       step: i.workflows[0]?.step?.descrizione ?? '-',
       status: getStatoLabel(i.workflows[0]?.operatoreId ?? null, i.workflows[0]?.stato ?? 0),
       dataVariazione: i.workflows[0]?.dataVariazione ?? null,
@@ -944,11 +943,11 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    if (istanza.conclusa) {
+    if (istanza.stato === 'CONCLUSA') {
       return { success: false, message: 'Istanza già conclusa' };
     }
 
-    if (istanza.respinta) {
+    if (istanza.stato === 'RESPINTA') {
       return { success: false, message: "Impossibile concludere un'istanza respinta" };
     }
 
@@ -1021,7 +1020,7 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
       await tx.istanza.update({
         where: { id: istanzaId },
         data: {
-          conclusa: true,
+          ...datiStato('CONCLUSA'),
           ...(protoFinaleNumero && { protoFinaleNumero, protoFinaleData }),
         },
       });
@@ -1174,8 +1173,8 @@ export async function rollbackFase(params: {
   });
 
   if (!istanza) return { success: false, message: 'Istanza non trovata' };
-  if (istanza.conclusa) return { success: false, message: "L'istanza è già conclusa" };
-  if (istanza.respinta) return { success: false, message: "L'istanza è respinta" };
+  if (istanza.stato === 'CONCLUSA') return { success: false, message: "L'istanza è già conclusa" };
+  if (istanza.stato === 'RESPINTA') return { success: false, message: "L'istanza è respinta" };
   if (!istanza.faseCorrente || istanza.faseCorrente.ordine <= 1) {
     return { success: false, message: 'Non è possibile tornare a una fase precedente: questa è già la prima fase' };
   }

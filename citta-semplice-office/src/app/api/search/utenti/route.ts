@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { whereVisibileAgliOperatori } from '@citta/db';
 import { auth } from '@/lib/auth';
 import {
   getVisibilitaOperatore,
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
-  const istanzeVisibili = { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] };
+  const istanzeVisibili = { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] };
 
   const searchParams = request.nextUrl.searchParams;
   const codiceFiscale = searchParams.get('codiceFiscale');

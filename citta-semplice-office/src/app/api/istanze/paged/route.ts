@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { Prisma, whereStato, whereVisibileAgliOperatori, sqlStato } from '@citta/db';
 import { auth } from '@/lib/auth';
 import {
   getVisibilitaOperatore,
@@ -51,7 +52,7 @@ async function getIstanzeCounts(visibilita: VisibilitaOperatore) {
           SELECT COUNT(DISTINCT i.id) as count
           FROM istanze i
           INNER JOIN workflows w ON w.istanza_id = i.id
-          WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
+          WHERE ${Prisma.raw(sqlStato('IN_LAVORAZIONE', 'i'))}
           AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
           AND w.operatore_id IS NULL
           ${visibilitaSql}
@@ -60,7 +61,7 @@ async function getIstanzeCounts(visibilita: VisibilitaOperatore) {
           SELECT COUNT(DISTINCT i.id) as count
           FROM istanze i
           INNER JOIN workflows w ON w.istanza_id = i.id
-          WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
+          WHERE ${Prisma.raw(sqlStato('IN_LAVORAZIONE', 'i'))}
           AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
           AND w.operatore_id = ${operatoreId}
           ${visibilitaSql}
@@ -69,14 +70,14 @@ async function getIstanzeCounts(visibilita: VisibilitaOperatore) {
           SELECT COUNT(DISTINCT i.id) as count
           FROM istanze i
           INNER JOIN workflows w ON w.istanza_id = i.id
-          WHERE i.in_bozza = false AND i.conclusa = false AND i.respinta = false
+          WHERE ${Prisma.raw(sqlStato('IN_LAVORAZIONE', 'i'))}
           AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
           AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
           ${visibilitaSql}
         `.then((r) => Number(r[0]?.count || 0)),
-      prisma.istanza.count({ where: { AND: [visibilitaFilter], inBozza: false, respinta: true } }),
-      prisma.istanza.count({ where: { AND: [visibilitaFilter], inBozza: false, conclusa: true } }),
-      prisma.istanza.count({ where: { AND: [visibilitaFilter], inBozza: false } }),
+      prisma.istanza.count({ where: { AND: [visibilitaFilter], ...whereStato('RESPINTA') } }),
+      prisma.istanza.count({ where: { AND: [visibilitaFilter], ...whereStato('CONCLUSA') } }),
+      prisma.istanza.count({ where: { AND: [visibilitaFilter], ...whereVisibileAgliOperatori() } }),
     ]);
 
   return { nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale };
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
   } = body;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const whereClause: any = { inBozza: false };
+  const whereClause: any = { ...whereVisibileAgliOperatori() };
 
   if (formFilters.modulo) {
     whereClause.servizioId = parseInt(formFilters.modulo);
@@ -201,20 +202,18 @@ export async function POST(request: NextRequest) {
   // Tab-specific conditions
   switch (tab) {
     case 'nuove':
-      whereClause.conclusa = false;
-      whereClause.respinta = false;
+      Object.assign(whereClause, whereStato('IN_LAVORAZIONE'));
       // il vincolo "ultimo workflow non assegnato" è risolto sotto via raw SQL
       break;
     case 'mie':
     case 'altri':
-      whereClause.conclusa = false;
-      whereClause.respinta = false;
+      Object.assign(whereClause, whereStato('IN_LAVORAZIONE'));
       break;
     case 'respinte':
-      whereClause.respinta = true;
+      Object.assign(whereClause, whereStato('RESPINTA'));
       break;
     case 'concluse':
-      whereClause.conclusa = true;
+      Object.assign(whereClause, whereStato('CONCLUSA'));
       break;
     // 'tutte': no additional filter
   }
