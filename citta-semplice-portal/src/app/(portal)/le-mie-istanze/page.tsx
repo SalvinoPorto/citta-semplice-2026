@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { IstanzeTable } from './IstanzeTable';
 import { BozzaDeleteButton } from './BozzaDeleteButton';
+import { whereStato } from '@citta/db';
 
 export const metadata: Metadata = {
   title: 'Le mie istanze - Città Semplice',
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 
 async function getBozze(utenteId: number) {
   return prisma.istanza.findMany({
-    where: { utenteId, inBozza: true },
+    where: { utenteId, ...whereStato('BOZZA') },
     include: {
       servizio: { include: { area: true } },
     },

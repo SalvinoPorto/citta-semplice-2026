@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import { whereStato } from '@citta/db';
 
 export const MSG_SOGLIA_DEFAULT = 'Il numero massimo di istanze è stato raggiunto';
 
@@ -12,7 +13,7 @@ export async function sogliaIstanzeRaggiunta(servizio: {
 }): Promise<boolean> {
   if (!servizio.numeroMaxIstanze || servizio.numeroMaxIstanze <= 0) return false;
   const count = await prisma.istanza.count({
-    where: { servizioId: servizio.id, inBozza: false },
+    where: { servizioId: servizio.id, ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA']) },
   });
   return count >= servizio.numeroMaxIstanze;
 }
@@ -70,8 +71,7 @@ export async function verificaUnicoInvio(
   const candidate = await prisma.istanza.findMany({
     where: {
       servizioId: servizio.id,
-      inBozza: false,
-      respinta: false,
+      ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA']),
       ...(prefiltro.length > 0 ? { AND: prefiltro } : {}),
     },
     select: { dati: true },

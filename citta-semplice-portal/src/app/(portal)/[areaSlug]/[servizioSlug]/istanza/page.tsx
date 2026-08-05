@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { IstanzaStepper } from '@/components/istanza/IstanzaStepper';
 import { sogliaIstanzeRaggiunta } from '@/lib/servizio-regole';
+import { whereStato } from '@citta/db';
 
 interface Props {
   params: Promise<{ areaSlug: string; servizioSlug: string }>;
@@ -89,7 +90,7 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
     const utente = await prisma.utente.findUnique({ where: { id: Number(session.user.id) } });
     if (utente) {
       const bozza = await prisma.istanza.findFirst({
-        where: { id: bozzaId, utenteId: utente.id, inBozza: true, servizioId: servizio.id },
+        where: { id: bozzaId, utenteId: utente.id, servizioId: servizio.id, ...whereStato('BOZZA') },
       });
       if (bozza) {
         let datiModulo: Record<string, unknown> = {};

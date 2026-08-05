@@ -18,8 +18,8 @@ type Props = { utenteId: number };
 } */
 
 function getStatoBadge(row: IstanzaRow) {
-  if (row.conclusa) return { label: 'Conclusa', cls: 'bg-success' };
-  if (row.respinta) return { label: 'Respinta', cls: 'bg-danger' };
+  if (row.statoIstanza === 'CONCLUSA') return { label: 'Conclusa', cls: 'bg-success' };
+  if (row.statoIstanza === 'RESPINTA') return { label: 'Respinta', cls: 'bg-danger' };
   if (row.stato === -1) return { label: 'In attesa', cls: 'bg-secondary' };
   if (row.stato === 0) return { label: 'In lavorazione', cls: 'bg-primary' };
   return { label: 'Completata', cls: 'bg-success' };

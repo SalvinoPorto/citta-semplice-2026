@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { getCampoValue } from '@/lib/utils';
 import { costruisciRiepilogo, parseCampi, splitPages, type FormField, type VoceRiepilogo } from '@citta/form-schema';
+import { whereStato, type StatoIstanzaValore } from '@citta/db';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -127,9 +128,9 @@ function parseDati(dati: string | null | undefined): CampoDato[] {
   }
 }
 
-function getStatoBadge(istanza: { conclusa: boolean; respinta: boolean; workflows: { operatoreId: number | null }[] }) {
-  if (istanza.conclusa) return { label: 'Conclusa', cls: 'bg-success' };
-  if (istanza.respinta) return { label: 'Respinta', cls: 'bg-danger' };
+function getStatoBadge(istanza: { stato: StatoIstanzaValore; workflows: { operatoreId: number | null }[] }) {
+  if (istanza.stato === 'CONCLUSA') return { label: 'Conclusa', cls: 'bg-success' };
+  if (istanza.stato === 'RESPINTA') return { label: 'Respinta', cls: 'bg-danger' };
   const presaInCarico = istanza.workflows.some((wf) => wf.operatoreId !== null);
   if (presaInCarico) return { label: 'In lavorazione', cls: 'bg-primary' };
   return { label: 'In attesa', cls: 'bg-secondary' };
@@ -154,7 +155,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
   if (!utente) redirect('/login');
 
   const istanza = await prisma.istanza.findFirst({
-    where: { id, utenteId: utente.id, inBozza: false },
+    where: { id, utenteId: utente.id, ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA']) },
     include: {
       servizio: { include: { area: true } },
       workflows: {

@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/db/prisma';
 import type { Filter, Order } from '@/lib/models/table';
-import type { Prisma } from '@citta/db';
+import { whereStato, type Prisma, type StatoIstanzaValore } from '@citta/db';
 
 const PAGE_SIZE = 10;
 
@@ -13,8 +13,7 @@ export type IstanzaRow = {
   dataInvio: string | null;
   protoNumero: string | null;
   protoData: string | null;
-  conclusa: boolean;
-  respinta: boolean;
+  statoIstanza: StatoIstanzaValore;
   faseAttuale: string | null;
   stato: number; // -1 = in attesa, 0 = in lavorazione, 1 = conclusa
   comunicazioniNuove: number;   // comunicazioni dell'ufficio mai aperte
@@ -79,8 +78,7 @@ export async function getIstanzePage(
       dataInvio: i.dataInvio?.toISOString() ?? null,
       protoNumero: i.protoNumero ?? null,
       protoData: i.protoData?.toISOString() ?? null,
-      conclusa: i.conclusa,
-      respinta: i.respinta,
+      statoIstanza: i.stato,
       faseAttuale: i.workflows[0]?.step?.descrizione ?? null,
       stato: i.workflows[0]?.operatoreId === null ? -1 : (i.workflows[0]?.stato ?? 0),
       comunicazioniNuove: i.comunicazioni.filter((c) => !c.lettaDaCittadino).length,
@@ -94,7 +92,7 @@ export async function getIstanzePage(
 }
 
 function buildWhere(utenteId: number, filters: Filter[]): Prisma.IstanzaWhereInput {
-  const where: Prisma.IstanzaWhereInput = { utenteId, inBozza: false };
+  const where: Prisma.IstanzaWhereInput = { utenteId, ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA']) };
   for (const f of filters) {
     if (!f.value) continue;
     switch (f.key) {
