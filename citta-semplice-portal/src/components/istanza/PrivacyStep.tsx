@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { useEnte } from '@/contexts/EnteContext';
 
 interface Props {
