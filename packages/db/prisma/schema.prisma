@@ -32,6 +32,16 @@ enum Direzione {
   ROLLBACK
 }
 
+/// Stato di lavorazione di un'istanza. Sostituisce i tre booleani
+/// mutuamente esclusivi `inBozza`/`conclusa`/`respinta`, che il vincolo
+/// CHECK `istanze_stato_esclusivo_chk` teneva coerenti a posteriori.
+enum StatoIstanza {
+  BOZZA           // solo portale, invisibile agli operatori
+  IN_LAVORAZIONE
+  CONCLUSA
+  RESPINTA
+}
+
 // ============================================
 // AUTHENTICATION & USERS
 // ============================================
@@ -333,6 +343,12 @@ model Istanza {
   datiResponso        String?   @map("dati_responso") @db.Text
   municipalita        String?   @db.VarChar(60)
 
+  // Fase di transizione: `stato` convive con i tre booleani finché tutto il
+  // codice non è convertito. La doppia scrittura è centralizzata in
+  // `@citta/db` (packages/db/src/stato-istanza.ts); i booleani spariscono
+  // nella migrazione di contrazione.
+  stato               StatoIstanza @default(IN_LAVORAZIONE)
+
   // Status — MUTUAMENTE ESCLUSIVI: al più uno true (vincolo DB
   // istanze_stato_esclusivo_chk, migration 20260720120000). Tutti false = "in lavorazione".
   //   inBozza=true  → bozza (solo portale)
@@ -392,6 +408,7 @@ model Istanza {
   @@index([servizioId])
   @@index([dataInvio])
   @@index([protoNumero])
+  @@index([stato])
   @@map("istanze")
 }
 
