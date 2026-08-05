@@ -39,14 +39,16 @@ describe('schema Prisma', () => {
     }
   });
 
-  it('impedisce a una istanza di essere insieme conclusa e respinta', async () => {
-    // Test di comportamento, non di metadati: il vincolo CHECK
-    // istanze_stato_esclusivo_chk viene creato dalla migrazione 0_init
-    // (packages/db/prisma/migrations/0_init/migration.sql:611-612),
-    // applicata da `migrate deploy` in beforeAll. Qui non rileggiamo il nome
-    // del vincolo da pg_constraint: proviamo davvero a violarlo, cosi il test
-    // fallisce se il vincolo sparisce o cambia semantica — non solo se cambia
-    // nome. Il piano 2 sostituira questo vincolo con StatoIstanza.
+  it('impedisce a una istanza di avere uno stato fuori dall enum StatoIstanza', async () => {
+    // Test di comportamento, non di metadati. Fino alla migrazione di
+    // contrazione (20260805110000_stato_istanza_contrazione) l'esclusività
+    // fra "conclusa" e "respinta" era garantita dal vincolo CHECK
+    // istanze_stato_esclusivo_chk sui tre booleani; quella migrazione lo
+    // elimina insieme alle colonne (le colonne e il vincolo non esistono
+    // più: vedi test/integration/stato-istanza.test.ts, che lo verifica
+    // esplicitamente). Con l'enum l'esclusività è garantita dal tipo:
+    // qui proviamo a scrivere davvero uno stato fuori enum e ci aspettiamo
+    // che Postgres lo rifiuti a livello di tipo, non di CHECK.
     const client = new Client({ connectionString: url });
     await client.connect();
     try {
@@ -62,14 +64,13 @@ describe('schema Prisma', () => {
       );
 
       const inserimentoIncoerente = client.query(
-        `INSERT INTO istanze (proto_numero, data_invio, utente_id, servizio_id, conclusa, respinta)
-         VALUES ('TEST-0001', now(), $1, $2, true, true)`,
+        `INSERT INTO istanze (proto_numero, data_invio, utente_id, servizio_id, stato)
+         VALUES ('TEST-0001', now(), $1, $2, 'SOSPESA')`,
         [utente.rows[0].id, servizio.rows[0].id],
       );
 
       await expect(inserimentoIncoerente).rejects.toMatchObject({
-        code: '23514', // check_violation
-        constraint: 'istanze_stato_esclusivo_chk',
+        code: '22P02', // invalid_text_representation
       });
     } finally {
       await client.end();

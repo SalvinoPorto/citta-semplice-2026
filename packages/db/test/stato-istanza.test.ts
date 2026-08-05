@@ -25,28 +25,11 @@ describe('whereVisibileAgliOperatori', () => {
 });
 
 describe('datiStato', () => {
-  it('scrive enum e booleani coerenti per ogni stato', () => {
-    expect(datiStato('BOZZA')).toEqual({
-      stato: 'BOZZA', inBozza: true, conclusa: false, respinta: false,
-    });
-    expect(datiStato('IN_LAVORAZIONE')).toEqual({
-      stato: 'IN_LAVORAZIONE', inBozza: false, conclusa: false, respinta: false,
-    });
-    expect(datiStato('CONCLUSA')).toEqual({
-      stato: 'CONCLUSA', inBozza: false, conclusa: true, respinta: false,
-    });
-    expect(datiStato('RESPINTA')).toEqual({
-      stato: 'RESPINTA', inBozza: false, conclusa: false, respinta: true,
-    });
-  });
-
-  it('non produce mai due booleani veri insieme (vincolo istanze_stato_esclusivo_chk)', () => {
-    const stati = ['BOZZA', 'IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA'] as const;
-    for (const s of stati) {
-      const d = datiStato(s);
-      const veri = [d.inBozza, d.conclusa, d.respinta].filter(Boolean).length;
-      expect(veri, `stato ${s}`).toBeLessThanOrEqual(1);
-    }
+  it('restituisce il solo stato, senza più i booleani', () => {
+    expect(datiStato('BOZZA')).toEqual({ stato: 'BOZZA' });
+    expect(datiStato('IN_LAVORAZIONE')).toEqual({ stato: 'IN_LAVORAZIONE' });
+    expect(datiStato('CONCLUSA')).toEqual({ stato: 'CONCLUSA' });
+    expect(datiStato('RESPINTA')).toEqual({ stato: 'RESPINTA' });
   });
 });
 

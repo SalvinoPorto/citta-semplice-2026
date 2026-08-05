@@ -343,20 +343,9 @@ model Istanza {
   datiResponso        String?   @map("dati_responso") @db.Text
   municipalita        String?   @db.VarChar(60)
 
-  // Fase di transizione: `stato` convive con i tre booleani finché tutto il
-  // codice non è convertito. La doppia scrittura è centralizzata in
-  // `@citta/db` (packages/db/src/stato-istanza.ts); i booleani spariscono
-  // nella migrazione di contrazione.
+  /// Stato di lavorazione. Gli stati sono mutuamente esclusivi per costruzione.
   stato               StatoIstanza @default(IN_LAVORAZIONE)
 
-  // Status — MUTUAMENTE ESCLUSIVI: al più uno true (vincolo DB
-  // istanze_stato_esclusivo_chk, migration 20260720120000). Tutti false = "in lavorazione".
-  //   inBozza=true  → bozza (solo portale)
-  //   conclusa=true → conclusa
-  //   respinta=true → respinta
-  conclusa            Boolean   @default(false)
-  respinta            Boolean   @default(false)
-  inBozza             Boolean   @default(false) @map("in_bozza")
   // Posizione corrente:
   //   - STEP corrente → step dell'ultimo Workflow (per dataVariazione desc). Non
   //     è denormalizzato: `last_step_id` esisteva ma nessuno lo leggeva ed era già

@@ -1,12 +1,9 @@
 /**
  * Unica fonte di verità per leggere e scrivere lo stato di un'istanza.
  *
- * Durante la transizione dai tre booleani all'enum, `datiStato` scrive
- * ENTRAMBE le rappresentazioni: finché `in_bozza`/`conclusa`/`respinta`
- * esistono nel database, devono restare coerenti con `stato`, altrimenti
- * il vincolo `istanze_stato_esclusivo_chk` salta o le due rappresentazioni
- * divergono. La migrazione di contrazione elimina i booleani e a quel punto
- * questa funzione si riduce al solo `stato`.
+ * I tre booleani `in_bozza`/`conclusa`/`respinta` e il vincolo CHECK che li
+ * teneva mutuamente esclusivi non esistono più: lo stato è l'enum, e gli
+ * stati impossibili non sono rappresentabili invece che vietati a posteriori.
  */
 
 export type StatoIstanzaValore = 'BOZZA' | 'IN_LAVORAZIONE' | 'CONCLUSA' | 'RESPINTA';
@@ -28,12 +25,7 @@ export function whereVisibileAgliOperatori() {
 }
 
 export function datiStato(stato: StatoIstanzaValore) {
-  return {
-    stato,
-    inBozza: stato === 'BOZZA',
-    conclusa: stato === 'CONCLUSA',
-    respinta: stato === 'RESPINTA',
-  };
+  return { stato };
 }
 
 /**
