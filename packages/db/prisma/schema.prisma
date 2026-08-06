@@ -32,6 +32,16 @@ enum Direzione {
   ROLLBACK
 }
 
+/// Stato di lavorazione di un'istanza. Sostituisce i tre booleani
+/// mutuamente esclusivi `inBozza`/`conclusa`/`respinta`, che il vincolo
+/// CHECK `istanze_stato_esclusivo_chk` teneva coerenti a posteriori.
+enum StatoIstanza {
+  BOZZA           // solo portale, invisibile agli operatori
+  IN_LAVORAZIONE
+  CONCLUSA
+  RESPINTA
+}
+
 // ============================================
 // AUTHENTICATION & USERS
 // ============================================
@@ -333,14 +343,9 @@ model Istanza {
   datiResponso        String?   @map("dati_responso") @db.Text
   municipalita        String?   @db.VarChar(60)
 
-  // Status — MUTUAMENTE ESCLUSIVI: al più uno true (vincolo DB
-  // istanze_stato_esclusivo_chk, migration 20260720120000). Tutti false = "in lavorazione".
-  //   inBozza=true  → bozza (solo portale)
-  //   conclusa=true → conclusa
-  //   respinta=true → respinta
-  conclusa            Boolean   @default(false)
-  respinta            Boolean   @default(false)
-  inBozza             Boolean   @default(false) @map("in_bozza")
+  /// Stato di lavorazione. Gli stati sono mutuamente esclusivi per costruzione.
+  stato               StatoIstanza @default(IN_LAVORAZIONE)
+
   // Posizione corrente:
   //   - STEP corrente → step dell'ultimo Workflow (per dataVariazione desc). Non
   //     è denormalizzato: `last_step_id` esisteva ma nessuno lo leggeva ed era già
@@ -392,6 +397,7 @@ model Istanza {
   @@index([servizioId])
   @@index([dataInvio])
   @@index([protoNumero])
+  @@index([stato])
   @@map("istanze")
 }
 

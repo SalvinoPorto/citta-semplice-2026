@@ -141,7 +141,7 @@ export default async function IstanzaDetailPage({
   const fasePrecedente = faseCorrente && faseCorrente.ordine > 1
     ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine - 1) ?? null
     : null;
-  const canRollbackFase = !istanza.conclusa && !istanza.respinta && fasePrecedente !== null;
+  const canRollbackFase = istanza.stato !== 'CONCLUSA' && istanza.stato !== 'RESPINTA' && fasePrecedente !== null;
 
   // Prossima fase (per sapere se ha ufficio variabile al momento dell'avanzamento)
   const nextFase = faseCorrente
@@ -202,8 +202,7 @@ export default async function IstanzaDetailPage({
 
   const getStatusBadge = () => {
     const stato = getStatoIstanza({
-      conclusa: istanza.conclusa,
-      respinta: istanza.respinta,
+      stato: istanza.stato,
       ultimoWorkflow: lastWorkflow ?? null,
     });
     return <Badge variant={stato.variant}>{stato.label}</Badge>;
@@ -236,8 +235,7 @@ export default async function IstanzaDetailPage({
         <IstanzaActions
           istanza={{
             id: istanza.id,
-            conclusa: istanza.conclusa,
-            respinta: istanza.respinta,
+            stato: istanza.stato,
             protoNumero: istanza.protoNumero,
             protoData: istanza.protoData,
             attributoId: null,

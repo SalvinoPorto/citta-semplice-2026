@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import prisma from '@/lib/db/prisma';
+import { whereStato } from '@citta/db';
 import { requireAuth } from '@/lib/auth/session';
 import {
   getVisibilitaOperatore,
@@ -45,19 +46,20 @@ async function getStatistiche(giorni: number, visibilita: VisibilitaOperatore) {
     istanzePerStato,
   ] = await Promise.all([
     prisma.istanza.count({ where: { AND: [v] } }),
-    prisma.istanza.count({ where: { conclusa: false, respinta: false, AND: [v] } }),
-    prisma.istanza.count({ where: { conclusa: true, AND: [v] } }),
-    prisma.istanza.count({ where: { respinta: true, AND: [v] } }),
+    // Non filtrava inBozza: "aperte" include anche le bozze, come prima.
+    prisma.istanza.count({ where: { ...whereStato(['BOZZA', 'IN_LAVORAZIONE']), AND: [v] } }),
+    prisma.istanza.count({ where: { ...whereStato('CONCLUSA'), AND: [v] } }),
+    prisma.istanza.count({ where: { ...whereStato('RESPINTA'), AND: [v] } }),
     prisma.istanza.count({
       where: { dataInvio: { gte: startDate, lte: today }, AND: [v] },
     }),
     prisma.$queryRaw<AndamentoRow[]>`
       SELECT DATE(i.data_invio) AS data,
              COUNT(*)::int AS inviate,
-             COUNT(*) FILTER (WHERE i.conclusa)::int AS concluse,
-             COUNT(*) FILTER (WHERE i.respinta)::int AS respinte
+             COUNT(*) FILTER (WHERE i.stato = 'CONCLUSA')::int AS concluse,
+             COUNT(*) FILTER (WHERE i.stato = 'RESPINTA')::int AS respinte
       FROM istanze i
-      WHERE i.in_bozza = false
+      WHERE i.stato != 'BOZZA'
         AND i.data_invio >= ${startDate}
         AND i.data_invio <= ${today}
         ${istanzaVisibilitySql(visibilita, 'i')}
@@ -81,7 +83,7 @@ async function getStatistiche(giorni: number, visibilita: VisibilitaOperatore) {
       take: 10,
     }),
     prisma.istanza.groupBy({
-      by: ['conclusa', 'respinta'],
+      by: ['stato'],
       _count: true,
       where: { dataInvio: { gte: startDate, lte: today }, AND: [v] },
     }),
@@ -103,12 +105,13 @@ async function getStatistiche(giorni: number, visibilita: VisibilitaOperatore) {
     respinte: 0,
   };
   istanzePerStato.forEach((s) => {
-    if (s.respinta) {
+    if (s.stato === 'RESPINTA') {
       statoDistribuzione.respinte = s._count;
-    } else if (s.conclusa) {
+    } else if (s.stato === 'CONCLUSA') {
       statoDistribuzione.concluse = s._count;
     } else {
-      statoDistribuzione.aperte = s._count;
+      // BOZZA + IN_LAVORAZIONE, come nel raggruppamento precedente su (conclusa,respinta)=(false,false)
+      statoDistribuzione.aperte += s._count;
     }
   });
 

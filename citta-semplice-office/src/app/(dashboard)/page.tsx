@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
+import { whereStato, whereVisibileAgliOperatori } from '@citta/db';
 import {
   getVisibilitaOperatore,
   istanzaVisibilityWhere,
@@ -17,15 +18,15 @@ async function getDashboardStats(visibilita: VisibilitaOperatore) {
     istanzeConcluse,
     istanzeRespinte,
   ] = await Promise.all([
-    prisma.istanza.count({ where: { inBozza: false, AND: [v] } }),
+    prisma.istanza.count({ where: { ...whereVisibileAgliOperatori(), AND: [v] } }),
     prisma.istanza.count({
-      where: { inBozza: false, conclusa: false, respinta: false, AND: [v] },
+      where: { ...whereStato('IN_LAVORAZIONE'), AND: [v] },
     }),
     prisma.istanza.count({
-      where: { inBozza: false, conclusa: true, AND: [v] },
+      where: { ...whereStato('CONCLUSA'), AND: [v] },
     }),
     prisma.istanza.count({
-      where: { inBozza: false, respinta: true, AND: [v] },
+      where: { ...whereStato('RESPINTA'), AND: [v] },
     }),
   ]);
 
@@ -51,7 +52,7 @@ async function getRecentIstanze(visibilita: VisibilitaOperatore) {
   return prisma.istanza.findMany({
     take: 10,
     orderBy: { dataInvio: 'desc' },
-    where: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] },
+    where: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] },
     include: {
       utente: {
         select: { nome: true, cognome: true, codiceFiscale: true },
@@ -191,8 +192,7 @@ export default async function DashboardPage() {
                       <td>
                         {(() => {
                           const stato = getStatoIstanza({
-                            conclusa: istanza.conclusa,
-                            respinta: istanza.respinta,
+                            stato: istanza.stato,
                             ultimoWorkflow: istanza.workflows[0] ?? null,
                           });
                           return <Badge variant={stato.variant}>{stato.label}</Badge>;

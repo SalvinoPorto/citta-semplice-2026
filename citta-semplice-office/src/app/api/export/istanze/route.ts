@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { whereStato, whereVisibileAgliOperatori } from '@citta/db';
 import { auth } from '@/lib/auth';
 import { getVisibilitaOperatore, istanzaVisibilityWhere } from '@/lib/auth/visibilita';
 import {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
   const stato = searchParams.get('stato');
 
   // Build where clause
-  const where: Record<string, unknown> = { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] };
+  const where: Record<string, unknown> = { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] };
 
   if (codiceFiscale) {
     where.utente = {
@@ -69,12 +70,11 @@ export async function GET(request: NextRequest) {
 
   if (stato) {
     if (stato === 'aperta') {
-      where.conclusa = false;
-      where.respinta = false;
+      Object.assign(where, whereStato('IN_LAVORAZIONE'));
     } else if (stato === 'conclusa') {
-      where.conclusa = true;
+      Object.assign(where, whereStato('CONCLUSA'));
     } else if (stato === 'respinta') {
-      where.respinta = true;
+      Object.assign(where, whereStato('RESPINTA'));
     }
   }
 
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
         new Date(istanza.dataInvio).toLocaleDateString('it-IT'),
         escapeCSV(istanza.protoNumero),
         escapeCSV(istanza.protoFinaleNumero),
-        istanza.respinta ? 'Respinta' : istanza.conclusa ? 'Conclusa' : 'In Lavorazione',
+        istanza.stato === 'RESPINTA' ? 'Respinta' : istanza.stato === 'CONCLUSA' ? 'Conclusa' : 'In Lavorazione',
         ...colonne.campi.map((campo) => escapeCSV(valori.get(campo))),
         ...(colonne.campiOverflow.length > 0
           ? [escapeCSV(valoriOverflow(valori, colonne.campiOverflow))]

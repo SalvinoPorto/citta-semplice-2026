@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { whereStato } from '@citta/db';
 
 /**
  * Cron job to generate daily statistics
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.istanza.count({
         where: {
-          conclusa: true,
+          ...whereStato('CONCLUSA'),
           createdAt: {
             gte: yesterday,
             lt: today,
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.istanza.count({
         where: {
-          respinta: true,
+          ...whereStato('RESPINTA'),
           createdAt: {
             gte: yesterday,
             lt: today,

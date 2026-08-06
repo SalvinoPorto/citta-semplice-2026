@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { whereVisibileAgliOperatori } from '@citta/db';
 import { auth } from '@/lib/auth';
 import { getVisibilitaOperatore, istanzaVisibilityWhere } from '@/lib/auth/visibilita';
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   // Build where clause — limitato alle istanze visibili all'operatore
   const where: Record<string, unknown> = {
-    workflow: { istanza: { inBozza: false, AND: [istanzaVisibilityWhere(visibilita)] } },
+    workflow: { istanza: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] } },
   };
 
   if (iuv) {

@@ -43,8 +43,8 @@ export function AltreIstanzeModal({
   };
 
   const getStatusBadge = (item: IstanzaUtenteItem) => {
-    if (item.conclusa) return <Badge variant="success">Conclusa</Badge>;
-    if (item.respinta) return <Badge variant="danger">Respinta</Badge>;
+    if (item.stato === 'CONCLUSA') return <Badge variant="success">Conclusa</Badge>;
+    if (item.stato === 'RESPINTA') return <Badge variant="danger">Respinta</Badge>;
     return <Badge variant="warning">In lavorazione</Badge>;
   };
 

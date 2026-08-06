@@ -6,6 +6,8 @@ import { PrismaClient } from '../generated/prisma/client';
 // importano tutto da '@citta/db', mai dal percorso di generazione.
 export * from '../generated/prisma/client';
 
+export * from './stato-istanza';
+
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function creaClient(): PrismaClient {

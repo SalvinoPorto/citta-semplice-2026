@@ -10,6 +10,7 @@ import { generaProtocolloEmergenza } from '@/lib/services/protocollazione/Protoc
 import { generaModuloBuffer, generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
 import { validaDatiModulo } from '@/lib/form-validate';
 import { sogliaIstanzeRaggiunta, verificaUnicoInvio, MSG_SOGLIA_DEFAULT } from '@/lib/servizio-regole';
+import { datiStato, whereStato } from '@citta/db';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -202,7 +203,7 @@ export async function salvaBozza(formData: FormData) {
   try {
     if (bozzaId) {
       const bozza = await prisma.istanza.findFirst({
-        where: { id: bozzaId, utenteId: utente.id, inBozza: true },
+        where: { id: bozzaId, utenteId: utente.id, ...whereStato('BOZZA') },
       });
       if (!bozza) return { error: 'Bozza non trovata' };
 
@@ -218,7 +219,7 @@ export async function salvaBozza(formData: FormData) {
     }
 
     const bozzaEsistente = await prisma.istanza.findFirst({
-      where: { servizioId, utenteId: utente.id, inBozza: true },
+      where: { servizioId, utenteId: utente.id, ...whereStato('BOZZA') },
     });
 
     if (bozzaEsistente) {
@@ -235,11 +236,11 @@ export async function salvaBozza(formData: FormData) {
 
     // Limite 10 bozze: se l'utente ha già 10 bozze, elimina la più vecchia
     const contaBozze = await prisma.istanza.count({
-      where: { utenteId: utente.id, inBozza: true },
+      where: { utenteId: utente.id, ...whereStato('BOZZA') },
     });
     if (contaBozze >= 10) {
       const piuVecchia = await prisma.istanza.findFirst({
-        where: { utenteId: utente.id, inBozza: true },
+        where: { utenteId: utente.id, ...whereStato('BOZZA') },
         orderBy: { dataInvio: 'asc' },
       });
       if (piuVecchia) {
@@ -252,7 +253,7 @@ export async function salvaBozza(formData: FormData) {
         dati: datiRaw ? String(datiRaw) : null,
         protoNumero: 'Bozza non protocollata',
         dataInvio: new Date(),
-        inBozza: true,
+        ...datiStato('BOZZA'),
         activeStep,
         bozzaPagina,
         utenteId: utente.id,
@@ -278,7 +279,7 @@ export async function eliminaBozza(bozzaId: number) {
   if (!utente) return { error: 'Utente non trovato' };
 
   const bozza = await prisma.istanza.findFirst({
-    where: { id: bozzaId, utenteId: utente.id, inBozza: true },
+    where: { id: bozzaId, utenteId: utente.id, ...whereStato('BOZZA') },
   });
   if (!bozza) return { error: 'Bozza non trovata' };
 
@@ -351,7 +352,7 @@ export async function submitIstanza(formData: FormData) {
 
   if (servizio.unicoInvioPerUtente) {
     const esistente = await prisma.istanza.findFirst({
-      where: { servizioId, utenteId: utente.id, inBozza: false },
+      where: { servizioId, utenteId: utente.id, ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA']) },
     });
     if (esistente) {
       return { error: 'Hai già inviato una richiesta per questo servizio' };
@@ -372,7 +373,7 @@ export async function submitIstanza(formData: FormData) {
   try {
     if (bozzaId) {
       const bozza = await prisma.istanza.findFirst({
-        where: { id: bozzaId, utenteId: utente.id, inBozza: true },
+        where: { id: bozzaId, utenteId: utente.id, ...whereStato('BOZZA') },
       });
       if (!bozza) return { error: 'Bozza non trovata' };
 
@@ -418,7 +419,7 @@ export async function submitIstanza(formData: FormData) {
           dati: datiFinali,
           datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
           dataInvio: new Date(),
-          inBozza: false,
+          ...datiStato('IN_LAVORAZIONE'),
           activeStep: null,
           bozzaPagina: null,
           faseCorrenteId: primoStep?.faseId ?? null,
@@ -497,7 +498,7 @@ export async function submitIstanza(formData: FormData) {
         dati: datiFinali,
         datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
         dataInvio: new Date(),
-        inBozza: false,
+        ...datiStato('IN_LAVORAZIONE'),
         protoNumero: protoResult.numero,
         protoData: protoResult.data,
         utenteId: utente.id,

@@ -39,38 +39,27 @@ describe('schema Prisma', () => {
     }
   });
 
-  it('impedisce a una istanza di essere insieme conclusa e respinta', async () => {
-    // Test di comportamento, non di metadati: il vincolo CHECK
-    // istanze_stato_esclusivo_chk viene creato dalla migrazione 0_init
-    // (packages/db/prisma/migrations/0_init/migration.sql:611-612),
-    // applicata da `migrate deploy` in beforeAll. Qui non rileggiamo il nome
-    // del vincolo da pg_constraint: proviamo davvero a violarlo, cosi il test
-    // fallisce se il vincolo sparisce o cambia semantica — non solo se cambia
-    // nome. Il piano 2 sostituira questo vincolo con StatoIstanza.
+  it('crea l indice su stato usato dai filtri di visibilità', async () => {
+    // Fino alla migrazione di contrazione (20260805110000) l'esclusività fra
+    // "conclusa" e "respinta" era garantita dal vincolo CHECK
+    // istanze_stato_esclusivo_chk: questo test verificava quel comportamento
+    // inserendo una riga incoerente. Il vincolo e le colonne booleane non
+    // esistono più (test/integration/stato-istanza.test.ts lo verifica
+    // esplicitamente), e l'esclusività è oggi garantita dal tipo enum — una
+    // proprietà già coperta lì dal test "rifiuta un valore di stato non
+    // previsto dall enum". Ripetere lo stesso controllo qui sotto un nome
+    // diverso sarebbe un duplicato mascherato da copertura, non copertura
+    // vera. Al suo posto verifichiamo una proprietà di schema che nessun
+    // altro test copre: l'indice su "stato" (creato dalla migrazione
+    // 20260805100000_stato_istanza_enum), da cui dipendono le query di
+    // whereStato/whereVisibileAgliOperatori usate da office e portal.
     const client = new Client({ connectionString: url });
     await client.connect();
     try {
-      const area = await client.query<{ id: number }>(
-        `INSERT INTO aree (nome) VALUES ('Area di test') RETURNING id`,
+      const { rows } = await client.query<{ indexname: string }>(
+        `SELECT indexname FROM pg_indexes WHERE tablename = 'istanze' AND indexname = 'istanze_stato_idx'`,
       );
-      const servizio = await client.query<{ id: number }>(
-        `INSERT INTO servizi (titolo, area_id) VALUES ('Servizio di test', $1) RETURNING id`,
-        [area.rows[0].id],
-      );
-      const utente = await client.query<{ id: number }>(
-        `INSERT INTO utenti (codice_fiscale, nome, cognome) VALUES ('TSTTST00A00A000A', 'Test', 'Test') RETURNING id`,
-      );
-
-      const inserimentoIncoerente = client.query(
-        `INSERT INTO istanze (proto_numero, data_invio, utente_id, servizio_id, conclusa, respinta)
-         VALUES ('TEST-0001', now(), $1, $2, true, true)`,
-        [utente.rows[0].id, servizio.rows[0].id],
-      );
-
-      await expect(inserimentoIncoerente).rejects.toMatchObject({
-        code: '23514', // check_violation
-        constraint: 'istanze_stato_esclusivo_chk',
-      });
+      expect(rows).toHaveLength(1);
     } finally {
       await client.end();
     }
