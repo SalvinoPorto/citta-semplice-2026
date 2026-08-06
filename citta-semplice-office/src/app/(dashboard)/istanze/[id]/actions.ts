@@ -2,7 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db/prisma';
-import { whereVisibileAgliOperatori, datiStato, type StatoIstanzaValore } from '@citta/db';
+import {
+  whereVisibileAgliOperatori,
+  datiStato,
+  type StatoIstanzaValore,
+  prossimoStepStessaFase,
+  prossimaFase,
+  stepPrecedenteStessaFase,
+  fasePrecedente as trovaFasePrecedente,
+} from '@citta/db';
 import { getCurrentUser, requireAuth } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
 import { sendFaseTransitionEmail } from '@/lib/services/faseTransitionEmail';
@@ -181,9 +189,11 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
 
     const now = new Date();
     const currentFase = istanza.faseCorrente;
-    const nextStepSameFase = steps.find(
-      (s) => s.faseId === currentStep?.faseId && s.ordine === currentStepOrder + 1
-    );
+    // Il primo step attivo della stessa fase con ordine maggiore, non quello
+    // con ordine esattamente +1: un buco nella sequenza (step disattivato,
+    // riordino dal backoffice) faceva cadere l'avanzamento nel ramo "cambio
+    // fase" senza errore, spostando l'istanza a un altro ufficio.
+    const nextStepSameFase = prossimoStepStessaFase(steps, currentStep?.faseId, currentStepOrder);
 
     // --- Protocolla (external call — before the DB transaction, cannot be rolled back) ---
     let protoNumeroStep: string | undefined;
@@ -265,7 +275,8 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           },
         });
 
-        const nextFase = allFasi.find((f) => f.ordine === (currentFase?.ordine ?? 1) + 1);
+        // Stessa correzione applicata alle fasi: la prima con ordine maggiore.
+        const nextFase = prossimaFase(allFasi, currentFase?.ordine ?? 0);
 
         if (!nextFase) {
           await tx.istanza.update({
@@ -274,7 +285,20 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           });
           resultMessage = 'Istanza conclusa con successo';
         } else {
-          const firstStepNextFase = nextFase.steps[0];
+          const firstStepNextFase = nextFase.steps
+            .filter((s) => s.attivo)
+            .sort((a, b) => a.ordine - b.ordine)[0];
+
+          // Una fase può esistere senza step attivi (creata dal backoffice e non
+          // ancora configurata). Prima della correzione della navigazione questo
+          // ramo era irraggiungibile perché `ordine + 1` non trovava la fase;
+          // ora la trova, e senza guardia si otterrebbe un TypeError dentro la
+          // transazione, lasciando l'istanza in uno stato incoerente.
+          if (!firstStepNextFase) {
+            throw new Error(
+              `La fase "${nextFase.nome}" non ha step attivi: configurala prima di trasferirvi l'istanza.`,
+            );
+          }
 
           if (currentFase) {
             await tx.workflowFase.updateMany({
@@ -371,14 +395,19 @@ export async function regressWorkflow(istanzaId: number, note: string) {
             steps: {
               where: { attivo: true },
               orderBy: { ordine: 'asc' },
-              include: { fase: { select: { id: true, ufficioId: true } } },
+              include: { fase: { select: { id: true, ordine: true, ufficioId: true } } },
             },
+            // Serve solo per sapere se esiste una fase precedente, quando
+            // `prevStep` non viene trovato (vedi sotto): distingue "sei al
+            // primo step di questa fase, ma ce n'è una prima" da "sei
+            // davvero all'inizio dell'iter".
+            fasi: { select: { id: true, ordine: true }, orderBy: { ordine: 'asc' } },
           },
         },
         workflows: {
           orderBy: { id: 'desc' },
           take: 1,
-          include: { step: { include: { fase: { select: { id: true } } } } },
+          include: { step: { include: { fase: { select: { id: true, ordine: true } } } } },
         },
       },
     });
@@ -395,20 +424,20 @@ export async function regressWorkflow(istanzaId: number, note: string) {
     const currentStep = lastWorkflow?.step;
     const currentStepOrder = currentStep?.ordine || 0;
 
-    if (currentStepOrder <= 1) {
-      return { success: false, message: 'Impossibile retrocedere: siamo già al primo step' };
-    }
-
     const steps = istanza.servizio.steps;
-    const prevStep = steps.find((s) => s.ordine === currentStepOrder - 1);
+    // L'ultimo step attivo con ordine minore, nella stessa fase.
+    const prevStep = stepPrecedenteStessaFase(steps, currentStep?.faseId, currentStepOrder);
 
     if (!prevStep) {
-      return { success: false, message: 'Step precedente non trovato' };
-    }
-
-    // Previeni retrocessione cross-fase: usare "Rimanda a fase precedente"
-    if (prevStep.faseId !== currentStep?.faseId) {
-      return { success: false, message: 'Impossibile retrocedere oltre il primo step della fase corrente. Usa "Rimanda a fase precedente".' };
+      const esisteFasePrecedente =
+        currentStep?.fase != null &&
+        trovaFasePrecedente(istanza.servizio.fasi, currentStep.fase.ordine) !== undefined;
+      return {
+        success: false,
+        message: esisteFasePrecedente
+          ? 'Impossibile retrocedere oltre il primo step della fase corrente. Usa "Rimanda a fase precedente".'
+          : 'Impossibile retrocedere: siamo già al primo step dell\'iter.',
+      };
     }
 
     const now = new Date();
@@ -1175,16 +1204,24 @@ export async function rollbackFase(params: {
   if (!istanza) return { success: false, message: 'Istanza non trovata' };
   if (istanza.stato === 'CONCLUSA') return { success: false, message: "L'istanza è già conclusa" };
   if (istanza.stato === 'RESPINTA') return { success: false, message: "L'istanza è respinta" };
-  if (!istanza.faseCorrente || istanza.faseCorrente.ordine <= 1) {
+  if (!istanza.faseCorrente) {
     return { success: false, message: 'Non è possibile tornare a una fase precedente: questa è già la prima fase' };
   }
 
-  const fasePrecedente = istanza.servizio.fasi.find(
-    (f) => f.ordine === istanza.faseCorrente!.ordine - 1
-  );
-  if (!fasePrecedente) return { success: false, message: 'Fase precedente non trovata' };
+  // L'ultima fase con ordine minore di quella corrente, non "ordine - 1": un
+  // buco negli ordini delle fasi (una fase eliminata, ordini 1,3,5) faceva
+  // fallire la ricerca pur esistendo una fase precedente, e la vecchia
+  // guardia `ordine <= 1` presumeva che gli ordini partissero da 1 e fossero
+  // contigui. La condizione vera è "non esiste alcuna fase con ordine
+  // minore", cioè il risultato di questa ricerca è assente.
+  const fasePrecedente = trovaFasePrecedente(istanza.servizio.fasi, istanza.faseCorrente.ordine);
+  if (!fasePrecedente) {
+    return { success: false, message: 'Non è possibile tornare a una fase precedente: questa è già la prima fase' };
+  }
 
-  const lastStepFasePrecedente = fasePrecedente.steps[fasePrecedente.steps.length - 1];
+  const lastStepFasePrecedente = fasePrecedente.steps
+    .filter((s) => s.attivo)
+    .sort((a, b) => b.ordine - a.ordine)[0];
   if (!lastStepFasePrecedente) return { success: false, message: 'Nessuno step nella fase precedente' };
 
   const now = new Date();
