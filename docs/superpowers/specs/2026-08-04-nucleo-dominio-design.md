@@ -407,3 +407,78 @@ Il provider di autenticazione `credentials` del portale dichiarava un campo `pas
 non lo verificava mai: bastava un codice fiscale per impersonare qualunque cittadino.
 Rimosso nel commit `716bd47`. L'identità del cittadino si stabilisce solo via SPID/CIE
 (provider `cig-sso`).
+
+---
+
+# Appendice — quanto appreso eseguendo il piano 2a
+
+Aggiunta il 2026-08-06, dopo l'esecuzione del primo sotto-piano (D1 e D5). Vincola i
+piani successivi: sono errori già pagati una volta.
+
+## A1 — Gli `ordine` degli `Step` sono globali per servizio, non per fase
+
+`buildStepData` (`citta-semplice-office/src/app/(dashboard)/amministrazione/servizi/actions.ts:11`)
+assegna `ordine: idx + 1` sull'array **piatto** dei passi, che attraversa tutte le fasi.
+`isLastStep` (`citta-semplice-office/src/app/(dashboard)/istanze/[id]/page.tsx:191-192`)
+deriva l'ultimo passo dell'iter dal massimo su **tutto il servizio**.
+
+Quindi la coppia univoca corretta è `(servizioId, ordine)` — proprio quella lasciata
+commentata nello schema — **non** `(faseId, ordine)`. Il piano 2a ha letto quel commento
+come una dimenticanza da correggere e ha introdotto la coppia sbagliata: ne sono seguiti
+due difetti gravi, che il vincolo rompesse ogni riordino di step dal backoffice
+(`updateServizio` riscrive gli ordini una `UPDATE` per volta, e un indice unico non è
+differibile), e che una rinumerazione per fase sfasasse `isLastStep`, facendo comparire
+"Concludi" all'operatore di una fase intermedia.
+
+**Conseguenza per chi tocca `Step.ordine`:** i consumatori non sono solo quelli che
+*leggono* per navigare, ma anche chi *scrive* (il form di amministrazione) e chi ne
+*deduce proprietà* (la pagina di dettaglio). Censirli tutti prima di cambiare
+numerazione o vincoli.
+
+## A2 — Un elenco di punti da correggere è un punto di partenza, non un censimento
+
+Il piano 2a elencava 12 file da convertire: ne servivano 16. Elencava tre punti di
+aritmetica sugli ordini: ne sono emersi sette, di cui uno solo dopo la review finale.
+Ogni task che dichiara "i punti sono questi" va aperto con un `grep` che li riverifichi,
+e il risultato del grep prevale sull'elenco.
+
+## A3 — Un test vale solo se fallisce quando la cosa che protegge si rompe
+
+Il piano 2a ha prodotto due volte lo stesso difetto, entrambe sfuggite alla prima
+revisione: un test che ridigitava l'SQL di una migrazione invece di eseguirla (sarebbe
+rimasto verde togliendo l'istruzione che verificava), e tre test che replicavano in SQL
+una logica scritta in TypeScript (sarebbero rimasti verdi reintroducendo il bug).
+
+Regole per i piani successivi:
+
+- Un test su una migrazione deve **leggere il file da disco** ed eseguirlo, mai
+  riprodurne il contenuto.
+- Una logica va **estratta in funzione pura** e testata direttamente, invece di essere
+  riprodotta nel test in un altro linguaggio.
+- Ogni test non banale va accompagnato da una **verifica negativa**: rompere
+  deliberatamente ciò che protegge e osservarlo fallire. Va eseguita come **ultimo passo
+  prima del commit**, o su una copia: durante il piano 2a un'interruzione a metà
+  verifica ha lasciato nel working tree la versione sabotata, scambiabile per quella
+  buona.
+- Estrarre in funzione pura non basta se nessun test esercita il **chiamante**:
+  reintrodurre l'aritmetica direttamente in `advanceWorkflow` lascerebbe verdi tutti i
+  test, perché le funzioni pure resterebbero corrette e semplicemente non chiamate.
+
+## A4 — Il ciclo espansione → contrazione protegge l'albero di sviluppo, non il rilascio
+
+Le tre migrazioni girano consecutive nello stesso `migrate deploy`, senza che alcuna
+applicazione scriva fra l'una e l'altra: il riallineamento è di fatto un no-op in
+produzione. Serve invece a far sì che ogni task lasci l'albero compilante e i test verdi.
+
+**Non rende il rilascio zero-downtime:** fra l'applicazione della contrazione e il
+rilascio del codice nuovo, il codice vecchio che seleziona le colonne eliminate va in
+errore. Se il deploy non è atomico, serve una finestra di manutenzione.
+
+## A5 — Vincoli d'ambiente
+
+- `prisma migrate dev --create-only` fallisce con **P3014**: l'utente del database di
+  sviluppo non può creare lo shadow database. Le migrazioni vanno scritte a mano, e
+  nessuno strumento verifica la corrispondenza fra SQL e schema Prisma — la revisione
+  deve controllarla esplicitamente.
+- Il database di sviluppo non riceve le migrazioni automaticamente: va allineato con
+  `migrate deploy` prima di avviare le applicazioni in locale.
