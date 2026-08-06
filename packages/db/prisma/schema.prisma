@@ -289,7 +289,12 @@ model Step {
   allegatiRichiestiList       AllegatoRichiesto[]
   pagamentoConfig             Pagamento?
 
-  //@@unique([servizioId, ordine])
+  // Vincolo (servizioId, ordine) applicato come INDICE PARZIALE
+  // (`steps_servizio_id_ordine_attivi_key`, WHERE attivo = true) dalla
+  // migrazione `20260806130000_step_unique_servizio_ordine`, non qui: il DSL
+  // di Prisma non esprime indici parziali, e un `@@unique` totale
+  // fallirebbe non appena due step venissero disattivati con lo stesso
+  // ordine (caso normale: il soft delete non li rinumera).
   @@map("steps")
 }
 

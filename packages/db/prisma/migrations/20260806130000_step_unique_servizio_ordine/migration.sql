@@ -17,13 +17,12 @@ SET ordine = r.nuovo_ordine
 FROM rinumerati r
 WHERE s.id = r.id AND s.ordine <> r.nuovo_ordine;
 
--- Gli step disattivati escono dallo spazio degli ordini validi: restano in
--- tabella perché i workflow storici li referenziano, ma non occupano slot.
-UPDATE steps SET ordine = 0 WHERE attivo = false AND ordine <> 0;
-
 -- Indice PARZIALE: solo gli step attivi partecipano al vincolo. Non è
 -- dichiarato nello schema Prisma perché il DSL non esprime indici parziali,
--- e un `@@unique` totale includerebbe le righe disattivate.
+-- e un `@@unique` totale includerebbe le righe disattivate. Proprio perché
+-- l'indice è parziale, gli step disattivati non hanno bisogno di uscire
+-- dallo spazio degli ordini 1..n: conservano il loro ordine storico, anche
+-- se duplicato con altri step (attivi o disattivati).
 CREATE UNIQUE INDEX "steps_servizio_id_ordine_attivi_key"
   ON "steps" ("servizio_id", "ordine")
   WHERE "attivo" = true;

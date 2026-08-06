@@ -13,6 +13,7 @@ interface Workflow {
   dataVariazione: Date;
   stato: number;
   operatoreId: number | null;
+  stepId: number | null;
   step: {
     id: number;
     descrizione: string;
@@ -275,22 +276,26 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     (a, b) => new Date(a.dataVariazione).getTime() - new Date(b.dataVariazione).getTime()
   );
 
-  const eventsByOrdine = new Map<number, Workflow[]>();
+  // Chiave per `stepId`, non per `step.ordine`: è un identificatore stabile
+  // e univoco, immune a step disattivati che condividono lo stesso `ordine`.
+  // Il sentinel 0 non collide con nessuno stepId reale (autoincrementale da
+  // 1) e indica "workflow senza step".
+  const eventsByStepId = new Map<number, Workflow[]>();
   for (const wf of sorted) {
-    const key = wf.step?.ordine ?? 0;
-    if (!eventsByOrdine.has(key)) eventsByOrdine.set(key, []);
-    eventsByOrdine.get(key)!.push(wf);
+    const key = wf.stepId ?? 0;
+    if (!eventsByStepId.has(key)) eventsByStepId.set(key, []);
+    eventsByStepId.get(key)!.push(wf);
   }
 
-  function stepStatus(ordine: number) {
-    const events = eventsByOrdine.get(ordine);
+  function stepStatus(stepId: number) {
+    const events = eventsByStepId.get(stepId);
     if (!events || events.length === 0) return '';
     const last = events[events.length - 1];
     return getStatusClass(last.operatoreId, last.stato);
   }
 
-  function getActiveWorkflowForStep(ordine: number) {
-    return eventsByOrdine.get(ordine)?.find(wf => wf.operatoreId !== null && wf.stato === 0) ?? null;
+  function getActiveWorkflowForStep(stepId: number) {
+    return eventsByStepId.get(stepId)?.find(wf => wf.operatoreId !== null && wf.stato === 0) ?? null;
   }
 
   function statoLabel(wf: Workflow) {
@@ -303,8 +308,8 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     <>
       <div className="timeline">
         {steps.map((step) => {
-          const status = stepStatus(step.ordine);
-          const events = eventsByOrdine.get(step.ordine) ?? [];
+          const status = stepStatus(step.id);
+          const events = eventsByStepId.get(step.id) ?? [];
           const reached = events.length > 0;
           const last = events[events.length - 1];
           // Pagamento: preso dall'ultimo evento che ne ha uno

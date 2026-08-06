@@ -256,12 +256,12 @@ export async function updateServizio(id: number, data: ServizioFormData) {
       const toHardDelete = removedIds.filter((sid) => !referencedIds.includes(sid));
 
       if (toSoftDelete.length > 0) {
-        // Uno step disattivato non appartiene più all'iter: azzerare l'ordine
-        // libera lo slot 1..n, che l'indice univoco parziale (servizioId, ordine)
-        // WHERE attivo altrimenti gli lascerebbe occupato per sempre.
+        // L'indice univoco su (servizioId, ordine) è PARZIALE (WHERE attivo):
+        // gli step disattivati non vi partecipano già, quindi non serve
+        // liberarne l'ordine. Lo conservano, come valore storico.
         await tx.step.updateMany({
           where: { id: { in: toSoftDelete } },
-          data: { attivo: false, ordine: 0 },
+          data: { attivo: false },
         });
       }
       if (toHardDelete.length > 0) {
@@ -367,123 +367,142 @@ export async function deleteServizio(id: number) {
 }
 
 export async function cloneServizio(id: number) {
-  const original = await prisma.servizio.findUnique({
-    where: { id },
-    include: {
-      steps: {
-        include: { pagamentoConfig: true, allegatiRichiestiList: true },
-        orderBy: { ordine: 'asc' },
+  // In transazione: senza, un fallimento a metà (per esempio nel loop di
+  // pagamenti/allegati) lascerebbe il servizio originale già disattivato
+  // con un clone orfano, offline per i cittadini senza un sostituto valido.
+  const clonedId = await prisma.$transaction(async (tx) => {
+    const original = await tx.servizio.findUnique({
+      where: { id },
+      include: {
+        steps: {
+          include: { pagamentoConfig: true, allegatiRichiestiList: true },
+          orderBy: { ordine: 'asc' },
+        },
       },
-    },
+    });
+
+    if (!original) {
+      return null;
+    }
+
+    // Deactivate original
+    await tx.servizio.update({
+      where: { id },
+      data: { attivo: false },
+    });
+
+    // Generate new slug
+    let newSlug = original.slug ? `${original.slug}-copia` : undefined;
+    if (newSlug) {
+      let counter = 1;
+      while (await tx.servizio.findFirst({ where: { slug: newSlug } })) {
+        newSlug = `${original.slug}-copia-${counter}`;
+        counter++;
+      }
+    }
+
+    const cloned = await tx.servizio.create({
+      data: {
+        titolo: `${original.titolo} (Copia)`,
+        sottoTitolo: original.sottoTitolo,
+        descrizione: original.descrizione,
+        comeFare: original.comeFare,
+        cosaServe: original.cosaServe,
+        altreInfo: original.altreInfo,
+        contatti: original.contatti,
+        slug: newSlug,
+        icona: original.icona,
+        ordine: original.ordine,
+        attivo: false,
+        areaId: original.areaId,
+        ufficioId: original.ufficioId,
+        dataInizio: original.dataInizio,
+        dataFine: original.dataFine,
+        unicoInvio: original.unicoInvio,
+        unicoInvioPerUtente: original.unicoInvioPerUtente,
+        campiUnicoInvio: original.campiUnicoInvio,
+        numeroMaxIstanze: original.numeroMaxIstanze,
+        msgSopraSoglia: original.msgSopraSoglia,
+        msgExtraServizio: original.msgExtraServizio,
+        campiInEvidenza: original.campiInEvidenza,
+        campiDaEsportare: original.campiDaEsportare,
+        // prevedeDocumentoFinale: original.prevedeDocumentoFinale,
+        // templateDocumentoFinale: original.templateDocumentoFinale,
+        // nomeDocumentoFinale: original.nomeDocumentoFinale,
+        //moduloTipo: original.moduloTipo,
+        attributi: original.attributi,
+        postFormValidation: original.postFormValidation,
+        postFormValidationAPI: original.postFormValidationAPI,
+        postFormValidationFields: original.postFormValidationFields,
+        steps: {
+          create: original.steps.map((step) => ({
+            descrizione: step.descrizione,
+            ordine: step.ordine,
+            attivo: step.attivo,
+            pagamento: step.pagamento,
+            allegati: step.allegati,
+            allegatiOp: step.allegatiOp,
+            allegatiRequired: step.allegatiRequired,
+            allegatiOpRequired: step.allegatiOpRequired,
+            protocollo: step.protocollo,
+            tipoProtocollo: step.tipoProtocollo,
+            unitaOrganizzativa: step.unitaOrganizzativa,
+            numerazioneInterna: step.numerazioneInterna,
+          })),
+        },
+      },
+      // orderBy id: gli step clonati sono creati nello stesso ordine
+      // dell'array `original.steps` (id autoincrementali), quindi l'indice
+      // di posizione i-esimo corrisponde all'i-esimo step originale.
+      include: { steps: { orderBy: { id: 'asc' } } },
+    });
+
+    // Clone payment configs e allegati richiesti: corrispondenza
+    // POSIZIONALE (stesso ordine di creazione fra i due array), non per
+    // `ordine` — che con step disattivati può ripetersi, facendo collidere
+    // più step originali sullo stesso step clonato (Pagamento.stepId @unique
+    // → P2002, allegati accatastati su un solo step).
+    for (let i = 0; i < original.steps.length; i++) {
+      const originalStep = original.steps[i];
+      const clonedStep = cloned.steps[i];
+      if (!clonedStep) continue;
+
+      if (originalStep.pagamentoConfig) {
+        await tx.pagamento.create({
+          data: {
+            stepId: clonedStep.id,
+            codiceTributo: originalStep.pagamentoConfig.codiceTributo,
+            descrizioneTributo: originalStep.pagamentoConfig.descrizioneTributo,
+            importo: originalStep.pagamentoConfig.importo,
+            importoVariabile: originalStep.pagamentoConfig.importoVariabile,
+            causale: originalStep.pagamentoConfig.causale,
+            causaleVariabile: originalStep.pagamentoConfig.causaleVariabile,
+            obbligatorio: originalStep.pagamentoConfig.obbligatorio,
+            tipologiaPagamento: originalStep.pagamentoConfig.tipologiaPagamento,
+          },
+        });
+      }
+
+      if (originalStep.allegatiRichiestiList.length > 0) {
+        await tx.allegatoRichiesto.createMany({
+          data: originalStep.allegatiRichiestiList.map((a) => ({
+            stepId: clonedStep.id,
+            nomeAllegatoRichiesto: a.nomeAllegatoRichiesto,
+            obbligatorio: a.obbligatorio,
+            interno: a.interno,
+            soggetto: a.soggetto,
+          })),
+        });
+      }
+    }
+
+    return cloned.id;
   });
 
-  if (!original) {
+  if (clonedId === null) {
     return { error: 'Servizio non trovato' };
   }
 
-  // Deactivate original
-  await prisma.servizio.update({
-    where: { id },
-    data: { attivo: false },
-  });
-
-  // Generate new slug
-  let newSlug = original.slug ? `${original.slug}-copia` : undefined;
-  if (newSlug) {
-    let counter = 1;
-    while (await prisma.servizio.findFirst({ where: { slug: newSlug } })) {
-      newSlug = `${original.slug}-copia-${counter}`;
-      counter++;
-    }
-  }
-
-  const cloned = await prisma.servizio.create({
-    data: {
-      titolo: `${original.titolo} (Copia)`,
-      sottoTitolo: original.sottoTitolo,
-      descrizione: original.descrizione,
-      comeFare: original.comeFare,
-      cosaServe: original.cosaServe,
-      altreInfo: original.altreInfo,
-      contatti: original.contatti,
-      slug: newSlug,
-      icona: original.icona,
-      ordine: original.ordine,
-      attivo: false,
-      areaId: original.areaId,
-      ufficioId: original.ufficioId,
-      dataInizio: original.dataInizio,
-      dataFine: original.dataFine,
-      unicoInvio: original.unicoInvio,
-      unicoInvioPerUtente: original.unicoInvioPerUtente,
-      campiUnicoInvio: original.campiUnicoInvio,
-      numeroMaxIstanze: original.numeroMaxIstanze,
-      msgSopraSoglia: original.msgSopraSoglia,
-      msgExtraServizio: original.msgExtraServizio,
-      campiInEvidenza: original.campiInEvidenza,
-      campiDaEsportare: original.campiDaEsportare,
-      // prevedeDocumentoFinale: original.prevedeDocumentoFinale,
-      // templateDocumentoFinale: original.templateDocumentoFinale,
-      // nomeDocumentoFinale: original.nomeDocumentoFinale,
-      //moduloTipo: original.moduloTipo,
-      attributi: original.attributi,
-      postFormValidation: original.postFormValidation,
-      postFormValidationAPI: original.postFormValidationAPI,
-      postFormValidationFields: original.postFormValidationFields,
-      steps: {
-        create: original.steps.map((step) => ({
-          descrizione: step.descrizione,
-          ordine: step.ordine,
-          attivo: step.attivo,
-          pagamento: step.pagamento,
-          allegati: step.allegati,
-          allegatiOp: step.allegatiOp,
-          allegatiRequired: step.allegatiRequired,
-          allegatiOpRequired: step.allegatiOpRequired,
-          protocollo: step.protocollo,
-          tipoProtocollo: step.tipoProtocollo,
-          unitaOrganizzativa: step.unitaOrganizzativa,
-          numerazioneInterna: step.numerazioneInterna,
-        })),
-      },
-    },
-    include: { steps: true },
-  });
-
-  // Clone payment configs and allegati richiesti
-  for (const originalStep of original.steps) {
-    const clonedStep = cloned.steps.find((s) => s.ordine === originalStep.ordine);
-    if (!clonedStep) continue;
-
-    if (originalStep.pagamentoConfig) {
-      await prisma.pagamento.create({
-        data: {
-          stepId: clonedStep.id,
-          codiceTributo: originalStep.pagamentoConfig.codiceTributo,
-          descrizioneTributo: originalStep.pagamentoConfig.descrizioneTributo,
-          importo: originalStep.pagamentoConfig.importo,
-          importoVariabile: originalStep.pagamentoConfig.importoVariabile,
-          causale: originalStep.pagamentoConfig.causale,
-          causaleVariabile: originalStep.pagamentoConfig.causaleVariabile,
-          obbligatorio: originalStep.pagamentoConfig.obbligatorio,
-          tipologiaPagamento: originalStep.pagamentoConfig.tipologiaPagamento,
-        },
-      });
-    }
-
-    if (originalStep.allegatiRichiestiList.length > 0) {
-      await prisma.allegatoRichiesto.createMany({
-        data: originalStep.allegatiRichiestiList.map((a) => ({
-          stepId: clonedStep.id,
-          nomeAllegatoRichiesto: a.nomeAllegatoRichiesto,
-          obbligatorio: a.obbligatorio,
-          interno: a.interno,
-          soggetto: a.soggetto,
-        })),
-      });
-    }
-  }
-
   revalidatePath('/amministrazione/servizi');
-  redirect(`/amministrazione/servizi/${cloned.id}`);
+  redirect(`/amministrazione/servizi/${clonedId}`);
 }
