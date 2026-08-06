@@ -12,6 +12,7 @@ import { IstanzaActions } from './istanza-actions';
 import { AltreIstanzeModal } from './altre-istanze-modal';
 import { ASSIGNEDTO } from '@/lib/models/assigned-to';
 import { costruisciRiepilogo, parseCampi, type VoceRiepilogo } from '@citta/form-schema';
+import { prossimaFase, fasePrecedente as trovaFasePrecedente } from '@citta/db';
 
 async function getIstanza(id: number) {
   const istanza = await prisma.istanza.findUnique({
@@ -138,14 +139,16 @@ export default async function IstanzaDetailPage({
       : ASSIGNEDTO.OTHER;
 
   const faseCorrente = istanza.faseCorrente ?? null;
-  const fasePrecedente = faseCorrente && faseCorrente.ordine > 1
-    ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine - 1) ?? null
+  // Stessa risoluzione che usa `rollbackFase`: se le due divergono, il pulsante
+  // e l'azione che innesca smettono di essere d'accordo.
+  const fasePrecedente = faseCorrente
+    ? trovaFasePrecedente(istanza.servizio.fasi, faseCorrente.ordine) ?? null
     : null;
   const canRollbackFase = istanza.stato !== 'CONCLUSA' && istanza.stato !== 'RESPINTA' && fasePrecedente !== null;
 
   // Prossima fase (per sapere se ha ufficio variabile al momento dell'avanzamento)
   const nextFase = faseCorrente
-    ? istanza.servizio.fasi.find(f => f.ordine === faseCorrente.ordine + 1) ?? null
+    ? prossimaFase(istanza.servizio.fasi, faseCorrente.ordine) ?? null
     : null;
 
   // Ufficio che sta lavorando l'istanza: quello della fase corrente. Per le istanze
@@ -188,7 +191,11 @@ export default async function IstanzaDetailPage({
   const currentStep = lastWorkflow?.step ?? null;
   const stepPagamentoConfig = currentStep?.pagamentoConfig ?? null;
   const steps = istanza.servizio.steps;
-  const lastStepOrdine = steps.length > 0 ? steps[steps.length - 1].ordine : 0;
+  // Gli `ordine` degli step sono globali sul servizio, non per fase: l'ultimo
+  // passo dell'iter è quello con ordine massimo fra gli step attivi, non
+  // l'ultimo elemento dell'array come caricato.
+  const stepAttivi = steps.filter((s) => s.attivo);
+  const lastStepOrdine = stepAttivi.reduce((max, s) => (s.ordine > max ? s.ordine : max), 0);
   const isLastStep = currentStep ? currentStep.ordine === lastStepOrdine : false;
   const isFirstStepOfCurrentFase = currentStep
     ? !steps.some((s) => s.faseId === currentStep.faseId && s.ordine < currentStep.ordine)
