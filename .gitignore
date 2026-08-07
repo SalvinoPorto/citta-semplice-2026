@@ -65,3 +65,6 @@ citta-semplice-portal/generated
 
 # credenziali locali per gli script db:* di @citta/db (vedi packages/db/.env.example)
 packages/db/.env
+
+# Workspace di lavoro di superpowers (ledger, brief, report di review)
+.superpowers/
