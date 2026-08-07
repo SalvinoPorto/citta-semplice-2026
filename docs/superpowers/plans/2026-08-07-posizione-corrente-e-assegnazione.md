@@ -585,9 +585,12 @@ async function creaScenario(suffisso: string) {
   const utente = await client.query<{ id: number }>(
     `INSERT INTO utenti (codice_fiscale, nome, cognome) VALUES ($1, 'Mario', 'Rossi') RETURNING id`,
     [`CF${suffisso}`.padEnd(16, 'X')]);
+  // `operatori` richiede email, password, nome, cognome e user_name (NON
+  // `username`): vedi packages/db/prisma/schema.prisma:49-56.
   const operatore = await client.query<{ id: number }>(
-    `INSERT INTO operatori (username, nome, cognome, password) VALUES ($1, 'Anna', 'Bianchi', 'x') RETURNING id`,
-    [`op-${suffisso}`]);
+    `INSERT INTO operatori (email, password, nome, cognome, user_name)
+     VALUES ($1, 'x', 'Anna', 'Bianchi', $2) RETURNING id`,
+    [`op-${suffisso}@test.it`, `op-${suffisso}`]);
   return {
     servizioId: servizio.rows[0].id,
     faseUnoId: faseUno.rows[0].id,
@@ -926,25 +929,41 @@ export function whereTab(tab: string, operatoreId: number): Prisma.IstanzaWhereI
 export const TAB_CONTEGGIATI = ['nuove', 'mie', 'altri', 'respinte', 'concluse'] as const;
 ```
 
-- [ ] **Step 2: Scrivere il test di equivalenza (fallirà)**
+- [ ] **Step 2: Scrivere il test di equivalenza**
 
-Create `test/integration/tab-istanze.test.ts`. Costruisce le sette configurazioni rilevanti e verifica insiemi e conteggi con SQL che riproduce **le condizioni della specifica**, non l'implementazione TypeScript:
+Create `test/integration/tab-istanze.test.ts`.
+
+**Il test deve esercitare `whereTab`, non riprodurne le condizioni in SQL.** Un test che ricalca in SQL la logica scritta in TypeScript resta verde anche quando quella logica si rompe: è il difetto che il piano 2a ha pagato due volte (appendice A3). Quindi il file costruisce un `PrismaClient` sul container di test e passa il risultato di `whereTab` a `findMany`.
 
 ```ts
 import { describe, it, expect, beforeAll, afterAll, inject } from 'vitest';
 import { Client } from 'pg';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@citta/db';
+import { whereTab } from '../../citta-semplice-office/src/lib/istanze/filtri-tab';
 
 let client: Client;
+let prisma: PrismaClient;
+let pool: Pool;
 let scenario: Awaited<ReturnType<typeof costruisciDataset>>;
 
 beforeAll(async () => {
-  client = new Client({ connectionString: inject('urlPostgres') });
+  const url = inject('urlPostgres');
+  client = new Client({ connectionString: url });
   await client.connect();
+  // Le righe di appoggio si inseriscono in SQL grezzo (più diretto per
+  // costruire configurazioni precise); le ASSERZIONI passano da Prisma e da
+  // `whereTab`, che è il codice sotto test.
+  pool = new Pool({ connectionString: url });
+  prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
   scenario = await costruisciDataset();
 });
 
 afterAll(async () => {
   await client?.end();
+  await prisma?.$disconnect();
+  await pool?.end();
 });
 
 /**
@@ -971,9 +990,11 @@ async function costruisciDataset() {
   const utente = (await client.query<{ id: number }>(
     `INSERT INTO utenti (codice_fiscale, nome, cognome) VALUES ('CFTABXXXXXXXXXX', 'Mario', 'Rossi') RETURNING id`)).rows[0].id;
   const io = (await client.query<{ id: number }>(
-    `INSERT INTO operatori (username, nome, cognome, password) VALUES ('io-tab', 'Anna', 'Bianchi', 'x') RETURNING id`)).rows[0].id;
+    `INSERT INTO operatori (email, password, nome, cognome, user_name)
+     VALUES ('io@tab.it', 'x', 'Anna', 'Bianchi', 'io-tab') RETURNING id`)).rows[0].id;
   const altro = (await client.query<{ id: number }>(
-    `INSERT INTO operatori (username, nome, cognome, password) VALUES ('altro-tab', 'Luca', 'Verdi', 'x') RETURNING id`)).rows[0].id;
+    `INSERT INTO operatori (email, password, nome, cognome, user_name)
+     VALUES ('altro@tab.it', 'x', 'Luca', 'Verdi', 'altro-tab') RETURNING id`)).rows[0].id;
 
   async function istanza(proto: string, stato: string, faseId: number | null, assegnatario: number | null) {
     const res = await client.query<{ id: number }>(
@@ -995,16 +1016,18 @@ async function costruisciDataset() {
   };
 }
 
+/**
+ * Passa dal CODICE SOTTO TEST: `whereTab` costruisce il filtro, Prisma lo
+ * esegue. Ricalcare qui le condizioni in SQL avrebbe lasciato il test verde
+ * anche rompendo `whereTab` — il difetto che il piano 2a ha pagato due volte.
+ */
 async function idsDelTab(tab: 'nuove' | 'mie' | 'altri', operatoreId: number): Promise<number[]> {
-  const condizione = {
-    nuove: `assegnatario_id IS NULL`,
-    mie: `assegnatario_id = $1`,
-    altri: `assegnatario_id IS NOT NULL AND assegnatario_id <> $1`,
-  }[tab];
-  const { rows } = await client.query<{ id: number }>(
-    `SELECT id FROM istanze WHERE stato = 'IN_LAVORAZIONE' AND ${condizione} AND proto_numero LIKE 'TAB-%' ORDER BY id`,
-    [operatoreId]);
-  return rows.map((r) => r.id);
+  const istanze = await prisma.istanza.findMany({
+    where: { ...whereTab(tab, operatoreId), protoNumero: { startsWith: 'TAB-' } },
+    select: { id: true },
+    orderBy: { id: 'asc' },
+  });
+  return istanze.map((i) => i.id);
 }
 
 describe('tab della lista istanze', () => {
@@ -1051,10 +1074,23 @@ describe('tab della lista istanze', () => {
 });
 ```
 
-- [ ] **Step 3: Eseguire il test**
+- [ ] **Step 3: Eseguire il test, prima senza e poi con l'implementazione**
 
-Run: `npm run test:integration -- tab-istanze`
-Expected: PASS. Le condizioni sono già soddisfatte dallo schema del Task 3 e dal trigger: questo test fissa il comportamento **atteso dalla lista**, che lo Step 4 deve riprodurre in Prisma.
+Il modulo dello Step 1 è l'implementazione: per vedere il test fallire, toglila.
+
+```bash
+mv citta-semplice-office/src/lib/istanze/filtri-tab.ts /tmp/filtri-tab.ts
+npm run test:integration -- tab-istanze
+```
+Expected: FAIL — il file importato non esiste.
+
+```bash
+mv /tmp/filtri-tab.ts citta-semplice-office/src/lib/istanze/filtri-tab.ts
+npm run test:integration -- tab-istanze
+```
+Expected: PASS, 6 test.
+
+Su PowerShell usa `Move-Item` e una cartella dello scratchpad al posto di `/tmp`. **Ripristina il file prima di proseguire.**
 
 - [ ] **Step 4: Riscrivere i contatori**
 
@@ -1169,9 +1205,9 @@ Run: `npm run build`
 Cambia temporaneamente in `filtri-tab.ts` il caso `'altri'` rimuovendo la clausola `assegnatarioId: { not: null }`.
 
 Run: `npm run test:integration -- tab-istanze`
-Expected: FAIL su "i tre tab sono una partizione" — il tab "Di altri" tornerebbe a includere le non assegnate.
+Expected: FAIL su "«Di altri» esclude sia le mie sia quelle non assegnate" e su "i tre tab sono una partizione".
 
-Se il test **non** fallisce, significa che riproduce la specifica in SQL invece di esercitare `whereTab`: aggiungi al file un test che importa `whereTab` e ne verifica il risultato contro il database via Prisma. **Ripristina la clausola prima di committare.**
+Se il test **non** fallisce, il file non sta esercitando `whereTab`: verifica che `idsDelTab` passi davvero da `prisma.istanza.findMany({ where: whereTab(...) })` e non da SQL grezzo. **Ripristina la clausola prima di committare.**
 
 - [ ] **Step 12: Commit**
 
@@ -1611,7 +1647,7 @@ DROP INDEX "istanze_stato_idx";
 
 Modify `packages/db/prisma/schema.prisma`:
 - nel modello `Workflow`, elimina il blocco di commento "Binario voluto..." e le righe `stato`, `operatoreId`, `operatore`;
-- nel modello `Operatore`, elimina la relazione inversa verso `Workflow.operatore` (il nome esatto lo dà `npm run db:generate`, che fallisce finché resta orfana);
+- nel modello `Operatore`, elimina `workflows Workflow[]` (`packages/db/prisma/schema.prisma:70`), che è la relazione inversa di `Workflow.operatore` e resterebbe orfana;
 - nel modello `Istanza`, elimina `@@index([stato])`.
 
 Run: `npm run db:generate`
@@ -1757,7 +1793,7 @@ Modify `packages/db/prisma/schema.prisma`:
 - `model Workflow` → `model IstanzaAttivita`, con `@@map("istanza_attivita")`;
 - `model WorkflowFase` → `model IstanzaFase`, con `@@map("istanza_fasi")`;
 - `dataVariazione` → `iniziataAt`, **mantenendo** `@map("data_variazione")`: il nome della colonna non cambia, cambia solo quello del campo;
-- ogni riferimento di tipo e ogni nome di campo relazione (`workflows` → `attivita`, `workflowFasi` → `fasi`, `istanzaCorrentePer` invariato);
+- ogni riferimento di tipo e ogni nome di campo relazione: `Istanza.workflows` → `attivita`, `Istanza.workflowFasi` → `fasi`, `Step.workflows` → `attivita`, `Fase.workflowFasi` → `fasi`, `Operatore.workflowFasiCompletati` → `fasiCompletate` (`packages/db/prisma/schema.prisma:72`), `istanzaCorrentePer` invariato;
 - aggiorna il commento di sezione `// WORKFLOW` in `// ATTIVITÀ DELL'ISTANZA`.
 
 Run: `npm run db:generate`
