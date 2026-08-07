@@ -70,6 +70,8 @@ model Operatore {
   workflows         Workflow[]
   comunicazioni     Comunicazione[]
   workflowFasiCompletati  WorkflowFase[]
+  istanzeAssegnate    Istanza[]  @relation("IstanzeAssegnate")
+  attivitaCompletate  Workflow[] @relation("AttivitaCompletate")
 
   @@index([userName])
   @@map("operatori")
@@ -394,6 +396,21 @@ model Istanza {
   faseCorrenteId      Int?      @map("fase_corrente_id")
   faseCorrente        Fase?     @relation("FaseCorrente", fields: [faseCorrenteId], references: [id], onDelete: SetNull)
 
+  // Posizione corrente e assegnazione: colonne denormalizzate mantenute dal
+  // DATABASE, non dal codice applicativo (specifica B3).
+  //   - attivitaCorrenteId: trigger AFTER INSERT su istanza_attivita. Nessuna
+  //     applicazione la scrive: la corrente è l'ultima inserita.
+  //   - assegnatarioId: scritta da takeCharge, ma azzerata da un trigger
+  //     BEFORE UPDATE quando cambia faseCorrenteId.
+  // Il precedente di `last_step_id` (introdotta, andata fuori sincrono,
+  // rimossa) è la ragione per cui non sono affidate al codice: due
+  // applicazioni scrivono su questo database.
+  attivitaCorrenteId  Int?      @unique @map("attivita_corrente_id")
+  attivitaCorrente    Workflow? @relation("AttivitaCorrente", fields: [attivitaCorrenteId], references: [id], onDelete: SetNull)
+
+  assegnatarioId      Int?       @map("assegnatario_id")
+  assegnatario        Operatore? @relation("IstanzeAssegnate", fields: [assegnatarioId], references: [id], onDelete: SetNull)
+
   workflows           Workflow[]
   comunicazioni       Comunicazione[]
   workflowFasi        WorkflowFase[]
@@ -403,6 +420,8 @@ model Istanza {
   @@index([dataInvio])
   @@index([protoNumero])
   @@index([stato])
+  @@index([stato, assegnatarioId])
+  @@index([faseCorrenteId])
   @@map("istanze")
 }
 
@@ -427,6 +446,15 @@ model Workflow {
   stato           Int       @default(0)
   operatoreId     Int?      @map("operatore_id")
   operatore       Operatore? @relation(fields: [operatoreId], references: [id])
+
+  // Completamento dell'attività. `completataDaId` è chi l'ha CHIUSA: storico,
+  // non assegnazione. `completataAt` NULL = attività aperta, e sostituisce il
+  // vecchio `stato` binario (rimosso nella migrazione di contrazione).
+  completataAt    DateTime?  @map("completata_at")
+  completataDaId  Int?       @map("completata_da_id")
+  completataDa    Operatore? @relation("AttivitaCompletate", fields: [completataDaId], references: [id])
+
+  istanzaCorrentePer Istanza? @relation("AttivitaCorrente")
 
   allegati            Allegato[]
   pagamentoAtteso PagamentoAtteso?
