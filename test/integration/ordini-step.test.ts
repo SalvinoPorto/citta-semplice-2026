@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, inject } from 'vitest';
 import { Client } from 'pg';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { avviaPostgres, fermaPostgres, applicaSchema, type UrlDatabase } from './postgres';
 
-let url: UrlDatabase;
 let client: Client;
 
 /**
@@ -28,15 +26,12 @@ function sqlMigrazione(): string {
 }
 
 beforeAll(async () => {
-  url = await avviaPostgres();
-  await applicaSchema(url, resolve(process.cwd(), 'packages/db/prisma/schema.prisma'));
-  client = new Client({ connectionString: url });
+  client = new Client({ connectionString: inject('urlPostgres') });
   await client.connect();
-}, 180_000);
+});
 
 afterAll(async () => {
   await client?.end();
-  await fermaPostgres();
 });
 
 /** Crea area, servizio, ufficio e due fasi. Restituisce gli id. */

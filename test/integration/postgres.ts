@@ -1,39 +1,8 @@
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 export type UrlDatabase = string;
-
-let container: StartedPostgreSqlContainer | undefined;
-
-/**
- * Avvia un Postgres effimero e restituisce la sua connection string.
- * Il container e condiviso solo fra i test dello STESSO file: con il pool di
- * default di Vitest 3 (`forks`, `isolate: true`) ogni file di test ottiene un
- * registry di moduli nuovo, quindi la variabile `container` a livello di
- * modulo non sopravvive fra file — ogni file di integrazione avvia il
- * proprio container. `fileParallelism: false` (in vitest.config.ts) serve
- * solo a non far girare in parallelo più container Postgres insieme, non a
- * farli condividere. Una condivisione reale fra file richiederebbe
- * `globalSetup` + `provide`/`inject`: non implementata qui, e' lavoro del
- * piano 2 quando aggiungerà un secondo file di test di integrazione.
- */
-export async function avviaPostgres(): Promise<UrlDatabase> {
-  if (!container) {
-    container = await new PostgreSqlContainer('postgres:16-alpine')
-      .withDatabase('citta_semplice_test')
-      .withUsername('test')
-      .withPassword('test')
-      .start();
-  }
-  return container.getConnectionUri();
-}
-
-export async function fermaPostgres(): Promise<void> {
-  await container?.stop();
-  container = undefined;
-}
 
 /**
  * Applica lo schema al database indicato eseguendo `prisma migrate deploy`,

@@ -1,22 +1,17 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, inject } from 'vitest';
 import { Client } from 'pg';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { avviaPostgres, fermaPostgres, applicaSchema, type UrlDatabase } from './postgres';
 
-let url: UrlDatabase;
 let client: Client;
 
 beforeAll(async () => {
-  url = await avviaPostgres();
-  await applicaSchema(url, resolve(process.cwd(), 'packages/db/prisma/schema.prisma'));
-  client = new Client({ connectionString: url });
+  client = new Client({ connectionString: inject('urlPostgres') });
   await client.connect();
-}, 180_000);
+});
 
 afterAll(async () => {
   await client?.end();
-  await fermaPostgres();
 });
 
 /** Crea le righe di appoggio necessarie a inserire un'istanza. Restituisce gli id. */

@@ -25,10 +25,13 @@ export default defineConfig({
           root: '.',
           environment: 'node',
           include: ['test/integration/**/*.test.ts'],
+          globalSetup: ['test/integration/global-setup.ts'],
           // I container Postgres impiegano qualche secondo ad avviarsi.
           testTimeout: 60_000,
           hookTimeout: 120_000,
-          // Un solo container condiviso: i test di integrazione non girano in parallelo.
+          // I file di integrazione condividono l'unico container avviato da
+          // `globalSetup`: non devono scrivere sullo stesso database in
+          // parallelo.
           fileParallelism: false,
         },
       },
