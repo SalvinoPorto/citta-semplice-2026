@@ -242,6 +242,11 @@ dell'attività — non come update separato. Poiché due applicazioni scrivono s
 database, si aggiunge un **trigger** su `istanza_attivita` che mantiene
 `istanze.attivita_corrente_id`, così la coerenza non dipende dal codice applicativo.
 
+**Raffinato dal piano 2b:** le regole di dominio che questo blocco lascia implicite —
+quando l'assegnazione decade, chi mantiene le colonne denormalizzate, come si derivano le
+etichette di stato una volta che l'assegnazione non vive più sulla riga di attività — sono
+decise in `2026-08-07-posizione-corrente-e-assegnazione-design.md`.
+
 **Rinominazione:** `Workflow` → `IstanzaAttivita`. Il nome attuale designa una riga per
 attivazione di step, non "il workflow", ed è la ragione per cui la posizione corrente ha
 finito per avere definizioni divergenti. `Fase`/`Step` restano la definizione,
