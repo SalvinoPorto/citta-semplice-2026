@@ -8,6 +8,7 @@ export * from '../generated/prisma/client';
 
 export * from './stato-istanza';
 export * from './navigazione-iter';
+export * from './stato-attivita';
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
