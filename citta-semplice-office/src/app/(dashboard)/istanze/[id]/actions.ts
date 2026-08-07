@@ -247,6 +247,8 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           where: { id: lastWorkflow.id },
           data: {
             stato: STATO_COMPLETATA,
+            completataAt: now,
+            completataDaId: operatoreId,
             note: note || lastWorkflow.note,
             operatoreId,
           },
@@ -260,10 +262,10 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             stepId: nextStepSameFase.id,
             dataVariazione: now,
             stato: STATO_IN_LAVORAZIONE,
-            operatoreId,
           },
         });
-        // Nessun update su istanza: lo step corrente è quello dell'ultimo workflow
+        // L'attività corrente la imposta il trigger sull'INSERT. L'assegnatario
+        // resta quello che era: si cambia fase, non ufficio.
         resultMessage = `Avanzato allo step: ${nextStepSameFase.descrizione}`;
       } else {
         const allFasi = await tx.fase.findMany({
@@ -326,6 +328,9 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
 
           await tx.workflow.create({
             data: {
+              // Cambio di fase: il trigger su istanze ha già azzerato
+              // l'assegnatario nell'UPDATE di fase_corrente_id qui sopra.
+              // L'istanza si presenta come "Nuova" all'ufficio che la riceve.
               istanzaId: istanza.id,
               stepId: firstStepNextFase.id,
               dataVariazione: now,
@@ -448,6 +453,10 @@ export async function regressWorkflow(istanzaId: number, note: string) {
           where: { id: lastWorkflow.id },
           data: {
             stato: STATO_IN_LAVORAZIONE,
+            // Riaperta: `completataAt` torna NULL come `stato` torna a 0. Sono
+            // la stessa informazione finché la contrazione non rimuove `stato`.
+            completataAt: null,
+            completataDaId: null,
             note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
             dataVariazione: now,
             operatoreId,
@@ -460,7 +469,6 @@ export async function regressWorkflow(istanzaId: number, note: string) {
           istanzaId,
           stepId: prevStep.id,
           stato: STATO_IN_LAVORAZIONE,
-          operatoreId,
           dataVariazione: now,
           note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
         },
@@ -522,6 +530,8 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
         where: { id: lastWorkflow.id },
         data: {
           stato: STATO_COMPLETATA,//STATO_IN_LAVORAZIONE,
+          completataAt: now,
+          completataDaId: operatoreId,
           note: motivo,
           dataVariazione: now,
           operatoreId,
@@ -588,6 +598,9 @@ export async function reopenIstanza(istanzaId: number) {
         where: { id: lastWorkflow.id },
         data: {
           stato: STATO_IN_LAVORAZIONE,
+          // Riaperta: `completataAt` torna NULL come `stato` torna a 0.
+          completataAt: null,
+          completataDaId: null,
           note: '',
           dataVariazione: now,
           operatoreId,
@@ -687,7 +700,11 @@ export async function addNote(istanzaId: number, noteText: string) {
         istanzaId,
         stepId: lastWorkflow?.stepId,
         stato: lastWorkflow?.stato ?? STATO_IN_LAVORAZIONE,
-        operatoreId,
+        // La nota ricalca lo stato dell'attività precedente: se quella era
+        // chiusa lo è anche questa. Senza `operatoreId`, che non significa più
+        // "assegnata a": l'assegnazione vive su istanze.assegnatario_id.
+        completataAt: lastWorkflow?.completataAt ?? null,
+        completataDaId: lastWorkflow?.completataDaId ?? null,
         dataVariazione: now,
         note: noteText,
       },
@@ -732,7 +749,8 @@ export async function takeCharge(istanzaId: number) {
           },
         },
         workflows: {
-          orderBy: { id: 'desc' },
+          // `dataVariazione` e non `id`: "ultimo" ha una sola definizione.
+          orderBy: { dataVariazione: 'desc' },
           take: 1,
         },
       },
@@ -753,37 +771,40 @@ export async function takeCharge(istanzaId: number) {
 
     const lastWorkflow = istanza.workflows[0];
 
-    if (lastWorkflow && lastWorkflow.operatoreId !== null) {
+    if (istanza.assegnatarioId !== null) {
       return { success: false, message: 'Istanza già presa in carico' };
     }
 
     const now = new Date();
 
-    if (lastWorkflow) {
-      // Aggiorna il workflow corrente (qualunque step sia, anche in fase successiva alla prima)
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
-        data: { operatoreId, stato: STATO_IN_LAVORAZIONE },
-      });
-    } else {
-      // Edge case: nessun workflow esistente (legacy) — crea al primo step del servizio
+    // L'assegnazione vive su istanze.assegnatario_id, non sulla riga di
+    // attività: una sola UPDATE, che imposta anche la fase corrente per le
+    // istanze migrate che ce l'hanno a NULL. Il trigger di azzeramento non
+    // scatta in quel caso (guardia su OLD.fase_corrente_id IS NOT NULL), ma
+    // scatterebbe se le due scritture fossero separate e la seconda cambiasse
+    // la fase dopo aver assegnato.
+    await prisma.istanza.update({
+      where: { id: istanzaId },
+      data: {
+        assegnatarioId: operatoreId,
+        ...(istanza.faseCorrenteId === null && firstStep.faseId
+          ? { faseCorrenteId: firstStep.faseId }
+          : {}),
+      },
+    });
+
+    if (!lastWorkflow) {
+      // Edge case: nessuna attività esistente (legacy) — creala al primo step
+      // del servizio. Senza operatoreId: chi la prende in carico è
+      // sull'istanza.
       await prisma.workflow.create({
         data: {
           istanzaId,
           stepId: firstStep.id,
           stato: STATO_IN_LAVORAZIONE,
-          operatoreId,
           dataVariazione: now,
           note: '',
         },
-      });
-    }
-
-    // Fallback: imposta la fase corrente se mancante (istanze migrate)
-    if (istanza.faseCorrenteId === null && firstStep.faseId) {
-      await prisma.istanza.update({
-        where: { id: istanzaId },
-        data: { faseCorrenteId: firstStep.faseId },
       });
     }
 
@@ -1039,6 +1060,8 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
           where: { id: lastWorkflow.id },
           data: {
             stato: STATO_COMPLETATA,
+            completataAt: now,
+            completataDaId: operatoreId,
             note: note || lastWorkflow.note,
             dataVariazione: now,
             operatoreId,

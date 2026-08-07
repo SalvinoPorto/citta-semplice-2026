@@ -434,7 +434,8 @@ export async function submitIstanza(formData: FormData) {
           data: {
             istanzaId: bozzaId,
             stepId: primoStep.id,
-            operatoreId: null,
+            // Nessun operatoreId: l'invio non assegna nessuno, e
+            // istanze.assegnatario_id è già NULL per default.
             stato: 0,
             dataVariazione: new Date(),
           },
