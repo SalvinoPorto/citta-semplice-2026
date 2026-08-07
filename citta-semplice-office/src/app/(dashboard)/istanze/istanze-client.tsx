@@ -33,12 +33,12 @@ interface Istanza {
     titolo: string;
     campiInEvidenza: string | null;
   };
-  workflows: {
-    step: { descrizione: string; ordine: number };
-    stato: number;
-    operatoreId: number | null;
-    operatore: { id: number; nome: string; cognome: string } | null;
-  }[];
+  attivitaCorrente: {
+    completataAt: Date | string | null;
+    step: { descrizione: string; ordine: number } | null;
+  } | null;
+  assegnatarioId: number | null;
+  assegnatario: { id: number; nome: string; cognome: string } | null;
   faseCorrente: {
     id: number;
     nome: string;
@@ -197,14 +197,22 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
   const getFaseBadge = (istanza: Istanza) => {
     if (istanza.stato === 'CONCLUSA') return <Badge variant="success" className="w-100">Conclusa</Badge>;
     if (istanza.stato === 'RESPINTA') return <Badge variant="danger" className="w-100">Respinta</Badge>;
-    const lastWorkflow = istanza.workflows[0];
-    return <Badge variant="primary" className="w-100">{lastWorkflow?.step.descrizione}</Badge>;
+    return <Badge variant="primary" className="w-100">{istanza.attivitaCorrente?.step?.descrizione}</Badge>;
   }
 
   const getStatusBadge = (istanza: Istanza) => {
+    // Adattatore verso la firma ancora vecchia di getStatoIstanza: sparisce
+    // quando le letture passano alla funzione pura. `operatoreId` sull'ultima
+    // attività significava assegnazione (ora su istanze.assegnatario_id) e
+    // `stato === 1` significava completata (ora `completataAt` non nulla).
     const stato = getStatoIstanza({
       stato: istanza.stato,
-      ultimoWorkflow: istanza.workflows[0] ?? null,
+      ultimoWorkflow: istanza.attivitaCorrente
+        ? {
+            operatoreId: istanza.assegnatarioId,
+            stato: istanza.attivitaCorrente.completataAt ? 1 : 0,
+          }
+        : null,
     });
     return <Badge variant={stato.variant} className="w-100">{stato.label}</Badge>;
   };

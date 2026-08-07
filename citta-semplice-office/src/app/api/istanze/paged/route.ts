@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { Prisma, whereStato, whereVisibileAgliOperatori, sqlStato } from '@citta/db';
+import { whereVisibileAgliOperatori } from '@citta/db';
 import { auth } from '@/lib/auth';
+import { whereTab } from '@/lib/istanze/filtri-tab';
 import {
   getVisibilitaOperatore,
   istanzaVisibilityWhere,
-  istanzaVisibilitySql,
   isVisibilitaTotale,
   type VisibilitaOperatore,
 } from '@/lib/auth/visibilita';
@@ -40,45 +40,20 @@ interface SearchBody {
 async function getIstanzeCounts(visibilita: VisibilitaOperatore) {
   const operatoreId = visibilita.operatoreId;
   const visibilitaFilter = istanzaVisibilityWhere(visibilita);
-  const visibilitaSql = istanzaVisibilitySql(visibilita, 'i');
 
   const [nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale] =
-    await Promise.all([
-      // "Nuove" = istanze il cui ULTIMO workflow non è assegnato a nessuno.
-      // (Prima: `workflows: some(operatoreId null)`, che contava anche le istanze
-      // già prese in carico da altri se un qualsiasi step passato era non assegnato:
-      // nuove + mie + altri superava il totale delle istanze aperte.)
-      prisma.$queryRaw<[{ count: bigint }]>`
-          SELECT COUNT(DISTINCT i.id) as count
-          FROM istanze i
-          INNER JOIN workflows w ON w.istanza_id = i.id
-          WHERE ${Prisma.raw(sqlStato('IN_LAVORAZIONE', 'i'))}
-          AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-          AND w.operatore_id IS NULL
-          ${visibilitaSql}
-        `.then((r) => Number(r[0]?.count || 0)),
-      prisma.$queryRaw<[{ count: bigint }]>`
-          SELECT COUNT(DISTINCT i.id) as count
-          FROM istanze i
-          INNER JOIN workflows w ON w.istanza_id = i.id
-          WHERE ${Prisma.raw(sqlStato('IN_LAVORAZIONE', 'i'))}
-          AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-          AND w.operatore_id = ${operatoreId}
-          ${visibilitaSql}
-        `.then((r) => Number(r[0]?.count || 0)),
-      prisma.$queryRaw<[{ count: bigint }]>`
-          SELECT COUNT(DISTINCT i.id) as count
-          FROM istanze i
-          INNER JOIN workflows w ON w.istanza_id = i.id
-          WHERE ${Prisma.raw(sqlStato('IN_LAVORAZIONE', 'i'))}
-          AND w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-          AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
-          ${visibilitaSql}
-        `.then((r) => Number(r[0]?.count || 0)),
-      prisma.istanza.count({ where: { AND: [visibilitaFilter], ...whereStato('RESPINTA') } }),
-      prisma.istanza.count({ where: { AND: [visibilitaFilter], ...whereStato('CONCLUSA') } }),
-      prisma.istanza.count({ where: { AND: [visibilitaFilter], ...whereVisibileAgliOperatori() } }),
-    ]);
+    await Promise.all(
+      [
+        whereTab('nuove', operatoreId),
+        whereTab('mie', operatoreId),
+        whereTab('altri', operatoreId),
+        whereTab('respinte', operatoreId),
+        whereTab('concluse', operatoreId),
+        whereVisibileAgliOperatori(),
+      ].map((where) =>
+        prisma.istanza.count({ where: { ...where, AND: [visibilitaFilter] } }),
+      ),
+    );
 
   return { nuove, inLavorazionePropria, inLavorazioneAltri, respinte, concluse, totale };
 }
@@ -200,71 +175,21 @@ export async function POST(request: NextRequest) {
   }
 
   // Tab-specific conditions
-  switch (tab) {
-    case 'nuove':
-      Object.assign(whereClause, whereStato('IN_LAVORAZIONE'));
-      // il vincolo "ultimo workflow non assegnato" è risolto sotto via raw SQL
-      break;
-    case 'mie':
-    case 'altri':
-      Object.assign(whereClause, whereStato('IN_LAVORAZIONE'));
-      break;
-    case 'respinte':
-      Object.assign(whereClause, whereStato('RESPINTA'));
-      break;
-    case 'concluse':
-      Object.assign(whereClause, whereStato('CONCLUSA'));
-      break;
-    // 'tutte': no additional filter
-  }
+  Object.assign(whereClause, whereTab(tab, operatoreId));
 
-  // Filters that require raw SQL (latest workflow join) are resolved as ID sets
-  // and intersected into the where clause at DB level
+  // Restano due filtri che non dipendono dall'assegnazione e che Prisma non
+  // esprime: il formato di data italiano e la ricerca sull'assegnatario per
+  // nome. Il secondo diventa una condizione ordinaria; il primo resta raw.
   const idConstraints: number[][] = [];
-
-  // il set di id è già ristretto alla visibilità per non gonfiare la clausola IN
-  const visibilitaSql = istanzaVisibilitySql(visibilita, 'i');
-
-  if (tab === 'nuove') {
-    const rows = await prisma.$queryRaw<{ id: number }[]>`
-      SELECT DISTINCT i.id FROM istanze i
-      INNER JOIN workflows w ON w.istanza_id = i.id
-      WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-      AND w.operatore_id IS NULL
-      ${visibilitaSql}
-    `;
-    idConstraints.push(rows.map((r) => Number(r.id)));
-  } else if (tab === 'mie') {
-    const rows = await prisma.$queryRaw<{ id: number }[]>`
-      SELECT DISTINCT i.id FROM istanze i
-      INNER JOIN workflows w ON w.istanza_id = i.id
-      WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-      AND w.operatore_id = ${operatoreId}
-      ${visibilitaSql}
-    `;
-    idConstraints.push(rows.map((r) => Number(r.id)));
-  } else if (tab === 'altri') {
-    const rows = await prisma.$queryRaw<{ id: number }[]>`
-        SELECT DISTINCT i.id FROM istanze i
-        INNER JOIN workflows w ON w.istanza_id = i.id
-        WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-        AND w.operatore_id IS NOT NULL AND w.operatore_id != ${operatoreId}
-        ${visibilitaSql}
-      `;
-    idConstraints.push(rows.map((r) => Number(r.id)));
-  }
 
   const operatoreFilter = columnFilters.find((f) => f.key === 'operatore');
   if (operatoreFilter?.value) {
-    const term = `%${operatoreFilter.value}%`;
-    const rows = await prisma.$queryRaw<{ id: number }[]>`
-      SELECT DISTINCT i.id FROM istanze i
-      INNER JOIN workflows w ON w.istanza_id = i.id
-      INNER JOIN operatori o ON o.id = w.operatore_id
-      WHERE w.id = (SELECT w2.id FROM workflows w2 WHERE w2.istanza_id = i.id ORDER BY w2.data_variazione DESC LIMIT 1)
-      AND (o.cognome ILIKE ${term} OR o.nome ILIKE ${term})
-    `;
-    idConstraints.push(rows.map((r) => Number(r.id)));
+    whereClause.assegnatario = {
+      OR: [
+        { cognome: { contains: operatoreFilter.value, mode: 'insensitive' } },
+        { nome: { contains: operatoreFilter.value, mode: 'insensitive' } },
+      ],
+    };
   }
 
   const dataColFilter = columnFilters.find((f) => f.key === 'dataInvio');
@@ -331,14 +256,12 @@ export async function POST(request: NextRequest) {
         servizio: {
           select: { titolo: true, campiInEvidenza: true },
         },
-        workflows: {
-          orderBy: { dataVariazione: 'desc' },
-          take: 1,
+        attivitaCorrente: {
           include: {
             step: { select: { descrizione: true, ordine: true } },
-            operatore: { select: { id: true, nome: true, cognome: true } },
           },
         },
+        assegnatario: { select: { id: true, nome: true, cognome: true } },
         faseCorrente: {
           include: { ufficio: true },
         },
