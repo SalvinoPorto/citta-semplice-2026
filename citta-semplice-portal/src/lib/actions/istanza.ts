@@ -436,7 +436,6 @@ export async function submitIstanza(formData: FormData) {
             stepId: primoStep.id,
             // Nessun operatoreId: l'invio non assegna nessuno, e
             // istanze.assegnatario_id è già NULL per default.
-            stato: 0,
             dataVariazione: new Date(),
           },
         });
@@ -511,7 +510,6 @@ export async function submitIstanza(formData: FormData) {
                 // Nessun operatoreId: l'invio non assegna nessuno, e
                 // istanze.assegnatario_id è già NULL per default.
                 stepId: primoStep.id,
-                stato: 0,
                 dataVariazione: new Date(),
               },
             }

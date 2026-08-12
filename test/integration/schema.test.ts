@@ -36,12 +36,25 @@ describe('schema Prisma', () => {
     // previsto dall enum". Ripetere lo stesso controllo qui sotto un nome
     // diverso sarebbe un duplicato mascherato da copertura, non copertura
     // vera. Al suo posto verifichiamo una proprietà di schema che nessun
-    // altro test copre: l'indice su "stato" (creato dalla migrazione
-    // 20260805100000_stato_istanza_enum), da cui dipendono le query di
-    // whereStato/whereVisibileAgliOperatori usate da office e portal.
+    // altro test copre: che le query di whereStato/whereVisibileAgliOperatori
+    // usate da office e portal abbiano un indice con "stato" come PRIMA
+    // colonna.
+    //
+    // Non è più `istanze_stato_idx`: la migrazione di contrazione
+    // (20260807110000) l'ha eliminato perché era il prefisso di
+    // `istanze_stato_assegnatario_id_idx`, mantenuto a ogni scrittura senza
+    // che nulla lo usasse. La garanzia che conta — "stato" indicizzato in
+    // testa — la dà ora l'indice composito, e questo test la verifica
+    // leggendo la colonna di testa invece del nome, così sopravvive alla
+    // prossima ricomposizione degli indici.
     const { rows } = await client.query<{ indexname: string }>(
-      `SELECT indexname FROM pg_indexes WHERE tablename = 'istanze' AND indexname = 'istanze_stato_idx'`,
+      `SELECT i.relname AS indexname
+       FROM pg_index x
+       JOIN pg_class i ON i.oid = x.indexrelid
+       JOIN pg_class t ON t.oid = x.indrelid
+       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = x.indkey[0]
+       WHERE t.relname = 'istanze' AND a.attname = 'stato'`,
     );
-    expect(rows).toHaveLength(1);
+    expect(rows.length).toBeGreaterThanOrEqual(1);
   });
 });

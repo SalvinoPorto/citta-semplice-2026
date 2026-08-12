@@ -49,8 +49,8 @@ async function getIstanza(id: number) {
           step: {
             include: { pagamentoConfig: true },
           },
-          operatore: {
-            select: { id: true, nome: true, cognome: true },
+          completataDa: {
+            select: { nome: true, cognome: true },
           },
           allegati: true,
           pagamentoAtteso: true,

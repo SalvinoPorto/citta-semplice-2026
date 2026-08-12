@@ -26,12 +26,6 @@ import {
   puoOperareSuIstanza,
 } from '@/lib/auth/visibilita';
 
-// stato: 0 → In lavorazione, 1 → Completata. Il terzo valore -1, mai
-// memorizzato, è sparito con `getStatoLabel`: l'etichetta la deriva
-// `statoAttivita` da (attività, contesto dell'istanza).
-const STATO_IN_LAVORAZIONE = 0;
-const STATO_COMPLETATA = 1;
-
 /**
  * Controlla se un operatore può accedere a un'istanza.
  * Regola: tutti gli uffici che condividono un servizio vedono l'istanza (purché il
@@ -242,11 +236,9 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         await tx.workflow.update({
           where: { id: lastWorkflow.id },
           data: {
-            stato: STATO_COMPLETATA,
             completataAt: now,
             completataDaId: operatoreId,
             note: note || lastWorkflow.note,
-            operatoreId,
           },
         });
       }
@@ -257,7 +249,6 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             istanzaId,
             stepId: nextStepSameFase.id,
             dataVariazione: now,
-            stato: STATO_IN_LAVORAZIONE,
           },
         });
         // L'attività corrente la imposta il trigger sull'INSERT. L'assegnatario
@@ -330,7 +321,6 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
               istanzaId: istanza.id,
               stepId: firstStepNextFase.id,
               dataVariazione: now,
-              stato: STATO_IN_LAVORAZIONE,
             },
           });
 
@@ -448,14 +438,12 @@ export async function regressWorkflow(istanzaId: number, note: string) {
         await tx.workflow.update({
           where: { id: lastWorkflow.id },
           data: {
-            stato: STATO_IN_LAVORAZIONE,
             // Riaperta: `completataAt` torna NULL come `stato` torna a 0. Sono
             // la stessa informazione finché la contrazione non rimuove `stato`.
             completataAt: null,
             completataDaId: null,
             note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
             dataVariazione: now,
-            operatoreId,
           },
         });
       }
@@ -464,7 +452,6 @@ export async function regressWorkflow(istanzaId: number, note: string) {
         data: {
           istanzaId,
           stepId: prevStep.id,
-          stato: STATO_IN_LAVORAZIONE,
           dataVariazione: now,
           note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
         },
@@ -525,12 +512,10 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          stato: STATO_COMPLETATA,//STATO_IN_LAVORAZIONE,
           completataAt: now,
           completataDaId: operatoreId,
           note: motivo,
           dataVariazione: now,
-          operatoreId,
         },
       });
     }
@@ -593,13 +578,11 @@ export async function reopenIstanza(istanzaId: number) {
       await prisma.workflow.update({
         where: { id: lastWorkflow.id },
         data: {
-          stato: STATO_IN_LAVORAZIONE,
           // Riaperta: `completataAt` torna NULL come `stato` torna a 0.
           completataAt: null,
           completataDaId: null,
           note: '',
           dataVariazione: now,
-          operatoreId,
         },
       });
     }
@@ -695,7 +678,6 @@ export async function addNote(istanzaId: number, noteText: string) {
       data: {
         istanzaId,
         stepId: lastWorkflow?.stepId,
-        stato: lastWorkflow?.stato ?? STATO_IN_LAVORAZIONE,
         // La nota ricalca lo stato dell'attività precedente: se quella era
         // chiusa lo è anche questa. Senza `operatoreId`, che non significa più
         // "assegnata a": l'assegnazione vive su istanze.assegnatario_id.
@@ -797,7 +779,6 @@ export async function takeCharge(istanzaId: number) {
         data: {
           istanzaId,
           stepId: firstStep.id,
-          stato: STATO_IN_LAVORAZIONE,
           dataVariazione: now,
           note: '',
         },
@@ -1053,12 +1034,10 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
         await tx.workflow.update({
           where: { id: lastWorkflow.id },
           data: {
-            stato: STATO_COMPLETATA,
             completataAt: now,
             completataDaId: operatoreId,
             note: note || lastWorkflow.note,
             dataVariazione: now,
-            operatoreId,
           },
         });
       }
@@ -1268,7 +1247,6 @@ export async function rollbackFase(params: {
         istanzaId: istanza.id,
         stepId: lastStepFasePrecedente.id,
         dataVariazione: now,
-        stato: STATO_IN_LAVORAZIONE,
         note: `[Rollback di fase] ${params.note}`,
       },
     });

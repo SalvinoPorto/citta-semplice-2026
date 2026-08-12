@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, inject } from 'vitest';
 import { Client } from 'pg';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 let client: Client;
 
@@ -143,5 +145,60 @@ describe('assegnatario_id', () => {
     const { rows } = await client.query<{ assegnatario_id: number | null }>(
       `SELECT assegnatario_id FROM istanze WHERE id = $1`, [istanzaId]);
     expect(rows[0].assegnatario_id).toBe(s.operatoreId);
+  });
+});
+
+describe('riallineamento della migrazione di contrazione', () => {
+  it('valorizza completata_at per le righe nate fra espansione e conversione', async () => {
+    // La contrazione riesegue il backfill PRIMA dei DROP, per le righe nate
+    // nella finestra fra le due migrazioni. Il database di test ha già
+    // applicato tutta la storia, quindi non c'è nulla da osservare a
+    // posteriori: si ricostruisce lo stato PRECEDENTE alla contrazione e si
+    // esegue il FILE REALE. Ridigitare qui l'UPDATE renderebbe il test
+    // verde anche se qualcuno lo rimuovesse dalla migrazione.
+    const percorso = resolve(
+      process.cwd(),
+      'packages/db/prisma/migrations/20260807110000_posizione_corrente_contrazione/migration.sql',
+    );
+    const sqlMigrazione = readFileSync(percorso, 'utf-8');
+
+    const s = await creaScenario('riallineamento');
+    const istanzaId = await creaIstanza(s, 'riallineamento');
+    const stepId = await creaStep(s.faseUnoId, s.servizioId, 1);
+
+    // Un solo ALTER TABLE con due ADD COLUMN è atomico: non resta uno stato
+    // parziale se una clausola fallisce.
+    await client.query(`
+      ALTER TABLE workflows
+        ADD COLUMN stato integer NOT NULL DEFAULT 0,
+        ADD COLUMN operatore_id integer
+    `);
+    await client.query(`CREATE INDEX istanze_stato_idx ON istanze(stato)`);
+
+    try {
+      const attivita = await client.query<{ id: number }>(
+        `INSERT INTO workflows (istanza_id, step_id, data_variazione, stato, operatore_id)
+         VALUES ($1, $2, now(), 1, $3) RETURNING id`,
+        [istanzaId, stepId, s.operatoreId],
+      );
+
+      await client.query(sqlMigrazione);
+
+      const { rows } = await client.query<{ completata_at: Date | null; completata_da_id: number | null }>(
+        `SELECT completata_at, completata_da_id FROM workflows WHERE id = $1`,
+        [attivita.rows[0].id],
+      );
+      expect(rows[0].completata_at).not.toBeNull();
+      expect(rows[0].completata_da_id).toBe(s.operatoreId);
+    } finally {
+      // Rete di sicurezza per il solo percorso di fallimento: nel percorso di
+      // successo il file di migrazione ha già eseguito i suoi DROP.
+      await client.query(`
+        ALTER TABLE workflows
+          DROP COLUMN IF EXISTS stato,
+          DROP COLUMN IF EXISTS operatore_id
+      `);
+      await client.query(`DROP INDEX IF EXISTS istanze_stato_idx`);
+    }
   });
 });

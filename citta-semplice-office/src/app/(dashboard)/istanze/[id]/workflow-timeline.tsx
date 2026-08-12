@@ -15,7 +15,6 @@ interface Workflow {
   id: number;
   note: string | null;
   dataVariazione: Date;
-  stato: number;
   completataAt: Date | null;
   stepId: number | null;
   step: {
@@ -23,7 +22,13 @@ interface Workflow {
     descrizione: string;
     ordine: number;
   } | null;
-  operatore: {
+  /**
+   * Chi ha CHIUSO l'attività: storico, non assegnazione. Sostituisce
+   * `operatore`, che sulle righe aperte significava "assegnata a" — la doppia
+   * semantica che questo refactoring ha rimosso. Su un'attività ancora aperta
+   * è `null`, ed è corretto: non l'ha chiusa ancora nessuno.
+   */
+  completataDa: {
     nome: string;
     cognome: string;
   } | null;
@@ -427,10 +432,10 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
                 );
               })}
 
-              {/* Operator label from first event */}
-              {events[0]?.operatore && (
+              {/* Chi ha chiuso lo step, se è stato chiuso */}
+              {events[0]?.completataDa && (
                 <small className="text-muted d-block mt-1">
-                  {events[0].operatore.cognome} {events[0].operatore.nome}
+                  {events[0].completataDa.cognome} {events[0].completataDa.nome}
                 </small>
               )}
             </div>
