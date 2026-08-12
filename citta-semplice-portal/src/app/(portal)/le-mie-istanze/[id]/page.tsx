@@ -13,6 +13,7 @@ import { it } from 'date-fns/locale';
 import { getCampoValue } from '@/lib/utils';
 import { costruisciRiepilogo, parseCampi, splitPages, type FormField, type VoceRiepilogo } from '@citta/form-schema';
 import { whereStato, type StatoIstanzaValore } from '@citta/db';
+import { statoAttivita, ETICHETTE_STATO_ATTIVITA } from '@citta/db/stato-attivita';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -128,11 +129,13 @@ function parseDati(dati: string | null | undefined): CampoDato[] {
   }
 }
 
-function getStatoBadge(istanza: { stato: StatoIstanzaValore; workflows: { operatoreId: number | null }[] }) {
+function getStatoBadge(istanza: { stato: StatoIstanzaValore; assegnatarioId: number | null }) {
   if (istanza.stato === 'CONCLUSA') return { label: 'Conclusa', cls: 'bg-success' };
   if (istanza.stato === 'RESPINTA') return { label: 'Respinta', cls: 'bg-danger' };
-  const presaInCarico = istanza.workflows.some((wf) => wf.operatoreId !== null);
-  if (presaInCarico) return { label: 'In lavorazione', cls: 'bg-primary' };
+  // "Presa in carico" era `workflows.some(operatoreId !== null)`: contava anche
+  // gli step chiusi da un operatore che non ci lavora più. Ora è una domanda
+  // sola, con una sola risposta.
+  if (istanza.assegnatarioId !== null) return { label: 'In lavorazione', cls: 'bg-primary' };
   return { label: 'In attesa', cls: 'bg-secondary' };
 }
 
@@ -459,7 +462,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                                   {format(wf.dataVariazione, 'dd/MM/yyyy HH:mm', { locale: it })}
                                 </span>
                                 <span className={`badge ${idx === istanza.workflows.length - 1 ? 'bg-primary' : 'bg-secondary'}`}>
-                                  {wf.operatoreId === null ? 'In attesa' : wf.stato === 1 ? 'Completata' : 'In lavorazione'}
+                                  {ETICHETTE_STATO_ATTIVITA[statoAttivita(wf, istanza)]}
                                 </span>
                               </div>
                               <div className="card shadow-sm">

@@ -8,6 +8,9 @@ import { it } from 'date-fns/locale';
 import { THeadGroup, THead, TFilterHeadGroup, TFilterHead, Paginatore } from '@/components/shared';
 import type { Filter, Order } from '@/lib/models/table';
 import { getIstanzePage, type IstanzaRow, type IstanzePageResult } from '@/lib/actions/le-mie-istanze';
+// Sottopercorso e non '@citta/db': componente client, e l'indice del package
+// istanzia PrismaClient.
+import { ETICHETTE_STATO_ATTIVITA, type StatoAttivita } from '@citta/db/stato-attivita';
 
 type Props = { utenteId: number };
 
@@ -17,12 +20,17 @@ type Props = { utenteId: number };
   return { label: 'In lavorazione', cls: 'bg-primary' };
 } */
 
+const CLASSI_STATO_ATTIVITA: Record<StatoAttivita, string> = {
+  IN_ATTESA: 'bg-secondary',
+  IN_LAVORAZIONE: 'bg-primary',
+  COMPLETATA: 'bg-success',
+  RETROCESSA: 'bg-secondary',
+};
+
 function getStatoBadge(row: IstanzaRow) {
   if (row.statoIstanza === 'CONCLUSA') return { label: 'Conclusa', cls: 'bg-success' };
   if (row.statoIstanza === 'RESPINTA') return { label: 'Respinta', cls: 'bg-danger' };
-  if (row.stato === -1) return { label: 'In attesa', cls: 'bg-secondary' };
-  if (row.stato === 0) return { label: 'In lavorazione', cls: 'bg-primary' };
-  return { label: 'Completata', cls: 'bg-success' };
+  return { label: ETICHETTE_STATO_ATTIVITA[row.stato], cls: CLASSI_STATO_ATTIVITA[row.stato] };
 }
 
 export function IstanzeTable({ utenteId }: Props) {

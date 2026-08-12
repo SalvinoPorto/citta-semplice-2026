@@ -508,8 +508,9 @@ export async function submitIstanza(formData: FormData) {
         workflows: primoStep
           ? {
               create: {
+                // Nessun operatoreId: l'invio non assegna nessuno, e
+                // istanze.assegnatario_id è già NULL per default.
                 stepId: primoStep.id,
-                operatoreId: null,
                 stato: 0,
                 dataVariazione: new Date(),
               },

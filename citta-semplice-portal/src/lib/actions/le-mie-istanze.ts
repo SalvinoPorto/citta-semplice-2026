@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Filter, Order } from '@/lib/models/table';
 import { whereStato, type Prisma, type StatoIstanzaValore } from '@citta/db';
+import { statoAttivita, type StatoAttivita } from '@citta/db/stato-attivita';
 
 const PAGE_SIZE = 10;
 
@@ -15,7 +16,7 @@ export type IstanzaRow = {
   protoData: string | null;
   statoIstanza: StatoIstanzaValore;
   faseAttuale: string | null;
-  stato: number; // -1 = in attesa, 0 = in lavorazione, 1 = conclusa
+  stato: StatoAttivita;
   comunicazioniNuove: number;   // comunicazioni dell'ufficio mai aperte
   azioneRichiesta: boolean;     // comunicazione che attende risposta/documenti
 };
@@ -50,11 +51,7 @@ export async function getIstanzePage(
       where,
       include: {
         servizio: { select: { titolo: true, sottoTitolo: true } },
-        workflows: {
-          include: { step: { select: { descrizione: true } } },
-          orderBy: { dataVariazione: 'desc' },
-          take: 1,
-        },
+        attivitaCorrente: { include: { step: { select: { descrizione: true } } } },
         comunicazioni: {
           select: {
             lettaDaCittadino: true,
@@ -79,8 +76,10 @@ export async function getIstanzePage(
       protoNumero: i.protoNumero ?? null,
       protoData: i.protoData?.toISOString() ?? null,
       statoIstanza: i.stato,
-      faseAttuale: i.workflows[0]?.step?.descrizione ?? null,
-      stato: i.workflows[0]?.operatoreId === null ? -1 : (i.workflows[0]?.stato ?? 0),
+      faseAttuale: i.attivitaCorrente?.step?.descrizione ?? null,
+      stato: i.attivitaCorrente
+        ? statoAttivita(i.attivitaCorrente, i)
+        : ('IN_ATTESA' satisfies StatoAttivita),
       comunicazioniNuove: i.comunicazioni.filter((c) => !c.lettaDaCittadino).length,
       azioneRichiesta: i.comunicazioni.some(
         (c) => !c.risposta && (c.richiedeRisposta || haAllegatiRichiesti(c.allegatiRichiesti)),
