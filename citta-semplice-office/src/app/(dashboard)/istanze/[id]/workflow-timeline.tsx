@@ -7,12 +7,16 @@ import { z } from 'zod';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Input } from '@/components/ui';
 import { generatePayment } from './actions';
 import { PagamentoAtteso } from '@/types/pagamento-atteso';
+// Sottopercorso e non '@citta/db': questo è un componente client, e l'indice
+// del package istanzia PrismaClient — che nel bundle del browser non può
+// entrare. `stato-attivita` è TypeScript puro, senza dipendenze.
+import { statoAttivita, ETICHETTE_STATO_ATTIVITA } from '@citta/db/stato-attivita';
 interface Workflow {
   id: number;
   note: string | null;
   dataVariazione: Date;
   stato: number;
-  operatoreId: number | null;
+  completataAt: Date | null;
   stepId: number | null;
   step: {
     id: number;
@@ -47,6 +51,9 @@ interface WorkflowTimelineProps {
   steps: Step[];
   urlPayment: string;
   istanzaId: number;
+  /** contesto dell'istanza: serve a derivare lo stato di ogni attività */
+  attivitaCorrenteId: number | null;
+  assegnatarioId: number | null;
   utente: {
     codiceFiscale: string;
     nome: string;
@@ -156,7 +163,7 @@ const STATO_PAGAMENTO_BADGE: Record<string, string> = {
   RAT: 'bg-info',
 };
 
-export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, utente }: WorkflowTimelineProps) {
+export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, utente, attivitaCorrenteId, assegnatarioId }: WorkflowTimelineProps) {
   const router = useRouter();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
@@ -262,11 +269,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     setFormErrors({});
     setShowPaymentModal(true);
   };
-  const getStatusClass = (operatoreId: number | null, stato: number): string => {
-    if (operatoreId === null) return 'pending';
-    if (stato === 1) return 'completed';
-    return 'pending';
-  };
+  const contesto = { attivitaCorrenteId, assegnatarioId };
 
   if (workflows.length === 0) {
     return <p className="text-muted">Nessun workflow disponibile</p>;
@@ -291,17 +294,15 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     const events = eventsByStepId.get(stepId);
     if (!events || events.length === 0) return '';
     const last = events[events.length - 1];
-    return getStatusClass(last.operatoreId, last.stato);
+    return statoAttivita(last, contesto) === 'COMPLETATA' ? 'completed' : 'pending';
   }
 
   function getActiveWorkflowForStep(stepId: number) {
-    return eventsByStepId.get(stepId)?.find(wf => wf.operatoreId !== null && wf.stato === 0) ?? null;
+    return eventsByStepId.get(stepId)?.find((wf) => statoAttivita(wf, contesto) === 'IN_LAVORAZIONE') ?? null;
   }
 
   function statoLabel(wf: Workflow) {
-    if (wf.operatoreId === null) return 'In attesa';
-    if (wf.stato === 1) return 'Completata';
-    return 'In lavorazione';
+    return ETICHETTE_STATO_ATTIVITA[statoAttivita(wf, contesto)];
   }
 
   return (
@@ -329,10 +330,10 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
 
               {reached && last && (
                 <div className="mb-1">
-                  <span className={`badge ${status === 'completed' ? 'bg-success' :
-                    status === 'rejected' ? 'bg-danger' :
-                      'bg-warning'
-                    }`}>
+                  {/* `stepStatus` restituisce solo 'completed' o 'pending':
+                      il ramo 'rejected' era già irraggiungibile prima che il
+                      tipo di ritorno lo rendesse visibile al compilatore. */}
+                  <span className={`badge ${status === 'completed' ? 'bg-success' : 'bg-warning'}`}>
                     {statoLabel(last)}
                   </span>
                 </div>
@@ -393,7 +394,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
               )}
 
               {/* Generate Payment Button */}
-              {!pagamento && reached && last && last.operatoreId !== null && last.stato === 0 && step.pagamento && (
+              {!pagamento && reached && last && statoAttivita(last, contesto) === 'IN_LAVORAZIONE' && step.pagamento && (
                 <div className="mt-2">
                   <Button
                     variant="outline-primary"

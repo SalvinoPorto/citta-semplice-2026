@@ -61,11 +61,7 @@ async function getRecentIstanze(visibilita: VisibilitaOperatore) {
         select: { titolo: true },
       },
       // serve per lo stato: stesso criterio della lista istanze
-      workflows: {
-        orderBy: { dataVariazione: 'desc' },
-        take: 1,
-        select: { operatoreId: true, stato: true },
-      },
+      attivitaCorrente: { select: { id: true, completataAt: true } },
     },
   });
 }
@@ -191,10 +187,7 @@ export default async function DashboardPage() {
                       <td>{istanza.servizio.titolo}</td>
                       <td>
                         {(() => {
-                          const stato = getStatoIstanza({
-                            stato: istanza.stato,
-                            ultimoWorkflow: istanza.workflows[0] ?? null,
-                          });
+                          const stato = getStatoIstanza(istanza);
                           return <Badge variant={stato.variant}>{stato.label}</Badge>;
                         })()}
                       </td>

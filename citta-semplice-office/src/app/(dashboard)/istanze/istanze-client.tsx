@@ -37,6 +37,7 @@ interface Istanza {
     completataAt: Date | string | null;
     step: { descrizione: string; ordine: number } | null;
   } | null;
+  attivitaCorrenteId: number | null;
   assegnatarioId: number | null;
   assegnatario: { id: number; nome: string; cognome: string } | null;
   faseCorrente: {
@@ -201,18 +202,20 @@ export function IstanzeClient({ servizi, uffici }: IstanzeClientProps) {
   }
 
   const getStatusBadge = (istanza: Istanza) => {
-    // Adattatore verso la firma ancora vecchia di getStatoIstanza: sparisce
-    // quando le letture passano alla funzione pura. `operatoreId` sull'ultima
-    // attività significava assegnazione (ora su istanze.assegnatario_id) e
-    // `stato === 1` significava completata (ora `completataAt` non nulla).
     const stato = getStatoIstanza({
       stato: istanza.stato,
-      ultimoWorkflow: istanza.attivitaCorrente
+      // `completataAt` arriva serializzata dall'API: la funzione pura vuole
+      // una Date, e la normalizzazione sta qui, non dentro la funzione.
+      attivitaCorrente: istanza.attivitaCorrente
         ? {
-            operatoreId: istanza.assegnatarioId,
-            stato: istanza.attivitaCorrente.completataAt ? 1 : 0,
+            id: istanza.attivitaCorrenteId ?? -1,
+            completataAt: istanza.attivitaCorrente.completataAt
+              ? new Date(istanza.attivitaCorrente.completataAt)
+              : null,
           }
         : null,
+      attivitaCorrenteId: istanza.attivitaCorrenteId,
+      assegnatarioId: istanza.assegnatarioId,
     });
     return <Badge variant={stato.variant} className="w-100">{stato.label}</Badge>;
   };

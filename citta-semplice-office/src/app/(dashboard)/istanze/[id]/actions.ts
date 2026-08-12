@@ -10,6 +10,8 @@ import {
   prossimaFase,
   stepPrecedenteStessaFase,
   fasePrecedente as trovaFasePrecedente,
+  statoAttivita,
+  ETICHETTE_STATO_ATTIVITA,
 } from '@citta/db';
 import { getCurrentUser, requireAuth } from '@/lib/auth/session';
 import { sendEmail } from '@/lib/services/email';
@@ -24,8 +26,9 @@ import {
   puoOperareSuIstanza,
 } from '@/lib/auth/visibilita';
 
-// stato: -1 → Indefinito/In attesa (non ancora preso in carico), 0 → In lavorazione, 1 → Completata
-const STATO_INDEFINITO = -1;
+// stato: 0 → In lavorazione, 1 → Completata. Il terzo valore -1, mai
+// memorizzato, è sparito con `getStatoLabel`: l'etichetta la deriva
+// `statoAttivita` da (attività, contesto dell'istanza).
 const STATO_IN_LAVORAZIONE = 0;
 const STATO_COMPLETATA = 1;
 
@@ -74,13 +77,6 @@ function formatDate(date: Date): string {
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function getStatoLabel(operatoreId: number | null, stato: number): string {
-  if (stato === STATO_INDEFINITO && operatoreId !== null) return 'Retrocesso';
-  if (stato === STATO_INDEFINITO || operatoreId === null) return 'In attesa';
-  if (stato === STATO_COMPLETATA) return 'Completata';
-  return 'In lavorazione';
 }
 
 function getNumeroDocumento(codiceTributo: string, istanzaId: number): string {
@@ -928,11 +924,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
           take: 50,
           include: {
             servizio: { select: { titolo: true } },
-            workflows: {
-              orderBy: { id: 'desc' },
-              take: 1,
-              include: { step: true },
-            },
+            attivitaCorrente: { include: { step: true } },
           },
         },
       },
@@ -948,9 +940,11 @@ export async function getIstanzeUtente(codiceFiscale: string) {
       dataInvio: i.dataInvio,
       protoNumero: i.protoNumero,
       stato: i.stato,
-      step: i.workflows[0]?.step?.descrizione ?? '-',
-      status: getStatoLabel(i.workflows[0]?.operatoreId ?? null, i.workflows[0]?.stato ?? 0),
-      dataVariazione: i.workflows[0]?.dataVariazione ?? null,
+      step: i.attivitaCorrente?.step?.descrizione ?? '-',
+      status: i.attivitaCorrente
+        ? ETICHETTE_STATO_ATTIVITA[statoAttivita(i.attivitaCorrente, i)]
+        : ETICHETTE_STATO_ATTIVITA.IN_ATTESA,
+      dataVariazione: i.attivitaCorrente?.dataVariazione ?? null,
     }));
 
     return { success: true, data };

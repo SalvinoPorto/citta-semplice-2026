@@ -1,4 +1,8 @@
 import type { StatoIstanzaValore } from '@citta/db';
+// Sottopercorso: questo modulo è importato anche da componenti client, e
+// l'indice di `@citta/db` istanzia PrismaClient. `import type` non basta —
+// `statoAttivita` è un import di runtime.
+import { statoAttivita, type AttivitaPerStato } from '@citta/db/stato-attivita';
 
 /**
  * Stato visualizzato di un'istanza — unica fonte di verità per il badge.
@@ -6,7 +10,7 @@ import type { StatoIstanzaValore } from '@citta/db';
  * conclusa/respinta e mostrava "In Lavorazione" anche per istanze non ancora
  * prese in carico, mentre lista e dettaglio le marcavano "In Attesa".
  *
- * Ordine di valutazione: stato terminale → ultimo workflow.
+ * Ordine di valutazione: stato terminale → attività corrente.
  */
 export type StatoIstanzaVariant = 'success' | 'danger' | 'secondary' | 'primary';
 
@@ -17,8 +21,10 @@ export interface StatoIstanza {
 
 export interface StatoIstanzaInput {
   stato: StatoIstanzaValore;
-  /** ultimo workflow (per dataVariazione desc), se presente */
-  ultimoWorkflow?: { operatoreId: number | null; stato: number } | null;
+  /** attività corrente dell'istanza, se ne ha una */
+  attivitaCorrente?: AttivitaPerStato | null;
+  attivitaCorrenteId: number | null;
+  assegnatarioId: number | null;
 }
 
 export function getStatoIstanza(istanza: StatoIstanzaInput): StatoIstanza {
@@ -26,9 +32,11 @@ export function getStatoIstanza(istanza: StatoIstanzaInput): StatoIstanza {
   if (istanza.stato === 'RESPINTA') return { label: 'Respinta', variant: 'danger' };
   if (istanza.stato === 'BOZZA') return { label: 'Bozza', variant: 'secondary' };
 
-  const wf = istanza.ultimoWorkflow;
-  // Nessun workflow o ultimo step non assegnato → in attesa di presa in carico
-  if (!wf || wf.operatoreId === null) return { label: 'In Attesa', variant: 'secondary' };
-  if (wf.stato === 1) return { label: 'Completata', variant: 'success' };
-  return { label: 'In Lavorazione', variant: 'primary' };
+  if (!istanza.attivitaCorrente) return { label: 'In Attesa', variant: 'secondary' };
+
+  switch (statoAttivita(istanza.attivitaCorrente, istanza)) {
+    case 'COMPLETATA': return { label: 'Completata', variant: 'success' };
+    case 'IN_LAVORAZIONE': return { label: 'In Lavorazione', variant: 'primary' };
+    default: return { label: 'In Attesa', variant: 'secondary' };
+  }
 }

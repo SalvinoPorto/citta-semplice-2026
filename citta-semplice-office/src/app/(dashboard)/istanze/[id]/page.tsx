@@ -131,10 +131,15 @@ export default async function IstanzaDetailPage({
     });
   }
 
-  const lastWorkflow = istanza.workflows[0];
-  const assignedTo = (lastWorkflow === undefined || lastWorkflow.operatore === null)
+  // "Corrente" ha una sola definizione: la colonna che il trigger mantiene.
+  // Il fallback su workflows[0] copre le istanze che non hanno ancora
+  // un'attività corrente (nessuna riga di attività).
+  const attivitaCorrente =
+    istanza.workflows.find((w) => w.id === istanza.attivitaCorrenteId) ?? istanza.workflows[0] ?? null;
+  const lastWorkflow = attivitaCorrente ?? undefined;
+  const assignedTo = istanza.assegnatarioId === null
     ? ASSIGNEDTO.NOONE
-    : lastWorkflow.operatore.id === operatoreId
+    : istanza.assegnatarioId === operatoreId
       ? ASSIGNEDTO.ME
       : ASSIGNEDTO.OTHER;
 
@@ -210,7 +215,9 @@ export default async function IstanzaDetailPage({
   const getStatusBadge = () => {
     const stato = getStatoIstanza({
       stato: istanza.stato,
-      ultimoWorkflow: lastWorkflow ?? null,
+      attivitaCorrente,
+      attivitaCorrenteId: istanza.attivitaCorrenteId,
+      assegnatarioId: istanza.assegnatarioId,
     });
     return <Badge variant={stato.variant}>{stato.label}</Badge>;
   };
@@ -437,6 +444,8 @@ export default async function IstanzaDetailPage({
                 steps={istanza.servizio.steps}
                 urlPayment={pmpayUrl}
                 istanzaId={istanza.id}
+                attivitaCorrenteId={istanza.attivitaCorrenteId}
+                assegnatarioId={istanza.assegnatarioId}
                 utente={{
                   codiceFiscale: istanza.utente.codiceFiscale,
                   nome: istanza.utente.nome,
