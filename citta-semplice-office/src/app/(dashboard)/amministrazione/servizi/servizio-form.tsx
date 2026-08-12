@@ -206,7 +206,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'informazioni' | 'configurazione' | 'workflow' | 'modulo' | 'art18'>('informazioni');
+  const [activeTab, setActiveTab] = useState<'informazioni' | 'configurazione' | 'iter' | 'modulo' | 'art18'>('informazioni');
 
   // Uffici Urbi SMART — caricati dinamicamente al primo uso del protocollo.
   // `ufficiDisponibili === false` = API non raggiungibile: l'elenco resta vuoto
@@ -459,7 +459,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   const tabFields: Record<string, string[]> = {
     informazioni: ['titolo', 'sottoTitolo', 'descrizione', 'comeFare', 'cosaServe', 'altreInfo', 'contatti', 'slug', 'icona', 'ordine', 'attivo', 'areaId'],
     configurazione: ['ufficioId', 'dataInizio', 'dataFine', 'unicoInvio', 'unicoInvioPerUtente', 'campiUnicoInvio', 'numeroMaxIstanze', 'msgSopraSoglia', 'msgExtraServizio', 'campiInEvidenza', 'campiDaEsportare'],
-    workflow: ['steps'],
+    iter: ['steps'],
     modulo: ['moduloTipo', 'moduloAttributes', 'postFormValidation', 'postFormValidationAPI', 'postFormValidationFields'],
     art18: ['ricevutaArt18'],
   };
@@ -477,7 +477,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     const labels: Record<string, string> = {
       titolo: 'Titolo',
       areaId: 'Area',
-      steps: 'Workflow',
+      steps: 'IstanzaAttivita',
     };
     const messages = Object.keys(errs)
       .map((k) => labels[k] || k)
@@ -563,11 +563,11 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
             <li className="nav-item">
               <button
                 type="button"
-                className={`nav-link ${activeTab === 'workflow' ? 'active' : ''}`}
-                onClick={() => setActiveTab('workflow')}
+                className={`nav-link ${activeTab === 'iter' ? 'active' : ''}`}
+                onClick={() => setActiveTab('iter')}
               >
-                Workflow ({fields.length})
-                {tabHasErrors('workflow') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
+                IstanzaAttivita ({fields.length})
+                {tabHasErrors('iter') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
               </button>
             </li>
             <li className="nav-item">
@@ -950,12 +950,12 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
             </>
           )}
 
-          {/* Tab: Workflow */}
-          {activeTab === 'workflow' && (
+          {/* Tab: IstanzaAttivita */}
+          {activeTab === 'iter' && (
             <Card className="mb-4">
               <CardBody>
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="mb-0">Workflow ({fields.length} step, {fasiFields.length} fase)</h5>
+                  <h5 className="mb-0">IstanzaAttivita ({fields.length} step, {fasiFields.length} fase)</h5>
                   <Button type="button" variant="outline-secondary" onClick={addFase}>
                     + Aggiungi Fase
                   </Button>

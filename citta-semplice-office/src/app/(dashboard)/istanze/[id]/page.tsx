@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { getVisibilitaOperatore, puoVedereIstanza, puoOperareSuIstanza } from '@/lib/auth/visibilita';
 import { getStatoIstanza } from '@/lib/models/stato-istanza';
 import { Card, CardBody, CardTitle, Badge } from '@/components/ui';
-import { WorkflowTimeline } from './workflow-timeline';
+import { AttivitaTimeline } from './attivita-timeline';
 import { ComunicazioniTimeline } from './comunicazioni-timeline';
 import { AllegatiList } from './allegati-list';
 import { IstanzaActions } from './istanza-actions';
@@ -22,7 +22,7 @@ async function getIstanza(id: number) {
       faseCorrente: {
         include: { ufficio: true },
       },
-      workflowFasi: {
+      fasi: {
         include: {
           fase: { include: { ufficio: true } },
           operatoreCompletamento: true,
@@ -44,7 +44,7 @@ async function getIstanza(id: number) {
           },
         },
       },
-      workflows: {
+      attivita: {
         include: {
           step: {
             include: { pagamentoConfig: true },
@@ -132,11 +132,11 @@ export default async function IstanzaDetailPage({
   }
 
   // "Corrente" ha una sola definizione: la colonna che il trigger mantiene.
-  // Il fallback su workflows[0] copre le istanze che non hanno ancora
+  // Il fallback su attivita[0] copre le istanze che non hanno ancora
   // un'attività corrente (nessuna riga di attività).
   const attivitaCorrente =
-    istanza.workflows.find((w) => w.id === istanza.attivitaCorrenteId) ?? istanza.workflows[0] ?? null;
-  const lastWorkflow = attivitaCorrente ?? undefined;
+    istanza.attivita.find((w) => w.id === istanza.attivitaCorrenteId) ?? istanza.attivita[0] ?? null;
+  const ultimaAttivita = attivitaCorrente ?? undefined;
   const assignedTo = istanza.assegnatarioId === null
     ? ASSIGNEDTO.NOONE
     : istanza.assegnatarioId === operatoreId
@@ -193,7 +193,7 @@ export default async function IstanzaDetailPage({
   ];
 
   // Informazioni sullo step corrente
-  const currentStep = lastWorkflow?.step ?? null;
+  const currentStep = ultimaAttivita?.step ?? null;
   const stepPagamentoConfig = currentStep?.pagamentoConfig ?? null;
   const steps = istanza.servizio.steps;
   // Gli `ordine` degli step sono globali sul servizio, non per fase: l'ultimo
@@ -279,7 +279,7 @@ export default async function IstanzaDetailPage({
               descrizioneTributo: stepPagamentoConfig.descrizioneTributo,
             } : null,
           } : null}
-          currentPayment={lastWorkflow?.pagamentoAtteso ?? null}
+          currentPayment={ultimaAttivita?.pagamentoAtteso ?? null}
           stepOrdine={currentStep?.ordine ?? 0}
           isLastStep={isLastStep}
           isFirstStepOfCurrentFase={isFirstStepOfCurrentFase}
@@ -426,7 +426,7 @@ export default async function IstanzaDetailPage({
             <CardBody>
               <CardTitle>Allegati</CardTitle>
               <AllegatiList
-                workflows={istanza.workflows}
+                attivita={istanza.attivita}
                 comunicazioni={istanza.comunicazioni}
               />
             </CardBody>
@@ -435,12 +435,12 @@ export default async function IstanzaDetailPage({
 
         {/* Sidebar */}
         <div className="col-12 col-lg-4">
-          {/* Workflow Timeline */}
+          {/* IstanzaAttivita Timeline */}
           <Card>
             <CardBody>
-              <CardTitle>Storico Workflow</CardTitle>
-              <WorkflowTimeline
-                workflows={istanza.workflows}
+              <CardTitle>Storico IstanzaAttivita</CardTitle>
+              <AttivitaTimeline
+                attivita={istanza.attivita}
                 steps={istanza.servizio.steps}
                 urlPayment={pmpayUrl}
                 istanzaId={istanza.id}

@@ -74,10 +74,10 @@ describe('attivita_corrente_id', () => {
     const stepId = await creaStep(s.faseUnoId, s.servizioId, 1);
 
     const prima = await client.query<{ id: number }>(
-      `INSERT INTO workflows (istanza_id, step_id, data_variazione) VALUES ($1, $2, now()) RETURNING id`,
+      `INSERT INTO istanza_attivita (istanza_id, step_id, data_variazione) VALUES ($1, $2, now()) RETURNING id`,
       [istanzaId, stepId]);
     const dopo = await client.query<{ id: number }>(
-      `INSERT INTO workflows (istanza_id, step_id, data_variazione) VALUES ($1, $2, now()) RETURNING id`,
+      `INSERT INTO istanza_attivita (istanza_id, step_id, data_variazione) VALUES ($1, $2, now()) RETURNING id`,
       [istanzaId, stepId]);
 
     const { rows } = await client.query<{ attivita_corrente_id: number }>(
@@ -92,7 +92,7 @@ describe('attivita_corrente_id', () => {
     const istanzaDue = await creaIstanza(s, 'unica-2');
     const stepId = await creaStep(s.faseUnoId, s.servizioId, 1);
     const attivita = await client.query<{ id: number }>(
-      `INSERT INTO workflows (istanza_id, step_id, data_variazione) VALUES ($1, $2, now()) RETURNING id`,
+      `INSERT INTO istanza_attivita (istanza_id, step_id, data_variazione) VALUES ($1, $2, now()) RETURNING id`,
       [istanzaUno, stepId]);
 
     await expect(
@@ -166,8 +166,14 @@ describe('riallineamento della migrazione di contrazione', () => {
     const istanzaId = await creaIstanza(s, 'riallineamento');
     const stepId = await creaStep(s.faseUnoId, s.servizioId, 1);
 
+    // La ricostruzione include anche il NOME della tabella: quando la
+    // contrazione girò, `istanza_attivita` si chiamava ancora `workflows` — la
+    // rinomina è la migrazione successiva. Il file va eseguito com'è:
+    // riscriverlo per farlo funzionare sullo schema di oggi vorrebbe dire
+    // testare una migrazione diversa da quella che gira in produzione.
     // Un solo ALTER TABLE con due ADD COLUMN è atomico: non resta uno stato
     // parziale se una clausola fallisce.
+    await client.query(`ALTER TABLE istanza_attivita RENAME TO workflows`);
     await client.query(`
       ALTER TABLE workflows
         ADD COLUMN stato integer NOT NULL DEFAULT 0,
@@ -191,14 +197,18 @@ describe('riallineamento della migrazione di contrazione', () => {
       expect(rows[0].completata_at).not.toBeNull();
       expect(rows[0].completata_da_id).toBe(s.operatoreId);
     } finally {
-      // Rete di sicurezza per il solo percorso di fallimento: nel percorso di
-      // successo il file di migrazione ha già eseguito i suoi DROP.
+      // Le colonne le ha già eliminate il file di migrazione nel percorso di
+      // successo; `IF EXISTS` copre quello di fallimento. Il nome della
+      // tabella va invece sempre ripristinato, o i test successivi (e gli
+      // altri file della suite, che condividono questo database) troverebbero
+      // uno schema diverso da quello delle migrazioni.
       await client.query(`
         ALTER TABLE workflows
           DROP COLUMN IF EXISTS stato,
           DROP COLUMN IF EXISTS operatore_id
       `);
       await client.query(`DROP INDEX IF EXISTS istanze_stato_idx`);
+      await client.query(`ALTER TABLE workflows RENAME TO istanza_attivita`);
     }
   });
 });

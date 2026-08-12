@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
   // Build where clause — limitato alle istanze visibili all'operatore
   const where: Record<string, unknown> = {
-    workflow: { istanza: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] } },
+    attivita: { istanza: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] } },
   };
 
   if (iuv) {
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       prisma.pagamentoAtteso.findMany({
         where,
         include: {
-          workflow: {
+          attivita: {
             include: {
               istanza: {
                 include: {
@@ -82,8 +82,8 @@ export async function GET(request: NextRequest) {
     ]);
 
     const formattedResults = results.map((pagamento) => {
-      const utente = pagamento.workflow?.istanza?.utente;
-      const servizio = pagamento.workflow?.istanza?.servizio;
+      const utente = pagamento.attivita?.istanza?.utente;
+      const servizio = pagamento.attivita?.istanza?.servizio;
 
       return {
         id: pagamento.id,
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
         utente: utente ? `${utente.cognome} ${utente.nome}` : pagamento.pagante || '-',
         codiceFiscale: utente?.codiceFiscale || pagamento.paganteCodiceFiscale || '-',
         modulo: servizio?.titolo || '-',
-        istanzaId: pagamento.workflow?.istanza?.id,
+        istanzaId: pagamento.attivita?.istanza?.id,
         data: pagamento.dataOperazione
           ? pagamento.dataOperazione.toLocaleDateString('it-IT')
           : '-',

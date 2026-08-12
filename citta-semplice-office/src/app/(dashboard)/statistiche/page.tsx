@@ -70,7 +70,7 @@ async function getStatistiche(giorni: number, visibilita: VisibilitaOperatore) {
       where: {
         stato: 'CON',
         dataRicevuta: { gte: startDate, lte: today },
-        workflow: { istanza: { AND: [v] } },
+        attivita: { istanza: { AND: [v] } },
       },
       _count: true,
       _sum: { importoTotale: true },

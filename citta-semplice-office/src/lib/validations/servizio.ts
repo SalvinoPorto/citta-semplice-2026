@@ -110,7 +110,7 @@ export const servizioSchema = z.object({
     ufficioRicevimento: z.string().optional(),
   }).optional(),
 
-  // Workflow
+  // IstanzaAttivita
   fasi: z.array(faseSchema).min(1, 'Almeno una fase è obbligatoria'),
   steps: z.array(stepSchema),
 });

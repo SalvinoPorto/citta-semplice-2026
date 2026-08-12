@@ -20,7 +20,7 @@ describe('schema Prisma', () => {
     const tabelle = rows.map((r) => r.table_name);
     expect(tabelle).toContain('istanze');
     expect(tabelle).toContain('servizi');
-    expect(tabelle).toContain('workflows');
+    expect(tabelle).toContain('istanza_attivita');
     expect(tabelle).toContain('fasi');
     expect(tabelle).toContain('steps');
   });

@@ -24,7 +24,7 @@ export async function GET(
   const allegato = await prisma.allegato.findUnique({
     where: { id: allegatoId },
     include: {
-      workflow: {
+      attivita: {
         include: { istanza: true },
       },
     },
@@ -38,7 +38,7 @@ export async function GET(
   const utente = await prisma.utente.findUnique({
     where: { id: Number(session.user.id) },
   });
-  if (!utente || allegato.workflow.istanza.utenteId !== utente.id) {
+  if (!utente || allegato.attivita.istanza.utenteId !== utente.id) {
     return new NextResponse('Accesso negato', { status: 403 });
   }
 

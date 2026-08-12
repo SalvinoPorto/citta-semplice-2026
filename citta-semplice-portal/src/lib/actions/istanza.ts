@@ -48,7 +48,7 @@ function validaFile(file: File): string | null {
 async function salvaFileAllegati(
   files: File[],
   allegatiIds: number[],
-  workflowId: number,
+  attivitaId: number,
 ) {
   if (files.length === 0) return;
 
@@ -85,7 +85,7 @@ async function salvaFileAllegati(
         invUtente: true,
         visto: false,
         dataInserimento: now,
-        workflowId,
+        attivitaId,
       },
     });
   }
@@ -150,10 +150,10 @@ type DatiDocumenti = {
 
 async function salvaDocumentiInterni(
   istanzaId: number,
-  workflowId: number | null,
+  attivitaId: number | null,
   dati: DatiDocumenti,
 ): Promise<void> {
-  if (!workflowId) return;
+  if (!attivitaId) return;
 
   try {
     // Documento finale: modulo con proto numero + ricevuta art.18 accodata (se configurata)
@@ -168,7 +168,7 @@ async function salvaDocumentiInterni(
         invUtente: false,
         visto: false,
         dataInserimento: new Date(),
-        workflowId,
+        attivitaId,
       },
     });
   } catch (err) {
@@ -428,25 +428,25 @@ export async function submitIstanza(formData: FormData) {
         },
       });
 
-      let workflowId: number | null = null;
+      let attivitaId: number | null = null;
       if (primoStep) {
-        const wf = await prisma.workflow.create({
+        const wf = await prisma.istanzaAttivita.create({
           data: {
             istanzaId: bozzaId,
             stepId: primoStep.id,
             // Nessun operatoreId: l'invio non assegna nessuno, e
             // istanze.assegnatario_id è già NULL per default.
-            dataVariazione: new Date(),
+            iniziataAt: new Date(),
           },
         });
-        workflowId = wf.id;
+        attivitaId = wf.id;
       }
 
-      if (workflowId) {
-        await salvaFileAllegati(files, allegatiIds, workflowId);
+      if (attivitaId) {
+        await salvaFileAllegati(files, allegatiIds, attivitaId);
       }
 
-      await salvaDocumentiInterni(bozzaId, workflowId, {
+      await salvaDocumentiInterni(bozzaId, attivitaId, {
         istanza: { id: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },
         servizio: datiServizioDoc,
         ricevuta: servizio.ricevuta,
@@ -504,13 +504,13 @@ export async function submitIstanza(formData: FormData) {
         utenteId: utente.id,
         servizioId,
         faseCorrenteId: primoStep?.faseId ?? null,
-        workflows: primoStep
+        attivita: primoStep
           ? {
               create: {
                 // Nessun operatoreId: l'invio non assegna nessuno, e
                 // istanze.assegnatario_id è già NULL per default.
                 stepId: primoStep.id,
-                dataVariazione: new Date(),
+                iniziataAt: new Date(),
               },
             }
           : undefined,
@@ -527,7 +527,7 @@ export async function submitIstanza(formData: FormData) {
 
     let wfId: number | null = null;
     if (primoStep) {
-      const wf = await prisma.workflow.findFirst({ where: { istanzaId: istanza.id } });
+      const wf = await prisma.istanzaAttivita.findFirst({ where: { istanzaId: istanza.id } });
       if (wf) {
         wfId = wf.id;
         if (files.length > 0) {

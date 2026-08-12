@@ -12,7 +12,7 @@ interface Allegato {
   dataInserimento: Date | null;
 }
 
-interface Workflow {
+interface IstanzaAttivita {
   id: number;
   step: {
     descrizione: string;
@@ -36,12 +36,12 @@ interface Comunicazione {
 }
 
 interface AllegatiListProps {
-  workflows: Workflow[];
+  attivita: IstanzaAttivita[];
   comunicazioni: Comunicazione[];
 }
 
-export function AllegatiList({ workflows, comunicazioni }: AllegatiListProps) {
-  const allegatiWorkflow = workflows.flatMap((wf) =>
+export function AllegatiList({ attivita, comunicazioni }: AllegatiListProps) {
+  const allegatiAttivita = attivita.flatMap((wf) =>
     wf.allegati.map((a) => ({
       key: `wf-${a.id}`,
       nomeFile: a.nomeFile,
@@ -71,7 +71,7 @@ export function AllegatiList({ workflows, comunicazioni }: AllegatiListProps) {
     }))
   );
 
-  const allAllegati = [...allegatiWorkflow, ...allegatiRisposta];
+  const allAllegati = [...allegatiAttivita, ...allegatiRisposta];
 
   if (allAllegati.length === 0) {
     return <p className="text-muted">Nessun allegato presente</p>;

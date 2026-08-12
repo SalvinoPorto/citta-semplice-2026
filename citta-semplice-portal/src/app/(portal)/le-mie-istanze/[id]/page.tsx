@@ -132,7 +132,7 @@ function parseDati(dati: string | null | undefined): CampoDato[] {
 function getStatoBadge(istanza: { stato: StatoIstanzaValore; assegnatarioId: number | null }) {
   if (istanza.stato === 'CONCLUSA') return { label: 'Conclusa', cls: 'bg-success' };
   if (istanza.stato === 'RESPINTA') return { label: 'Respinta', cls: 'bg-danger' };
-  // "Presa in carico" era `workflows.some(operatoreId !== null)`: contava anche
+  // "Presa in carico" era `attivita.some(operatoreId !== null)`: contava anche
   // gli step chiusi da un operatore che non ci lavora più. Ora è una domanda
   // sola, con una sola risposta.
   if (istanza.assegnatarioId !== null) return { label: 'In lavorazione', cls: 'bg-primary' };
@@ -161,13 +161,13 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
     where: { id, utenteId: utente.id, ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA']) },
     include: {
       servizio: { include: { area: true } },
-      workflows: {
+      attivita: {
         include: {
           step: true,
           allegati: true,
           pagamentoAtteso: true,
         },
-        orderBy: { dataVariazione: 'asc' },
+        orderBy: { iniziataAt: 'asc' },
       },
       comunicazioni: { include: { risposta: { include: { allegati: true } } } },
     },
@@ -181,17 +181,17 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
   const vociDati = gruppiDati === null ? vociPiatte(dati, istanza.servizio.attributi) : null;
 
   // Tutti gli allegati caricati dal cittadino (invUtente = true)
-  const allegatiUtente = istanza.workflows.flatMap((wf) =>
+  const allegatiUtente = istanza.attivita.flatMap((wf) =>
     wf.allegati.filter((a) => a.invUtente),
   );
 
   // Allegati caricati dall'ufficio (invUtente = false)
-  const allegatiUfficio = istanza.workflows.flatMap((wf) =>
+  const allegatiUfficio = istanza.attivita.flatMap((wf) =>
     wf.allegati.filter((a) => !a.invUtente),
   );
 
-  // Pagamento: cerca un workflow con pagamentoAtteso
-  const pagamentoAtteso = istanza.workflows
+  // Pagamento: cerca un attività con pagamentoAtteso
+  const pagamentoAtteso = istanza.attivita
     .map((wf) => wf.pagamentoAtteso)
     .find((p) => p !== null) ?? null;
 
@@ -440,28 +440,28 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                 Iter della pratica
               </h2>
 
-              {istanza.workflows.length === 0 ? (
+              {istanza.attivita.length === 0 ? (
                 <p className="text-muted fst-italic">Nessuna fase registrata.</p>
               ) : (
                 <div className="timeline-wrapper">
                   <div className="it-timeline-wrapper">
                     <div className="row">
-                      {istanza.workflows.map((wf, idx) => (
+                      {istanza.attivita.map((wf, idx) => (
                         <div key={wf.id} className="col-12">
                           <div className="timeline-element">
                             <div className="it-pin-wrapper it-evidence">
                               <div className="pin-icon">
                                 <svg className="icon icon-sm" aria-hidden="true">
-                                  <use href={`/bootstrap-italia/dist/svg/sprites.svg#${idx === istanza.workflows.length - 1 ? 'it-check-circle' : 'it-check'}`} />
+                                  <use href={`/bootstrap-italia/dist/svg/sprites.svg#${idx === istanza.attivita.length - 1 ? 'it-check-circle' : 'it-check'}`} />
                                 </svg>
                               </div>
                             </div>
                             <div className="it-timeline-element-wrapper">
                               <div className="it-evidence-date-wrapper d-flex align-items-center gap-2 mb-1">
                                 <span className="it-evidence-date small text-muted">
-                                  {format(wf.dataVariazione, 'dd/MM/yyyy HH:mm', { locale: it })}
+                                  {format(wf.iniziataAt, 'dd/MM/yyyy HH:mm', { locale: it })}
                                 </span>
-                                <span className={`badge ${idx === istanza.workflows.length - 1 ? 'bg-primary' : 'bg-secondary'}`}>
+                                <span className={`badge ${idx === istanza.attivita.length - 1 ? 'bg-primary' : 'bg-secondary'}`}>
                                   {ETICHETTE_STATO_ATTIVITA[statoAttivita(wf, istanza)]}
                                 </span>
                               </div>

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   // Build where clause — limitato alle istanze visibili all'operatore
   const where: Record<string, unknown> = {
-    workflow: { istanza: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] } },
+    attivita: { istanza: { ...whereVisibileAgliOperatori(), AND: [istanzaVisibilityWhere(visibilita)] } },
   };
 
   if (iuv) {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const results = await prisma.pagamentoAtteso.findMany({
       where,
       include: {
-        workflow: {
+        attivita: {
           include: {
             istanza: {
               include: {
@@ -101,8 +101,8 @@ export async function GET(request: NextRequest) {
     ];
 
     const rows = results.map((pagamento) => {
-      const utente = pagamento.workflow?.istanza?.utente;
-      const servizio = pagamento.workflow?.istanza?.servizio;
+      const utente = pagamento.attivita?.istanza?.utente;
+      const servizio = pagamento.attivita?.istanza?.servizio;
 
       return [
         pagamento.id,
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
         escapeCSV(utente?.nome || ''),
         escapeCSV(pagamento.causale),
         escapeCSV(servizio?.titolo),
-        pagamento.workflow?.istanza?.id || '',
+        pagamento.attivita?.istanza?.id || '',
       ];
     });
 

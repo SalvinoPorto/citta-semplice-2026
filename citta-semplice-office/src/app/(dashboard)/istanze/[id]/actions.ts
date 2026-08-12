@@ -79,7 +79,7 @@ function getNumeroDocumento(codiceTributo: string, istanzaId: number): string {
   return prefix + istanzaId.toString().padStart(20 - l, '0');
 }
 
-export interface AdvanceWorkflowParams {
+export interface AvanzaAttivitaParams {
   istanzaId: number;
   note: string;
   inviaEmailPassaggioFase?: boolean; // default: true — usato solo se c'è cambio fase
@@ -88,7 +88,7 @@ export interface AdvanceWorkflowParams {
 
 export interface GeneratePaymentParams {
   istanzaId: number;
-  workflowId: number;
+  attivitaId: number;
   importo?: number;
   causale?: string;
   // Dati del debitore (se diverso dal richiedente)
@@ -98,7 +98,7 @@ export interface GeneratePaymentParams {
   email?: string;
 }
 
-export async function advanceWorkflow(params: AdvanceWorkflowParams) {
+export async function avanzaAttivita(params: AvanzaAttivitaParams) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -129,7 +129,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             },
           },
         },
-        workflows: {
+        attivita: {
           orderBy: { id: 'desc' },
           take: 1,
           include: { step: { include: { pagamentoConfig: true, allegatiRichiestiList: true } }, allegati: true, pagamentoAtteso: true },
@@ -146,12 +146,12 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       return { success: false, message: 'Istanza già conclusa o respinta' };
     }
 
-    const lastWorkflow = istanza.workflows[0];
+    const ultimaAttivita = istanza.attivita[0];
     const steps = istanza.servizio.steps;
-    const currentStepOrder = lastWorkflow?.step?.ordine || 0;
-    const currentStep = lastWorkflow?.step;
+    const currentStepOrder = ultimaAttivita?.step?.ordine || 0;
+    const currentStep = ultimaAttivita?.step;
 
-    const currentPayment = lastWorkflow?.pagamentoAtteso;
+    const currentPayment = ultimaAttivita?.pagamentoAtteso;
     const paymentStep = currentStep?.pagamento ?? false;
     const paymentRequired = currentStep?.pagamentoConfig?.obbligatorio ?? false;
     const paymentConfirmed = currentPayment?.stato === 'CON';
@@ -165,7 +165,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
 
     // Controllo allegati obbligatori per operatore
     const requiredAttachments = currentStep?.allegatiRichiestiList?.filter(a => a.obbligatorio && a.soggetto === 'OP') || [];
-    const providedAttachments = lastWorkflow?.allegati || [];
+    const providedAttachments = ultimaAttivita?.allegati || [];
     const missingAttachments = requiredAttachments.filter(req =>
       !providedAttachments.some(att => att.nomeFileRichiesto === req.nomeAllegatoRichiesto)
     );
@@ -192,7 +192,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
     if (currentStep?.protocollo) {
         const storage = getStorage();
         const files = await Promise.all(
-          (lastWorkflow?.allegati ?? []).map(async (a) => {
+          (ultimaAttivita?.allegati ?? []).map(async (a) => {
             try {
               const buf = await storage.read(a.nomeHash);
               return new File([new Uint8Array(buf)], a.nomeFile, { type: 'application/pdf' });
@@ -232,23 +232,23 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
         });
       }
 
-      if (lastWorkflow) {
-        await tx.workflow.update({
-          where: { id: lastWorkflow.id },
+      if (ultimaAttivita) {
+        await tx.istanzaAttivita.update({
+          where: { id: ultimaAttivita.id },
           data: {
             completataAt: now,
             completataDaId: operatoreId,
-            note: note || lastWorkflow.note,
+            note: note || ultimaAttivita.note,
           },
         });
       }
 
       if (nextStepSameFase) {
-        await tx.workflow.create({
+        await tx.istanzaAttivita.create({
           data: {
             istanzaId,
             stepId: nextStepSameFase.id,
-            dataVariazione: now,
+            iniziataAt: now,
           },
         });
         // L'attività corrente la imposta il trigger sull'INSERT. L'assegnatario
@@ -290,7 +290,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
           }
 
           if (currentFase) {
-            await tx.workflowFase.updateMany({
+            await tx.istanzaFase.updateMany({
               where: { istanzaId: istanza.id, faseId: currentFase.id, dataCompletamento: null },
               data: {
                 dataCompletamento: now,
@@ -299,7 +299,7 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             });
           }
 
-          await tx.workflowFase.create({
+          await tx.istanzaFase.create({
             data: {
               istanzaId: istanza.id,
               faseId: nextFase.id,
@@ -313,14 +313,14 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
             data: { faseCorrenteId: nextFase.id },
           });
 
-          await tx.workflow.create({
+          await tx.istanzaAttivita.create({
             data: {
               // Cambio di fase: il trigger su istanze ha già azzerato
               // l'assegnatario nell'UPDATE di fase_corrente_id qui sopra.
               // L'istanza si presenta come "Nuova" all'ufficio che la riceve.
               istanzaId: istanza.id,
               stepId: firstStepNextFase.id,
-              dataVariazione: now,
+              iniziataAt: now,
             },
           });
 
@@ -357,12 +357,12 @@ export async function advanceWorkflow(params: AdvanceWorkflowParams) {
       protoData: protoDataStep,
     };
   } catch (error) {
-    console.error('Error advancing workflow:', error);
+    console.error('Errore durante l\'avanzamento:', error);
     return { success: false, message: 'Errore durante l\'avanzamento' };
   }
 }
 
-export async function regressWorkflow(istanzaId: number, note: string) {
+export async function retrocediAttivita(istanzaId: number, note: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -395,7 +395,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
             fasi: { select: { id: true, ordine: true }, orderBy: { ordine: 'asc' } },
           },
         },
-        workflows: {
+        attivita: {
           orderBy: { id: 'desc' },
           take: 1,
           include: { step: { include: { fase: { select: { id: true, ordine: true } } } } },
@@ -411,8 +411,8 @@ export async function regressWorkflow(istanzaId: number, note: string) {
       return { success: false, message: 'Impossibile retrocedere: istanza già conclusa o respinta' };
     }
 
-    const lastWorkflow = istanza.workflows[0];
-    const currentStep = lastWorkflow?.step;
+    const ultimaAttivita = istanza.attivita[0];
+    const currentStep = ultimaAttivita?.step;
     const currentStepOrder = currentStep?.ordine || 0;
 
     const steps = istanza.servizio.steps;
@@ -434,25 +434,25 @@ export async function regressWorkflow(istanzaId: number, note: string) {
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
-      if (lastWorkflow) {
-        await tx.workflow.update({
-          where: { id: lastWorkflow.id },
+      if (ultimaAttivita) {
+        await tx.istanzaAttivita.update({
+          where: { id: ultimaAttivita.id },
           data: {
             // Riaperta: `completataAt` torna NULL come `stato` torna a 0. Sono
             // la stessa informazione finché la contrazione non rimuove `stato`.
             completataAt: null,
             completataDaId: null,
             note: note ? `[Retrocessione] ${note}` : '[Retrocessione]',
-            dataVariazione: now,
+            iniziataAt: now,
           },
         });
       }
 
-      await tx.workflow.create({
+      await tx.istanzaAttivita.create({
         data: {
           istanzaId,
           stepId: prevStep.id,
-          dataVariazione: now,
+          iniziataAt: now,
           note: note ? `[Retrocessione da step ${currentStepOrder}] ${note}` : `[Retrocessione da step ${currentStepOrder}]`,
         },
       });
@@ -465,7 +465,7 @@ export async function regressWorkflow(istanzaId: number, note: string) {
 
     return { success: true, message: `Retrocesso a: ${prevStep.descrizione}` };
   } catch (error) {
-    console.error('Error regressing workflow:', error);
+    console.error('Errore durante la retrocessione:', error);
     return { success: false, message: 'Errore durante la retrocessione' };
   }
 }
@@ -489,7 +489,7 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
-        workflows: {
+        attivita: {
           orderBy: { id: 'desc' },
           take: 1,
         },
@@ -505,17 +505,17 @@ export async function rejectIstanza(istanzaId: number, motivo: string) {
     }
 
     const now = new Date();
-    const lastWorkflow = istanza.workflows[0];
+    const ultimaAttivita = istanza.attivita[0];
 
-    // Update last workflow to rejected
-    if (lastWorkflow) {
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
+    // Chiude l'attività corrente sul rifiuto
+    if (ultimaAttivita) {
+      await prisma.istanzaAttivita.update({
+        where: { id: ultimaAttivita.id },
         data: {
           completataAt: now,
           completataDaId: operatoreId,
           note: motivo,
-          dataVariazione: now,
+          iniziataAt: now,
         },
       });
     }
@@ -555,7 +555,7 @@ export async function reopenIstanza(istanzaId: number) {
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
-        workflows: {
+        attivita: {
           orderBy: { id: 'desc' },
           take: 1,
         },
@@ -571,18 +571,18 @@ export async function reopenIstanza(istanzaId: number) {
     }
 
     const now = new Date();
-    const lastWorkflow = istanza.workflows[0];
+    const ultimaAttivita = istanza.attivita[0];
 
-    // Update last workflow back to elaborazione
-    if (lastWorkflow) {
-      await prisma.workflow.update({
-        where: { id: lastWorkflow.id },
+    // Riapre l'attività corrente
+    if (ultimaAttivita) {
+      await prisma.istanzaAttivita.update({
+        where: { id: ultimaAttivita.id },
         data: {
           // Riaperta: `completataAt` torna NULL come `stato` torna a 0.
           completataAt: null,
           completataDaId: null,
           note: '',
-          dataVariazione: now,
+          iniziataAt: now,
         },
       });
     }
@@ -659,7 +659,7 @@ export async function addNote(istanzaId: number, noteText: string) {
     const istanza = await prisma.istanza.findUnique({
       where: { id: istanzaId },
       include: {
-        workflows: {
+        attivita: {
           orderBy: { id: 'desc' },
           take: 1,
         },
@@ -670,20 +670,20 @@ export async function addNote(istanzaId: number, noteText: string) {
       return { success: false, message: 'Istanza non trovata' };
     }
 
-    const lastWorkflow = istanza.workflows[0];
+    const ultimaAttivita = istanza.attivita[0];
     const now = new Date();
 
-    // Create workflow entry with same step/status but new note
-    await prisma.workflow.create({
+    // Nuova attività sullo stesso step, con la nota
+    await prisma.istanzaAttivita.create({
       data: {
         istanzaId,
-        stepId: lastWorkflow?.stepId,
+        stepId: ultimaAttivita?.stepId,
         // La nota ricalca lo stato dell'attività precedente: se quella era
         // chiusa lo è anche questa. Senza `operatoreId`, che non significa più
         // "assegnata a": l'assegnazione vive su istanze.assegnatario_id.
-        completataAt: lastWorkflow?.completataAt ?? null,
-        completataDaId: lastWorkflow?.completataDaId ?? null,
-        dataVariazione: now,
+        completataAt: ultimaAttivita?.completataAt ?? null,
+        completataDaId: ultimaAttivita?.completataDaId ?? null,
+        iniziataAt: now,
         note: noteText,
       },
     });
@@ -726,9 +726,9 @@ export async function takeCharge(istanzaId: number) {
             },
           },
         },
-        workflows: {
-          // `dataVariazione` e non `id`: "ultimo" ha una sola definizione.
-          orderBy: { dataVariazione: 'desc' },
+        attivita: {
+          // `iniziataAt` e non `id`: "ultimo" ha una sola definizione.
+          orderBy: { iniziataAt: 'desc' },
           take: 1,
         },
       },
@@ -747,7 +747,7 @@ export async function takeCharge(istanzaId: number) {
       return { success: false, message: 'Il servizio non ha step configurati' };
     }
 
-    const lastWorkflow = istanza.workflows[0];
+    const ultimaAttivita = istanza.attivita[0];
 
     if (istanza.assegnatarioId !== null) {
       return { success: false, message: 'Istanza già presa in carico' };
@@ -771,15 +771,15 @@ export async function takeCharge(istanzaId: number) {
       },
     });
 
-    if (!lastWorkflow) {
+    if (!ultimaAttivita) {
       // Edge case: nessuna attività esistente (legacy) — creala al primo step
       // del servizio. Senza operatoreId: chi la prende in carico è
       // sull'istanza.
-      await prisma.workflow.create({
+      await prisma.istanzaAttivita.create({
         data: {
           istanzaId,
           stepId: firstStep.id,
-          dataVariazione: now,
+          iniziataAt: now,
           note: '',
         },
       });
@@ -883,7 +883,7 @@ export interface IstanzaUtenteItem {
   stato: StatoIstanzaValore;
   step: string;
   status: string;
-  dataVariazione: Date | null;
+  iniziataAt: Date | null;
 }
 
 export async function getIstanzeUtente(codiceFiscale: string) {
@@ -925,7 +925,7 @@ export async function getIstanzeUtente(codiceFiscale: string) {
       status: i.attivitaCorrente
         ? ETICHETTE_STATO_ATTIVITA[statoAttivita(i.attivitaCorrente, i)]
         : ETICHETTE_STATO_ATTIVITA.IN_ATTESA,
-      dataVariazione: i.attivitaCorrente?.dataVariazione ?? null,
+      iniziataAt: i.attivitaCorrente?.iniziataAt ?? null,
     }));
 
     return { success: true, data };
@@ -956,7 +956,7 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
       include: {
         utente: true,
         servizio: { include: { area: { select: { nome: true } } } },
-        workflows: {
+        attivita: {
           orderBy: { id: 'desc' },
           take: 1,
           include: { step: { include: { allegatiRichiestiList: true } }, allegati: true },
@@ -977,12 +977,12 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     }
 
     const now = new Date();
-    const lastWorkflow = istanza.workflows[0];
-    const lastStep = lastWorkflow?.step;
+    const ultimaAttivita = istanza.attivita[0];
+    const lastStep = ultimaAttivita?.step;
 
     // Controllo allegati obbligatori per operatore
     const requiredAttachments = lastStep?.allegatiRichiestiList?.filter(a => a.obbligatorio && a.soggetto === 'OP') || [];
-    const providedAttachments = lastWorkflow?.allegati || [];
+    const providedAttachments = ultimaAttivita?.allegati || [];
     const missingAttachments = requiredAttachments.filter(req =>
       !providedAttachments.some(att => att.nomeFileRichiesto === req.nomeAllegatoRichiesto)
     );
@@ -1001,7 +1001,7 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     if (lastStep?.protocollo) {
       const storage = getStorage();
       const files = await Promise.all(
-        (lastWorkflow?.allegati ?? []).map(async (a) => {
+        (ultimaAttivita?.allegati ?? []).map(async (a) => {
           try {
             const buf = await storage.read(a.nomeHash);
             return new File([new Uint8Array(buf)], a.nomeFile, { type: 'application/pdf' });
@@ -1030,14 +1030,14 @@ export async function concludeIstanza(istanzaId: number, note?: string) {
     }
 
     await prisma.$transaction(async (tx) => {
-      if (lastWorkflow) {
-        await tx.workflow.update({
-          where: { id: lastWorkflow.id },
+      if (ultimaAttivita) {
+        await tx.istanzaAttivita.update({
+          where: { id: ultimaAttivita.id },
           data: {
             completataAt: now,
             completataDaId: operatoreId,
-            note: note || lastWorkflow.note,
-            dataVariazione: now,
+            note: note || ultimaAttivita.note,
+            iniziataAt: now,
           },
         });
       }
@@ -1073,25 +1073,25 @@ export async function generatePayment(params: GeneratePaymentParams) {
       return { success: false, message: 'Non autorizzato' };
     }
 
-    const { istanzaId, workflowId, importo, causale, cf, nome, cognome, email } = params;
+    const { istanzaId, attivitaId, importo, causale, cf, nome, cognome, email } = params;
 
-    const workflow = await prisma.workflow.findUnique({
-      where: { id: workflowId },
+    const attivita = await prisma.istanzaAttivita.findUnique({
+      where: { id: attivitaId },
       include: {
         step: { include: { pagamentoConfig: true } },
         istanza: { include: { utente: true } },
       },
     });
 
-    if (!workflow) {
-      return { success: false, message: 'Workflow non trovato' };
+    if (!attivita) {
+      return { success: false, message: 'IstanzaAttivita non trovato' };
     }
 
-    if (!workflow.step?.pagamento || !workflow.step.pagamentoConfig) {
+    if (!attivita.step?.pagamento || !attivita.step.pagamentoConfig) {
       return { success: false, message: 'Questo step non prevede pagamenti' };
     }
 
-    const cfg = workflow.step.pagamentoConfig;
+    const cfg = attivita.step.pagamentoConfig;
     const paymentImporto = cfg.importoVariabile ? (importo ?? 0) : (cfg.importo ?? 0);
     const paymentCausale = cfg.causaleVariabile ? (causale ?? '') : (cfg.causale ?? '');
     const codiceTributo = cfg.codiceTributo ?? '';
@@ -1106,11 +1106,11 @@ export async function generatePayment(params: GeneratePaymentParams) {
 
     // Annulla pagamento esistente se presente
     const existingPayment = await prisma.pagamentoAtteso.findUnique({
-      where: { workflowId },
+      where: { attivitaId },
     });
     if (existingPayment) {
       await prisma.pagamentoAtteso.delete({
-        where: { workflowId },
+        where: { attivitaId },
       });
     }
 
@@ -1125,10 +1125,10 @@ export async function generatePayment(params: GeneratePaymentParams) {
       importo: paymentImporto,
       causale: paymentCausale,
       codiceTributo,
-      codiceFiscale: cf || workflow.istanza.utente.codiceFiscale,
-      nome: nome || workflow.istanza.utente.nome,
-      cognome: cognome || workflow.istanza.utente.cognome,
-      email: email || workflow.istanza.utente.email || undefined,
+      codiceFiscale: cf || attivita.istanza.utente.codiceFiscale,
+      nome: nome || attivita.istanza.utente.nome,
+      cognome: cognome || attivita.istanza.utente.cognome,
+      email: email || attivita.istanza.utente.email || undefined,
     });
 
     if (!payResult.success || !payResult.iuv) {
@@ -1137,7 +1137,7 @@ export async function generatePayment(params: GeneratePaymentParams) {
 
     const pagAtt = await prisma.pagamentoAtteso.create({
       data: {
-        workflowId,
+        attivitaId,
         iuv: payResult.iuv,
         dataScadenza,
         dataEmissione: dataInizioValidita,
@@ -1145,9 +1145,9 @@ export async function generatePayment(params: GeneratePaymentParams) {
         importoTotale: paymentImporto,
         stato: 'ATT',
         causale: paymentCausale,
-        paganteCodiceFiscale: cf || workflow.istanza.utente.codiceFiscale,
-        pagante: nome || workflow.istanza.utente.nome,
-        paganteEmail: email || workflow.istanza.utente.email,
+        paganteCodiceFiscale: cf || attivita.istanza.utente.codiceFiscale,
+        pagante: nome || attivita.istanza.utente.nome,
+        paganteEmail: email || attivita.istanza.utente.email,
       },
     });
 
@@ -1224,7 +1224,7 @@ export async function rollbackFase(params: {
   const operatoreId = parseInt(operatore.id);
 
   await prisma.$transaction(async (tx) => {
-    await tx.workflowFase.updateMany({
+    await tx.istanzaFase.updateMany({
       where: { istanzaId: istanza.id, faseId: istanza.faseCorrente!.id, dataCompletamento: null },
       data: {
         dataCompletamento: now,
@@ -1233,7 +1233,7 @@ export async function rollbackFase(params: {
       },
     });
 
-    await tx.workflowFase.create({
+    await tx.istanzaFase.create({
       data: {
         istanzaId: istanza.id,
         faseId: fasePrecedente.id,
@@ -1242,11 +1242,11 @@ export async function rollbackFase(params: {
       },
     });
 
-    await tx.workflow.create({
+    await tx.istanzaAttivita.create({
       data: {
         istanzaId: istanza.id,
         stepId: lastStepFasePrecedente.id,
-        dataVariazione: now,
+        iniziataAt: now,
         note: `[Rollback di fase] ${params.note}`,
       },
     });

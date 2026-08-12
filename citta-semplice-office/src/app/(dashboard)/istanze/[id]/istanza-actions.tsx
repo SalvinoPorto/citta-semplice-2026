@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 import type { StatoIstanzaValore } from '@citta/db';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Textarea, Input, Select } from '@/components/ui';
 import {
-  advanceWorkflow,
-  regressWorkflow,
+  avanzaAttivita,
+  retrocediAttivita,
   rejectIstanza,
   reopenIstanza,
   addNote,
@@ -212,12 +212,12 @@ export function IstanzaActions({
 
     setLoading(true);
     try {
-      const result = await advanceWorkflow({
+      const result = await avanzaAttivita({
         istanzaId: istanza.id,
         note
       });
       if (result.success) {
-        toast.success(result.message || 'Workflow avanzato con successo');
+        toast.success(result.message || 'IstanzaAttivita avanzato con successo');
         setShowAdvanceModal(false);
         setNote('');
         setConfirmAdvanceWithoutPayment(false);
@@ -236,7 +236,7 @@ export function IstanzaActions({
   const handleRegress = async () => {
     setLoading(true);
     try {
-      const result = await regressWorkflow(istanza.id, regressNote);
+      const result = await retrocediAttivita(istanza.id, regressNote);
       if (result.success) {
         toast.success(result.message || 'Retrocesso allo step precedente');
         setShowRegressModal(false);

@@ -25,7 +25,7 @@ export async function GET(
     where: {
       iuv,
       stato: 'CON',
-      workflow: { istanza: { utenteId: utente.id } },
+      attivita: { istanza: { utenteId: utente.id } },
     },
   });
 

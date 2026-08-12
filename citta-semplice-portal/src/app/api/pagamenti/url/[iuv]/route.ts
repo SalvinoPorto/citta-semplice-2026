@@ -24,16 +24,16 @@ export async function GET(
     where: {
       iuv,
       stato: 'DAD',
-      workflow: { istanza: { utenteId: utente.id } },
+      attivita: { istanza: { utenteId: utente.id } },
     },
-    include: { workflow: { select: { istanzaId: true } } },
+    include: { attivita: { select: { istanzaId: true } } },
   });
 
   if (!pagamento) {
     return NextResponse.json({ error: 'Pagamento non trovato' }, { status: 404 });
   }
 
-  const result = await pmPayService.getUrlPagamento(iuv, String(pagamento.workflow.istanzaId));
+  const result = await pmPayService.getUrlPagamento(iuv, String(pagamento.attivita.istanzaId));
   if (!result.success || !result.location) {
     return NextResponse.json({ error: result.error ?? 'URL non disponibile' }, { status: 502 });
   }

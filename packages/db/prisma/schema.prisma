@@ -68,9 +68,9 @@ model Operatore {
   // (comportamento storico, retrocompatibile).
   servizi           OperatoreServizio[]
   comunicazioni     Comunicazione[]
-  workflowFasiCompletati  WorkflowFase[]
+  fasiCompletate  IstanzaFase[]
   istanzeAssegnate    Istanza[]  @relation("IstanzeAssegnate")
-  attivitaCompletate  Workflow[] @relation("AttivitaCompletate")
+  attivitaCompletate  IstanzaAttivita[] @relation("AttivitaCompletate")
 
   @@index([userName])
   @@map("operatori")
@@ -249,7 +249,7 @@ model ServizioRuoloUser {
 }
 
 // ============================================
-// WORKFLOW STEPS
+// ATTIVITÀ DELL'ISTANZA STEPS
 // ============================================
 
 model Step {
@@ -286,7 +286,7 @@ model Step {
   faseId                      Int?      @map("fase_id")
   fase                        Fase?     @relation(fields: [faseId], references: [id], onDelete: SetNull)
 
-  workflows                   Workflow[]
+  attivita                    IstanzaAttivita[]
   allegatiRichiestiList       AllegatoRichiesto[]
   pagamentoConfig             Pagamento?
 
@@ -353,11 +353,13 @@ model Istanza {
   stato               StatoIstanza @default(IN_LAVORAZIONE)
 
   // Posizione corrente:
-  //   - STEP corrente → step dell'ultimo Workflow (per dataVariazione desc). Non
-  //     è denormalizzato: `last_step_id` esisteva ma nessuno lo leggeva ed era già
-  //     andato fuori sincrono, quindi è stato eliminato.
+  //   - STEP corrente → step di attivitaCorrente, che un trigger AFTER INSERT
+  //     tiene allineata all'ultima attività inserita. `last_step_id` era una
+  //     denormalizzazione affidata al codice: nessuno la leggeva ed era già
+  //     andata fuori sincrono, quindi è stata eliminata. Qui la mantiene il
+  //     database, ed è la ragione per cui non può divergere.
   //   - FASE corrente → faseCorrenteId, denormalizzata perché serve nelle `where`
-  //     (visibilità per ufficio): "fase dello step dell'ultimo workflow" non è
+  //     (visibilità per ufficio): "fase dello step dell'attività corrente" non è
   //     esprimibile in un filtro Prisma. Va tenuta allineata a ogni avanzamento.
   //   - UFFICIO corrente → derivato da faseCorrente.ufficio. Non esiste più una
   //     colonna `ufficio_corrente_id`: era sempre uguale a faseCorrente.ufficioId
@@ -405,14 +407,14 @@ model Istanza {
   // rimossa) è la ragione per cui non sono affidate al codice: due
   // applicazioni scrivono su questo database.
   attivitaCorrenteId  Int?      @unique @map("attivita_corrente_id")
-  attivitaCorrente    Workflow? @relation("AttivitaCorrente", fields: [attivitaCorrenteId], references: [id], onDelete: SetNull)
+  attivitaCorrente    IstanzaAttivita? @relation("AttivitaCorrente", fields: [attivitaCorrenteId], references: [id], onDelete: SetNull)
 
   assegnatarioId      Int?       @map("assegnatario_id")
   assegnatario        Operatore? @relation("IstanzeAssegnate", fields: [assegnatarioId], references: [id], onDelete: SetNull)
 
-  workflows           Workflow[]
+  attivita            IstanzaAttivita[]
   comunicazioni       Comunicazione[]
-  workflowFasi        WorkflowFase[]
+  fasi                IstanzaFase[]
 
   @@index([utenteId])
   @@index([servizioId])
@@ -424,13 +426,13 @@ model Istanza {
 }
 
 // ============================================
-// WORKFLOW
+// ATTIVITÀ DELL'ISTANZA
 // ============================================
 
-model Workflow {
+model IstanzaAttivita {
   id              Int       @id @default(autoincrement())
   note            String?   @db.Text
-  dataVariazione  DateTime  @map("data_variazione")
+  iniziataAt      DateTime  @map("data_variazione")
 
   // Relations
   istanzaId       Int       @map("istanza_id")
@@ -452,8 +454,8 @@ model Workflow {
   pagamentoAtteso PagamentoAtteso?
 
   @@index([istanzaId])
-  @@index([dataVariazione])
-  @@map("workflows")
+  @@index([iniziataAt])
+  @@map("istanza_attivita")
 }
 
 model Fase {
@@ -471,13 +473,13 @@ model Fase {
   ufficio          Ufficio @relation(fields: [ufficioId], references: [id], onDelete: Restrict)
 
   steps                Step[]
-  workflowFasi         WorkflowFase[]
+  fasi                 IstanzaFase[]
   istanzeFaseCorrente  Istanza[]      @relation("FaseCorrente")
 
   @@map("fasi")
 }
 
-model WorkflowFase {
+model IstanzaFase {
   id                       Int       @id @default(autoincrement())
   dataInizio               DateTime  @map("data_inizio")
   dataCompletamento        DateTime? @map("data_completamento")
@@ -493,7 +495,7 @@ model WorkflowFase {
   operatoreCompletamento   Operatore? @relation(fields: [operatoreCompletamentoId], references: [id])
 
   @@index([istanzaId])
-  @@map("workflow_fasi")
+  @@map("istanza_fasi")
 }
 
 model Comunicazione {
@@ -557,8 +559,8 @@ model Allegato {
   visto               Boolean   @default(false)
   dataInserimento     DateTime? @map("data_inserimento")
 
-  workflowId          Int       @map("workflow_id")
-  workflow            Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  attivitaId          Int       @map("attivita_id")
+  attivita            IstanzaAttivita  @relation(fields: [attivitaId], references: [id], onDelete: Cascade)
 
   @@map("allegati")
 }
@@ -599,8 +601,8 @@ model PagamentoAtteso {
   paganteEmail            String?   @db.VarChar(50) @map("pagante_email")
   causale                 String?   @db.VarChar(100) 
 
-  workflowId          Int       @unique @map("workflow_id")
-  workflow            Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  attivitaId          Int       @unique @map("attivita_id")
+  attivita            IstanzaAttivita  @relation(fields: [attivitaId], references: [id], onDelete: Cascade)
 
   @@map("pagamenti_attesi")
 }

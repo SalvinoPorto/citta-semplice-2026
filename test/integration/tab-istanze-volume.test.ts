@@ -69,7 +69,7 @@ async function unAssegnatario(): Promise<number> {
 
 describe.skipIf(!ATTIVO)(`tab su ${ISTANZE} istanze`, () => {
   // Il guadagno che questo piano doveva produrre è che i tab si risolvano
-  // SULLA SOLA TABELLA `istanze`. Prima ognuno faceva un join su `workflows`
+  // SULLA SOLA TABELLA `istanze`. Prima ognuno faceva un join su `istanza_attivita`
   // con subquery correlata per riga, e ne materializzava gli id in memoria
   // Node. Questa è l'asserzione che vale per tutti e tre i tab; l'uso
   // dell'indice è un di più che dipende dalla selettività del predicato.
@@ -82,7 +82,7 @@ describe.skipIf(!ATTIVO)(`tab su ${ISTANZE} istanze`, () => {
       await piano(`assegnatario_id = $1`, [id]),
       await piano(`assegnatario_id IS NOT NULL AND assegnatario_id <> $1`, [id]),
     ];
-    for (const p of piani) expect(p).not.toContain('workflows');
+    for (const p of piani) expect(p).not.toContain('istanza_attivita');
   });
 
   it('"Nuove" usa l indice (stato, assegnatario_id)', async () => {
@@ -107,7 +107,7 @@ describe.skipIf(!ATTIVO)(`tab su ${ISTANZE} istanze`, () => {
     // Quello che conta, e che si verifica, è che sia UNA scansione di
     // `istanze` e non un join con subquery correlata per riga.
     const p = await piano(`assegnatario_id IS NOT NULL AND assegnatario_id <> $1`, [await unAssegnatario()]);
-    expect(p).not.toContain('workflows');
+    expect(p).not.toContain('istanza_attivita');
     expect(p).not.toContain('SubPlan');
     expect((p.match(/Seq Scan/g) ?? []).length).toBe(1);
   });

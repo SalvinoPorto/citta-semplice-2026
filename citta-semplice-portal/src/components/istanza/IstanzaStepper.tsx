@@ -24,7 +24,7 @@ function buildDatiConLabel(
   return JSON.stringify(arricchiti);
 }
 
-interface StepWorkflow {
+interface StepIter {
   id: number;
   descrizione: string;
   allegati: boolean;
@@ -36,7 +36,7 @@ interface Servizio {
   titolo: string;
   attributi?: string | null;
   moduloCorpo?: string | null;
-  steps: StepWorkflow[];
+  steps: StepIter[];
 }
 
 interface BozzaIniziale {

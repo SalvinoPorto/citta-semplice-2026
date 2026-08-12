@@ -242,10 +242,10 @@ export async function updateServizio(id: number, data: ServizioFormData) {
     // Step rimossi dal form
     const removedIds = existingStepIds.filter((sid) => !formStepIds.includes(sid));
 
-    // Per gli step rimossi: se referenziati da workflow → soft delete, altrimenti hard delete
+    // Per gli step rimossi: se referenziati da un'attività → soft delete, altrimenti hard delete
     if (removedIds.length > 0) {
       const referencedIds = (
-        await tx.workflow.findMany({
+        await tx.istanzaAttivita.findMany({
           where: { stepId: { in: removedIds } },
           select: { stepId: true },
           distinct: ['stepId'],
@@ -340,7 +340,7 @@ export async function updateServizio(id: number, data: ServizioFormData) {
         await tx.pagamento.deleteMany({ where: { stepId: saved.id } });
       }
 
-      // AllegatiRichiesti: ricrea sempre (non hanno FK da workflow)
+      // AllegatiRichiesti: ricrea sempre (non hanno FK da un'attività)
       await tx.allegatoRichiesto.deleteMany({ where: { stepId: saved.id } });
       await createAllegatiRichiestiForStep(tx, saved.id, step);
     }

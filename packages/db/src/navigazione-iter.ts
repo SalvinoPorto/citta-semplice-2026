@@ -12,7 +12,7 @@
  *
  * Queste funzioni sono pure — non toccano il database — così da poter
  * essere testate senza gli effetti collaterali (auth, protocollazione,
- * pagamenti, transazioni) di `advanceWorkflow`/`regressWorkflow` in
+ * pagamenti, transazioni) di `avanzaAttivita`/`retrocediAttivita` in
  * citta-semplice-office, che le usano per risolvere davvero la navigazione.
  * Vivono qui, non in citta-semplice-office, per lo stesso motivo di
  * `stato-istanza.ts`: sono logica di dominio su forme Prisma (Step, Fase),

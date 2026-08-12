@@ -11,10 +11,10 @@ import { PagamentoAtteso } from '@/types/pagamento-atteso';
 // del package istanzia PrismaClient — che nel bundle del browser non può
 // entrare. `stato-attivita` è TypeScript puro, senza dipendenze.
 import { statoAttivita, ETICHETTE_STATO_ATTIVITA } from '@citta/db/stato-attivita';
-interface Workflow {
+interface IstanzaAttivita {
   id: number;
   note: string | null;
-  dataVariazione: Date;
+  iniziataAt: Date;
   completataAt: Date | null;
   stepId: number | null;
   step: {
@@ -51,8 +51,8 @@ interface Step {
   } | null;
 }
 
-interface WorkflowTimelineProps {
-  workflows: Workflow[];
+interface AttivitaTimelineProps {
+  attivita: IstanzaAttivita[];
   steps: Step[];
   urlPayment: string;
   istanzaId: number;
@@ -168,10 +168,10 @@ const STATO_PAGAMENTO_BADGE: Record<string, string> = {
   RAT: 'bg-info',
 };
 
-export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, utente, attivitaCorrenteId, assegnatarioId }: WorkflowTimelineProps) {
+export function AttivitaTimeline({ attivita, steps, urlPayment, istanzaId, utente, attivitaCorrenteId, assegnatarioId }: AttivitaTimelineProps) {
   const router = useRouter();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const [selectedAttivitaId, setSelectedAttivitaId] = useState<number | null>(null);
   const [selectedStep, setSelectedStep] = useState<Step | null>(null);
 
   // Payment generation state
@@ -235,7 +235,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     try {
       const result = await generatePayment({
         istanzaId,
-        workflowId: selectedWorkflowId!,
+        attivitaId: selectedAttivitaId!,
         importo: config.importoVariabile ? importo : undefined,
         causale: config.causaleVariabile ? causale?.trim() : undefined,
         cf: pagamentoCf || undefined,
@@ -249,7 +249,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
         setShowPaymentModal(false);
         setPagamentoImporto('');
         setPagamentoCausale('');
-        setSelectedWorkflowId(null);
+        setSelectedAttivitaId(null);
         setSelectedStep(null);
         router.refresh();
       } else {
@@ -262,8 +262,8 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     }
   };
 
-  const openPaymentModal = (workflowId: number, step: Step) => {
-    setSelectedWorkflowId(workflowId);
+  const openPaymentModal = (attivitaId: number, step: Step) => {
+    setSelectedAttivitaId(attivitaId);
     setSelectedStep(step);
     setPagamentoCf(utente.codiceFiscale);
     setPagamentoNome(utente.nome);
@@ -276,19 +276,19 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
   };
   const contesto = { attivitaCorrenteId, assegnatarioId };
 
-  if (workflows.length === 0) {
-    return <p className="text-muted">Nessun workflow disponibile</p>;
+  if (attivita.length === 0) {
+    return <p className="text-muted">Nessuna attività disponibile</p>;
   }
 
-  const sorted = [...workflows].sort(
-    (a, b) => new Date(a.dataVariazione).getTime() - new Date(b.dataVariazione).getTime()
+  const sorted = [...attivita].sort(
+    (a, b) => new Date(a.iniziataAt).getTime() - new Date(b.iniziataAt).getTime()
   );
 
   // Chiave per `stepId`, non per `step.ordine`: è un identificatore stabile
   // e univoco, immune a step disattivati che condividono lo stesso `ordine`.
   // Il sentinel 0 non collide con nessuno stepId reale (autoincrementale da
-  // 1) e indica "workflow senza step".
-  const eventsByStepId = new Map<number, Workflow[]>();
+  // 1) e indica "attività senza step".
+  const eventsByStepId = new Map<number, IstanzaAttivita[]>();
   for (const wf of sorted) {
     const key = wf.stepId ?? 0;
     if (!eventsByStepId.has(key)) eventsByStepId.set(key, []);
@@ -302,11 +302,11 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
     return statoAttivita(last, contesto) === 'COMPLETATA' ? 'completed' : 'pending';
   }
 
-  function getActiveWorkflowForStep(stepId: number) {
+  function getAttivitaApertaPerStep(stepId: number) {
     return eventsByStepId.get(stepId)?.find((wf) => statoAttivita(wf, contesto) === 'IN_LAVORAZIONE') ?? null;
   }
 
-  function statoLabel(wf: Workflow) {
+  function statoLabel(wf: IstanzaAttivita) {
     return ETICHETTE_STATO_ATTIVITA[statoAttivita(wf, contesto)];
   }
 
@@ -328,7 +328,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
                 <strong>{step.ordine}. {step.descrizione}</strong>
                 {reached && last && (
                   <small className="text-muted">
-                    {new Date(last.dataVariazione).toLocaleDateString('it-IT')}
+                    {new Date(last.iniziataAt).toLocaleDateString('it-IT')}
                   </small>
                 )}
               </div>
@@ -420,7 +420,7 @@ export function WorkflowTimeline({ workflows, steps, urlPayment, istanzaId, uten
                   return (
                     <div key={wf.id} className="mt-1 small text-warning">
                       ↩ {text || 'Retrocesso allo step precedente'}
-                      <span className="text-muted ms-2">{formatDateTime(wf.dataVariazione)}</span>
+                      <span className="text-muted ms-2">{formatDateTime(wf.iniziataAt)}</span>
                     </div>
                   );
                 }

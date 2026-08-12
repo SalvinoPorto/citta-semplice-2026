@@ -27,7 +27,7 @@ export async function GET(
     const allegato = await prisma.allegato.findUnique({
       where: { id },
       include: {
-        workflow: {
+        attivita: {
           include: {
             istanza: {
               select: {
@@ -52,7 +52,7 @@ export async function GET(
     // IDOR check: l'ufficio dell'operatore deve partecipare al servizio e il
     // servizio deve essergli assegnato
     const visibilita = await getVisibilitaOperatore(parseInt(session.user.id), session.user.ruoli);
-    if (!puoVedereIstanza(visibilita, allegato.workflow.istanza)) {
+    if (!puoVedereIstanza(visibilita, allegato.attivita.istanza)) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 

@@ -107,8 +107,8 @@ export function AltreIstanzeModal({
                       </td>
                       <td>
                         <small>
-                          {ist.dataVariazione
-                            ? new Date(ist.dataVariazione).toLocaleDateString('it-IT')
+                          {ist.iniziataAt
+                            ? new Date(ist.iniziataAt).toLocaleDateString('it-IT')
                             : '-'}
                         </small>
                       </td>

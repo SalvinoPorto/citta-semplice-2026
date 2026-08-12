@@ -24,7 +24,7 @@ export async function GET(
   const pagamento = await prisma.pagamentoAtteso.findFirst({
     where: {
       iuv,
-      workflow: { istanza: { utenteId: utente.id } },
+      attivita: { istanza: { utenteId: utente.id } },
     },
   });
 
