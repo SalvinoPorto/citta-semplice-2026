@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { IstanzaStepper } from '@/components/istanza/IstanzaStepper';
-import { sogliaIstanzeRaggiunta } from '@/lib/servizio-regole';
+import { sogliaIstanzeRaggiunta, verificaUnicoInvioPerUtente } from '@/lib/servizio-regole';
 import { whereStato } from '@citta/db';
 
 interface Props {
@@ -77,6 +77,13 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
 
   // Quota massima raggiunta: il messaggio è mostrato sulla scheda servizio
   if (await sogliaIstanzeRaggiunta(servizio)) {
+    redirect(`/${areaSlug}/${servizioSlug}`);
+  }
+
+  // Ha già inviato: idem, il messaggio lo dà la scheda servizio. Serve anche qui
+  // e non solo lì, perché a questa pagina si arriva anche per URL diretto o
+  // tornando dal login, dove la scheda non è stata attraversata.
+  if (await verificaUnicoInvioPerUtente(servizio, Number(session.user.id))) {
     redirect(`/${areaSlug}/${servizioSlug}`);
   }
 

@@ -9,7 +9,12 @@ import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService
 import { generaProtocolloEmergenza } from '@/lib/services/protocollazione/ProtocolloEmergenzaService';
 import { generaModuloBuffer, generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
 import { validaDatiModulo } from '@/lib/form-validate';
-import { sogliaIstanzeRaggiunta, verificaUnicoInvio, MSG_SOGLIA_DEFAULT } from '@/lib/servizio-regole';
+import {
+  sogliaIstanzeRaggiunta,
+  verificaUnicoInvio,
+  verificaUnicoInvioPerUtente,
+  MSG_SOGLIA_DEFAULT,
+} from '@/lib/servizio-regole';
 import { datiStato, whereStato } from '@citta/db';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
@@ -350,13 +355,9 @@ export async function submitIstanza(formData: FormData) {
     return { error: 'Utente non trovato' };
   }
 
-  if (servizio.unicoInvioPerUtente) {
-    const esistente = await prisma.istanza.findFirst({
-      where: { servizioId, utenteId: utente.id, ...whereStato(['IN_LAVORAZIONE', 'CONCLUSA', 'RESPINTA']) },
-    });
-    if (esistente) {
-      return { error: 'Hai già inviato una richiesta per questo servizio' };
-    }
+  const erroreUnicoPerUtente = await verificaUnicoInvioPerUtente(servizio, utente.id);
+  if (erroreUnicoPerUtente) {
+    return { error: erroreUnicoPerUtente };
   }
 
   if (await sogliaIstanzeRaggiunta(servizio)) {

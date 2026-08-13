@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import React from 'react';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -537,7 +538,7 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                             <span className="badge bg-danger">Nuova</span>
                           )}
                           {com.rispondibile && !com.risposta && (
-                            <span className="badge bg-warning text-dark ms-auto">
+                            <span className="badge bg-warning ms-auto">
                               {com.richiedeRisposta ? 'Richiede risposta' : 'Richiede documenti'}
                             </span>
                           )}

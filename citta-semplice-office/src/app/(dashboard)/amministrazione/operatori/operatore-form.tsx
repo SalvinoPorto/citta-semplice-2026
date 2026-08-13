@@ -1,7 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useMemo, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardBody, Button, Input, Alert } from '@/components/ui';
@@ -128,8 +127,8 @@ export function OperatoreForm({ operatore, ruoli, uffici, servizi, isNew }: Oper
         if (result?.error) {
           setError(result.error);
         }
-      } catch(e) {
-        setError('Si è verificato un errore');
+      } catch (error: unknown) {
+        setError(`Si è verificato un errore ${error instanceof Error ? error.message : String(error)}`);
       }
     });
   };

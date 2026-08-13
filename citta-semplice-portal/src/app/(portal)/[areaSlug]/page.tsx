@@ -14,8 +14,7 @@ async function getArea(slug: string) {
   const area = await prisma.area.findFirst({
     where: {
       slug: slug,
-      attiva: true,
-      privata: false,
+      attiva: true
     },
     include: {
       servizi: {

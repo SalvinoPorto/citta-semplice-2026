@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Card, CardBody, Badge } from '@/components/ui';
 import { THeadGroup, THead, Paginatore, TFilterHead, TFilterHeadGroup } from '@/components/shared';
@@ -118,7 +118,9 @@ export function OperatoriClient({ operatori }: { operatori: OperatoreRow[] }) {
                       ) : (
                         <div className="d-flex gap-1 flex-wrap">
                           {operatore.servizi.map((s) => (
+                            <div key={s.servizioId}>
                             <Badge key={s.servizioId} variant="primary">{s.servizio.titolo}</Badge>
+                            </div>
                           ))}
                         </div>
                       )}

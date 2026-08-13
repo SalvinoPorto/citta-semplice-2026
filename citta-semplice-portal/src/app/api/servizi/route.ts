@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const where = {
     attivo: true,
-    area: { attiva: true, privata: false },
+    area: { attiva: true },
     AND: [
       { OR: [{ dataFine: null }, { dataFine: { gte: now } }] },
       ...(search.trim()

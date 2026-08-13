@@ -11,7 +11,7 @@ async function getServiziInEvidenza() {
     where: {
       attivo: true,
       evidenza: true,
-      area: { attiva: true, privata: false },
+      area: { attiva: true },
       OR: [{ dataFine: null }, { dataFine: { gte: now } }],
     },
     select: {
@@ -27,7 +27,7 @@ async function getServiziInEvidenza() {
 
 async function getAree() {
   return prisma.area.findMany({
-    where: { attiva: true, privata: false },
+    where: { attiva: true },
     select: {
       id: true,
       nome: true,

@@ -132,20 +132,19 @@ export async function POST(request: NextRequest) {
   }
 
   if (formFilters.cerca) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cercaConditions: any[] = [
-      { datiInEvidenza: { contains: formFilters.cerca, mode: 'insensitive' } },
-      { dati: { contains: formFilters.cerca, mode: 'insensitive' } },
-      { utente: { cognome: { contains: formFilters.cerca, mode: 'insensitive' } } },
-      { utente: { nome: { contains: formFilters.cerca, mode: 'insensitive' } } },
-      { utente: { codiceFiscale: { contains: formFilters.cerca.toUpperCase(), mode: 'insensitive' } } },
-    ];
-    if (whereClause.OR) {
-      whereClause.AND = [{ OR: whereClause.OR }, { OR: cercaConditions }];
-      delete whereClause.OR;
-    } else {
-      whereClause.OR = cercaConditions;
-    }
+    // Un solo predicato su `istanze.ricerca`, che contiene già codice fiscale,
+    // nome e cognome dell'utente più i valori del modulo (vedi il trigger in
+    // 20260813100000_ricerca_istanze).
+    //
+    // Prima erano cinque rami in OR, due dei quali sulla relazione `utente`.
+    // Postgres combina i rami di un OR in BitmapOr solo se sono tutti index
+    // scan sulla stessa tabella: un semi-join diventa un `hashed SubPlan` e
+    // l'intero piano collassa in Seq Scan, quindi NESSUN indice era usabile.
+    // Con un predicato solo il GIN trigram entra: COUNT da 3081 ms a 10 ms.
+    //
+    // Niente `mode: 'insensitive'`: la colonna è già in minuscolo, quindi si
+    // abbassa il termine e si usa LIKE, che costa meno di ILIKE.
+    whereClause.ricerca = { contains: formFilters.cerca.toLowerCase() };
   }
 
   const protoColFilter = columnFilters.find((f) => f.key === 'protoNumero');

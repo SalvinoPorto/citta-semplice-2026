@@ -1,5 +1,5 @@
 'use client';
-
+import React from 'react';
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -21,12 +21,6 @@ interface UfficioRef {
   id: number;
   nome: string;
 }
-
-interface UnitaOrganizzativa {
-  id: string;
-  nome: string;
-}
-
 
 interface ServizioData {
   id: number;
@@ -443,10 +437,10 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   };
 
   // Insert new intermediate step before the last (fixed) step
-  const addStep = () => {
+ /*  const addStep = () => {
     const insertAt = Math.max(1, fields.length - 1);
     insert(insertAt, { ...STEP_VUOTO });
-  };
+  }; */
 
   // Middle steps can only move within [1, fields.length-2]
   const moveStep = (index: number, direction: 'up' | 'down') => {
@@ -531,7 +525,6 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     const steps = watchedSteps ?? [];
     const hasExternal = steps.some((s) => s.protocollo && !s.numerazioneInterna);
     if (hasExternal) loadUffici();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -566,7 +559,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                 className={`nav-link ${activeTab === 'iter' ? 'active' : ''}`}
                 onClick={() => setActiveTab('iter')}
               >
-                IstanzaAttivita ({fields.length})
+                Attivit&agrave; ({fields.length})
                 {tabHasErrors('iter') && <span className="ms-1 badge bg-danger" style={{ fontSize: '0.6rem' }}>!</span>}
               </button>
             </li>
@@ -955,7 +948,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
             <Card className="mb-4">
               <CardBody>
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="mb-0">IstanzaAttivita ({fields.length} step, {fasiFields.length} fase)</h5>
+                  <h5 className="mb-0">Attivit&agrave; ({fields.length} step, {fasiFields.length} fas{fasiFields.length > 1 ? 'i' : 'e'})</h5>
                   <Button type="button" variant="outline-secondary" onClick={addFase}>
                     + Aggiungi Fase
                   </Button>

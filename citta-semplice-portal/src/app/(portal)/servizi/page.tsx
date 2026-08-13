@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/db/prisma';
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 
 async function getAree() {
   return prisma.area.findMany({
-    where: { attiva: true, privata: false },
+    where: { attiva: true },
     include: {
       servizi: {
         where: {

@@ -6,7 +6,12 @@ import Link from 'next/link';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ServizioIndice } from '@/components/servizi/ServizioIndice';
-import { sogliaIstanzeRaggiunta, MSG_SOGLIA_DEFAULT } from '@/lib/servizio-regole';
+import { auth } from '@/lib/auth/config';
+import {
+  sogliaIstanzeRaggiunta,
+  verificaUnicoInvioPerUtente,
+  MSG_SOGLIA_DEFAULT,
+} from '@/lib/servizio-regole';
 
 interface Props {
   params: Promise<{ areaSlug: string; servizioSlug: string }>;
@@ -53,6 +58,15 @@ export default async function ServizioPage({ params }: Props) {
   const aperto = !servizio.dataInizio || servizio.dataInizio <= ora;
   const sopraSoglia = aperto && (await sogliaIstanzeRaggiunta(servizio));
 
+  // `unicoInvioPerUtente` dipende solo da chi è loggato, quindi si sa già qui:
+  // senza questo controllo il cittadino compilava l'intero modulo e si vedeva
+  // rifiutare l'invio alla fine. Se non è autenticato il pulsante resta, e il
+  // controllo scatta sulla pagina di compilazione dopo il login.
+  const session = await auth();
+  const giaInviata = aperto && session?.user?.id
+    ? await verificaUnicoInvioPerUtente(servizio, Number(session.user.id))
+    : null;
+
   return (
     <>
       <div className="container" id="main-container">
@@ -76,7 +90,11 @@ export default async function ServizioPage({ params }: Props) {
                   {servizio.sottoTitolo && (
                     <p className="subtitle mb-3">{servizio.sottoTitolo}</p>
                   )}
-                  {sopraSoglia ? (
+                  {giaInviata ? (
+                    <div className="alert alert-info d-inline-block">
+                      {giaInviata}
+                    </div>
+                  ) : sopraSoglia ? (
                     <div className="alert alert-warning d-inline-block">
                       {servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT}
                     </div>

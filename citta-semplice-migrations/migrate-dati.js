@@ -3,35 +3,92 @@
 /**
  * migrate-dati.js
  *
- * 1. Migra la tabella `utenti` da io_db → citta_semplice
- * 2. Migra la tabella `istanze` da io_db → citta_semplice:
- *    - converte il campo `dati` (JSON) solo per moduli di tipo HTML
- *    - sostituisce utente_id (codice fiscale testo) con il nuovo id numerico
- *      interrogando direttamente il db di destinazione riga per riga
+ * Conversione del database legacy (io_db) verso lo schema corrente
+ * (citta_semplice), definito da packages/db/prisma/schema.prisma.
+ *
+ * Punti in cui i due schemi NON si corrispondono, e come sono risolti:
+ *   - istanze: i booleani in_bozza/conclusa/respinta sono diventati l'enum
+ *     stato_istanza (20260805100000 + contrazione)
+ *   - workflows → istanza_attivita, workflow_fasi → istanza_fasi, e le colonne
+ *     allegati.workflow_id / pagamenti_attesi.workflow_id → attivita_id
+ *     (20260807120000)
+ *   - workflows.stato → completata_at IS NULL; workflows.operatore_id, che
+ *     aveva doppia semantica, si è separato in istanza_attivita.completata_da_id
+ *     (chi ha chiuso) e istanze.assegnatario_id (chi ha in carico) — 20260807110000
+ *   - istanze.attivita_corrente_id e assegnatario_id sono mantenute da TRIGGER:
+ *     vedi le note in main() sull'ordine vincolante dei passi 12a/12b/12c
+ *
+ * L'intero import gira in una sola transazione: al primo errore non gestito,
+ * ROLLBACK totale. La destinazione viene azzerata in testa (utenti esclusa),
+ * quindi lo script è rilanciabile.
  *
  * Uso:
  *   npm install
- *   node migrate-dati.js
+ *   npm run migrate-dati
  */
 
-const { Client } = require('pg');
+import { Client } from 'pg';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// ── caricamento file .env ─────────────────────────────────────────────────────
+// Lo script legge la configurazione da process.env, ma nessuno popolava
+// process.env: senza questo blocco cadeva sui default (localhost/io_db) e
+// sulle password undefined, con un errore di connessione che non diceva perché.
+//
+// `process.loadEnvFile` (Node ≥ 20.12) NON sovrascrive le variabili già
+// presenti nell'ambiente — verificato — quindi la precedenza è determinata
+// dall'ordine di caricamento:
+//
+//   ambiente reale  >  .env.local  >  .env
+//
+// cioè si può forzare un singolo valore per un lancio senza toccare i file
+// (`DST_DATABASE=prova npm run migrate-dati`), e .env.local (non versionato,
+// con le credenziali) vince su .env (eventuali default condivisi).
+//
+// I percorsi sono risolti rispetto a QUESTO file, non alla cwd: lo script deve
+// funzionare anche lanciato da un'altra directory.
+function caricaEnv() {
+  if (typeof process.loadEnvFile !== 'function') {
+    console.error(`Node ${process.version} non espone process.loadEnvFile (serve ≥ 20.12).`);
+    console.error('In alternativa: node --env-file=.env.local migrate-dati.js');
+    process.exit(1);
+  }
+
+  const caricati = [];
+  for (const nome of ['.env.local', '.env']) {
+    const percorso = fileURLToPath(new URL(nome, import.meta.url));
+    if (!existsSync(percorso)) continue;
+    process.loadEnvFile(percorso);
+    caricati.push(nome);
+  }
+
+  if (caricati.length === 0) {
+    console.warn('⚠ Nessun file .env.local o .env trovato: uso i valori di default.');
+    console.warn('  Copia .env.example in .env.local e compilalo.');
+  } else {
+    console.log(`Configurazione da: ${caricati.join(', ')}`);
+  }
+}
+
+caricaEnv();
 
 // ── configurazione connessioni ────────────────────────────────────────────────
 
 const srcConfig = {
   host: process.env.SRC_HOST || 'localhost',
   port: parseInt(process.env.SRC_PORT || '5432'),
-  database: 'io_db',
-  user: 'io_user',
-  password: '***REMOVED***',
+  database: process.env.SRC_DATABASE || 'io_db',
+  user: process.env.SRC_USER || 'io_user',
+  password: process.env.SRC_PASSWORD,
 };
 
 const dstConfig = {
   host: process.env.DST_HOST || 'localhost',
   port: parseInt(process.env.DST_PORT || '5432'),
-  database: 'citta_semplice',
-  user: 'io_user',
-  password: '***REMOVED***',
+  database: process.env.DST_DATABASE || 'citta_semplice',
+  user: process.env.DST_USER || 'io_user',
+  password: process.env.DST_PASSWORD
 };
 
 // ── helper insert transazione-safe ────────────────────────────────────────────
@@ -51,6 +108,78 @@ async function q(dst, sql, values) {
   }
 }
 
+// ── sequenze ──────────────────────────────────────────────────────────────────
+// Il nome della sequenza NON segue la tabella: `ALTER TABLE ... RENAME` rinomina
+// solo la tabella, quindi dopo 20260807120000_rinomina_istanza_attivita la
+// sequenza di `istanza_attivita` si chiama ancora `workflows_id_seq` e quella di
+// `istanza_fasi` `workflow_fasi_id_seq`. `pg_get_serial_sequence` risolve il nome
+// reale dal catalogo: immune a questa e a qualunque futura rinomina.
+async function resetSequence(dst, table) {
+  try {
+    await dst.query(
+      `SELECT setval(pg_get_serial_sequence($1, 'id'),
+                     GREATEST((SELECT COALESCE(MAX(id), 0) FROM ${table}), 1))`,
+      [table]
+    );
+  } catch (err) {
+    console.error(`  ⚠ errore nell'aggiornamento sequenza ${table}: ${err.message}`);
+  }
+}
+
+// ── introspezione sorgente ────────────────────────────────────────────────────
+// Il legacy non è versionato in questo repo (citta_semplice.sql è un dump vecchio
+// della DESTINAZIONE, non della sorgente): l'esistenza di una colonna va chiesta
+// al catalogo invece di darla per scontata.
+async function hasColumn(src, table, column) {
+  const { rows } = await src.query(
+    `SELECT 1 FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2`,
+    [table, column]
+  );
+  return rows.length > 0;
+}
+
+// ── azzeramento destinazione ──────────────────────────────────────────────────
+// Tutte le DELETE in testa, in ordine inverso di dipendenza. Prima erano sparse
+// nelle singole funzioni, nell'ordine di IMPORT: `DELETE FROM servizi` girava
+// prima di `DELETE FROM istanze`, ma istanze→servizio è Restrict, quindi al
+// secondo lancio la transazione moriva sulla prima FK. Con l'azzeramento in testa
+// lo script è rilanciabile.
+//
+// `utenti` è volutamente ESCLUSA: gli id sono generati e le istanze li risolvono
+// per codice fiscale a ogni import, quindi conservarli non crea disallineamenti —
+// e cancellarli distruggerebbe le anagrafiche create dal portale dopo l'import.
+const TABELLE_DA_AZZERARE = [
+  'allegati_risposta',
+  'risposte_comunicazioni',
+  'comunicazioni',
+  'pagamenti_attesi',
+  'allegati',
+  'istanza_fasi',
+  'istanza_attivita',
+  'istanze',
+  'pagamenti',
+  'allegati_richiesti',
+  'steps',
+  'fasi',
+  'operatori_servizi',
+  'operatori_ruoli',
+  'operatori',
+  'servizi',
+  'aree',
+  'uffici',
+  'ruoli',
+  'enti',
+];
+
+async function resetDestinazione(dst) {
+  console.log('\n── Azzeramento destinazione ──────────────────────────────────────');
+  for (const tabella of TABELLE_DA_AZZERARE) {
+    await dst.query(`DELETE FROM ${tabella}`);
+  }
+  console.log(`Svuotate ${TABELLE_DA_AZZERARE.length} tabelle (utenti conservata).`);
+}
+
 // ── helpers conversione dati ──────────────────────────────────────────────────
 
 function generateId() {
@@ -66,11 +195,11 @@ function slugify(str) {
     .replace(/^_+|_+$/g, '');
 }
 
-function findSelected(values) {
+/* function findSelected(values) {
   if (!Array.isArray(values)) return undefined;
   const found = values.find(({ selected }) => selected);
   return found?.value;
-}
+} */
 
 function convertDati(raw) {
   let parsed;
@@ -166,7 +295,7 @@ function convertAttributes(raw) {
         field.type = 'select';
         field.options = item.values?.map(v => ({ value: v.value, label: v.label })) || [];
       } else
-        if (item.name === 'codice_fiscale') {
+        if (item.name === 'cf') {
           field.type = "text";
           field.validation = {
             "patternMessage": "Codice fiscale non valido",
@@ -221,7 +350,6 @@ async function migrateEnti(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM enti");
   for (const row of rows) {
     const values = columns.map(col => {
       //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -239,11 +367,7 @@ async function migrateEnti(src, dst) {
   }
 
   // aggiorno il numero di sequenza dell'ente per evitare conflitti con nuovi enti creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('enti_id_seq', GREATEST((SELECT MAX(id) FROM enti), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza enti: ${err.message}`);
-  }
+  await resetSequence(dst, 'enti');
   console.log(`Enti: ${ok} OK, ${errors} errori`);
 }
 
@@ -259,10 +383,9 @@ async function migrateAree(src, dst) {
     slug, 
     titolo as nome, 
     attivo as attiva, 
-    privata, 
     ordine
     FROM aree 
-    WHERE id_ente=1
+    WHERE id_ente=1 AND privata=false
     ORDER BY id
     `);
   console.log(`Aree trovate: ${rows.length}`);
@@ -288,7 +411,6 @@ async function migrateAree(src, dst) {
 
   let ok = 0, errors = 0;
 
-  await dst.query("DELETE FROM aree");
   for (const row of rows) {
     const values = columns.map(col => {
       //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -306,11 +428,7 @@ async function migrateAree(src, dst) {
 
   }
   // aggiorno il numero di sequenza dell'area per evitare conflitti con nuove aree create dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('aree_id_seq', GREATEST((SELECT MAX(id) FROM aree), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza aree: ${err.message}`);
-  }
+  await resetSequence(dst, 'aree');
 
   console.log(`Aree: ${ok} OK, ${errors} errori`);
 }
@@ -326,7 +444,6 @@ async function migrateServizi(src, dst) {
     s.titolo || COALESCE(' ' || NULLIF(m.name, ''), '') as titolo,
     s.sottotitolo as sotto_titolo,
     s.corpo as descrizione,
-    s.come_fare as come_fare,
     s.requisiti as cosa_serve,
     m.corpo as altre_info,
     s.riferimento as contatti,
@@ -351,7 +468,7 @@ async function migrateServizi(src, dst) {
     m.post_form_validation_fields
     FROM moduli m
     LEFT JOIN servizi s ON s.id=m.id_servizio
-    WHERE s.id_area in (SELECT id FROM aree WHERE id_ente=1) AND s.id IS NOT NULL
+    WHERE s.id_area in (SELECT id FROM aree WHERE id_ente=1 AND privata=false) AND s.id IS NOT NULL
     ORDER BY m.id
     `);
   console.log(`Servizi trovati: ${rows.length}`);
@@ -375,7 +492,6 @@ async function migrateServizi(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM servizi");
   for (const row of rows) {
     const values = columns.map(col => {
       if (col === 'attributi') return row._modulo_tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -393,11 +509,7 @@ async function migrateServizi(src, dst) {
   }
 
   // aggiorno il numero di sequenza dei servizi per evitare conflitti con nuovi servizi creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('servizi_id_seq', GREATEST((SELECT MAX(id) FROM servizi), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza aree: ${err.message}`);
-  }
+  await resetSequence(dst, 'servizi');
 
   console.log(`Servizi: ${ok} OK, ${errors} errori`);
 }
@@ -437,7 +549,6 @@ async function migrateUffici(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM uffici");
   for (const row of rows) {
     const values = columns.map(col => {
       //if (col === 'attributes') return row.tipo === 'HTML' ? convertAttributes(row[col]) : row[col];
@@ -454,12 +565,8 @@ async function migrateUffici(src, dst) {
     }
   }
 
-  // aggiorno il numero di sequenza dei servizi per evitare conflitti con nuovi servizi creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('uffici_id_seq', GREATEST((SELECT MAX(id) FROM uffici), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza uffici: ${err.message}`);
-  }
+  // aggiorno il numero di sequenza degli uffici per evitare conflitti con nuovi uffici creati dopo la migrazione
+  await resetSequence(dst, 'uffici');
 
   console.log(`Uffici: ${ok} OK, ${errors} errori`);
 }
@@ -479,9 +586,15 @@ async function migrateOperatori(src, dst) {
     o.email,
     o.operatore_id as user_name,
     o.passwd as password,
+    -- L'ufficio dell'operatore è quello in cui lavora sulla MAGGIOR PARTE dei
+    -- moduli assegnati. Prima era un LIMIT 1 senza ORDER BY: non deterministico,
+    -- e su un operatore con moduli di più uffici l'esito cambiava fra un lancio
+    -- e l'altro. La visibilità delle istanze dipende da questa colonna.
     (SELECT m.id_ufficio FROM operatori_moduli om
      JOIN moduli m ON m.id = om.modulo_id
      WHERE om.operatore_id = o.id AND m.id_ufficio IS NOT NULL
+     GROUP BY m.id_ufficio
+     ORDER BY COUNT(*) DESC, m.id_ufficio
      LIMIT 1) as ufficio_id
     FROM operatori o
     ORDER BY o.id
@@ -508,7 +621,6 @@ async function migrateOperatori(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM operatori");
   for (const row of rows) {
     const values = columns.map(col => {
       return row[col];
@@ -525,11 +637,7 @@ async function migrateOperatori(src, dst) {
   }
 
   // aggiorno il numero di sequenza degli operatori per evitare conflitti con nuovi operatori creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('operatori_id_seq', GREATEST((SELECT MAX(id) FROM operatori), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza operatori: ${err.message}`);
-  }
+  await resetSequence(dst, 'operatori');
 
   console.log(`Operatori: ${ok} OK, ${errors} errori`);
 }
@@ -567,7 +675,6 @@ async function migrateRuoli(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM ruoli");
   for (const row of rows) {
     const values = columns.map(col => {
       return row[col];
@@ -584,11 +691,7 @@ async function migrateRuoli(src, dst) {
   }
 
   // aggiorno il numero di sequenza dei ruoli per evitare conflitti con nuovi ruoli creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('ruoli_id_seq', GREATEST((SELECT MAX(id) FROM ruoli), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza ruoli: ${err.message}`);
-  }
+  await resetSequence(dst, 'ruoli');
 
   console.log(`Ruoli: ${ok} OK, ${errors} errori`);
 }
@@ -625,7 +728,6 @@ async function migrateOperatoriRuoli(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM operatori_ruoli");
   for (const row of rows) {
     const values = columns.map(col => {
       return row[col];
@@ -644,14 +746,64 @@ async function migrateOperatoriRuoli(src, dst) {
   console.log(`Operatori-Ruoli: ${ok} OK, ${errors} errori`);
 }
 
+// ── migrazione operatori_servizi ──────────────────────────────────────────────
+// Visibilità granulare operatore→servizio DENTRO il suo ufficio. Nel legacy la
+// visibilità stava tutta su operatori_moduli; qui è a due livelli:
+//   - operatori.ufficio_id  → l'ufficio di appartenenza
+//   - operatori_servizi     → il sottoinsieme di servizi visibili nell'ufficio
+// Lista VUOTA = tutti i servizi dell'ufficio (vedi Operatore.servizi nello
+// schema). Senza questa tabella ogni operatore vedrebbe tutti i servizi del
+// proprio ufficio, anche quelli che nel legacy non gli erano assegnati.
+//
+// Si migrano solo le assegnazioni verso servizi effettivamente importati: un
+// modulo di un altro ente non esiste in destinazione e farebbe fallire la FK.
+async function migrateOperatoriServizi(src, dst) {
+  console.log('\n── Migrazione operatori_servizi ──────────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT DISTINCT
+      om.operatore_id,
+      m.id AS servizio_id
+    FROM operatori_moduli om
+    JOIN moduli m ON m.id = om.modulo_id
+    JOIN servizi se ON se.id = m.id_servizio
+    WHERE se.id_area IN (SELECT id FROM aree WHERE id_ente=1)
+    ORDER BY om.operatore_id, m.id
+  `);
+  console.log(`Assegnazioni operatore-servizio trovate: ${rows.length}`);
+
+  if (rows.length === 0) {
+    console.log('Nessuna assegnazione da migrare.');
+    return;
+  }
+
+  const sql = `
+    INSERT INTO operatori_servizi (operatore_id, servizio_id)
+    VALUES ($1, $2)
+    ON CONFLICT (operatore_id, servizio_id) DO NOTHING
+  `;
+
+  let ok = 0, errors = 0;
+  for (const row of rows) {
+    try {
+      await q(dst, sql, [row.operatore_id, row.servizio_id]);
+      ok++;
+      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} assegnazioni migrate…`);
+    } catch (err) {
+      console.error(`  ✗ errore su operatore=${row.operatore_id} servizio=${row.servizio_id}: ${err.message}`);
+      errors++;
+    }
+  }
+
+  console.log(`Operatori-Servizi: ${ok} OK, ${errors} errori`);
+}
+
 // ── migrazione fasi ──────────────────────────────────────────────────────────
 // Crea una fase unica per ogni servizio; la visibilità operatore→servizio
 // è ora mediata dall'ufficio assegnato alla fase (Fase.ufficioId).
 
 async function migrateFasi(src, dst) {
   console.log('\n── Migrazione fasi ────────────────────────────────────────────────');
-
-  await dst.query("DELETE FROM fasi");
 
   // A7: fasi.ufficio_id è NOT NULL. I servizi senza ufficio ricevono un ufficio
   // di default (il primo per id) così l'INSERT set-based non fallisce; l'admin
@@ -671,27 +823,22 @@ async function migrateFasi(src, dst) {
     RETURNING id
   `);
 
-  try {
-    await dst.query(`SELECT setval('fasi_id_seq', GREATEST((SELECT MAX(id) FROM fasi), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza fasi: ${err.message}`);
-  }
+  await resetSequence(dst, 'fasi');
 
   console.log(`Fasi: ${result.rowCount} create`);
 }
 
-// ── migrazione workflow_fasi ──────────────────────────────────────────────────
+// ── migrazione istanza_fasi ───────────────────────────────────────────────────
+// Ex `workflow_fasi`, rinominata da 20260807120000_rinomina_istanza_attivita.
 
-async function migrateWorkflowFasi(src, dst) {
-  console.log('\n── Migrazione workflow_fasi ────────────────────────────────────────────────');
-
-  await dst.query("DELETE FROM workflow_fasi");
+async function migrateIstanzaFasi(src, dst) {
+  console.log('\n── Migrazione istanza_fasi ─────────────────────────────────────────');
 
   const result = await dst.query(`
-    INSERT INTO workflow_fasi (data_inizio, data_completamento, istanza_id, fase_id, operatore_completamento_id, direzione)
+    INSERT INTO istanza_fasi (data_inizio, data_completamento, istanza_id, fase_id, operatore_completamento_id, direzione)
     SELECT
       i.data_invio,
-      CASE WHEN i.conclusa OR i.respinta THEN i.data_invio ELSE NULL END,
+      CASE WHEN i.stato IN ('CONCLUSA', 'RESPINTA') THEN i.data_invio ELSE NULL END,
       i.id,
       f.id,
       NULL,
@@ -701,13 +848,9 @@ async function migrateWorkflowFasi(src, dst) {
     ORDER BY i.id
   `);
 
-  try {
-    await dst.query(`SELECT setval('workflow_fasi_id_seq', GREATEST((SELECT MAX(id) FROM workflow_fasi), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza workflow_fasi: ${err.message}`);
-  }
+  await resetSequence(dst, 'istanza_fasi');
 
-  console.log(`WorkflowFasi: ${result.rowCount} create`);
+  console.log(`IstanzaFasi: ${result.rowCount} create`);
 }
 
 // ── migrazione utenti ─────────────────────────────────────────────────────────
@@ -763,11 +906,7 @@ async function migrateUtenti(src, dst) {
   }
 
   // aggiorno il numero di sequenza degli utenti per evitare conflitti con nuovi utenti creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('utenti_id_seq', GREATEST((SELECT MAX(id) FROM utenti), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza utenti: ${err.message}`);
-  }
+  await resetSequence(dst, 'utenti');
 
   console.log(`Utenti: ${ok} inseriti/esistenti, ${errors} errori`);
 }
@@ -822,7 +961,6 @@ async function migrateSteps(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM steps")
   for (const row of rows) {
     const values = columns.map(c => row[c]);
     try {
@@ -836,11 +974,7 @@ async function migrateSteps(src, dst) {
   }
 
   // aggiorno il numero di sequenza degli steps per evitare conflitti con nuovi steps creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('steps_id_seq', GREATEST((SELECT MAX(id) FROM steps), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza step: ${err.message}`);
-  }
+  await resetSequence(dst, 'steps');
 
   await dst.query(`
     UPDATE steps SET fase_id = (
@@ -898,7 +1032,6 @@ async function migrateAllegatiRichiesti(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM allegati_richiesti");
   for (const row of rows) {
     const values = columns.map(col => row[col]);
     try {
@@ -911,11 +1044,7 @@ async function migrateAllegatiRichiesti(src, dst) {
     }
   }
 
-  try {
-    await dst.query(`SELECT setval('allegati_richiesti_id_seq', GREATEST((SELECT MAX(id) FROM allegati_richiesti), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza allegati_richiesti: ${err.message}`);
-  }
+  await resetSequence(dst, 'allegati_richiesti');
 
   console.log(`Allegati richiesti: ${ok} OK, ${errors} errori`);
 }
@@ -935,6 +1064,21 @@ async function findUtenteId(dst, codiceFiscale) {
 async function migrateIstanze(src, dst) {
   console.log('\n── Migrazione istanze ───────────────────────────────────────────────');
 
+  // I tre booleani `in_bozza`/`conclusa`/`respinta` sono stati sostituiti
+  // dall'enum stato_istanza (20260805100000_stato_istanza_enum + contrazione).
+  // L'ordine dei rami replica quello del backfill di quella migrazione.
+  //
+  // `in_bozza` esiste nel legacy? Non è dato saperlo a priori — il legacy non è
+  // versionato qui. Se esiste va rispettato: una bozza importata come
+  // IN_LAVORAZIONE diventerebbe visibile agli operatori, cioè un documento mai
+  // inviato dal cittadino che entra in lavorazione.
+  const legacyHaBozze = await hasColumn(src, 'istanze', 'in_bozza');
+  console.log(legacyHaBozze
+    ? '  legacy.istanze.in_bozza presente → le bozze restano BOZZA'
+    : '  legacy.istanze.in_bozza assente → nessuna bozza da preservare');
+
+  const ramoBozza = legacyHaBozze ? `WHEN i.in_bozza THEN 'BOZZA'` : '';
+
   const { rows } = await src.query(`
     SELECT
       m.tipo            AS _modulo_tipo,
@@ -947,13 +1091,19 @@ async function migrateIstanze(src, dst) {
       COALESCE(i.proto_numero, '') AS  proto_numero,
       i.proto_finale_data,
       i.proto_finale_numero,
-      i.conclusa,
-      i.respinta,
+      CASE
+        ${ramoBozza}
+        WHEN i.conclusa THEN 'CONCLUSA'
+        WHEN i.respinta THEN 'RESPINTA'
+        ELSE 'IN_LAVORAZIONE'
+      END               AS stato,
       i.dati_responso,
       i.dati_in_evidenza
     FROM istanze i
-    LEFT JOIN moduli m ON m.id = i.id_modulo
-    ORDER BY i.id 
+    JOIN moduli m ON m.id = i.id_modulo
+    JOIN servizi se ON se.id = m.id_servizio
+    WHERE se.id_area IN (SELECT id FROM aree WHERE id_ente=1)
+    ORDER BY i.id
   `);
 
   console.log(`Istanze trovate: ${rows.length}`);
@@ -978,16 +1128,8 @@ async function migrateIstanze(src, dst) {
     ON CONFLICT (id) DO UPDATE SET ${updateSet}
   `;
 
-  let ok = 0, nonConvertiti = 0, errors = 0;
-  await dst.query("DELETE FROM istanze");
+  let ok = 0, errors = 0;
   for (const row of rows) {
-
-    /* const isHtml = row._modulo_tipo === 'HTML';
-
-    // Converti dati solo per moduli HTML
-    const nuovoDati = isHtml ? convertDati(row.dati) : row.dati;
-    if (!isHtml) nonConvertiti++; */
-
     const nuovoDati = convertDati(row.dati);
     // Risolvi utente_id: interroga dst per ottenere l'id numerico dal codice fiscale
     let nuovoUtenteId = await findUtenteId(dst, row.utente_id);
@@ -1029,36 +1171,28 @@ async function migrateIstanze(src, dst) {
   }
 
   // aggiorno il numero di sequenza delle istanze per evitare conflitti con nuove istanze createi dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('istanze_id_seq', GREATEST((SELECT MAX(id) FROM istanze), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza istanze: ${err.message}`);
-  }
+  await resetSequence(dst, 'istanze');
 
   // Posizione di partenza: prima fase del servizio (per ORDINE, non la prima che
-  // capita). È solo un valore iniziale: la fase reale dipende dai workflow, che a
-  // questo punto non sono ancora stati migrati → riallineaFaseCorrente() gira dopo
-  // migrateWorkflow e corregge. L'ufficio corrente non è denormalizzato: si deriva
-  // da fasi.ufficio_id.
+  // capita). È solo un valore iniziale: la fase reale dipende dalle attività, che
+  // a questo punto non sono ancora state migrate → riallineaFaseCorrente() gira
+  // dopo migrateAttivita e corregge. L'ufficio corrente non è denormalizzato: si
+  // deriva da fasi.ufficio_id.
   await dst.query(`
     UPDATE istanze SET
       fase_corrente_id = (
         SELECT id FROM fasi WHERE servizio_id = istanze.servizio_id ORDER BY ordine LIMIT 1
       )
-    WHERE NOT conclusa AND NOT respinta
+    WHERE stato = 'IN_LAVORAZIONE'
   `);
 
-  console.log(
-    `Istanze: ${ok} OK` +
-    ` (${nonConvertiti} dati non convertiti perché non HTML)` +
-    `, ${errors} errori`
-  );
+  console.log(`Istanze: ${ok} OK, ${errors} errori`);
 }
 
 // ── riallineamento posizione istanze ─────────────────────────────────────────
 
-// La fase corrente di un'istanza è quella dello step del suo ultimo workflow.
-// migrateIstanze() non può saperlo (gira prima dei workflow) e imposta la prima
+// La fase corrente di un'istanza è quella dello step della sua ultima attività.
+// migrateIstanze() non può saperlo (gira prima delle attività) e imposta la prima
 // fase del servizio: per i servizi multi-fase ogni istanza già lavorata in fase
 // 2+ resterebbe puntata alla fase 1, quindi visibile all'ufficio sbagliato —
 // la visibilità operatore si basa su fasi.ufficio_id via fase_corrente_id.
@@ -1068,55 +1202,148 @@ async function riallineaFaseCorrente(dst) {
 
   const res = await dst.query(`
     UPDATE istanze i
-    SET fase_corrente_id = lw.fase_id
+    SET fase_corrente_id = ua.fase_id
     FROM (
-      SELECT DISTINCT ON (w.istanza_id) w.istanza_id, s.fase_id
-      FROM workflows w
-      JOIN steps s ON s.id = w.step_id
-      ORDER BY w.istanza_id, w.data_variazione DESC, w.id DESC
-    ) lw
-    WHERE lw.istanza_id = i.id
-      AND NOT i.conclusa AND NOT i.respinta AND NOT i.in_bozza
-      AND i.fase_corrente_id IS DISTINCT FROM lw.fase_id
+      SELECT DISTINCT ON (a.istanza_id) a.istanza_id, s.fase_id
+      FROM istanza_attivita a
+      JOIN steps s ON s.id = a.step_id
+      ORDER BY a.istanza_id, a.data_variazione DESC, a.id DESC
+    ) ua
+    WHERE ua.istanza_id = i.id
+      AND i.stato = 'IN_LAVORAZIONE'
+      AND i.fase_corrente_id IS DISTINCT FROM ua.fase_id
   `);
 
   // Le istanze chiuse non hanno fase corrente
   const chiuse = await dst.query(`
     UPDATE istanze SET fase_corrente_id = NULL
-    WHERE (conclusa OR respinta) AND fase_corrente_id IS NOT NULL
+    WHERE stato IN ('CONCLUSA', 'RESPINTA') AND fase_corrente_id IS NOT NULL
   `);
 
   console.log(`Fase corrente riallineata su ${res.rowCount} istanze aperte; azzerata su ${chiuse.rowCount} chiuse.`);
 }
 
-// ── migrazione workflow ─────────────────────────────────────────────────────────
+// ── allineamento attività corrente ────────────────────────────────────────────
+// `istanze.attivita_corrente_id` è mantenuta dal trigger AFTER INSERT su
+// istanza_attivita, che assume "corrente = ULTIMA INSERITA". In import l'ordine
+// di inserimento è quello degli id legacy, mentre la definizione di corrente è
+// (data_variazione DESC, id DESC) — la stessa usata dal backfill di
+// 20260807100000. Se le due divergono, l'istanza resta puntata all'attività
+// sbagliata e l'office mostra lo step sbagliato: qui si riallinea esplicitamente.
+async function allineaAttivitaCorrente(dst) {
+  console.log('\n── Allineamento attività corrente ────────────────────────────────');
 
-async function migrateWorkflow(src, dst) {
-  console.log('\n── Migrazione workflow ────────────────────────────────────────────────');
-
-  // Il nuovo modello ha stato BINARIO per design (0 = in lavorazione, 1 =
-  // completata; l'esito "respinta" vive su Istanza.respinta, non qui — vedi
-  // office actions.ts STATO_IN_LAVORAZIONE/STATO_COMPLETATA). Mappiamo lo status
-  // legacy id=1 ("presentata/in lavorazione") → 0, ogni altro status → 1
-  // (step chiuso). La granularità multi-status legacy non esiste nel target:
-  // collasso voluto, non perdita dati.
-  const { rows } = await src.query(`
-    SELECT
-    id,
-    note,
-    data_variazione,
-    id_istanza as istanza_id,
-    CASE id_status WHEN 1 THEN 0 ELSE 1 END stato,
-    id_step as step_id,
-    id_operatore as operatore_id
-    FROM workflow
-    WHERE id_step IS NOT null
-    ORDER BY id
+  const res = await dst.query(`
+    UPDATE istanze i
+    SET attivita_corrente_id = ua.id
+    FROM (
+      SELECT DISTINCT ON (istanza_id) istanza_id, id
+      FROM istanza_attivita
+      ORDER BY istanza_id, data_variazione DESC, id DESC
+    ) ua
+    WHERE ua.istanza_id = i.id
+      AND i.attivita_corrente_id IS DISTINCT FROM ua.id
   `);
-  console.log(`Workflow trovati: ${rows.length}`);
+
+  console.log(`Attività corrente corretta su ${res.rowCount} istanze.`);
+}
+
+// ── assegnazione operatore corrente ───────────────────────────────────────────
+// Nel legacy `workflow.id_operatore` aveva doppia semantica: su una riga chiusa
+// era CHI l'ha chiusa, su una riga aperta era CHI ha in carico l'istanza. La
+// contrazione 20260807110000 ha separato le due cose: la prima è
+// istanza_attivita.completata_da_id, la seconda istanze.assegnatario_id.
+//
+// DEVE girare DOPO ogni scrittura di fase_corrente_id: il trigger
+// `assegnatario_al_cambio_fase` azzera l'assegnatario a ogni cambio di fase, e
+// riallineaFaseCorrente() è appunto un cambio di fase. Invertire l'ordine
+// significa perdere silenziosamente tutte le assegnazioni.
+async function assegnaOperatoriCorrenti(src, dst) {
+  console.log('\n── Assegnazione operatore corrente ───────────────────────────────');
+
+  const { rows } = await src.query(`
+    SELECT DISTINCT ON (w.id_istanza)
+      w.id_istanza   AS istanza_id,
+      w.id_operatore AS operatore_id
+    FROM workflow w
+    WHERE w.id_step IS NOT NULL AND w.id_operatore IS NOT NULL
+    ORDER BY w.id_istanza, w.data_variazione DESC, w.id DESC
+  `);
+  console.log(`Istanze con operatore sull'ultima attività: ${rows.length}`);
 
   if (rows.length === 0) {
-    console.log('Nessun workflow da migrare.');
+    console.log('Nessuna assegnazione da riportare.');
+    return;
+  }
+
+  // Un solo statement con UNNEST invece di N update: l'operazione è puramente
+  // insiemistica e non ha nulla da riportare riga per riga.
+  const res = await dst.query(`
+    UPDATE istanze i
+    SET assegnatario_id = v.operatore_id
+    FROM (SELECT UNNEST($1::int[]) AS istanza_id, UNNEST($2::int[]) AS operatore_id) v
+    WHERE v.istanza_id = i.id
+      AND EXISTS (SELECT 1 FROM operatori o WHERE o.id = v.operatore_id)
+  `, [rows.map(r => r.istanza_id), rows.map(r => r.operatore_id)]);
+
+  console.log(`Assegnatario impostato su ${res.rowCount} istanze.`);
+}
+
+// ── migrazione attività dell'istanza ──────────────────────────────────────────
+// Ex tabella `workflows` (rinominata da 20260807120000). Rispetto a prima:
+//   - `stato` binario → rimosso: "aperta" è completata_at IS NULL
+//   - `operatore_id` → rimosso: vedi assegnaOperatoriCorrenti() per la doppia
+//     semantica che nascondeva
+
+async function migrateAttivita(src, dst) {
+  console.log('\n── Migrazione attività istanza ───────────────────────────────────');
+
+  // Mappatura legacy→nuovo presa dai backfill 2 e 3 di
+  // 20260807100000_posizione_corrente_espansione, per non averne due diverse:
+  //   - status legacy 1 = "presentata/in lavorazione" → attività APERTA
+  //   - ogni altro status → attività CHIUSA
+  //   - quando è stata chiusa non esiste nel legacy: il proxy è la
+  //     data_variazione dell'attività SUCCESSIVA della stessa istanza (quando è
+  //     partita la successiva, la precedente era chiusa), con fallback sulla
+  //     propria data_variazione per l'ultima riga chiusa.
+  //
+  // Il filtro su step attivo e area è lo stesso di migrateSteps: un'attività su
+  // uno step non importato violerebbe la FK. Le righe scartate sono contate.
+  const { rows } = await src.query(`
+    SELECT
+      w.id,
+      w.note,
+      w.data_variazione,
+      w.id_istanza AS istanza_id,
+      w.id_step    AS step_id,
+      CASE WHEN w.id_status = 1 THEN NULL
+           ELSE COALESCE(
+             LEAD(w.data_variazione) OVER (PARTITION BY w.id_istanza ORDER BY w.data_variazione, w.id),
+             w.data_variazione
+           )
+      END AS completata_at,
+      CASE WHEN w.id_status = 1 THEN NULL ELSE w.id_operatore END AS completata_da_id
+    FROM workflow w
+    JOIN step st ON st.id = w.id_step AND st.attivo = true
+    JOIN moduli m ON m.id = st.id_modulo
+    JOIN servizi se ON se.id = m.id_servizio
+    WHERE se.id_area IN (SELECT id FROM aree WHERE id_ente=1)
+    ORDER BY w.id
+  `);
+  console.log(`Attività trovate: ${rows.length}`);
+
+  const { rows: [scartate] } = await src.query(`
+    SELECT COUNT(*)::int AS n
+    FROM workflow w
+    JOIN step st ON st.id = w.id_step
+    WHERE st.attivo = false
+  `);
+  if (scartate.n > 0) {
+    console.warn(`  ⚠ ${scartate.n} attività su step disattivati: non importate (lo step non esiste in destinazione)`);
+  }
+
+  if (rows.length === 0) {
+    console.log('Nessuna attività da migrare.');
     return;
   }
 
@@ -1126,32 +1353,27 @@ async function migrateWorkflow(src, dst) {
   const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
   const sql = `
-    INSERT INTO workflows (${colList})
+    INSERT INTO istanza_attivita (${colList})
     VALUES (${placeholders})
     ON CONFLICT (id) DO NOTHING
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM workflows");
   for (const row of rows) {
     try {
       await q(dst, sql, columns.map(col => row[col]));
       ok++;
-      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} workflow migrati…`);
+      if (ok % 1000 === 0) console.log(`  ${ok}/${rows.length} attività migrate…`);
     } catch (err) {
-      console.error(`  ✗ errore su workflow ${row.id}: ${err.message}`);
+      console.error(`  ✗ errore su attività ${row.id}: ${err.message}`);
       errors++;
     }
   }
 
-  // aggiorno il numero di sequenza dei workflow per evitare conflitti con nuovi workflow creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('workflows_id_seq', GREATEST((SELECT MAX(id) FROM workflows), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza workflows: ${err.message}`);
-  }
+  // aggiorno il numero di sequenza delle attività per evitare conflitti con nuove attività create dopo la migrazione
+  await resetSequence(dst, 'istanza_attivita');
 
-  console.log(`Workflows: ${ok} inseriti/esistenti, ${errors} errori`);
+  console.log(`Attività: ${ok} inserite/esistenti, ${errors} errori`);
 }
 
 
@@ -1204,7 +1426,6 @@ async function migrateComunicazioni(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM comunicazioni");
   for (const row of rows) {
     try {
       await q(dst, sql, columns.map(col => row[col]));
@@ -1217,11 +1438,7 @@ async function migrateComunicazioni(src, dst) {
   }
 
   // aggiorno il numero di sequenza delle comunicazioni per evitare conflitti con nuove comunicazioni create dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('comunicazioni_id_seq', GREATEST((SELECT MAX(id) FROM comunicazioni), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza comunicazioni: ${err.message}`);
-  }
+  await resetSequence(dst, 'comunicazioni');
 
   console.log(`Comunicazioni: ${ok} inserite/esistenti, ${errors} errori`);
 }
@@ -1232,8 +1449,12 @@ async function migrateAllegati(src, dst) {
   console.log('\n── Migrazione allegati ────────────────────────────────────────────────');
 
   // Solo allegati legati a workflow-di-step (id_step NOT NULL): quelli sono
-  // migrati nella tabella workflows. Gli allegati su workflow-notifica (id_step
+  // migrati in istanza_attivita. Gli allegati su workflow-notifica (id_step
   // NULL) sono risposte del cittadino → gestiti in migrateRisposteComunicazioni.
+  //
+  // La colonna è `attivita_id` dalla rinomina 20260807120000, e il filtro su
+  // step attivo/area ripete quello di migrateAttivita: un allegato la cui
+  // attività non è stata importata violerebbe la FK.
   const { rows } = await src.query(`
     SELECT
     a.id,
@@ -1242,10 +1463,13 @@ async function migrateAllegati(src, dst) {
     a.nome_file_richiesto,
     a.mime_type, a.inv_utente,
     a.visto, a.data_inserimento,
-    a.id_workflow as workflow_id
+    a.id_workflow as attivita_id
     FROM allegati a
     JOIN workflow w ON w.id = a.id_workflow
-    WHERE w.id_step IS NOT NULL
+    JOIN step st ON st.id = w.id_step AND st.attivo = true
+    JOIN moduli m ON m.id = st.id_modulo
+    JOIN servizi se ON se.id = m.id_servizio
+    WHERE se.id_area IN (SELECT id FROM aree WHERE id_ente=1)
     ORDER BY a.id
   `);
   console.log(`Allegati trovati: ${rows.length}`);
@@ -1267,7 +1491,6 @@ async function migrateAllegati(src, dst) {
   `;
 
   let ok = 0, errors = 0;
-  await dst.query("DELETE FROM allegati");
   for (const row of rows) {
     try {
       await q(dst, sql, columns.map(col => row[col]));
@@ -1280,11 +1503,7 @@ async function migrateAllegati(src, dst) {
   }
 
   // aggiorno il numero di sequenza degli allegati per evitare conflitti con nuovi allegati creati dopo la migrazione
-  try {
-    await dst.query(`SELECT setval('allegati_id_seq', GREATEST((SELECT MAX(id) FROM allegati), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza allegati: ${err.message}`);
-  }
+  await resetSequence(dst, 'allegati');
 
   console.log(`Allegati: ${ok} inseriti/esistenti, ${errors} errori`);
 }
@@ -1310,9 +1529,6 @@ async function migrateRisposteComunicazioni(src, dst) {
     ORDER BY a.id_workflow, a.id
   `);
   console.log(`Allegati risposta trovati: ${rows.length}`);
-
-  await dst.query("DELETE FROM allegati_risposta");
-  await dst.query("DELETE FROM risposte_comunicazioni");
 
   if (rows.length === 0) {
     console.log('Nessuna risposta da migrare.');
@@ -1359,12 +1575,8 @@ async function migrateRisposteComunicazioni(src, dst) {
     }
   }
 
-  try {
-    await dst.query(`SELECT setval('risposte_comunicazioni_id_seq', GREATEST((SELECT MAX(id) FROM risposte_comunicazioni), 1))`);
-    await dst.query(`SELECT setval('allegati_risposta_id_seq', GREATEST((SELECT MAX(id) FROM allegati_risposta), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenze risposte: ${err.message}`);
-  }
+  await resetSequence(dst, 'risposte_comunicazioni');
+  await resetSequence(dst, 'allegati_risposta');
 
   console.log(`Risposte: ${risposteOk} risposte, ${allegatiOk} allegati, ${errors} errori`);
 }
@@ -1395,7 +1607,6 @@ async function migratePagamenti(src, dst) {
   `);
   console.log(`Config pagamenti trovate: ${rows.length}`);
 
-  await dst.query("DELETE FROM pagamenti");
   if (rows.length === 0) {
     console.log('Nessuna config pagamento da migrare.');
     return;
@@ -1422,18 +1633,14 @@ async function migratePagamenti(src, dst) {
     }
   }
 
-  try {
-    await dst.query(`SELECT setval('pagamenti_id_seq', GREATEST((SELECT MAX(id) FROM pagamenti), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza pagamenti: ${err.message}`);
-  }
+  await resetSequence(dst, 'pagamenti');
 
   console.log(`Config pagamenti: ${ok} OK, ${errors} errori`);
 }
 
 // ── migrazione storico pagamenti ──────────────────────────────────────────────
 // pagamenti_effettuati → pagamenti_attesi. Un record per workflow (il più
-// recente). Solo workflow-di-step migrati (FK verso workflows). Tronca i campi
+// recente). Solo workflow-di-step migrati (FK verso istanza_attivita). Tronca i campi
 // alle lunghezze del nuovo schema per evitare errori di insert.
 
 async function migratePagamentiAttesi(src, dst) {
@@ -1444,7 +1651,8 @@ async function migratePagamentiAttesi(src, dst) {
       pe.id,
       LEFT(pe.id_iuv, 100) as iuv,
       LEFT(pe.numero_documento, 30) as numero_documento,
-      pe.importo_totale,
+      -- importo_totale è NOT NULL in destinazione
+      COALESCE(pe.importo_totale, 0) as importo_totale,
       LEFT(pe.stato::text, 3) as stato,
       pe.data_emissione,
       pe.data_scadenza,
@@ -1454,15 +1662,17 @@ async function migratePagamentiAttesi(src, dst) {
       LEFT(TRIM(CONCAT(pe.pagante_nome, ' ', pe.pagante_cognome)), 50) as pagante,
       LEFT(pe.email, 50) as pagante_email,
       LEFT(pe.causale, 100) as causale,
-      pe.id_workflow as workflow_id
+      pe.id_workflow as attivita_id
     FROM pagamenti_effettuati pe
     JOIN workflow w ON w.id = pe.id_workflow AND w.id_step IS NOT NULL
+    JOIN step st ON st.id = w.id_step AND st.attivo = true
+    JOIN moduli m ON m.id = st.id_modulo
+    JOIN servizi se ON se.id = m.id_servizio
     WHERE pe.id_workflow IS NOT NULL
+      AND se.id_area IN (SELECT id FROM aree WHERE id_ente=1)
     ORDER BY pe.id_workflow, pe.data_transazione DESC NULLS LAST
   `);
   console.log(`Storico pagamenti trovati: ${rows.length}`);
-
-  await dst.query("DELETE FROM pagamenti_attesi");
 
   let ok = 0, errors = 0;
   if (rows.length > 0) {
@@ -1472,7 +1682,7 @@ async function migratePagamentiAttesi(src, dst) {
     const sql = `
       INSERT INTO pagamenti_attesi (${colList})
       VALUES (${placeholders})
-      ON CONFLICT (workflow_id) DO NOTHING
+      ON CONFLICT (attivita_id) DO NOTHING
     `;
 
     for (const row of rows) {
@@ -1490,37 +1700,36 @@ async function migratePagamentiAttesi(src, dst) {
   // B8: preserva workflow.importo_richiesto (importo richiesto dall'operatore per
   // pagamenti a importo variabile). Se il pagamento è stato eseguito arriva già da
   // pagamenti_effettuati; qui recuperiamo i RICHIESTI-ma-non-pagati creando un
-  // PagamentoAtteso pending. ON CONFLICT (workflow_id) → l'effettuato ha precedenza.
+  // PagamentoAtteso pending. ON CONFLICT (attivita_id) → l'effettuato ha precedenza.
   const { rows: richiesti } = await src.query(`
-    SELECT w.id as workflow_id, w.importo_richiesto as importo_totale
+    SELECT w.id as attivita_id, w.importo_richiesto as importo_totale
     FROM workflow w
-    JOIN step s ON s.id = w.id_step AND s.pagamento = true
+    JOIN step s ON s.id = w.id_step AND s.pagamento = true AND s.attivo = true
+    JOIN moduli m ON m.id = s.id_modulo
+    JOIN servizi se ON se.id = m.id_servizio
     WHERE w.importo_richiesto IS NOT NULL AND w.importo_richiesto > 0
+      AND se.id_area IN (SELECT id FROM aree WHERE id_ente=1)
     ORDER BY w.id
   `);
   console.log(`Importi richiesti (non pagati) trovati: ${richiesti.length}`);
 
   let richiestiOk = 0;
   const sqlRichiesto = `
-    INSERT INTO pagamenti_attesi (importo_totale, workflow_id)
+    INSERT INTO pagamenti_attesi (importo_totale, attivita_id)
     VALUES ($1, $2)
-    ON CONFLICT (workflow_id) DO NOTHING
+    ON CONFLICT (attivita_id) DO NOTHING
   `;
   for (const row of richiesti) {
     try {
-      await q(dst, sqlRichiesto, [row.importo_totale, row.workflow_id]);
+      await q(dst, sqlRichiesto, [row.importo_totale, row.attivita_id]);
       richiestiOk++;
     } catch (err) {
-      console.error(`  ✗ errore su importo richiesto workflow=${row.workflow_id}: ${err.message}`);
+      console.error(`  ✗ errore su importo richiesto attività=${row.attivita_id}: ${err.message}`);
       errors++;
     }
   }
 
-  try {
-    await dst.query(`SELECT setval('pagamenti_attesi_id_seq', GREATEST((SELECT MAX(id) FROM pagamenti_attesi), 1))`);
-  } catch (err) {
-    console.error(`  ⚠ errore nell'aggiornamento sequenza pagamenti_attesi: ${err.message}`);
-  }
+  await resetSequence(dst, 'pagamenti_attesi');
 
   console.log(`Storico pagamenti: ${ok} effettuati, ${richiestiOk} richiesti-non-pagati, ${errors} errori`);
 }
@@ -1541,6 +1750,9 @@ async function main() {
     // Transazione unica: se un passo fallisce, ROLLBACK totale.
     // Evita di lasciare il DB destinazione in stato parziale/incoerente.
     await dst.query('BEGIN');
+
+    //  0. Azzera la destinazione in ordine inverso di dipendenza (utenti esclusa)
+    await resetDestinazione(dst);
 
     //  1. Migra enti (nessuna dipendenza)
     await migrateEnti(src, dst);
@@ -1575,37 +1787,53 @@ async function main() {
     //  9. Migra operatori_ruoli (dipende da operatori, ruoli)
     await migrateOperatoriRuoli(src, dst);
 
+    //  9b. Migra operatori_servizi (dipende da operatori, servizi)
+    await migrateOperatoriServizi(src, dst);
+
     // 10. Migra utenti (nessuna dipendenza)
     await migrateUtenti(src, dst);
 
-    // 11. Migra istanze (dipende da utenti, servizi, steps; risolve CF→id; setta fase_corrente_id)
+    // 11. Migra istanze (dipende da utenti, servizi; risolve CF→id; setta fase_corrente_id)
     await migrateIstanze(src, dst);
-    // 12. Migra workflow (dipende da istanze, steps, operatori)
-    await migrateWorkflow(src, dst);
 
-    // 12a. Riallinea fase_corrente_id delle istanze allo step dell'ultimo workflow
-    //      (deve girare DOPO i workflow: è da lì che si ricava la fase reale)
+    // 12. Migra le attività dell'istanza (dipende da istanze, steps, operatori)
+    await migrateAttivita(src, dst);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // I tre passi seguenti sono in ORDINE VINCOLANTE, non per comodità:
+    //
+    //   12a. l'attività corrente la scrive il trigger AFTER INSERT seguendo
+    //        l'ordine di inserimento; qui si riporta alla definizione vera
+    //        (ultima per data_variazione).
+    //   12b. la fase corrente si ricava dallo step dell'ultima attività, quindi
+    //        non prima che le attività esistano.
+    //   12c. l'assegnatario va scritto PER ULTIMO: il trigger
+    //        `assegnatario_al_cambio_fase` lo azzera a ogni cambio di
+    //        fase_corrente_id, e 12b è esattamente un cambio di fase.
+    // ─────────────────────────────────────────────────────────────────────────
+    await allineaAttivitaCorrente(dst);
     await riallineaFaseCorrente(dst);
-   
-    // 12. Migra Comunicazioni (dipende da istanze, operatori; id = id workflow-notifica legacy)
+    await assegnaOperatoriCorrenti(src, dst);
+
+    // 13. Migra Comunicazioni (dipende da istanze, operatori; id = id workflow-notifica legacy)
     await migrateComunicazioni(src, dst);
 
-    // 12b. Migra risposte comunicazioni (dipende da comunicazioni)
+    // 13b. Migra risposte comunicazioni (dipende da comunicazioni)
     await migrateRisposteComunicazioni(src, dst);
 
-    // 13. Migra workflow_fasi (dipende da istanze, fasi)
-    await migrateWorkflowFasi(src, dst);
+    // 14. Migra istanza_fasi (dipende da istanze, fasi)
+    await migrateIstanzaFasi(src, dst);
 
-    // 14. Migra allegati step-workflow (dipende da workflow)
+    // 15. Migra allegati di attività (dipende da istanza_attivita)
     await migrateAllegati(src, dst);
 
-    // 15. Migra storico pagamenti (dipende da workflow)
+    // 16. Migra storico pagamenti (dipende da istanza_attivita)
     await migratePagamentiAttesi(src, dst);
 
     await dst.query('COMMIT');
     console.log('\n✓ Migrazione completata.');
   } catch (err) {
-    await dst.query('ROLLBACK').catch(() => {});
+    await dst.query('ROLLBACK').catch(() => { });
     console.error('\n✗ Migrazione annullata (ROLLBACK):', err.message);
     throw err;
   } finally {

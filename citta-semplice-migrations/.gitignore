@@ -1,4 +1,8 @@
 node_modules
 package-lock.json
-.env
+# Tutte le varianti (.env, .env.local, .env.produzione…) contengono credenziali
+# dei due database. Prima era ignorato solo `.env`, quindi `.env.local` — il file
+# effettivamente in uso — era a un `git add .` dal finire nella history.
+.env*
+!.env.example
 *.log

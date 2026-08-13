@@ -2,9 +2,13 @@
   "name": "citta-semplice-migrations",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Script di migrazione dati Città Semplice",
   "scripts": {
     "migrate-dati": "node migrate-dati.js"
+  },
+  "engines": {
+    "node": ">=20.12"
   },
   "dependencies": {
     "pg": "^8.13.3"

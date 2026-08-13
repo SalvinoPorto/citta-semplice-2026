@@ -113,6 +113,18 @@ export const servizioSchema = z.object({
   // IstanzaAttivita
   fasi: z.array(faseSchema).min(1, 'Almeno una fase è obbligatoria'),
   steps: z.array(stepSchema),
+}).superRefine((servizio, ctx) => {
+  // `unicoInvio` senza `campiUnicoInvio` è una regola che non esiste: il portale
+  // non ha su cosa identificare il beneficiario e lascia passare tutto. Prima si
+  // salvava senza un avviso, e il servizio restava in produzione con un vincolo
+  // che l'amministratore credeva attivo.
+  if (servizio.unicoInvio && !servizio.campiUnicoInvio?.trim()) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['campiUnicoInvio'],
+      message: "Indica almeno un campo del modulo: senza, l'invio unico non viene applicato",
+    });
+  }
 });
 
 export type FaseFormData = z.infer<typeof faseSchema>;
