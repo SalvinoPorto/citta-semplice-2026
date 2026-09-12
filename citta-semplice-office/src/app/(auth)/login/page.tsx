@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { LoginForm } from './login-form';
 
 function LoginFallback() {
