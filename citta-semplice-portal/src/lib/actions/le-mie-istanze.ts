@@ -14,6 +14,8 @@ export type IstanzaRow = {
   dataInvio: string | null;
   protoNumero: string | null;
   protoData: string | null;
+  /** `true` finché il numero è quello interno, non ancora quello dell'ente. */
+  protocolloProvvisorio: boolean;
   statoIstanza: StatoIstanzaValore;
   faseAttuale: string | null;
   stato: StatoAttivita;
@@ -75,6 +77,7 @@ export async function getIstanzePage(
       dataInvio: i.dataInvio?.toISOString() ?? null,
       protoNumero: i.protoNumero ?? null,
       protoData: i.protoData?.toISOString() ?? null,
+      protocolloProvvisorio: i.protocolloProvvisorio,
       statoIstanza: i.stato,
       faseAttuale: i.attivitaCorrente?.step?.descrizione ?? null,
       stato: i.attivitaCorrente

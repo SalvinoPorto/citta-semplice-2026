@@ -34,9 +34,9 @@ class UrbiSmartService {
   private classificazione: string;
 
   constructor() {
-    this.baseUrl = process.env.URBISMART_URL || '';
-    this.tipoMezzo = process.env.URBISMART_TIPO_MEZZO || 'PEC';
-    this.classificazione = process.env.URBISMART_CLASSIFICAZIONE || 'V/5';
+    this.baseUrl = process.env.URBI_BASE_URL || '';
+    this.tipoMezzo = process.env.URBI_TIPO_MEZZO || 'PEC';
+    this.classificazione = process.env.URBI_CLASSIFICAZIONE || '15';
   }
 
   private isConfigured(): boolean {

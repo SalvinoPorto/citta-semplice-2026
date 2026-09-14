@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, ReactNode, ReactElement } from 'react';
+import { useState, ReactNode, ReactElement } from 'react';
 import './THead.css';
 import { Order } from '@/lib/models/table';
 

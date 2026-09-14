@@ -20,6 +20,8 @@ datasource db {
 enum TipoProtocollo {
   E // Entrata
   U // Uscita
+  
+  @@map("tipo_protocollo")
 }
 
 enum Soggetto {
@@ -200,6 +202,19 @@ model Servizio {
   numeroMaxIstanze    Int?    @default(0) @map("numero_max_istanze")
   msgSopraSoglia      String? @map("msg_sopra_soglia") @db.VarChar(300)
   msgExtraServizio    String? @map("msg_extra_servizio") @db.VarChar(500)
+
+  /// Protocollazione differita. Con `false` (default) l'invio contatta Urbi e il
+  /// cittadino riceve subito il protocollo VERO dell'ente: è il comportamento
+  /// voluto per i servizi a domanda distribuita.
+  /// Con `true` l'invio non tocca la rete: assegna un numero interno dentro la
+  /// stessa transazione che prenota il posto in quota, e risponde. La rettifica
+  /// col numero Urbi avviene dopo, via `GET /api/cron/protocollazione`.
+  /// Da attivare sui servizi con picchi previsti (click day), dove una chiamata
+  /// esterna da 30 s per ogni invio è il collo di bottiglia.
+  /// Indipendente dal circuit breaker, che degrada TUTTI i servizi quando Urbi
+  /// smette di rispondere: questo flag copre i picchi PIANIFICATI, il breaker
+  /// quelli imprevisti e i guasti.
+  protocollazioneAsincrona Boolean @default(false) @map("protocollazione_asincrona")
 
   // Visualizzazione istanze
   campiInEvidenza  String? @map("campi_in_evidenza")
@@ -400,6 +415,31 @@ model Istanza {
   protoData         DateTime? @map("proto_data")
   protoFinaleNumero String?   @map("proto_finale_numero") @db.VarChar(50)
   protoFinaleData   DateTime? @map("proto_finale_data")
+
+  /// `true` finché `protoNumero` contiene il numero INTERNO d'emergenza, non
+  /// ancora sostituito da quello del protocollo dell'ente.
+  ///
+  /// Serve a dire la verità al cittadino e all'operatore: la ricevuta ex art.
+  /// 18-bis afferma «protocollata tramite Protocollo generale», affermazione
+  /// falsa finché il numero è interno. Viene scritta nella stessa transazione
+  /// che conia il numero e azzerata alla rettifica — in linea se il servizio è
+  /// sincrono, altrimenti da /api/cron/protocollazione.
+  ///
+  /// È una colonna e non un join su `protocollo_emergenza` perché la leggono
+  /// anche la lista e il PDF, che altrimenti dovrebbero portarsi dietro una
+  /// relazione in più solo per mostrare un'etichetta.
+  protocolloProvvisorio Boolean @default(false) @map("protocollo_provvisorio")
+
+  /// Recapito a cui avvisare quando il protocollo definitivo viene assegnato.
+  ///
+  /// Precompilato da `utenti.email` (che arriva da SPID; la CIE non fornisce
+  /// l'indirizzo) ma MAI riscritto su di essa: chi accede può essere un delegato
+  /// che presenta l'istanza per conto di un altro, e il recapito indicato qui
+  /// appartiene a quell'istanza, non all'identità digitale di chi l'ha inviata.
+  ///
+  /// Nullable perché resta facoltativo: senza, l'istanza resta consultabile dal
+  /// portale come oggi, semplicemente non parte alcuna notifica.
+  emailNotifica String? @map("email_notifica") @db.VarChar(255)
 
   // Dates
   dataInvio DateTime @map("data_invio")

@@ -1,5 +1,4 @@
 export const dynamic = 'force-dynamic';
-import React from 'react';
 import Link from 'next/link';
 import { prisma } from '@/lib/db/prisma';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';

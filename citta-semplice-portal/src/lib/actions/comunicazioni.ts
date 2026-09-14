@@ -2,11 +2,10 @@
 
 import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/lib/auth/config';
-import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { getStorage } from '@/lib/storage';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 function normalizzaNomeFile(nomeOriginale: string): string {
@@ -123,14 +122,13 @@ export async function rispondiComunicazione(formData: FormData) {
       const mese = String(now.getMonth() + 1).padStart(2, '0');
       const giorno = String(now.getDate()).padStart(2, '0');
       const relDir = join(anno, mese, giorno);
-      const absDir = join(UPLOAD_DIR, relDir);
-      await mkdir(absDir, { recursive: true });
+      const storage = getStorage();
 
       for (const { file, nome } of caricati) {
         const uuid = randomUUID();
         const nomeHash = join(relDir, uuid);
         const bytes = await file.arrayBuffer();
-        await writeFile(join(absDir, uuid), Buffer.from(bytes));
+        await storage.save(nomeHash, Buffer.from(bytes), 'application/pdf');
 
         await prisma.allegatoRisposta.create({
           data: {

@@ -68,3 +68,9 @@ packages/db/.env
 
 # Workspace di lavoro di superpowers (ledger, brief, report di review)
 .superpowers/
+
+# Dump con dati di test caricato da docker-compose (infra/postgres): 31 MB, fuori dal repo
+db_demo.sql
+
+# Segreti per docker compose (interpolati in docker-compose.yml)
+/.env

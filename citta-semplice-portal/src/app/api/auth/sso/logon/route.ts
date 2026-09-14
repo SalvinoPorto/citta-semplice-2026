@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { CigClient, buildAuthRequestXml, PS2S } from '@/lib/auth/cig-client';
+import { originPubblica } from '@/lib/auth/origine-pubblica';
 
 const SSO_URL = process.env.CIG_SSO_URL ?? 'https://www.comune.catania.it/sso/';
 const STYLESHEET = process.env.CIG_STYLESHEET ?? '';
@@ -17,9 +18,9 @@ const LOGO_URL = process.env.CIG_LOGO_URL ?? '';
 export async function GET(req: NextRequest) {
   const callbackUrl = req.nextUrl.searchParams.get('callbackUrl') ?? '/le-mie-istanze';
 
-  // Use the request's own origin so the callback URL is always correct
-  // regardless of NEXTAUTH_URL or which port the dev server is on.
-  const origin = req.nextUrl.origin;
+  // L'SSO rimanda il browser a questi URL: devono usare l'origin pubblica,
+  // non quella interna del server (vedi originPubblica).
+  const origin = originPubblica(req);
   const urlReturn = `${origin}/api/auth/sso/callback`;
   const urlErrore = `${origin}/login?error=sso`;
 
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   if (esito !== PS2S.OK) {
     console.error('[SSO logon] request2RID failed:', esito);
-    return NextResponse.redirect(new URL(`/login?error=sso_init`, req.url));
+    return NextResponse.redirect(new URL(`/login?error=sso_init`, origin));
   }
 
   // Store the callbackUrl in a short-lived httpOnly cookie so the callback

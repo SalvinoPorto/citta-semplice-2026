@@ -129,6 +129,11 @@ const ENCRYPTED_SECRET = trasfCripta(SECRET_KEY);
 // --------------------------------------------------------------------------
 // Time tag helpers (mirrors SCBase / TrasfObj)
 // Format: yyyyMMddHHmm
+//
+// Ora LOCALE del processo, come il client .NET originale: l'SSO la confronta
+// con la propria (Europe/Rome) su una finestra di 30 minuti. Un processo in UTC
+// è fuori di un'ora o due e ogni login fallisce: il fuso è fissato con
+// TZ=Europe/Rome nel Dockerfile.
 // --------------------------------------------------------------------------
 
 function tagOrario(dt: Date): string {

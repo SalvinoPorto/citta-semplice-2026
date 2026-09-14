@@ -81,6 +81,10 @@ export const servizioSchema = z.object({
   // arriverebbe grezzo da Prisma al salvataggio invece che dal form.
   msgSopraSoglia: z.string().max(300).optional(),
   msgExtraServizio: z.string().max(500).optional(),
+  // Click day: l'invio non contatta Urbi e assegna un numero interno, poi
+  // rettificato dal cron. Sui servizi a domanda distribuita resta false, così il
+  // cittadino riceve subito il protocollo vero dell'ente.
+  protocollazioneAsincrona: z.boolean(),
 
   // Visualizzazione
   campiInEvidenza: z.string().optional(),
@@ -110,7 +114,7 @@ export const servizioSchema = z.object({
     ufficioRicevimento: z.string().optional(),
   }).optional(),
 
-  // IstanzaAttivita
+  // Iter: fasi e step
   fasi: z.array(faseSchema).min(1, 'Almeno una fase è obbligatoria'),
   steps: z.array(stepSchema),
 }).superRefine((servizio, ctx) => {

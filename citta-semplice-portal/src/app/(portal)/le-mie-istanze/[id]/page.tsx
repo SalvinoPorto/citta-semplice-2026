@@ -1,6 +1,5 @@
 export const dynamic = 'force-dynamic';
 
-import React from 'react';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -262,9 +261,16 @@ export default async function IstanzaDettaglioPage({ params }: Props) {
                   <use href="/bootstrap-italia/dist/svg/sprites.svg#it-pa" />
                 </svg>
                 <span>
-                  Numero di protocollo: <strong>{istanza.protoNumero}</strong>
+                  {istanza.protocolloProvvisorio ? 'Numero provvisorio' : 'Numero di protocollo'}:{' '}
+                  <strong>{istanza.protoNumero}</strong>
                   {istanza.protoData && (
                     <> del {format(istanza.protoData, 'dd/MM/yyyy', { locale: it })}</>
+                  )}
+                  {istanza.protocolloProvvisorio && (
+                    <small className="d-block text-muted">
+                      La registrazione al Protocollo generale è in corso: il numero
+                      definitivo comparirà qui appena assegnato.
+                    </small>
                   )}
                 </span>
               </div>

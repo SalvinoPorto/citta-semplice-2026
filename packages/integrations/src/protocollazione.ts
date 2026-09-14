@@ -15,6 +15,8 @@
  *   PROTOCOL_FALLBACK_PREFIX
  */
 
+import { CircuitBreaker } from './circuit-breaker';
+
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
@@ -266,16 +268,28 @@ function parseElencoUffici(xml: string): UfficioUrbi[] {
 // ---------------------------------------------------------------------------
 // Protocollazione principale
 // ---------------------------------------------------------------------------
-export async function protocolla(
+/**
+ * Tenta la protocollazione su Urbi e basta: ritorna `null` se non riesce, senza
+ * coniare alcun numero di ripiego.
+ *
+ * Esiste separata da `protocolla()` perché i due comportamenti — «tenta» e
+ * «ripiega» — servono a chiamanti diversi. Chi RITENTA (il drenatore della coda
+ * in /api/cron/protocollazione) deve poter fallire senza conseguenze: se usasse
+ * `protocolla()`, ogni tentativo andato male conierebbe un nuovo numero
+ * d'emergenza e creerebbe una nuova riga in `protocollo_emergenza`, bruciando
+ * un progressivo a ogni giro di cron e per ogni istanza non ancora rettificata.
+ *
+ * `protocolla()` resta il punto d'ingresso per chi un numero lo vuole comunque,
+ * ed è ora scritta in termini di questa funzione: comportamento invariato.
+ */
+export async function tentaProtocollazioneUrbi(
   input: ProtocolloInput,
-  store: ProtocolloEmergenzaStore,
-): Promise<ProtocolloResult> {
+): Promise<{ numero: string; data: Date } | null> {
   const config = getConfig();
-  const isFinal = input.isFinal ?? false;
 
   if (!config.baseUrl || !config.username || !config.password) {
-    console.warn('[Protocollo] Configurazione mancante, uso numerazione interna');
-    return fallback(store, config, isFinal, input.istanzaId);
+    console.warn('[Protocollo] Configurazione mancante');
+    return null;
   }
 
   const auth = buildAuthHeader(config.username, config.password);
@@ -318,14 +332,14 @@ export async function protocolla(
     res = await urbiRequest(config.baseUrl, { method: 'POST', headers: { Authorization: auth }, body: form }, config.timeoutMs);
   } catch (err) {
     console.error(`[Protocollo] Errore chiamata insProtocollo: ${err instanceof Error ? err.message : String(err)}`);
-    return fallback(store, config, isFinal, input.istanzaId);
+    return null;
   }
 
   const bodyText = await res.text();
 
   if (!res.ok) {
     console.error(`[Protocollo] HTTP ${res.status} — ${bodyText.slice(0, 200)}`);
-    return fallback(store, config, isFinal, input.istanzaId);
+    return null;
   }
 
   // 4. Estrai numero e data
@@ -334,10 +348,67 @@ export async function protocolla(
 
   if (!numero) {
     console.error(`[Protocollo] Numero non trovato nella risposta: ${bodyText.slice(0, 300)}`);
-    return fallback(store, config, isFinal, input.istanzaId);
+    return null;
   }
 
   const data = dataStr ? parseDataUrbi(dataStr) ?? new Date() : new Date();
   console.info(`[Protocollo] Istanza ${input.istanzaId} protocollata: ${numero}`);
-  return { numero, data, fallback: false };
+  return { numero, data };
+}
+
+/**
+ * Protocolla su Urbi, e se non riesce conia un numero interno di emergenza.
+ * Comportamento invariato rispetto a prima dell'estrazione di
+ * `tentaProtocollazioneUrbi`: non solleva mai eccezioni e un numero lo
+ * restituisce sempre.
+ */
+export async function protocolla(
+  input: ProtocolloInput,
+  store: ProtocolloEmergenzaStore,
+): Promise<ProtocolloResult> {
+  const esito = await tentaProtocollazioneUrbi(input);
+  if (esito) return { ...esito, fallback: false };
+  return fallback(store, getConfig(), input.isFinal ?? false, input.istanzaId);
+}
+
+// ---------------------------------------------------------------------------
+// Circuit breaker su Urbi
+// ---------------------------------------------------------------------------
+/**
+ * Stato di salute di Urbi, condiviso da tutto il processo. Le soglie sono
+ * configurabili perché dipendono dal comportamento del protocollo dell'ente,
+ * che non è lo stesso ovunque.
+ */
+export const breakerUrbi = new CircuitBreaker({
+  soglia: Number(process.env.URBI_BREAKER_SOGLIA ?? '5'),
+  raffreddamentoMs: Number(process.env.URBI_BREAKER_RAFFREDDAMENTO_MS ?? '60000'),
+});
+
+/**
+ * Come `tentaProtocollazioneUrbi`, ma consulta e aggiorna il breaker.
+ *
+ * Restituisce `null` sia quando Urbi fallisce sia quando il circuito è già
+ * aperto: per chi chiama le due cose sono equivalenti — «non aspettare, vai per
+ * la via asincrona» — e quella via è comunque completa, perché il numero interno
+ * è già stato assegnato e il cron rettifica dopo.
+ *
+ * È una funzione a parte, e non una modifica di `tentaProtocollazioneUrbi`,
+ * perché quella ha cinque punti d'uscita: strumentarli tutti avrebbe sparso la
+ * logica del breaker dentro il client HTTP invece di tenerla in un solo posto.
+ */
+export async function tentaProtocollazioneUrbiConBreaker(
+  input: ProtocolloInput,
+): Promise<{ numero: string; data: Date } | null> {
+  if (!breakerUrbi.consentito()) {
+    console.warn('[Protocollo] circuito aperto: salto il tentativo verso Urbi');
+    return null;
+  }
+
+  const esito = await tentaProtocollazioneUrbi(input);
+  if (esito) {
+    breakerUrbi.registraSuccesso();
+  } else {
+    breakerUrbi.registraFallimento();
+  }
+  return esito;
 }

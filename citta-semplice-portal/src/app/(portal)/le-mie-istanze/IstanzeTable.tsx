@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -130,6 +129,9 @@ export function IstanzeTable({ utenteId }: Props) {
                       {istanza.protoNumero ? (
                         <span>
                           {istanza.protoNumero}
+                          {istanza.protocolloProvvisorio && (
+                            <small className="text-warning d-block">provvisorio</small>
+                          )}
                           {istanza.protoData && (
                             <small className="text-muted d-block">
                               {format(new Date(istanza.protoData), 'dd/MM/yyyy', { locale: it })}

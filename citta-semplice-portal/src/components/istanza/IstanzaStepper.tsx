@@ -1,5 +1,5 @@
 'use client';
-import React from "react";
+
 import { useState, useRef } from 'react';
 import { PrivacyStep } from './PrivacyStep';
 import { ModuloStep, ModuloStepHandle } from './ModuloStep';
@@ -49,6 +49,13 @@ interface BozzaIniziale {
 interface Props {
   servizio: Servizio;
   userId: string;
+  /**
+   * Recapito noto del cittadino, da `utenti.email` (arriva da SPID; la CIE non
+   * lo fornisce). Serve solo a PRECOMPILARE il campo del riepilogo: il valore
+   * confermato viene salvato sull'istanza e mai riscritto sull'anagrafica,
+   * perché chi invia può essere un delegato e non il beneficiario.
+   */
+  emailUtente?: string;
   bozzaIniziale?: BozzaIniziale;
 }
 
@@ -61,7 +68,7 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: 'riepilogo', label: 'Riepilogo' },
 ];
 
-export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
+export function IstanzaStepper({ servizio, userId, emailUtente, bozzaIniziale }: Props) {
   const [activeStep, setActiveStep] = useState(bozzaIniziale?.activeStep ?? 0);
   const [paginaModulo, setPaginaModulo] = useState(bozzaIniziale?.paginaModulo ?? 0);
   const [privacyAccettata, setPrivacyAccettata] = useState(bozzaIniziale ? true : false);
@@ -70,6 +77,9 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
   const [loading, setLoading] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [bozzaId, setBozzaId] = useState<number | null>(bozzaIniziale?.id ?? null);
+  // Precompilato col recapito noto, ma modificabile: resta il recapito di
+  // QUESTA istanza, non dell'anagrafica di chi ha effettuato l'accesso.
+  const [emailNotifica, setEmailNotifica] = useState(emailUtente ?? '');
 
   const moduloRef = useRef<ModuloStepHandle>(null);
   const allegatiRef = useRef<AllegatiStepHandle>(null);
@@ -162,6 +172,7 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
       formData.append('servizioId', String(servizio.id));
       formData.append('userId', userId);
       formData.append('dati', buildDatiConLabel(datiModulo, servizio.attributi));
+      formData.append('emailNotifica', emailNotifica.trim());
       if (bozzaId) formData.append('bozzaId', String(bozzaId));
       allegatiCaricati.forEach(({ allegatoId, file }) => {
         formData.append('allegati', file);
@@ -234,6 +245,8 @@ export function IstanzaStepper({ servizio, userId, bozzaIniziale }: Props) {
         )}
         {activeStep === 3 && (
           <RiepilogoStep
+            emailNotifica={emailNotifica}
+            onEmailNotificaChange={setEmailNotifica}
             servizio={servizio}
             datiModulo={datiModulo}
             allegati={allegatiCaricati.map((a) => a.file)}

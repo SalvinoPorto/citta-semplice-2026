@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/db/prisma';
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/uploads';
+import { getStorage } from '@/lib/storage';
 
 export async function GET(
   request: NextRequest,
@@ -30,11 +27,9 @@ export async function GET(
       return NextResponse.json({ error: 'Allegato non trovato' }, { status: 404 });
     }
 
-    const filePath = join(UPLOAD_DIR, allegato.nomeHash);
-
     let fileBuffer: Buffer;
     try {
-      fileBuffer = await readFile(filePath);
+      fileBuffer = await getStorage().read(allegato.nomeHash);
     } catch {
       return NextResponse.json({ error: 'File non trovato' }, { status: 404 });
     }

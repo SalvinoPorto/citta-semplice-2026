@@ -1,0 +1,183 @@
+# Composizione per sviluppo e collaudo.
+#
+# NON è la topologia di produzione: su Proxmox VE, Postgres e Garage vivono su VM
+# dedicate (con i propri backup e la propria HA), non come container effimeri
+# accanto alle app. Qui servono a provare in locale lo stesso percorso di
+# codice che girerà in esercizio — in particolare STORAGE_DRIVER=s3, che è la
+# configurazione obbligatoria appena si supera la singola replica.
+#
+# Sostituisce citta-semplice-office/docker-compose.yml, che buildava con il
+# contesto sulla cartella dell'app e quindi non risolveva i workspace @citta/*.
+
+# Credenziali S3 di sviluppo, condivise fra Garage e le app. Garage impone il
+# formato: access key "GK" + 24 cifre esadecimali, secret 64 esadecimali.
+x-s3-access-key: &s3-access-key ${S3_ACCESS_KEY_ID:-GK0123456789abcdef01234567}
+x-s3-secret-key: &s3-secret-key ${S3_SECRET_ACCESS_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+x-s3-bucket: &s3-bucket citta-allegati
+
+x-app-comune: &app-comune
+  restart: unless-stopped
+  environment: &env-comune
+    DATABASE_URL: postgresql://io_user:Comct2019@db:5432/io_db?schema=public
+    # Connessioni per processo: max x numero_replica deve restare sotto il
+    # max_connections di Postgres.
+    DATABASE_POOL_MAX: "10"
+    DATABASE_POOL_TIMEOUT_MS: "10000"
+    # Allegati su object storage: è ciò che rende le app replicabili.
+    STORAGE_DRIVER: s3
+    S3_ENDPOINT: http://garage:3900
+    S3_BUCKET: *s3-bucket
+    # Deve coincidere con s3_region di infra/garage.toml: Garage rifiuta le
+    # firme calcolate su un'altra region (AuthorizationHeaderMalformed).
+    S3_REGION: garage
+    S3_ACCESS_KEY_ID: *s3-access-key
+    S3_SECRET_ACCESS_KEY: *s3-secret-key
+    S3_FORCE_PATH_STYLE: "true"
+    # NextAuth v5 dietro un reverse proxy: senza questo risponde
+    # "UntrustedHost" e l'autenticazione non funziona.
+    AUTH_TRUST_HOST: "true"
+    NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-cambiare-in-produzione}
+    JWT_EXPIRATION_HOURS: "2"
+    # Integrazioni esterne (@citta/integrations), usate da entrambe le app: il
+    # portale protocolla e crea i pagamenti all'invio, l'office durante l'iter.
+    # I valori stanno nel file .env della radice. Le chiavi sono volutamente
+    # SENZA valore: se mancano da .env non arrivano al container, e restano i
+    # default del codice. Con `${VAR:-}` arriverebbe una stringa vuota, che
+    # scavalca i default scritti con `??` (es. URBI_ID_AOO = '1').
+    # Protocollo — Urbi SMART
+    URBI_BASE_URL:
+    URBI_USERNAME:
+    URBI_PASSWORD:
+    URBI_ID_AOO:
+    URBI_TIPO_MEZZO:
+    URBI_CLASSIFICAZIONE:
+    URBI_REGISTRATORE:
+    URBI_TIMEOUT_MS:
+    URBI_BREAKER_SOGLIA:
+    URBI_BREAKER_RAFFREDDAMENTO_MS:
+    PROTOCOL_FALLBACK_PREFIX: # Pagamenti — PMPay (PagoPA). Con PMPAY_URL_OK/KO/CANCEL vuoti gli URL di
+
+    # ritorno vengono costruiti da NEXTAUTH_URL.
+    PMPAY_URL:
+    PMPAY_USERNAME:
+    PMPAY_PASSWORD:
+    PMPAY_ENTE_ID:
+    PMPAY_TIMEOUT_MS:
+    PMPAY_URL_OK:
+    PMPAY_URL_KO:
+    PMPAY_URL_CANCEL:
+  depends_on:
+    db:
+      condition: service_healthy
+    garage:
+      condition: service_healthy
+
+services:
+  office:
+    <<: *app-comune
+    build:
+      context: .
+      args:
+        APP: citta-semplice-office
+    container_name: citta-semplice-office
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *env-comune
+      NEXTAUTH_URL: http://localhost:3000
+      # I job schedulati NON girano in-process: li attiva uno scheduler esterno
+      # (cron di sistema, systemd timer o CronJob) chiamando /api/cron/* con
+      # l'header x-cron-secret. Con più replica un timer interno girerebbe una
+      # volta per replica.
+      #   /api/cron/protocollazione — da schedulare di frequente (es. ogni
+      #     minuto): è il secondo tempo dell'invio, che non contatta più Urbi in
+      #     linea. Senza questo, le istanze restano con numerazione interna.
+      #   /api/cron/payments, /api/cron/statistics — cadenza esistente.
+      ENABLE_CRON_JOBS: "true"
+      CRON_SECRET: ${CRON_SECRET:-cambiare-in-produzione}
+
+  portal:
+    <<: *app-comune
+    build:
+      context: .
+      args:
+        APP: citta-semplice-portal
+    container_name: citta-semplice-portal
+    ports:
+      - "3001:3000"
+    environment:
+      <<: *env-comune
+      # Origin pubblica: le route SSO la usano per l'URL di ritorno inviato al
+      # CIG. Dietro un reverse proxy va messo l'indirizzo esposto ai cittadini.
+      NEXTAUTH_URL: http://localhost:3001
+      # Single sign-on dell'ente (SPID/CIE). I valori stanno nel file .env della
+      # radice, letto da docker compose e fuori da git: senza CIG_SECRET_KEY il
+      # client firmerebbe con la chiave di default e l'SSO rifiuterebbe ogni
+      # richiesta.
+      CIG_SSO_URL: ${CIG_SSO_URL:-https://www.comune.catania.it/sso/}
+      CIG_SECRET_KEY: ${CIG_SECRET_KEY:?imposta CIG_SECRET_KEY nel file .env della radice}
+      CIG_STYLESHEET: ${CIG_STYLESHEET:-}
+      CIG_LOGO_URL: ${CIG_LOGO_URL:-}
+
+  db:
+    image: postgres:15-alpine
+    container_name: citta-semplice-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: io_user
+      POSTGRES_PASSWORD: Comct2019
+      POSTGRES_DB: io_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Schema e dati di test, caricati solo se il volume è vuoto (vedi lo
+      # script). Durante il caricamento Postgres ascolta solo sul socket
+      # locale, quindi le app aspettano: pg_isready via TCP fallisce fino alla
+      # fine.
+      - ./infra/postgres/10-carica-demo.sh:/docker-entrypoint-initdb.d/10-carica-demo.sh:ro
+      - ./db_demo.sql:/seed/db_demo.sql:ro
+      # Trigger, funzioni e indici GIN che il dump non contiene: senza, le
+      # istanze nuove restano senza attività corrente e risultano "Retrocesso".
+      # Eseguito dopo il 10- perché gli script partono in ordine alfabetico.
+      - ./packages/db/prisma/sql/oggetti-database.sql:/docker-entrypoint-initdb.d/20-oggetti-database.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U io_user -d io_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      # Margine per il caricamento del dump al primo avvio: i fallimenti in
+      # questa finestra non rendono il container unhealthy.
+      start_period: 5m
+
+  # Object storage S3-compatibile. Con --single-node Garage si assegna da solo
+  # il layout del cluster; --default-bucket crea chiave e bucket dalle variabili
+  # GARAGE_DEFAULT_*, quindi non serve un container di inizializzazione.
+  # Entrambe le operazioni sono idempotenti ai riavvii.
+  garage:
+    image: dxflrs/garage:v2.4.1
+    container_name: citta-semplice-garage
+    restart: unless-stopped
+    command: [ "/garage", "server", "--single-node", "--default-bucket" ]
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-0000000000000000000000000000000000000000000000000000000000000000}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-cambiare-in-produzione}
+      GARAGE_DEFAULT_ACCESS_KEY: *s3-access-key
+      GARAGE_DEFAULT_SECRET_KEY: *s3-secret-key
+      GARAGE_DEFAULT_BUCKET: *s3-bucket
+    ports:
+      - "3900:3900" # API S3
+      - "3903:3903" # API di amministrazione
+    volumes:
+      - ./infra/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    healthcheck:
+      # L'immagine non ha shell né curl: si usa il binario stesso.
+      test: [ "CMD", "/garage", "health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  garage_meta:
+  garage_data:

@@ -10,17 +10,19 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { CigClient, parseUserXml, PS2S } from '@/lib/auth/cig-client';
+import { originPubblica } from '@/lib/auth/origine-pubblica';
 import { signSsoToken } from '@/lib/auth/sso-token';
 import { prisma } from '@/lib/db/prisma';
 
 const SSO_URL = process.env.CIG_SSO_URL ?? 'https://www.comune.catania.it/sso/';
 
 export async function GET(req: NextRequest) {
+  const origin = originPubblica(req);
   const buffer = req.nextUrl.searchParams.get('buffer');
 
   if (!buffer) {
     console.error('[SSO callback] missing buffer parameter');
-    return NextResponse.redirect(new URL('/login?error=sso_invalid', req.url));
+    return NextResponse.redirect(new URL('/login?error=sso_invalid', origin));
   }
 
   // Exchange TID for user data
@@ -31,13 +33,13 @@ export async function GET(req: NextRequest) {
 
   if (esito !== PS2S.OK) {
     console.error('[SSO callback] tid2Ticket failed:', esito);
-    return NextResponse.redirect(new URL('/login?error=sso_auth', req.url));
+    return NextResponse.redirect(new URL('/login?error=sso_auth', origin));
   }
 
   const userData = parseUserXml(client.dataBuffer);
   if (!userData) {
     console.error('[SSO callback] failed to parse user XML:\n', client.dataBuffer);
-    return NextResponse.redirect(new URL('/login?error=sso_user', req.url));
+    return NextResponse.redirect(new URL('/login?error=sso_user', origin));
   }
 
   // Upsert the citizen record
@@ -63,7 +65,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error('[SSO callback] DB upsert failed:', err);
-    return NextResponse.redirect(new URL('/login?error=sso_db', req.url));
+    return NextResponse.redirect(new URL('/login?error=sso_db', origin));
   }
 
   // Sign a short-lived token and hand off to the login page
@@ -72,8 +74,7 @@ export async function GET(req: NextRequest) {
   const callbackUrl =
     req.cookies.get('cig_sso_callback')?.value ?? '/le-mie-istanze';
 
-  // Use request origin so redirect works on any port (dev or prod).
-  const redirectTarget = new URL('/login', req.nextUrl.origin);
+  const redirectTarget = new URL('/login', origin);
   redirectTarget.searchParams.set('ssoToken', ssoToken);
   redirectTarget.searchParams.set('callbackUrl', callbackUrl);
 

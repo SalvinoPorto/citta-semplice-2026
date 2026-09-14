@@ -154,6 +154,7 @@ function buildServizioData(validated: ServizioFormData) {
     numeroMaxIstanze: validated.numeroMaxIstanze ?? null,
     msgSopraSoglia: validated.msgSopraSoglia || null,
     msgExtraServizio: validated.msgExtraServizio || null,
+    protocollazioneAsincrona: validated.protocollazioneAsincrona,
     campiInEvidenza: validated.campiInEvidenza || null,
     campiDaEsportare: validated.campiDaEsportare || null,
     // prevedeDocumentoFinale: validated.prevedeDocumentoFinale,
@@ -424,6 +425,9 @@ export async function cloneServizio(id: number) {
         numeroMaxIstanze: original.numeroMaxIstanze,
         msgSopraSoglia: original.msgSopraSoglia,
         msgExtraServizio: original.msgExtraServizio,
+        // Senza questa riga il clone di un servizio click day tornerebbe
+        // sincrono in silenzio: la clonazione copia campo per campo.
+        protocollazioneAsincrona: original.protocollazioneAsincrona,
         campiInEvidenza: original.campiInEvidenza,
         campiDaEsportare: original.campiDaEsportare,
         // prevedeDocumentoFinale: original.prevedeDocumentoFinale,

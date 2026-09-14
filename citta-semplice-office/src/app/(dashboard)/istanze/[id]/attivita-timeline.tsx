@@ -302,9 +302,9 @@ export function AttivitaTimeline({ attivita, steps, urlPayment, istanzaId, utent
     return statoAttivita(last, contesto) === 'COMPLETATA' ? 'completed' : 'pending';
   }
 
-  function getAttivitaApertaPerStep(stepId: number) {
+  /* function getAttivitaApertaPerStep(stepId: number) {
     return eventsByStepId.get(stepId)?.find((wf) => statoAttivita(wf, contesto) === 'IN_LAVORAZIONE') ?? null;
-  }
+  } */
 
   function statoLabel(wf: IstanzaAttivita) {
     return ETICHETTE_STATO_ATTIVITA[statoAttivita(wf, contesto)];

@@ -7,13 +7,14 @@
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "next lint",
     "postinstall": "node scripts/copy-bootstrap-italia.mjs"
   },
   "dependencies": {
     "@citta/db": "*",
+    "@citta/documenti": "*",
     "@citta/form-schema": "*",
     "@citta/integrations": "*",
+    "@citta/storage": "*",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.9.0",
@@ -39,7 +40,6 @@
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "eslint": "^9.18.0",
-    "eslint-config-next": "16.1.6",
     "prisma": "^7.7.0",
     "sass": "^1.83.4",
     "tsx": "^4.19.2",

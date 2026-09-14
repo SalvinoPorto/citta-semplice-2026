@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Badge, Card, CardBody } from '@/components/ui';

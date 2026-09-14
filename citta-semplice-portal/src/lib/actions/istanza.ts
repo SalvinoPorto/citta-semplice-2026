@@ -2,23 +2,36 @@
 
 import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/lib/auth/config';
-import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { protocolla } from '@/lib/services/protocollazione/UrbiProtocolloService';
-import { generaProtocolloEmergenza } from '@/lib/services/protocollazione/ProtocolloEmergenzaService';
-import { generaModuloBuffer, generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
+import { generaProtocolloEmergenzaCon } from '@/lib/services/protocollazione/ProtocolloEmergenzaService';
+// Preso direttamente dal package condiviso: il wrapper UrbiProtocolloService del
+// portal non ha più chiamanti da quando l'invio non protocolla in linea, e
+// passarci attraverso sarebbe un'indirezione che nessuno attraversa.
+import { tentaProtocollazioneUrbiConBreaker } from '@citta/integrations/protocollazione';
+import { generaDocumentoPdf } from '@/lib/services/documenti/DocumentiService';
 import { validaDatiModulo } from '@/lib/form-validate';
+import { getStorage } from '@/lib/storage';
 import {
   sogliaIstanzeRaggiunta,
   verificaUnicoInvio,
   verificaUnicoInvioPerUtente,
   MSG_SOGLIA_DEFAULT,
 } from '@/lib/servizio-regole';
-import { datiStato, whereStato } from '@citta/db';
+import { cePostoInQuota, datiStato, whereStato } from '@citta/db';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+/** Le bozze non sono mai state protocollate. */
+const PROTO_BOZZA = 'Bozza non protocollata';
+
+/**
+ * Segnaposto per un'istanza che ha già PRENOTATO il suo posto nella quota ma
+ * non è ancora stata protocollata. Vive quanto la chiamata a Urbi: il posto
+ * risulta occupato da subito — è ciò che impedisce a due invii simultanei di
+ * sfondare `numeroMaxIstanze` — e il numero vero arriva subito dopo.
+ */
+const PROTO_IN_ATTESA = 'In protocollazione';
 
 /**
  * Normalizza il nome del file: sostituisce caratteri problematici con underscore,
@@ -64,8 +77,7 @@ async function salvaFileAllegati(
 
   // Percorso relativo: anno/mese/giorno
   const relDir = join(anno, mese, giorno);
-  const absDir = join(UPLOAD_DIR, relDir);
-  await mkdir(absDir, { recursive: true });
+  const storage = getStorage();
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -75,7 +87,7 @@ async function salvaFileAllegati(
     const nomeHash = join(relDir, uuid);
 
     const bytes = await file.arrayBuffer();
-    await writeFile(join(absDir, uuid), Buffer.from(bytes));
+    await storage.save(nomeHash, Buffer.from(bytes), 'application/pdf');
 
     const allegatoRichiesto = allegatoId
       ? await prisma.allegatoRichiesto.findUnique({ where: { id: allegatoId } })
@@ -94,6 +106,136 @@ async function salvaFileAllegati(
       },
     });
   }
+}
+
+/**
+ * Tentativo di protocollazione IN LINEA, per i servizi a protocollazione
+ * sincrona (`protocollazioneAsincrona = false`, il default).
+ *
+ * Va chiamata in fondo all'invio, dopo che modulo e ricevuta sono stati
+ * persistiti: gli allegati si rileggono da storage esattamente come fa il
+ * drenatore, invece di rigenerare il PDF. Due implementazioni diverse
+ * manderebbero a Urbi allegati diversi a seconda del percorso, e il difetto si
+ * vedrebbe solo in produzione e solo su alcune istanze.
+ *
+ * Se Urbi risponde, il numero interno assegnato in transazione viene sostituito
+ * da quello vero e la riga di coda marcata rettificata: il cittadino esce con il
+ * protocollo dell'ente. Se non risponde — o se il circuito è già aperto — non
+ * succede nulla di male: il numero interno resta valido e
+ * /api/cron/protocollazione rettificherà più tardi.
+ *
+ * Ritorna il protocollo definitivo, oppure `null` se resta quello interno.
+ */
+async function protocollaSubitoSePossibile(
+  istanzaId: number,
+  attivitaId: number | null,
+  emergenzaId: number | undefined,
+  step: { protocollo: boolean; tipoProtocollo: string | null; unitaOrganizzativa: string | null } | undefined,
+  servizio: { titolo: string; area: { nome: string } },
+  utente: { codiceFiscale: string; nome: string; cognome: string },
+): Promise<{ numero: string; data: Date } | null> {
+  if (!step?.protocollo || !step.unitaOrganizzativa || !attivitaId) return null;
+
+  const allegati = await prisma.allegato.findMany({ where: { attivitaId } });
+  const storage = getStorage();
+  const files = await Promise.all(
+    allegati.map(async (a) => {
+      try {
+        const buf = await storage.read(a.nomeHash);
+        return new File([new Uint8Array(buf)], a.nomeFile, {
+          type: a.mimeType ?? 'application/pdf',
+        });
+      } catch {
+        return null;
+      }
+    }),
+  ).then((arr) => arr.filter((f): f is File => f !== null));
+
+  const esito = await tentaProtocollazioneUrbiConBreaker({
+    istanzaId,
+    oggetto: `Richiesta - ${servizio.area.nome} - ${servizio.titolo} - ${utente.codiceFiscale}`,
+    tipoProtocollo: (step.tipoProtocollo as 'E' | 'U') ?? 'E',
+    unitaOrganizzativa: step.unitaOrganizzativa,
+    utente,
+    files,
+  });
+  if (!esito) return null;
+
+  // Rettifica immediata, stessa forma di quella del drenatore: la `updateMany`
+  // condizionata rende l'operazione inerte se il cron è arrivato prima.
+  await prisma.$transaction(async (tx) => {
+    await tx.istanza.update({
+      where: { id: istanzaId },
+      data: {
+        protoNumero: esito.numero,
+        protoData: esito.data,
+        // Ora il numero è quello dell'ente: l'istanza non è più provvisoria, e
+        // ricevuta e interfacce possono dirlo senza mentire.
+        protocolloProvvisorio: false,
+      },
+    });
+    if (emergenzaId) {
+      await tx.protocolloEmergenza.updateMany({
+        where: { id: emergenzaId, rettificato: false },
+        data: { rettificato: true },
+      });
+    }
+  });
+
+  // La ricevuta era stata generata poco fa col numero interno — doveva esistere
+  // su storage per poter essere spedita a Urbi. Ora che il numero è quello
+  // dell'ente va rifatta, altrimenti il percorso SINCRONO, che è il default,
+  // lascerebbe al cittadino un documento che si dichiara provvisorio mentre il
+  // dato non lo è più.
+  //
+  // Stessa forma del drenatore (aggiorna la riga esistente, non ne crea una
+  // seconda) perché i due percorsi non devono poter divergere. Un fallimento
+  // qui non annulla la rettifica, che è già valida: si registra e si prosegue.
+  try {
+    const ricevuta = await prisma.allegato.findFirst({
+      where: { attivitaId, invUtente: false },
+      orderBy: { dataInserimento: 'desc' },
+    });
+    if (ricevuta) {
+      const ente = await prisma.ente.findFirst();
+      const istanzaAggiornata = await prisma.istanza.findUnique({
+        where: { id: istanzaId },
+        include: { servizio: { include: { area: true, ricevuta: true } } },
+      });
+      if (istanzaAggiornata) {
+        const doc = await generaDocumentoPdf(
+          ente?.nome ?? 'Comune di Prova',
+          ente?.sede ?? 'Prova',
+          {
+            id: istanzaId,
+            protoNumero: esito.numero,
+            protoData: esito.data,
+            dataInvio: istanzaAggiornata.dataInvio,
+            municipalita: istanzaAggiornata.municipalita,
+            protocolloProvvisorio: false,
+          },
+          {
+            titolo: istanzaAggiornata.servizio.titolo,
+            areaNome: istanzaAggiornata.servizio.area?.nome ?? '',
+            attributi: istanzaAggiornata.servizio.attributi,
+          },
+          istanzaAggiornata.dati,
+          istanzaAggiornata.servizio.ricevuta,
+        );
+        await prisma.allegato.update({
+          where: { id: ricevuta.id },
+          data: { nomeFile: doc.nomeFile, nomeHash: doc.nomeHash },
+        });
+      }
+    }
+  } catch (err) {
+    console.error(
+      `[submitIstanza] protocollo rettificato ma ricevuta non rigenerata (istanza ${istanzaId}):`,
+      err,
+    );
+  }
+
+  return esito;
 }
 
 function estraiDatiInEvidenza(
@@ -135,7 +277,7 @@ function estraiDatiInEvidenza(
 }
 
 type DatiDocumenti = {
-  istanza: { id: number; protoNumero: string | null; protoData: Date | null; dataInvio: Date | null; municipalita: string | null };
+  istanza: { id: number; protoNumero: string | null; protoData: Date | null; dataInvio: Date | null; municipalita: string | null; protocolloProvvisorio: boolean };
   servizio: { titolo: string; areaNome: string; attributi?: string | null };
   ricevuta: { 
     id: number;
@@ -256,7 +398,7 @@ export async function salvaBozza(formData: FormData) {
     const nuovaBozza = await prisma.istanza.create({
       data: {
         dati: datiRaw ? String(datiRaw) : null,
-        protoNumero: 'Bozza non protocollata',
+        protoNumero: PROTO_BOZZA,
         dataInvio: new Date(),
         ...datiStato('BOZZA'),
         activeStep,
@@ -308,6 +450,10 @@ export async function submitIstanza(formData: FormData) {
   const bozzaId = formData.get('bozzaId') ? Number(formData.get('bozzaId')) : null;
   const files = formData.getAll('allegati').filter((f): f is File => f instanceof File && f.size > 0);
   const allegatiIds = formData.getAll('allegatiIds').map(Number);
+  // Recapito per l'avviso di protocollazione: appartiene a QUESTA istanza, non
+  // all'anagrafica di chi ha effettuato l'accesso, che può essere un delegato.
+  // Facoltativo: vuoto significa nessuna notifica, non un errore.
+  const emailNotifica = formData.get('emailNotifica')?.toString().trim() || null;
   
   if (!servizioId || isNaN(servizioId)) {
     return { error: 'Servizio non valido' };
@@ -360,6 +506,11 @@ export async function submitIstanza(formData: FormData) {
     return { error: erroreUnicoPerUtente };
   }
 
+  // Controllo di cortesia: fallisce subito e senza prendere alcun lock, così un
+  // servizio già pieno non fa generare un PDF né contattare Urbi per nulla.
+  // NON è ciò che garantisce la quota: sotto invii simultanei due richieste
+  // possono superarlo entrambe. La garanzia sta in `cePostoInQuota`, dentro la
+  // transazione di prenotazione più sotto.
   if (await sogliaIstanzeRaggiunta(servizio)) {
     return { error: servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT };
   }
@@ -385,49 +536,50 @@ export async function submitIstanza(formData: FormData) {
       const erroreUnicoInvio = await verificaUnicoInvio(servizio, datiFinali);
       if (erroreUnicoInvio) return { error: erroreUnicoInvio };
 
-      // 1. Genera il modulo in memoria (senza proto) da inviare al protocollo esterno
-      const ente = await prisma.ente.findFirst();
-      const moduloBuffer = await generaModuloBuffer(
-        ente?.nome ?? 'Comune di Prova',
-        ente?.sede ?? 'Prova',
-        { id: bozzaId, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
-        datiServizioDoc,
-        datiFinali,
-      );
-      const moduloFile = new File([moduloBuffer], `modulo_${bozzaId}.pdf`, { type: 'application/pdf' });
+      // Il modulo PDF non viene più generato qui: serviva solo ad allegarlo alla
+      // chiamata Urbi, che ora non avviene durante l'invio. Il drenatore rilegge
+      // gli allegati già persistiti da `salvaDocumentiInterni`, quindi
+      // renderizzarlo in questo punto era lavoro sprecato — e costoso, perché è
+      // CPU-bound e stava sul percorso caldo dell'invio.
 
-      // 2. Protocollazione PRIMA di confermare l'istanza
-      const protoResult =
-        primoStep?.protocollo && primoStep.unitaOrganizzativa
-          ? await protocolla({
-              istanzaId: bozzaId,
-              oggetto: servizio.titolo,
-              tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
-              unitaOrganizzativa: primoStep.unitaOrganizzativa,
-              utente: {
-                codiceFiscale: utente.codiceFiscale,
-                nome: utente.nome,
-                cognome: utente.cognome,
-              },
-              files: [...files, moduloFile],
-            })
-          : await generaProtocolloEmergenza(bozzaId, 'INGRESSO');
-
-      // 3. Solo dopo il protocollo: conferma l'istanza con tutti i dati
-      await prisma.istanza.update({
-        where: { id: bozzaId },
-        data: {
-          dati: datiFinali,
-          datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
-          dataInvio: new Date(),
-          ...datiStato('IN_LAVORAZIONE'),
-          activeStep: null,
-          bozzaPagina: null,
-          faseCorrenteId: primoStep?.faseId ?? null,
-          protoNumero: protoResult.numero,
-          protoData: protoResult.data,
-        },
+      // 1. PRENOTAZIONE e NUMERAZIONE, in una sola transazione e senza rete.
+      //    Il posto in quota e il numero di protocollo nascono insieme: se la
+      //    transazione fallisce non resta né un posto occupato né un
+      //    progressivo bruciato.
+      //    Urbi NON viene contattato qui. Il cittadino riceve subito un numero
+      //    interno valido; /api/cron/protocollazione lo rettificherà col numero
+      //    Urbi appena il protocollo risponde. È ciò che toglie dal percorso di
+      //    invio una chiamata esterna da 30 s — il collo di bottiglia che in un
+      //    click day teneva appeso un worker Node per ogni invio.
+      //    La bozza non occupa quota (BOZZA non è fra gli stati conteggiati):
+      //    è questa transizione a consumare il posto.
+      const protoResult = await prisma.$transaction(async (tx) => {
+        if (!(await cePostoInQuota(tx, servizioId, servizio.numeroMaxIstanze))) return null;
+        const proto = await generaProtocolloEmergenzaCon(tx, bozzaId, 'INGRESSO');
+        await tx.istanza.update({
+          where: { id: bozzaId },
+          data: {
+            dati: datiFinali,
+            datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
+            dataInvio: new Date(),
+            ...datiStato('IN_LAVORAZIONE'),
+            activeStep: null,
+            bozzaPagina: null,
+            faseCorrenteId: primoStep?.faseId ?? null,
+            protoNumero: proto.numero,
+            protoData: proto.data,
+            // Il numero è ancora quello interno: lo si dichiara, così ricevuta
+            // e interfacce non spacciano per protocollo dell'ente ciò che non
+            // lo è. Viene azzerato alla rettifica.
+            protocolloProvvisorio: true,
+            emailNotifica,
+          },
+        });
+        return proto;
       });
+      if (!protoResult) {
+        return { error: servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT };
+      }
 
       let attivitaId: number | null = null;
       if (primoStep) {
@@ -448,16 +600,38 @@ export async function submitIstanza(formData: FormData) {
       }
 
       await salvaDocumentiInterni(bozzaId, attivitaId, {
-        istanza: { id: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },
+        // Provvisorio: in questo punto il numero è sempre quello interno, perché
+        // la ricevuta dev'essere già su storage quando (ed è il caso dei servizi
+        // sincroni) viene spedita a Urbi subito dopo.
+        istanza: { id: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null, protocolloProvvisorio: true },
         servizio: datiServizioDoc,
         ricevuta: servizio.ricevuta,
         datiRaw: datiFinali,
       });
 
-      return { success: true, istanzaId: bozzaId, protoNumero: protoResult.numero, protoData: protoResult.data };
+      // Servizio a protocollazione sincrona: si tenta Urbi ORA, così il
+      // cittadino esce con il numero vero dell'ente. Sui servizi ad alta
+      // affluenza il flag salta questo passo e il cron rettifica dopo.
+      const definitivo = servizio.protocollazioneAsincrona
+        ? null
+        : await protocollaSubitoSePossibile(
+            bozzaId,
+            attivitaId,
+            protoResult.emergenzaId,
+            primoStep,
+            { titolo: servizio.titolo, area: { nome: servizio.area.nome } },
+            utente,
+          );
+
+      return {
+        success: true,
+        istanzaId: bozzaId,
+        protoNumero: definitivo?.numero ?? protoResult.numero,
+        protoData: definitivo?.data ?? protoResult.data,
+      };
     }
 
-    // Nuova istanza: ottieni il protocollo PRIMA di creare il record
+    // Nuova istanza: il posto si prenota PRIMA di protocollare, come nel ramo bozza
     const validazione = validaDatiModulo(servizio.attributi, datiRaw ? String(datiRaw) : null);
     if (!validazione.ok) return { error: validazione.errore };
     const datiFinali = validazione.dati;
@@ -465,86 +639,93 @@ export async function submitIstanza(formData: FormData) {
     const erroreUnicoInvio = await verificaUnicoInvio(servizio, datiFinali);
     if (erroreUnicoInvio) return { error: erroreUnicoInvio };
 
-    // 1. Genera il modulo in memoria (id=0 come placeholder: non usato nel contenuto PDF)
-    const ente = await prisma.ente.findFirst();
-    const moduloBuffer = await generaModuloBuffer(
-      ente?.nome ?? 'Comune di Prova',
-      ente?.sede ?? 'Prova',
-      { id: 0, protoNumero: null, protoData: null, dataInvio: new Date(), municipalita: null },
-      datiServizioDoc,
-      datiFinali,
-    );
-    const moduloFile = new File([moduloBuffer], `modulo_istanza_nuovo.pdf`, { type: 'application/pdf' });
+    // Il modulo PDF non viene più generato qui: serviva solo ad allegarlo alla
+    // chiamata Urbi, che ora non avviene durante l'invio. Il drenatore rilegge
+    // gli allegati già persistiti da `salvaDocumentiInterni`, quindi renderizzare
+    // il PDF in questo punto era lavoro sprecato — e costoso, perché è CPU-bound
+    // e stava sul percorso caldo dell'invio.
 
-    // 2. Protocollazione PRIMA di creare l'istanza (istanzaId=null: non ancora esistente)
-    const protoResult =
-      primoStep?.protocollo && primoStep.unitaOrganizzativa
-        ? await protocolla({
-            istanzaId: null,
-            oggetto: servizio.titolo,
-            tipoProtocollo: primoStep.tipoProtocollo ?? 'E',
-            unitaOrganizzativa: primoStep.unitaOrganizzativa,
-            utente: {
-              codiceFiscale: utente.codiceFiscale,
-              nome: utente.nome,
-              cognome: utente.cognome,
-            },
-            files: [...files, moduloFile],
-          })
-      : await generaProtocolloEmergenza(null, 'INGRESSO');
-
-    // 3. Crea l'istanza con il numero di protocollo già assegnato
-    const istanza = await prisma.istanza.create({
-      data: {
-        dati: datiFinali,
-        datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
-        dataInvio: new Date(),
-        ...datiStato('IN_LAVORAZIONE'),
-        protoNumero: protoResult.numero,
-        protoData: protoResult.data,
-        utenteId: utente.id,
-        servizioId,
-        faseCorrenteId: primoStep?.faseId ?? null,
-        attivita: primoStep
-          ? {
-              create: {
-                // Nessun operatoreId: l'invio non assegna nessuno, e
-                // istanze.assegnatario_id è già NULL per default.
-                stepId: primoStep.id,
-                iniziataAt: new Date(),
-              },
-            }
-          : undefined,
-      },
-    });
-
-    // 4. Se era un protocollo di emergenza, aggiorna il record con l'id istanza reale
-    if (protoResult.fallback && protoResult.emergenzaId) {
-      await prisma.protocolloEmergenza.update({
-        where: { id: protoResult.emergenzaId },
-        data: { istanzaId: istanza.id },
+    // 1. PRENOTAZIONE, CREAZIONE e NUMERAZIONE, in una sola transazione e senza
+    //    rete: stesso disegno del ramo bozza e per le stesse ragioni.
+    //    L'ordine conta: l'istanza nasce prima, così il numero di protocollo
+    //    viene registrato con il suo id reale invece di `null` da correggere
+    //    dopo. `PROTO_IN_ATTESA` è solo il valore transitorio fra la `create` e
+    //    l'assegnazione, richiesto perché `proto_numero` è NOT NULL: non esce
+    //    mai dalla transazione e nessuno lo vede.
+    //    L'attività non nasce qui — la transazione resta minima.
+    const creazione = await prisma.$transaction(async (tx) => {
+      if (!(await cePostoInQuota(tx, servizioId, servizio.numeroMaxIstanze))) return null;
+      const nuova = await tx.istanza.create({
+        data: {
+          dati: datiFinali,
+          datiInEvidenza: estraiDatiInEvidenza(datiFinali, servizio.campiInEvidenza),
+          dataInvio: new Date(),
+          ...datiStato('IN_LAVORAZIONE'),
+          protoNumero: PROTO_IN_ATTESA,
+          utenteId: utente.id,
+          servizioId,
+          faseCorrenteId: primoStep?.faseId ?? null,
+          // Vedi il ramo bozza: vero finché il numero non è quello dell'ente.
+          protocolloProvvisorio: true,
+          emailNotifica,
+        },
       });
+      const proto = await generaProtocolloEmergenzaCon(tx, nuova.id, 'INGRESSO');
+      const conProtocollo = await tx.istanza.update({
+        where: { id: nuova.id },
+        data: { protoNumero: proto.numero, protoData: proto.data },
+      });
+      return { istanza: conProtocollo, proto };
+    });
+    if (!creazione) {
+      return { error: servizio.msgSopraSoglia ?? MSG_SOGLIA_DEFAULT };
     }
+    const { istanza, proto: protoResult } = creazione;
 
+    // 2. L'attività nasce dopo la prenotazione, fuori dalla transazione.
     let wfId: number | null = null;
     if (primoStep) {
-      const wf = await prisma.istanzaAttivita.findFirst({ where: { istanzaId: istanza.id } });
-      if (wf) {
-        wfId = wf.id;
-        if (files.length > 0) {
-          await salvaFileAllegati(files, allegatiIds, wf.id);
-        }
+      const wf = await prisma.istanzaAttivita.create({
+        data: {
+          istanzaId: istanza.id,
+          // Nessun operatoreId: l'invio non assegna nessuno, e
+          // istanze.assegnatario_id è già NULL per default.
+          stepId: primoStep.id,
+          iniziataAt: istanza.dataInvio,
+        },
+      });
+      wfId = wf.id;
+      if (files.length > 0) {
+        await salvaFileAllegati(files, allegatiIds, wf.id);
       }
     }
 
     await salvaDocumentiInterni(istanza.id, wfId, {
-      istanza: { id: istanza.id, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null },
+      // Vedi il ramo bozza: qui il numero è sempre ancora quello interno.
+      istanza: { id: istanza.id, protoNumero: protoResult.numero, protoData: protoResult.data, dataInvio: new Date(), municipalita: null, protocolloProvvisorio: true },
       servizio: datiServizioDoc,
       ricevuta: servizio.ricevuta,
       datiRaw: datiFinali,
     });
 
-    return { success: true, istanzaId: istanza.id, protoNumero: protoResult.numero, protoData: protoResult.data };
+    // Stessa biforcazione del ramo bozza, e per le stesse ragioni.
+    const definitivo = servizio.protocollazioneAsincrona
+      ? null
+      : await protocollaSubitoSePossibile(
+          istanza.id,
+          wfId,
+          protoResult.emergenzaId,
+          primoStep,
+          { titolo: servizio.titolo, area: { nome: servizio.area.nome } },
+          utente,
+        );
+
+    return {
+      success: true,
+      istanzaId: istanza.id,
+      protoNumero: definitivo?.numero ?? protoResult.numero,
+      protoData: definitivo?.data ?? protoResult.data,
+    };
   } catch (error) {
     console.error('Errore creazione istanza:', error);
     return { error: 'Errore durante il salvataggio della richiesta. Riprova.' };

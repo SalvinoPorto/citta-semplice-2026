@@ -1,0 +1,24 @@
+# Configurazione Garage per sviluppo e collaudo (nodo singolo).
+#
+# I segreti NON stanno qui: rpc_secret arriva da GARAGE_RPC_SECRET, chiave e
+# bucket di default da GARAGE_DEFAULT_* (vedi docker-compose.yml).
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+
+# Un solo nodo, quindi una sola copia: in esercizio servono almeno 3 nodi in
+# zone diverse con replication_factor = 3.
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+
+[s3_api]
+# Deve coincidere con S3_REGION delle app: Garage rifiuta le firme calcolate
+# su una region diversa.
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+
+[admin]
+api_bind_addr = "[::]:3903"

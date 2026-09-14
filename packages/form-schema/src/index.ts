@@ -6,3 +6,4 @@ export * from './types';
 export * from './condizioni';
 export * from './schema';
 export * from './riepilogo';
+export * from './valori';

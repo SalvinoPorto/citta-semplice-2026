@@ -1084,7 +1084,7 @@ export async function generatePayment(params: GeneratePaymentParams) {
     });
 
     if (!attivita) {
-      return { success: false, message: 'IstanzaAttivita non trovato' };
+      return { success: false, message: 'Attività non trovata' };
     }
 
     if (!attivita.step?.pagamento || !attivita.step.pagamentoConfig) {

@@ -1,0 +1,19 @@
+{
+  "name": "@citta/documenti",
+  "version": "1.0.0",
+  "description": "Generazione dei PDF di istanza (modulo e ricevuta art. 18) condivisa tra portal e office",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@citta/form-schema": "*",
+    "@citta/storage": "*",
+    "@react-pdf/renderer": "^4.5.1",
+    "react": "19.2.4"
+  }
+}

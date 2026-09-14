@@ -1,0 +1,16 @@
+{
+  "name": "@citta/storage",
+  "version": "1.0.0",
+  "description": "Storage allegati condiviso tra office e portal: filesystem locale in sviluppo, object storage S3-compatibile in produzione",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.879.0"
+  }
+}

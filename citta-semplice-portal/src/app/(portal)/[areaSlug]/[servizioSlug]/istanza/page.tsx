@@ -1,5 +1,4 @@
 // export const dynamic = 'force-dynamic';
-import React from 'react';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/config';
@@ -87,6 +86,14 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
     redirect(`/${areaSlug}/${servizioSlug}`);
   }
 
+  // Recapito noto del cittadino, per precompilare il campo del riepilogo.
+  // Query a sé e non riuso di quella del ramo bozza: quella vive dentro
+  // `if (bozzaIdStr)` e qui serve sempre. Si seleziona il solo campo utile.
+  const utenteCorrente = await prisma.utente.findUnique({
+    where: { id: Number(session.user.id) },
+    select: { email: true },
+  });
+
   // Carica eventuale bozza
   let bozzaIniziale:
     | { id: number; datiModulo: Record<string, unknown>; activeStep: number; paginaModulo: number }
@@ -162,6 +169,7 @@ export default async function IstanzaPage({ params, searchParams }: Props) {
             <IstanzaStepper
               servizio={servizio}
               userId={session.user.id!}
+              emailUtente={utenteCorrente?.email ?? ''}
               bozzaIniziale={bozzaIniziale}
             />
           </div>

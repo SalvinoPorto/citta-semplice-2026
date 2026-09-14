@@ -1,4 +1,3 @@
-import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/db/prisma';
 import { ServizioForm } from '../servizio-form';
@@ -93,6 +92,7 @@ export default async function ModificaServizioPage({ params }: PageProps) {
           numeroMaxIstanze: servizio.numeroMaxIstanze,
           msgSopraSoglia: servizio.msgSopraSoglia || '',
           msgExtraServizio: servizio.msgExtraServizio || '',
+          protocollazioneAsincrona: servizio.protocollazioneAsincrona,
           campiInEvidenza: servizio.campiInEvidenza || '',
           campiDaEsportare: servizio.campiDaEsportare || '',
           attributi: servizio.attributi || '',

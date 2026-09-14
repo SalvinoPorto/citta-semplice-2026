@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? '/tmp/allegati';
+import { getStorage } from '@/lib/storage';
 
 export async function GET(
   _req: NextRequest,
@@ -42,11 +39,9 @@ export async function GET(
     return new NextResponse('Accesso negato', { status: 403 });
   }
 
-  // nomeHash contiene il percorso relativo: anno/mese/giorno/uuid
-  const filePath = join(UPLOAD_DIR, allegato.nomeHash);
-
   try {
-    const buffer = await readFile(filePath);
+    // nomeHash contiene il percorso relativo: anno/mese/giorno/uuid
+    const buffer = await getStorage().read(allegato.nomeHash);
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': allegato.mimeType ?? 'application/octet-stream',

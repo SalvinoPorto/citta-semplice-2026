@@ -13,9 +13,18 @@ interface Props {
   servizio: Servizio;
   datiModulo: Record<string, unknown>;
   allegati: File[];
+  /** Recapito per l'avviso di protocollazione, precompilato e modificabile. */
+  emailNotifica: string;
+  onEmailNotificaChange: (valore: string) => void;
 }
 
-export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
+export function RiepilogoStep({
+  servizio,
+  datiModulo,
+  allegati,
+  emailNotifica,
+  onEmailNotificaChange,
+}: Props) {
   const nomeEnte = useEnte();
   // Il riepilogo rispecchia la suddivisione in pagine del modulo: una sezione
   // per pagina (una sola se il modulo non usa pagebreak). Dentro ogni pagina i
@@ -98,9 +107,42 @@ export function RiepilogoStep({ servizio, datiModulo, allegati }: Props) {
         </section>
       )}
 
+      {/* Recapito per l'avviso: il numero di protocollo definitivo può arrivare
+          poco dopo l'invio, e senza un indirizzo l'unico modo di conoscerlo è
+          tornare sul portale a controllare. */}
+      <section className="mb-4">
+        <h2 className="h4 border-bottom pb-2 mb-3">
+          <svg className="icon icon-sm me-2" aria-hidden="true">
+            <use href="/bootstrap-italia/dist/svg/sprites.svg#it-mail" />
+          </svg>
+          Dove vuoi essere avvisato
+        </h2>
+        <div className="form-group">
+          <label className="active" htmlFor="emailNotifica">
+            Indirizzo email (facoltativo)
+          </label>
+          <input
+            type="email"
+            id="emailNotifica"
+            className="form-control"
+            value={emailNotifica}
+            onChange={(e) => onEmailNotificaChange(e.target.value)}
+            placeholder="nome@esempio.it"
+          />
+          <small className="form-text text-muted">
+            Ti avviseremo qui quando la richiesta riceverà il numero di protocollo
+            definitivo. Se presenti l&apos;istanza per conto di un&apos;altra persona,
+            puoi indicare il suo indirizzo: non modificherà i tuoi dati di accesso.
+          </small>
+        </div>
+      </section>
+
       <div className="alert alert-info">
         Cliccando su <strong>&quot;Invia la richiesta&quot;</strong> la tua istanza verrà inviata
-        al {nomeEnte}. Riceverai una conferma via email.
+        al {nomeEnte}.
+        {emailNotifica.trim()
+          ? ' Riceverai una conferma via email.'
+          : ' Potrai consultarne lo stato in «Le mie istanze».'}
       </div>
     </div>
   );

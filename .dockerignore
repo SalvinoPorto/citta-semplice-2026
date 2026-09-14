@@ -1,0 +1,65 @@
+# Il contesto di build è la radice del monorepo (serve per `npm ci` con i
+# workspace e per packages/*). Senza queste esclusioni Docker copierebbe
+# centinaia di MB di dipendenze e build dell'host, e — soprattutto — i file
+# .env con le credenziali di produzione.
+
+# Dipendenze: reinstallate nell'immagine con `npm ci`
+node_modules
+**/node_modules
+
+# Build locali dell'host
+.next
+**/.next
+out
+**/out
+build
+**/build
+*.tsbuildinfo
+
+# Client Prisma generato: viene rigenerato durante il build
+packages/db/generated
+
+# Segreti: non devono entrare nel contesto di build
+.env
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
+
+# Git e CI
+.git
+.gitignore
+.github
+
+# Test e coverage: non servono all'immagine di produzione
+coverage
+**/coverage
+test
+**/test
+**/*.test.ts
+**/*.test.tsx
+
+# Strumenti locali, IDE, workspace di agenti
+.claude
+.serena
+.vscode
+.idea
+.superpowers
+.code-review-graph
+.mcp.json
+
+# Docker
+Dockerfile
+**/Dockerfile
+docker-compose*.yml
+**/docker-compose*.yml
+.dockerignore
+
+# Documentazione e script SQL di appoggio
+docs
+**/*.md
+*.sql
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

@@ -435,10 +435,10 @@ export default async function IstanzaDetailPage({
 
         {/* Sidebar */}
         <div className="col-12 col-lg-4">
-          {/* IstanzaAttivita Timeline */}
+          {/* Timeline delle attività */}
           <Card>
             <CardBody>
-              <CardTitle>Storico IstanzaAttivita</CardTitle>
+              <CardTitle>Storico attivit&agrave;</CardTitle>
               <AttivitaTimeline
                 attivita={istanza.attivita}
                 steps={istanza.servizio.steps}

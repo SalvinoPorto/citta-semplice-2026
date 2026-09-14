@@ -90,6 +90,9 @@ app/
 | `GET /api/download/[id]` | Download allegato |
 | `GET /api/cron/payments` | Cron: aggiorna stato pagamenti |
 | `GET /api/cron/statistics` | Cron: aggiorna statistiche giornaliere |
+| `GET /api/cron/protocollazione` | Cron: rettifica con Urbi i protocolli interni assegnati all'invio |
+| `GET /api/health` | Liveness: risponde senza interrogare il database |
+| `GET /api/ready` | Readiness: verifica la connessione al database |
 
 ---
 
@@ -140,7 +143,13 @@ altrimenti                → In Lavorazione / In Attesa
 NextAuth v5-beta con sessione JWT. I ruoli sono in `session.user.ruoli[]`. Usare `requireAuth()` (redirect automatico) o `getCurrentUser()` (nullable) da `src/lib/auth/session.ts`.
 
 ### Upload allegati
-Tutti i file vengono salvati su filesystem locale con nome hashato. Il modello `Allegato` tiene nome originale e hash. Download tramite `/api/download/[id]`.
+Lo storage vive nel package condiviso `@citta/storage`, dietro `getStorage()`:
+`STORAGE_DRIVER=local` salva sul filesystem del processo (utilizzabile solo con una
+istanza in esecuzione), `STORAGE_DRIVER=s3` su object storage S3-compatibile
+(Garage on-premise) — obbligatorio con più replica. In entrambi i casi
+`Allegato.nomeHash` contiene lo stesso percorso relativo `YYYY/MM/DD/<uuid>`,
+quindi cambiare driver non richiede di riscrivere i valori in database. Il modello
+`Allegato` tiene nome originale e hash. Download tramite `/api/download/[id]`.
 
 ---
 

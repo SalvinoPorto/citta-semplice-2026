@@ -217,7 +217,7 @@ export function IstanzaActions({
         note
       });
       if (result.success) {
-        toast.success(result.message || 'IstanzaAttivita avanzato con successo');
+        toast.success(result.message || 'Istanza avanzata con successo');
         setShowAdvanceModal(false);
         setNote('');
         setConfirmAdvanceWithoutPayment(false);

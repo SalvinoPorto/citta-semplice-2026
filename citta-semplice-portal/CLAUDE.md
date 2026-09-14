@@ -22,6 +22,7 @@ Consente ai cittadini di compilare e inviare istanze digitali, monitorarne lo st
 | date-fns | formatting date (locale `it`) |
 | @react-pdf/renderer | generazione PDF moduli |
 | @citta/form-schema | schema dei moduli dinamici (tipi, condizioni, pagine, riepilogo), condiviso con office |
+| @citta/storage | storage allegati (filesystem oppure S3/Garage), condiviso con office |
 
 ---
 
@@ -44,6 +45,8 @@ src/app/
     ├── allegati/[id]/          # Download allegato
     ├── risposta-allegati/[id]/ # Download allegato risposta comunicazione
     ├── servizi/                # API pubblica lista servizi
+    ├── health/                 # Liveness: risponde senza interrogare il database
+    ├── ready/                  # Readiness: verifica la connessione al database
     └── pagamenti/
         ├── bollettino/[iuv]/   # Download bollettino PMPay
         ├── ricevuta/[iuv]/     # Download ricevuta PMPay
@@ -132,6 +135,21 @@ da `@citta/db`.
 ### Protocollazione — Urbi SMART
 - File: `src/lib/services/protocollazione/UrbiProtocolloService.ts`
 - Flusso: lookup/creazione corrispondente → registrazione protocollo
+- **Numerazione sempre in transazione, contatto con Urbi condizionato.**
+  `submitIstanza` conia un numero interno dentro la stessa transazione che
+  prenota il posto in quota: l'istanza ha SEMPRE un numero valido, e non esiste
+  finestra in cui possa restarne priva.
+  Cosa accade subito dopo dipende dal servizio:
+  - `servizi.protocollazione_asincrona = false` (default): si tenta Urbi in
+    linea, con circuit breaker. Se risponde, il numero interno viene sostituito
+    da quello vero dell'ente e la riga di coda marcata `rettificato` prima di
+    rispondere al cittadino.
+  - `= true` (servizi ad alta affluenza, click day): nessuna chiamata di rete
+    durante l'invio; si risponde subito col numero interno.
+  Ciò che resta non rettificato viene ripreso dall'office con
+  `GET /api/cron/protocollazione`, che ripesca le righe `protocollo_emergenza`
+  con `rettificato = false`. Il circuit breaker (`URBI_BREAKER_*`) degrada
+  automaticamente anche i servizi sincroni quando Urbi smette di rispondere
 - Variabili: `URBI_BASE_URL`, `URBI_USERNAME`, `URBI_PASSWORD`, `URBI_ID_AOO`, `URBI_TIPO_MEZZO`, `URBI_CLASSIFICAZIONE`, `URBI_REGISTRATORE`, `URBI_TIMEOUT_MS`
 - Fallback: `generaProtocolloEmergenza` con contatore su `ProtocolloEmergenzaCounter`
 
@@ -144,7 +162,9 @@ da `@citta/db`.
 - File: `src/lib/services/documenti/DocumentiService.tsx`
 - Usa `@react-pdf/renderer` (nessun browser headless): i template sono componenti React (`PaginaModulo`, `PaginaRicevuta`)
 - Attenzione: `lineHeight` moltiplica l'altezza completa del font, non la sola em — `1` equivale a `line-height: 1.45` in CSS
-- Upload su filesystem; path configurato da `UPLOAD_DIR` (default `/tmp/allegati`)
+- Salvataggio via `@citta/storage` (`getStorage()`), non più con `writeFile` diretto:
+  `STORAGE_DRIVER=local` scrive su filesystem (`UPLOAD_DIR`, default `/data/uploads`
+  — prima era `/tmp/allegati`), `STORAGE_DRIVER=s3` su object storage S3-compatibile
 
 ---
 

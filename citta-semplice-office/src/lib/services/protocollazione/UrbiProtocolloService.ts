@@ -16,6 +16,10 @@ export {
   getElencoUffici,
   getElencoUfficiResult,
   getUrbiProductName,
+  // Usata dal drenatore della coda (/api/cron/protocollazione): tenta Urbi e
+  // fallisce senza coniare numeri di ripiego, così un ritentativo andato male
+  // non consuma un progressivo d'emergenza.
+  tentaProtocollazioneUrbi,
 } from '@citta/integrations/protocollazione';
 
 const store: urbi.ProtocolloEmergenzaStore = {

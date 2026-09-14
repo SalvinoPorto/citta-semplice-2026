@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -45,6 +45,7 @@ interface ServizioData {
   numeroMaxIstanze: number | null;
   msgSopraSoglia: string;
   msgExtraServizio: string;
+  protocollazioneAsincrona: boolean;
   campiInEvidenza: string;
   campiDaEsportare: string;
   // prevedeDocumentoFinale: boolean;
@@ -289,6 +290,9 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
       numeroMaxIstanze: null,
       msgSopraSoglia: '',
       msgExtraServizio: '',
+      // Default sincrono: il cittadino riceve subito il protocollo vero
+      // dell'ente. Si attiva solo sui servizi con picchi previsti.
+      protocollazioneAsincrona: false,
       campiInEvidenza: '',
       campiDaEsportare: '',
       // prevedeDocumentoFinale: false,
@@ -452,7 +456,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
   // Mappa i campi ai tab per mostrare dove si trovano gli errori
   const tabFields: Record<string, string[]> = {
     informazioni: ['titolo', 'sottoTitolo', 'descrizione', 'comeFare', 'cosaServe', 'altreInfo', 'contatti', 'slug', 'icona', 'ordine', 'attivo', 'areaId'],
-    configurazione: ['ufficioId', 'dataInizio', 'dataFine', 'unicoInvio', 'unicoInvioPerUtente', 'campiUnicoInvio', 'numeroMaxIstanze', 'msgSopraSoglia', 'msgExtraServizio', 'campiInEvidenza', 'campiDaEsportare'],
+    configurazione: ['ufficioId', 'dataInizio', 'dataFine', 'unicoInvio', 'unicoInvioPerUtente', 'campiUnicoInvio', 'numeroMaxIstanze', 'msgSopraSoglia', 'msgExtraServizio', 'protocollazioneAsincrona', 'campiInEvidenza', 'campiDaEsportare'],
     iter: ['steps'],
     modulo: ['moduloTipo', 'moduloAttributes', 'postFormValidation', 'postFormValidationAPI', 'postFormValidationFields'],
     art18: ['ricevutaArt18'],
@@ -471,7 +475,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
     const labels: Record<string, string> = {
       titolo: 'Titolo',
       areaId: 'Area',
-      steps: 'IstanzaAttivita',
+      steps: 'Attività',
     };
     const messages = Object.keys(errs)
       .map((k) => labels[k] || k)
@@ -853,6 +857,26 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
                     </label>
                   </div>
 
+                  <div className="form-check mb-2">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="protocollazioneAsincrona"
+                      {...register('protocollazioneAsincrona')}
+                    />
+                    <label className="form-check-label" htmlFor="protocollazioneAsincrona">
+                      Protocollazione differita (servizio ad alta affluenza)
+                    </label>
+                    <div className="form-text">
+                      Da attivare sui servizi con picchi previsti, tipo click day.
+                      L&apos;invio non contatta il protocollo: assegna subito un numero
+                      interno e risponde, e il numero dell&apos;ente viene applicato
+                      poco dopo. Lasciandolo spento il cittadino riceve
+                      immediatamente il protocollo vero, ma ogni invio attende la
+                      risposta di Urbi.
+                    </div>
+                  </div>
+
                   <div className="mb-3">
                     <Input
                       type="text"
@@ -943,7 +967,7 @@ export function ServizioForm({ servizio, aree, uffici, isNew }: ServizioFormProp
             </>
           )}
 
-          {/* Tab: IstanzaAttivita */}
+          {/* Tab: Iter */}
           {activeTab === 'iter' && (
             <Card className="mb-4">
               <CardBody>

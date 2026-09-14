@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useRef, ReactNode, ReactElement } from 'react';
+import { useRef, ReactNode, ReactElement } from 'react';
 import { Filter } from '@/lib/models/table';
 
 type TFilterHeadGroupProps = {
