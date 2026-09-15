@@ -1,0 +1,12 @@
+# Job dell'office (fuso Europe/Rome). Chiamati sulla rete overlay interna, non
+# passano da Traefik. supercronic salta un giro se il precedente non è finito:
+# con Urbi lento la protocollazione può durare più di un minuto.
+
+# Rettifica dei protocolli interni con Urbi: secondo tempo dell'invio.
+* * * * * chiama /api/cron/protocollazione
+
+# Allineamento stato pagamenti PMPay.
+*/5 * * * * chiama /api/cron/payments
+
+# Statistiche giornaliere.
+5 0 * * * chiama /api/cron/statistics

@@ -1,0 +1,21 @@
+# /etc/systemd/system/garage.service
+[Unit]
+Description=Garage object storage (citta-semplice)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=garage
+Group=garage
+ExecStart=/usr/local/bin/garage -c /etc/garage.toml server
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=42000
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/garage /srv/garage
+
+[Install]
+WantedBy=multi-user.target

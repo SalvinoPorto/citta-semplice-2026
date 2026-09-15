@@ -1,7 +1,11 @@
 # Runbook — conversione dal DB legacy al go live
 
 Sequenza per portare il database legacy (`io_db`) sullo schema corrente, con la
-ricerca delle istanze funzionante e indicizzata.
+ricerca delle istanze funzionante e indicizzata, e gli allegati dal filesystem
+legacy all'object storage (Garage).
+
+Per l'infrastruttura di destinazione (VM, utenti del database, Garage) vedi
+`docs/deploy-proxmox.md`.
 
 Tempi misurati su **308.776 istanze / 650.741 attività / 111.622 utenti**,
 PostgreSQL 13.3 con `shared_buffers` a 128 MB (il default). Su una macchina
@@ -34,22 +38,29 @@ Tre cose da guardare prima di partire:
 
 ## 1. Schema
 
-Su database **vuoto**:
+Su database **vuoto**, in produzione con il job one-shot dello swarm
+(`docs/deploy-proxmox.md`, §10.3):
+
+```bash
+VERSIONE=v1.0.0 infra/produzione/scripts/migra.sh
+```
+
+oppure, da una macchina con il repository:
 
 ```bash
 cd packages/db
-npx prisma migrate deploy --schema prisma/schema.prisma
+DATABASE_URL=... npx prisma migrate deploy --schema prisma/schema.prisma
 ```
 
-Crea tutto, inclusi colonna `ricerca`, indici trigram e trigger
-(`20260813100000_ricerca_istanze`).
+Applica l'unica migrazione di base, `0_init`: schema Prisma più gli oggetti che
+il DSL non esprime (colonna `ricerca`, pg_trgm, funzioni, trigger, indici GIN),
+presi da `packages/db/prisma/sql/oggetti-database.sql`.
 
 > **Nota sul DB di sviluppo attuale**: non ha la tabella `_prisma_migrations` —
 > lo schema è nato fuori da Prisma. Lì `migrate deploy` proverebbe ad applicare
-> tutte le migrazioni dall'inizio e fallirebbe su oggetti già esistenti. Per il
-> go live si parte da un database vuoto e il problema non si pone; se invece
-> dovessi allineare quello di sviluppo, `prisma migrate resolve --applied <nome>`
-> per ogni migrazione già di fatto presente.
+> `0_init` e fallirebbe su oggetti già esistenti. Per il go live si parte da un
+> database vuoto e il problema non si pone; per allineare quello di sviluppo:
+> `npx prisma migrate resolve --applied 0_init`.
 
 ---
 
@@ -88,7 +99,75 @@ Da leggere nell'output, non da scorrere:
 
 ---
 
-## 4. Ricostruire la ricerca
+## 4. Allegati: dal filesystem legacy a Garage
+
+Nel legacy i file stanno in `<base>/YYYY/MM/DD/<hash>`, ma `nome_hash` in
+database contiene **solo** `<hash>` (99,97% delle righe nel dump demo). Le app
+nuove leggono dallo storage la chiave `nome_hash` così com'è: senza questo
+passo il portal e le risposte alle comunicazioni rispondono 404 su tutti gli
+allegati storici, e solo il download dell'office li ritrova.
+
+`migra-allegati.js` carica ogni file su Garage con chiave `YYYY/MM/DD/<hash>`
+e riscrive `nome_hash` con quella chiave.
+
+### Prerequisiti
+
+- Il filesystem legacy **montato in sola lettura** (NFS/SMB) su una macchina
+  della VLAN di gestione che raggiunga il database di destinazione (5432) e il
+  VIP di Garage (3900). Nel firewall Proxmox aprire la 3900 anche a quella
+  macchina, di norma chiusa fuori dalla VLAN applicativa.
+- Bucket e chiave con permesso di scrittura: la stessa chiave delle app
+  (`garage key info citta-app --show-secret`) o una dedicata da revocare dopo.
+- Spazio: `du -sh <base>` sul legacy. Garage tiene 3 copie, una per nodo:
+  ogni nodo deve avere almeno quello spazio libero, più la crescita.
+
+### Esecuzione
+
+In `.env.local`, oltre alle `DST_*`, le variabili `LEGACY_DIR` e `S3_*` (vedi
+`.env.example`), con gli stessi `S3_BUCKET`, `S3_REGION` ed eventuale
+`S3_PREFIX` delle app.
+
+```bash
+npm run migra-allegati -- --prova          # nessuna scrittura: solo conteggi e report
+npm run migra-allegati -- --concorrenza=16
+```
+
+Va lanciato **dopo** il passo 3: legge le righe già importate. È rilanciabile:
+- un oggetto già presente con la stessa dimensione non viene ricaricato;
+- se si rilancia `migrate-dati` (che riscrive gli hash corti), basta rilanciare
+  anche questo, e rifà solo gli UPDATE.
+
+Ogni upload viaggia con `Content-MD5`: Garage rifiuta un file arrivato corrotto
+(`InvalidDigest`, verificato), che finisce tra gli errori del report.
+
+### Da leggere nell'output
+
+| Voce | Atteso | Se no |
+|---|---|---|
+| `mancanti` | **0** | Righe senza file sul legacy: verificare `LEGACY_DIR` e il mount. Se sono file davvero persi, decidere prima del go live (il cittadino vedrà "File non disponibile") |
+| `ambigui` | **0** | Lo stesso hash in più cartelle, nessuna nella data della riga: scegliere a mano dal report quale è quello giusto |
+| `errori` | **0** | Rete, credenziali, permessi sul bucket: rilanciare, gli upload fatti non si ripetono |
+| `file orfani su disco` | informativo | File che nessuna riga usa (istanze non importate, ad esempio su step disattivati). Non vengono caricati: l'elenco in `orfani-allegati-*.txt` serve a decidere se conservarli o scartarli |
+
+Exit code 0 solo con mancanti, ambigui ed errori a zero. I report
+(`report-allegati-*.csv`, `orfani-allegati-*.txt`) contengono hash e percorsi:
+restano fuori da git e vanno cancellati a migrazione chiusa.
+
+### Prova rapida
+
+```sql
+-- Righe non ancora normalizzate: deve essere 0 (a parte mancanti e ambigui del report)
+SELECT 'allegati' AS tabella, count(*) FROM allegati WHERE nome_hash !~ '^\d{4}/\d{2}/\d{2}/'
+UNION ALL
+SELECT 'allegati_risposta', count(*) FROM allegati_risposta WHERE nome_hash !~ '^\d{4}/\d{2}/\d{2}/';
+```
+
+Poi da interfaccia: scaricare un allegato storico dal portal (come cittadino) e
+dall'office, e l'allegato di una risposta a una comunicazione.
+
+---
+
+## 5. Ricostruire la ricerca
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f sql/03-post-import-ricerca.sql
@@ -111,7 +190,7 @@ Se l'ultimo dice `Seq Scan`, quasi sempre manca l'`ANALYZE`: rilanciare
 
 ---
 
-## 5. Verifica funzionale
+## 6. Verifica funzionale
 
 ```sql
 -- La posizione corrente deve essere coerente: entrambi 0
@@ -139,6 +218,8 @@ UNION ALL SELECT 'istanza_attivita', last_value FROM workflows_id_seq;
 > `workflows_id_seq` **non è un errore**: `ALTER TABLE ... RENAME` non rinomina
 > la sequenza, quindi quella di `istanza_attivita` porta ancora il vecchio nome.
 
+Per gli allegati, la prova rapida del passo 4 deve dare 0.
+
 Poi, da interfaccia: aprire la lista istanze in office e cercare un cognome
 comune. Deve rispondere in decine di millisecondi e trovare le istanze sia per
 dati del modulo sia per anagrafica del cittadino.
@@ -160,6 +241,10 @@ ALTER TABLE "istanze" DROP COLUMN IF EXISTS "ricerca";
 Va però ripristinato anche il filtro in
 `citta-semplice-office/src/app/api/istanze/paged/route.ts`, che senza la colonna
 non trova più nulla.
+
+L'import degli allegati non cancella nulla: i file legacy restano dove sono,
+e un nuovo `migrate-dati` riporta `nome_hash` alla forma legacy. Gli oggetti già
+caricati su Garage restano, e un rilancio di `migra-allegati` li riusa.
 
 ---
 

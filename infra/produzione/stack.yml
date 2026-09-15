@@ -1,0 +1,359 @@
+# Stack di produzione per Docker Swarm su Proxmox VE.
+# Guida completa: docs/deploy-proxmox.md
+#
+# NON si lancia a mano: scripts/deploy.sh carica config.env (le variabili
+# interpolate qui sotto), calcola gli hash delle configs e chiama
+# `docker stack deploy`.
+#
+# Postgres e Garage NON sono in questo stack: vivono su VM dedicate nella VLAN
+# dati, con replica e backup propri. Qui girano solo componenti senza stato.
+version: "3.9"
+
+x-log: &log
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+# Aggiornamento senza disservizio: una replica alla volta, la nuova parte
+# PRIMA che la vecchia si fermi, e se entro 60 s diventa unhealthy lo stack
+# torna da solo alla versione precedente.
+x-update: &update
+  parallelism: 1
+  delay: 15s
+  order: start-first
+  failure_action: rollback
+  monitor: 60s
+
+x-env-app: &env-app
+  NODE_OPTIONS: --max-old-space-size=1536
+  # Connessioni per processo. Budget: (repliche office + repliche portal + 2
+  # durante un rolling update) x DATABASE_POOL_MAX < max_connections - 20.
+  DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+  DATABASE_POOL_TIMEOUT_MS: "10000"
+  STORAGE_DRIVER: s3
+  S3_ENDPOINT: ${S3_ENDPOINT:?imposta S3_ENDPOINT in config.env}
+  S3_BUCKET: ${S3_BUCKET:?imposta S3_BUCKET in config.env}
+  # Deve coincidere con s3_region di garage.toml.
+  S3_REGION: ${S3_REGION:-garage}
+  S3_FORCE_PATH_STYLE: "true"
+  AUTH_TRUST_HOST: "true"
+  JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-2}
+  # Chiavi SENZA valore: arrivano al container solo se definite in config.env,
+  # altrimenti restano i default del codice (una stringa vuota li scavalcherebbe).
+  # Le password NON stanno qui: arrivano come segreti.
+  URBI_PRODUCT_NAME:
+  URBI_BASE_URL:
+  URBI_USERNAME:
+  URBI_ID_AOO:
+  URBI_TIPO_MEZZO:
+  URBI_CLASSIFICAZIONE:
+  URBI_REGISTRATORE:
+  URBI_TIMEOUT_MS:
+  URBI_BREAKER_SOGLIA:
+  URBI_BREAKER_RAFFREDDAMENTO_MS:
+  PROTOCOL_FALLBACK_PREFIX:
+  PMPAY_URL:
+  PMPAY_USERNAME:
+  PMPAY_ENTE_ID:
+  PMPAY_TIMEOUT_MS:
+  PMPAY_URL_OK:
+  PMPAY_URL_KO:
+  PMPAY_URL_CANCEL:
+
+# Segreti: il `target` è il nome del file in /run/secrets, che l'entrypoint
+# dell'immagine trasforma nella variabile omonima (database_url -> DATABASE_URL).
+# Le liste YAML non si fondono con gli anchor, quindi sono ripetute per servizio.
+
+services:
+  # ---------------------------------------------------------------------------
+  # Ingresso: Traefik su ogni nodo con label edge=true, porte in modalità host
+  # (conserva l'IP del client, necessario per l'allowlist dell'office). Il VIP
+  # keepalived dei nodi swarm punta a lui.
+  # ---------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.7.13
+    command:
+      - --providers.swarm.endpoint=tcp://socket-proxy:2375
+      - --providers.swarm.exposedByDefault=false
+      - --providers.swarm.network=citta_pubblico
+      - --providers.file.directory=/etc/traefik/dinamica
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls=true
+      # Upload fino a 10 MB (serverActions.bodySizeLimit) da connessioni mobili lente.
+      - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=300s
+      - --entrypoints.metrics.address=:8082
+      - --metrics.prometheus=true
+      - --metrics.prometheus.entryPoint=metrics
+      - --ping=true
+      - --accesslog=true
+      - --accesslog.format=json
+      - --log.level=INFO
+    ports:
+      - { target: 80, published: 80, protocol: tcp, mode: host }
+      - { target: 443, published: 443, protocol: tcp, mode: host }
+      # Solo per Prometheus: il firewall la apre alla sola VLAN di gestione.
+      - { target: 8082, published: 8082, protocol: tcp, mode: host }
+    configs:
+      - source: traefik_dinamica
+        target: /etc/traefik/dinamica/dinamica.yml
+    secrets:
+      - source: tls_cert
+        target: tls_cert
+      - source: tls_key
+        target: tls_key
+    networks: [pubblico, socket]
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging: *log
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.labels.edge == true]
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: stop-first
+        failure_action: rollback
+      resources:
+        limits: { cpus: "1", memory: 256M }
+
+  # Traefik legge lo stato dello swarm senza toccare il socket Docker: il proxy
+  # espone solo le API in lettura che servono (niente POST, niente exec).
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    environment:
+      SERVICES: 1
+      TASKS: 1
+      NETWORKS: 1
+      NODES: 1
+      INFO: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [socket]
+    logging: *log
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+      resources:
+        limits: { cpus: "0.25", memory: 64M }
+
+  # ---------------------------------------------------------------------------
+  # Applicazioni
+  # ---------------------------------------------------------------------------
+  portal:
+    image: ${REGISTRY:?imposta REGISTRY}/citta-portal:${VERSIONE:?imposta VERSIONE}
+    environment:
+      <<: *env-app
+      NEXTAUTH_URL: https://${PORTAL_HOST:?imposta PORTAL_HOST}
+      CIG_SSO_URL: ${CIG_SSO_URL:?imposta CIG_SSO_URL}
+      CIG_STYLESHEET:
+      CIG_LOGO_URL:
+    secrets:
+      - source: database_url
+        target: database_url
+      - source: s3_access_key_id
+        target: s3_access_key_id
+      - source: s3_secret_access_key
+        target: s3_secret_access_key
+      - source: urbi_password
+        target: urbi_password
+      - source: pmpay_password
+        target: pmpay_password
+      - source: portal_nextauth_secret
+        target: nextauth_secret
+      - source: cig_secret_key
+        target: cig_secret_key
+    networks: [pubblico]
+    stop_grace_period: 30s
+    logging: *log
+    deploy:
+      replicas: ${PORTAL_REPLICHE:-3}
+      placement:
+        # Una replica per nodo Proxmox finché possibile.
+        preferences:
+          - spread: node.labels.zona
+      update_config: *update
+      rollback_config:
+        parallelism: 1
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 5s
+      resources:
+        limits: { cpus: "2", memory: 2G }
+        reservations: { memory: 768M }
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.portal.rule=Host(`${PORTAL_HOST}`)
+        - traefik.http.routers.portal.entrypoints=websecure
+        - traefik.http.routers.portal.tls=true
+        - traefik.http.routers.portal.middlewares=sicurezza@file
+        - traefik.http.services.portal.loadbalancer.server.port=3000
+        # Readiness: una replica col database irraggiungibile esce dal
+        # bilanciamento senza essere riavviata (la liveness è l'HEALTHCHECK
+        # dell'immagine su /api/health).
+        - traefik.http.services.portal.loadbalancer.healthcheck.path=/api/ready
+        - traefik.http.services.portal.loadbalancer.healthcheck.interval=10s
+        - traefik.http.services.portal.loadbalancer.healthcheck.timeout=3s
+
+  office:
+    image: ${REGISTRY}/citta-office:${VERSIONE}
+    environment:
+      <<: *env-app
+      NEXTAUTH_URL: https://${OFFICE_HOST:?imposta OFFICE_HOST}
+      ENABLE_CRON_JOBS: "true"
+    secrets:
+      - source: database_url
+        target: database_url
+      - source: s3_access_key_id
+        target: s3_access_key_id
+      - source: s3_secret_access_key
+        target: s3_secret_access_key
+      - source: urbi_password
+        target: urbi_password
+      - source: pmpay_password
+        target: pmpay_password
+      - source: office_nextauth_secret
+        target: nextauth_secret
+      - source: cron_secret
+        target: cron_secret
+    networks: [pubblico, interno]
+    stop_grace_period: 30s
+    logging: *log
+    deploy:
+      replicas: ${OFFICE_REPLICHE:-2}
+      placement:
+        preferences:
+          - spread: node.labels.zona
+      update_config: *update
+      rollback_config:
+        parallelism: 1
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 5s
+      resources:
+        limits: { cpus: "2", memory: 2G }
+        reservations: { memory: 768M }
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.office.rule=Host(`${OFFICE_HOST}`)
+        - traefik.http.routers.office.entrypoints=websecure
+        - traefik.http.routers.office.tls=true
+        # Back-office: raggiungibile solo dalla rete dell'ente / VPN.
+        - traefik.http.routers.office.middlewares=office-rete,sicurezza@file
+        - traefik.http.middlewares.office-rete.ipallowlist.sourcerange=${OFFICE_RETI_AMMESSE:?imposta OFFICE_RETI_AMMESSE}
+        # I job schedulati si chiamano solo dall'interno (servizio cron, rete
+        # overlay): da fuori rispondono 403 anche a chi è in allowlist.
+        - traefik.http.routers.office-cron.rule=Host(`${OFFICE_HOST}`) && PathPrefix(`/api/cron`)
+        - traefik.http.routers.office-cron.entrypoints=websecure
+        - traefik.http.routers.office-cron.tls=true
+        - traefik.http.routers.office-cron.priority=1000
+        - traefik.http.routers.office-cron.middlewares=blocca@file
+        - traefik.http.routers.office-cron.service=office
+        - traefik.http.services.office.loadbalancer.server.port=3000
+        - traefik.http.services.office.loadbalancer.healthcheck.path=/api/ready
+        - traefik.http.services.office.loadbalancer.healthcheck.interval=10s
+        - traefik.http.services.office.loadbalancer.healthcheck.timeout=3s
+
+  # Scheduler dei job /api/cron/*. UNA replica: supercronic non sovrappone due
+  # esecuzioni dello stesso job, e stop-first evita due scheduler durante un
+  # aggiornamento (un drenatore doppio sprecherebbe chiamate a Urbi).
+  cron:
+    image: ${REGISTRY}/citta-cron:${VERSIONE}
+    environment:
+      OFFICE_URL: http://office:3000
+    configs:
+      - source: crontab
+        target: /etc/citta/crontab
+    secrets:
+      - source: cron_secret
+        target: cron_secret
+    networks: [interno]
+    logging: *log
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 10s
+      resources:
+        limits: { cpus: "0.25", memory: 64M }
+
+networks:
+  pubblico:
+    name: citta_pubblico
+    driver: overlay
+    driver_opts:
+      # Overlay VXLAN = 50 byte di intestazione. Con MTU 1500 sulle VM va bene
+      # 1450; se la VLAN Proxmox è a sua volta un VXLAN (SDN) scendere a 1400.
+      com.docker.network.driver.mtu: ${OVERLAY_MTU:-1450}
+  interno:
+    name: citta_interno
+    driver: overlay
+    driver_opts:
+      com.docker.network.driver.mtu: ${OVERLAY_MTU:-1450}
+  socket:
+    name: citta_socket
+    driver: overlay
+    internal: true
+    driver_opts:
+      com.docker.network.driver.mtu: ${OVERLAY_MTU:-1450}
+
+# Configs e segreti Swarm sono immutabili: il nome contiene hash o versione,
+# così una modifica crea un oggetto nuovo invece di fallire il deploy.
+configs:
+  traefik_dinamica:
+    name: citta_traefik_dinamica_${TRAEFIK_DINAMICA_HASH:?usa scripts/deploy.sh}
+    file: ./traefik/dinamica.yml
+  crontab:
+    name: citta_crontab_${CRONTAB_HASH:?usa scripts/deploy.sh}
+    file: ./cron/crontab
+
+# Creati prima del deploy con scripts/crea-segreti.sh. Per ruotarne uno: crearne
+# la versione successiva (_v2), aggiornare il nome in config.env, rilanciare il
+# deploy (vedi la guida, "Rotazione dei segreti").
+secrets:
+  database_url:
+    external: true
+    name: ${SEGRETO_DATABASE_URL:-citta_database_url_v1}
+  s3_access_key_id:
+    external: true
+    name: ${SEGRETO_S3_ACCESS_KEY_ID:-citta_s3_access_key_id_v1}
+  s3_secret_access_key:
+    external: true
+    name: ${SEGRETO_S3_SECRET_ACCESS_KEY:-citta_s3_secret_access_key_v1}
+  urbi_password:
+    external: true
+    name: ${SEGRETO_URBI_PASSWORD:-citta_urbi_password_v1}
+  pmpay_password:
+    external: true
+    name: ${SEGRETO_PMPAY_PASSWORD:-citta_pmpay_password_v1}
+  portal_nextauth_secret:
+    external: true
+    name: ${SEGRETO_PORTAL_NEXTAUTH_SECRET:-citta_portal_nextauth_secret_v1}
+  office_nextauth_secret:
+    external: true
+    name: ${SEGRETO_OFFICE_NEXTAUTH_SECRET:-citta_office_nextauth_secret_v1}
+  cron_secret:
+    external: true
+    name: ${SEGRETO_CRON_SECRET:-citta_cron_secret_v1}
+  cig_secret_key:
+    external: true
+    name: ${SEGRETO_CIG_SECRET_KEY:-citta_cig_secret_key_v1}
+  tls_cert:
+    external: true
+    name: ${SEGRETO_TLS_CERT:-citta_tls_cert_v1}
+  tls_key:
+    external: true
+    name: ${SEGRETO_TLS_KEY:-citta_tls_key_v1}

@@ -6,3 +6,7 @@ package-lock.json
 .env*
 !.env.example
 *.log
+
+# Report di migra-allegati.js: elencano hash e percorsi degli allegati
+report-allegati-*.csv
+orfani-allegati-*.txt

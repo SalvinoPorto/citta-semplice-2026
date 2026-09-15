@@ -18,7 +18,10 @@ x-s3-bucket: &s3-bucket citta-allegati
 x-app-comune: &app-comune
   restart: unless-stopped
   environment: &env-comune
-    DATABASE_URL: postgresql://io_user:Comct2019@db:5432/io_db?schema=public
+    # Credenziali dal file .env della radice, le stesse che inizializzano il
+    # container db. La password va scritta già codificata per URL se contiene
+    # caratteri come @ : / (es. @ -> %40).
+    DATABASE_URL: postgresql://${POSTGRES_USER:-io_user}:${POSTGRES_PASSWORD:?imposta POSTGRES_PASSWORD nel file .env della radice}@db:5432/${POSTGRES_DB:-citta_semplice}?schema=public
     # Connessioni per processo: max x numero_replica deve restare sotto il
     # max_connections di Postgres.
     DATABASE_POOL_MAX: "10"
@@ -120,13 +123,14 @@ services:
       CIG_LOGO_URL: ${CIG_LOGO_URL:-}
 
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: citta-semplice-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: io_user
-      POSTGRES_PASSWORD: Comct2019
-      POSTGRES_DB: io_db
+      POSTGRES_USER: ${POSTGRES_USER:-io_user}
+      # Senza password l'immagine ufficiale rifiuta di inizializzare il volume.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?imposta POSTGRES_PASSWORD nel file .env della radice}
+      POSTGRES_DB: ${POSTGRES_DB:-citta_semplice}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Schema e dati di test, caricati solo se il volume è vuoto (vedi lo
@@ -138,9 +142,10 @@ services:
       # Trigger, funzioni e indici GIN che il dump non contiene: senza, le
       # istanze nuove restano senza attività corrente e risultano "Retrocesso".
       # Eseguito dopo il 10- perché gli script partono in ordine alfabetico.
-      - ./packages/db/prisma/sql/oggetti-database.sql:/docker-entrypoint-initdb.d/20-oggetti-database.sql:ro
+      #- ./packages/db/prisma/sql/oggetti-database.sql:/docker-entrypoint-initdb.d/20-oggetti-database.sql:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U io_user -d io_db" ]
+      # $$: variabili del container, non interpolate da compose.
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\"" ]
       interval: 5s
       timeout: 5s
       retries: 5

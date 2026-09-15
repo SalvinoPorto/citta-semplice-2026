@@ -1,0 +1,16 @@
+# Righe da aggiungere a /etc/postgresql/17/main/pg_hba.conf (prima delle regole
+# generiche). Tutto il resto resta chiuso.
+#
+# `+citta_app` = qualunque ruolo membro del gruppo citta_app (citta_app_v1,
+# citta_app_v2, ...): è ciò che permette di ruotare la password applicativa
+# senza disservizio (vedi la guida, "Rotazione dei segreti").
+
+# Applicazioni: solo dai nodi swarm, solo verso io_db.
+host    io_db        +citta_app     10.20.0.0/24     scram-sha-256
+# Migrazioni: lanciate come servizio swarm dai nodi manager.
+host    io_db        citta_owner    10.20.0.0/24     scram-sha-256
+# Monitoraggio (postgres_exporter su mon-01).
+host    io_db        monitor        10.10.0.50/32    scram-sha-256
+# Replica: pg-01 <-> pg-02 (entrambe le righe su entrambi i nodi, per il failover).
+host    replication  replicator     10.30.0.11/32    scram-sha-256
+host    replication  replicator     10.30.0.12/32    scram-sha-256

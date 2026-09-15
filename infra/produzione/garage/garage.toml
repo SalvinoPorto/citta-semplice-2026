@@ -1,0 +1,34 @@
+# Garage di produzione: 3 VM (s3-01..03), una per nodo Proxmox.
+# Copiare in /etc/garage.toml su ogni VM cambiando SOLO rpc_public_addr.
+# Guida: docs/deploy-proxmox.md, "Object storage: Garage".
+
+metadata_dir = "/var/lib/garage/meta"   # disco SSD
+data_dir = "/srv/garage/data"           # disco dati dedicato
+
+# LMDB è il motore consigliato con replication_factor >= 2. Gli snapshot
+# periodici dei metadati permettono di ripartire dopo uno spegnimento sporco
+# senza ricostruire il nodo dagli altri due.
+db_engine = "lmdb"
+metadata_auto_snapshot_interval = "6h"
+
+# Tre copie di ogni oggetto, una per zona (= nodo Proxmox). Letture e
+# scritture richiedono il quorum (2 su 3): il cluster regge la perdita di un
+# nodo intero.
+replication_factor = 3
+consistency_mode = "consistent"
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "10.30.0.21:3901"     # <-- IP DI QUESTA VM
+# 64 caratteri esadecimali (openssl rand -hex 32), IDENTICO sui tre nodi,
+# file con permessi 600 e proprietario garage.
+rpc_secret_file = "/etc/garage/rpc_secret"
+
+[s3_api]
+# Deve coincidere con S3_REGION delle app.
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token_file = "/etc/garage/admin_token"
+metrics_token_file = "/etc/garage/metrics_token"

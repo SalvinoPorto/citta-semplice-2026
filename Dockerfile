@@ -37,6 +37,33 @@ COPY packages/storage/package.json packages/storage/
 RUN npm ci --ignore-scripts
 
 # ============================================
+# Stage opzionale: migrazioni del database
+# ============================================
+# Immagine one-shot per `prisma migrate deploy` in esercizio: il runner non ha
+# la CLI di Prisma. Si costruisce solo con --target:
+#   docker build --target migrator -t citta-migrator .
+# Vedi infra/produzione/scripts/migra.sh.
+FROM node:${NODE_VERSION} AS migrator
+
+# openssl: richiesto dallo schema engine di Prisma su alpine.
+RUN apk add --no-cache libc6-compat openssl
+WORKDIR /app
+
+COPY --from=deps /app ./
+COPY packages/db ./packages/db
+
+# `npm ci --ignore-scripts` non ha scaricato lo schema engine: lo si scarica
+# qui, in build, così in esercizio il job non ha bisogno di uscire su internet.
+RUN npm rebuild prisma @prisma/engines
+
+COPY --chmod=755 infra/docker/carica-segreti.sh /usr/local/bin/carica-segreti
+
+USER node
+WORKDIR /app/packages/db
+ENTRYPOINT ["/usr/local/bin/carica-segreti"]
+CMD ["npx", "--no-install", "prisma", "migrate", "deploy"]
+
+# ============================================
 # Stage 2: build
 # ============================================
 FROM node:${NODE_VERSION} AS builder
@@ -120,5 +147,12 @@ ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT}/api/health" || exit 1
 
-# `sh -c` perché il percorso dipende da APP, che va espanso a runtime.
-CMD ["sh", "-c", "node ${APP}/server.js"]
+# Segreti di Docker Swarm (/run/secrets/*) -> variabili d'ambiente. Senza
+# segreti montati (docker compose) è un passacarte.
+COPY --chmod=755 infra/docker/carica-segreti.sh /usr/local/bin/carica-segreti
+ENTRYPOINT ["/usr/local/bin/carica-segreti"]
+
+# `sh -c` perché il percorso dipende da APP, che va espanso a runtime. `exec`
+# fa di node il processo principale: riceve direttamente il SIGTERM dei rolling
+# update e chiude le connessioni in corso invece di essere ucciso a timeout.
+CMD ["sh", "-c", "exec node ${APP}/server.js"]

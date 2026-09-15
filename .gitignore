@@ -74,3 +74,6 @@ db_demo.sql
 
 # Segreti per docker compose (interpolati in docker-compose.yml)
 /.env
+
+# Configurazione di produzione compilata sul nodo manager (vedi infra/produzione/config.env.example)
+infra/produzione/config.env

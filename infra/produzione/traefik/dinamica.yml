@@ -1,0 +1,36 @@
+# Configurazione dinamica di Traefik (provider file), montata come config Swarm.
+# scripts/deploy.sh ne calcola l'hash: basta modificarla e rilanciare il deploy.
+
+tls:
+  # Certificato dell'ente (wildcard o SAN con PORTAL_HOST e OFFICE_HOST),
+  # caricato come segreto Swarm. ACME/Let's Encrypt NON è usato: Traefik gira
+  # su più nodi e la versione open source non condivide lo storage ACME fra
+  # repliche.
+  certificates:
+    - certFile: /run/secrets/tls_cert
+      keyFile: /run/secrets/tls_key
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /run/secrets/tls_cert
+        keyFile: /run/secrets/tls_key
+  options:
+    default:
+      minVersion: VersionTLS12
+      # Nessuna risposta a host sconosciuti (scansioni per IP).
+      sniStrict: true
+
+http:
+  middlewares:
+    sicurezza:
+      headers:
+        stsSeconds: 31536000
+        stsPreload: false
+        # X-Frame-Options, nosniff e Referrer-Policy li imposta già Next
+        # (next.config.ts): qui solo ciò che spetta al terminatore TLS.
+
+    # Risponde 403 a chiunque: usato per /api/cron dall'esterno.
+    blocca:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.1/32
