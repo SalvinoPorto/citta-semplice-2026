@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, ReactNode, ReactElement } from 'react';
+import { Children, cloneElement, isValidElement, useState, ReactNode, ReactElement } from 'react';
 import './THead.css';
 import { Order } from '@/lib/models/table';
 
@@ -28,11 +28,11 @@ export function THeadGroup({ children, onChange, initialField = '', initialDirec
     }
   };
 
-  const childrenWithProps = React.Children.map(children, (child) => {
-    if (!React.isValidElement(child)) return child;
+  const childrenWithProps = Children.map(children, (child) => {
+    if (!isValidElement(child)) return child;
     const element = child as ReactElement<any>;
     const field = (element.props && (element.props as any).field) || '';
-    return React.cloneElement(element, {
+    return cloneElement(element, {
       childClick,
       active: field && activeField === field,
       direction: activeDirection,

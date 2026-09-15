@@ -5,95 +5,6 @@ Consente ai cittadini di compilare e inviare istanze digitali, monitorarne lo st
 
 ---
 
-## Stack Tecnologico
-
-| Dipendenza | Versione |
-|---|---|
-| Next.js | ^16.2.3 (Turbopack in dev) |
-| React | 19 |
-| TypeScript | ^5.7 |
-| Prisma | ^7.7 (schema e client generato in `@citta/db`, package condiviso con office) |
-| PostgreSQL | via `@prisma/adapter-pg` |
-| next-auth | v5 beta (JWT strategy) |
-| react-hook-form | ^7 + `@hookform/resolvers` |
-| zod | ^4 |
-| bootstrap-italia | ^2.12 (tema comuni) |
-| sonner | toast notifications |
-| date-fns | formatting date (locale `it`) |
-| @react-pdf/renderer | generazione PDF moduli |
-| @citta/form-schema | schema dei moduli dinamici (tipi, condizioni, pagine, riepilogo), condiviso con office |
-| @citta/storage | storage allegati (filesystem oppure S3/Garage), condiviso con office |
-
----
-
-## Struttura delle Route
-
-```
-src/app/
-├── (auth)/login/               # Login con codice fiscale (no password)
-├── (portal)/                   # Layout con Header/Footer Bootstrap Italia
-│   ├── page.tsx                # Home - lista aree e servizi in evidenza
-│   ├── servizi/page.tsx        # Catalogo servizi con ricerca
-│   ├── [areaSlug]/page.tsx     # Scheda area
-│   ├── [areaSlug]/[servizioSlug]/page.tsx      # Scheda servizio
-│   ├── [areaSlug]/[servizioSlug]/istanza/page.tsx  # Compilazione istanza (stepper)
-│   └── le-mie-istanze/
-│       ├── page.tsx            # Dashboard cittadino (bozze + istanze inviate)
-│       └── [id]/page.tsx       # Dettaglio istanza (workflow, comunicazioni, pagamenti)
-└── api/
-    ├── auth/[...nextauth]/     # NextAuth handler
-    ├── allegati/[id]/          # Download allegato
-    ├── risposta-allegati/[id]/ # Download allegato risposta comunicazione
-    ├── servizi/                # API pubblica lista servizi
-    ├── health/                 # Liveness: risponde senza interrogare il database
-    ├── ready/                  # Readiness: verifica la connessione al database
-    └── pagamenti/
-        ├── bollettino/[iuv]/   # Download bollettino PMPay
-        ├── ricevuta/[iuv]/     # Download ricevuta PMPay
-        └── url/[iuv]/          # Redirect URL pagamento PMPay
-```
-
----
-
-## Struttura dei Componenti
-
-```
-src/components/
-├── istanza/
-│   ├── IstanzaStepper.tsx      # Stepper client (Privacy → Modulo → Allegati → Riepilogo)
-│   ├── PrivacyStep.tsx
-│   ├── ModuloStep.tsx          # Form dinamico da JSON `attributi`
-│   ├── AllegatiStep.tsx
-│   ├── RiepilogoStep.tsx
-│   └── RispostaComunicazioneForm.tsx
-├── layout/
-│   ├── Header.tsx
-│   ├── Footer.tsx
-│   └── nav-bar.tsx
-├── servizi/
-│   ├── ServiziSearch.tsx       # Client component con ricerca/paginazione
-│   └── ServizioIndice.tsx
-├── shared/
-│   ├── Paginatore.tsx
-│   ├── TFilterHead.tsx / TFilterHeadGroup.tsx / THeadGroup.tsx
-│   └── index.ts
-└── ui/
-    ├── Breadcrumb.tsx
-    └── ScrollToTop.tsx
-```
-
----
-
-## Server Actions (`src/lib/actions/`)
-
-| File | Azioni |
-|---|---|
-| `istanza.ts` | `salvaBozza`, `eliminaBozza`, `submitIstanza`, `generaDocumentoPdf` |
-| `le-mie-istanze.ts` | `getIstanzePage` (paginazione istanze inviate) |
-| `comunicazioni.ts` | risposta alle comunicazioni dell'operatore |
-
----
-
 ## Autenticazione
 
 - **next-auth v5** con `CredentialsProvider`
@@ -104,24 +15,7 @@ src/components/
 
 ---
 
-## Database - Entità Principali (Prisma / PostgreSQL)
-
-| Entità | Scopo |
-|---|---|
-| `Utente` | Cittadino, chiave `codiceFiscale` univoca |
-| `Operatore` | Utente backoffice con ruoli |
-| `Ente` | Anagrafica ente (comune) |
-| `Area` | Raggruppamento tematico di servizi |
-| `Servizio` | Servizio online; contiene `attributi` (JSON form schema) |
-| `Ufficio` | Ufficio responsabile del servizio |
-| `Step` | Fase del workflow del servizio |
-| `Istanza` | Richiesta inviata dal cittadino; `inBozza=true` per bozze |
-| `Workflow` | Transizione di stato dell'istanza |
-| `Comunicazione` / `RispostaComunicazione` | Scambio messaggi operatore ↔ cittadino |
-| `Allegato` / `AllegatoRichiesto` / `AllegatoRisposta` | Documenti allegati |
-| `Pagamento` / `PagamentoAtteso` | Configurazione e stato pagamento PMPay |
-| `Ricevuta` | Dati ricevuta Art. 18-bis L. 241/1990 |
-| `CustomerSatisfaction` | Contatori feedback per servizio |
+## Database
 
 Schema e client Prisma vivono nel package `@citta/db` (`packages/db`), condiviso con
 `citta-semplice-office`: il client generato sta in `packages/db/generated/prisma/`
@@ -173,7 +67,7 @@ da `@citta/db`.
 ### Stepper istanza (`IstanzaStepper`)
 - 4 step fissi: Privacy (0) → Modulo (1) → Allegati (2) → Riepilogo (3)
 - Il form del modulo è generato dinamicamente da `servizio.attributi` (JSON schema)
-- "Salva in bozza" disponibile dallo step 1 al 2; aggiorna `Istanza.inBozza=true`
+- "Salva in bozza" disponibile dallo step 1 al 2; l'istanza resta in stato `BOZZA`
 - Al cambio step viene eseguito `scrollIntoView` sul container dello stepper
 
 ### Bozze

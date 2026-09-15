@@ -14,7 +14,7 @@ App per la conversione dati dal vecchio formato a quello attuale
   - per ogni workflow di una istanza gli step sono minimo 2 ( Presentazione istanza e conclusione)
 - La visibilità dei servizi da parte degli operatori deriva da old.operatori_moduli che però è stata spostata a livello di ufficio a cui appartiene l'operatore per cui va convertito in da operatore-moduli, passando per operatori-servizi, a ufficio-servizi
 -nel nuovo schema è stato introdotto il concetto di fase che raggruppa gli step; in questa fase di conversione poni tutti gli step esistemti in una fase unica; osserva i progetti portal e office per capire la logica
-- usa il file @migrate-dati.js che contiene parte della logica di conversione e completa la parte mancante, aggiusta l'ordine di import delle tabelle in funzione delle chiavi esterne
+- usa il file `migrate-dati.js` che contiene parte della logica di conversione e completa la parte mancante, aggiusta l'ordine di import delle tabelle in funzione delle chiavi esterne
 
 ##
 Prima di iniziare a scrivere codice fai domande se qualcosa non è chiaro

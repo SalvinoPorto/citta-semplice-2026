@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRef, ReactNode, ReactElement } from 'react';
+import { Children, cloneElement, isValidElement, useRef, ReactNode, ReactElement } from 'react';
 import { Filter } from '@/lib/models/table';
 
 type TFilterHeadGroupProps = {
@@ -22,9 +22,9 @@ export function TFilterHeadGroup({ children, onFilter }: TFilterHeadGroupProps) 
     }
   };
 
-  const childrenWithProps = React.Children.map(children, (child) =>
-    React.isValidElement(child)
-      ? React.cloneElement(child as ReactElement<any>, {
+  const childrenWithProps = Children.map(children, (child) =>
+    isValidElement(child)
+      ? cloneElement(child as ReactElement<any>, {
           onFilter: handleFilter,
         })
       : child

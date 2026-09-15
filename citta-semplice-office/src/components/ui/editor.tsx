@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
+import { useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -17,8 +18,8 @@ interface EditorProps {
 }
 
 const MenuBar = ({ editor, withLink }: { editor: any; withLink?: boolean }) => {
-    const [showLinkInput, setShowLinkInput] = React.useState(false);
-    const [linkUrl, setLinkUrl] = React.useState('');
+    const [showLinkInput, setShowLinkInput] = useState(false);
+    const [linkUrl, setLinkUrl] = useState('');
 
     if (!editor) {
         return null;
@@ -166,7 +167,7 @@ export default function Editor({ value, onChange, onBlur, placeholder, className
     });
 
     // Sincronizza il valore esterno con l'editor
-    React.useEffect(() => {
+    useEffect(() => {
         if (editor && value !== editor.getHTML()) {
             editor.commands.setContent(value);
         }
